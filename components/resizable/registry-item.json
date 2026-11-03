@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "resizable",
+  "type": "hyperframes:component",
+  "title": "Resizable",
+  "description": "A two-panel split whose divider is grabbed by the cursor and dragged right, left, then back to the middle.",
+  "tags": [
+    "ui",
+    "resizable",
+    "split",
+    "drag",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 6.5,
+  "useWhen": [
+    "Demonstrating a code and preview split layout with its ratio animating.",
+    "Showing a drag-to-resize interaction with handle hover and press states.",
+    "Visualizing before and after content that morphs its split point."
+  ],
+  "avoidWhen": [
+    "You need fixed-width layout panels: plain CSS avoids the drag-state overhead.",
+    "The split is purely decorative: use a plain container instead.",
+    "You need more than two panels: compose several instances."
+  ],
+  "checkAt": [
+    0.6,
+    3.0,
+    4.6,
+    6.3
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/resizable/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "resizable.html",
+      "target": "compositions/components/resizable.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "direction", "type": "enum", "role": "style", "label": "Direction", "description": "Split axis: panels side by side or stacked.", "default": "horizontal", "options": [{"value": "horizontal", "label": "Horizontal"}, {"value": "vertical", "label": "Vertical"}]},
+    {"id": "first_label", "type": "string", "role": "content", "label": "First panel", "description": "Label of the first panel.", "default": "Panel one"},
+    {"id": "second_label", "type": "string", "role": "content", "label": "Second panel", "description": "Label of the second panel.", "default": "Panel two"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

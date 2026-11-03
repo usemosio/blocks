@@ -1,0 +1,117 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "duotone-beat",
+  "type": "hyperframes:component",
+  "title": "Duotone Beat",
+  "description": "A two-ink halftone portrait that swaps its ink pair on every beat, punches in on the downbeat and shows a bar indicator. A built-in silhouette stands in for the photo; a host replaces the contents of the .db-picture layer with its own image.",
+  "tags": [
+    "duotone",
+    "halftone",
+    "beat",
+    "social",
+    "portrait",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 4,
+  "useWhen": [
+    "A speaker, artist or team portrait should hit on the beat of a track, poster-style, for a promo or social cut.",
+    "The edit is cut to music at a known BPM and the visual should flash through brand color pairs in time.",
+    "A photo needs a bold two-color print treatment that keeps moving instead of sitting as a still."
+  ],
+  "avoidWhen": [
+    "The print look should hold steady on a live scene with full color separation: use halftone-print.",
+    "The image should print once and settle, without a beat: use riso-print.",
+    "The beat should drive a camera jolt on heavy content rather than a color swap: use impact-shake."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/duotone-beat/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "duotone-beat.html",
+      "target": "compositions/components/duotone-beat.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "beat_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per beat",
+      "description": "Frames per beat at 30 fps (15 is 120 BPM).",
+      "default": 15,
+      "min": 4,
+      "max": 30,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "beats_per_bar",
+      "type": "number",
+      "role": "motion",
+      "label": "Beats per bar",
+      "description": "Beats per bar; the first beat of each bar gets the bigger punch-in.",
+      "default": 4,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "punch",
+      "type": "number",
+      "role": "motion",
+      "label": "Punch",
+      "description": "Scale added on the downbeat. Off-beats get a third of it.",
+      "default": 0.07,
+      "min": 0,
+      "max": 0.2,
+      "step": 0.01
+    },
+    {
+      "id": "halftone",
+      "type": "number",
+      "role": "style",
+      "label": "Halftone pitch",
+      "description": "Halftone dot pitch in pixels at 720p. 0 keeps smooth tones.",
+      "default": 8,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "show_indicator",
+      "type": "boolean",
+      "role": "style",
+      "label": "Bar indicator",
+      "description": "Show the beat squares and BPM tag.",
+      "default": true
+    },
+    {
+      "id": "palettes",
+      "type": "string",
+      "role": "style",
+      "label": "Ink pairs",
+      "description": "JSON list of [shadow ink, highlight ink] hex pairs, one per beat, cycled.",
+      "default": "[[\"#111111\",\"#FFFFFF\"],[\"#111111\",\"#E5322D\"],[\"#E5322D\",\"#FFFFFF\"],[\"#E5322D\",\"#111111\"]]"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

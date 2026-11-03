@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "keystroke",
+  "type": "hyperframes:component",
+  "title": "Keystroke",
+  "description": "Physical keycaps rise and press to show keyboard shortcuts, one chord after another.",
+  "tags": [
+    "keyboard",
+    "shortcut",
+    "keycap",
+    "ui",
+    "tutorial",
+    "remocn-port"
+  ],
+  "category": "effects",
+  "duration": 6,
+  "useWhen": [
+    "A product tutorial or demo needs to show which keyboard shortcut is being used.",
+    "Keys should feel physical, rising and pressing, rather than appear as flat text."
+  ],
+  "avoidWhen": [
+    "You need a flat caption: use a lower-third or text block.",
+    "The video has no keyboard action to illustrate."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/keystroke/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "keystroke.html",
+      "target": "compositions/components/keystroke.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"steps","type":"string","role":"content","label":"Steps","description":"JSON array of {at, keys, hold}: at is the frame (30 fps), keys is a chord like \"mod+k\", \"shift+mod+p\", or a sequence like \"g i\"; mod is Command on Mac and Ctrl on Windows.","default":"[{\"at\":20,\"keys\":\"mod+k\"},{\"at\":78,\"keys\":\"g i\"},{\"at\":114,\"keys\":\"shift+mod+p\"}]"},
+    {"id":"platform","type":"enum","role":"style","label":"Platform","description":"Keyboard legends for Mac or Windows.","default":"mac","options":[{"value":"mac","label":"Mac"},{"value":"windows","label":"Windows"}]},
+    {"id":"theme","type":"enum","role":"style","label":"Theme","description":"Keycap theme.","default":"light","options":[{"value":"light","label":"Light"},{"value":"dark","label":"Dark"}]},
+    {"id":"accent","type":"color","role":"style","label":"Accent","description":"Color of the pressed legend.","default":"#0a84ff"},
+    {"id":"size","type":"number","role":"layout","label":"Key size","description":"Key size at a 720 px frame height.","default":64,"min":32,"max":128,"step":1,"unit":"px"},
+    {"id":"linger","type":"number","role":"motion","label":"Linger","description":"Frames (30 fps) a shortcut stays after it is pressed.","default":30,"min":0,"max":90,"step":1,"unit":"frames"},
+    {"id":"x","type":"number","role":"layout","label":"Center X","description":"Horizontal center across the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},
+    {"id":"y","type":"number","role":"layout","label":"Center Y","description":"Vertical center down the frame, 0 to 1.","default":0.86,"min":0,"max":1,"step":0.01},
+    {"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}
+  ]
+}

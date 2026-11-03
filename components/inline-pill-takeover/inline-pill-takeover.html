@@ -1,0 +1,223 @@
+<!doctype html>
+<!--
+  Inline Pill Takeover
+
+  A clipped pill expands inside a sentence, pushes the words apart, and takes over the frame.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/inline-pill-takeover/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="inline-pill-takeover"
+  data-composition-duration="1.5"
+  data-composition-variables='[
+    { "id": "before", "type": "string", "role": "content", "label": "Before", "description": "Copy to the left of the pill.", "default": "powering 20%" },
+    { "id": "insert", "type": "string", "role": "content", "label": "Pill text", "description": "Label inside the pill.", "default": "Start building" },
+    { "id": "after", "type": "string", "role": "content", "label": "After", "description": "Copy to the right of the pill.", "default": "of the Internet." },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in pixels.", "default": 52, "min": 24, "max": 120, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#fff3df" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] },
+    { "id": "pill_width", "type": "number", "role": "style", "label": "Pill width", "description": "Width of the pill once expanded.", "default": 260, "min": 100, "max": 600, "step": 1, "unit": "px" },
+    { "id": "pill_color", "type": "color", "role": "style", "label": "Pill color", "description": "Background of the pill.", "default": "#fffaf0" },
+    { "id": "pill_text_color", "type": "color", "role": "style", "label": "Pill text color", "description": "Color of the label inside the pill.", "default": "#1c1210" },
+    { "id": "expand_frames", "type": "number", "role": "motion", "label": "Expand frames", "description": "Frames the pill takes to open (30 fps).", "default": 12, "min": 6, "max": 45, "step": 1, "unit": "frames" },
+    { "id": "pill_reveal_height_scale", "type": "number", "role": "motion", "label": "Reveal height", "description": "Pill height at the start, as a fraction of its full height.", "default": 0.35, "min": 0.05, "max": 1, "step": 0.05 },
+    { "id": "pill_grow_at", "type": "number", "role": "motion", "label": "Grow at", "description": "Frame where the pill starts to grow.", "default": 12, "min": 6, "max": 30, "step": 1, "unit": "frames" },
+    { "id": "pill_grow_frames", "type": "number", "role": "motion", "label": "Grow frames", "description": "Frames the pill growth takes.", "default": 24, "min": 6, "max": 36, "step": 1, "unit": "frames" },
+    { "id": "pill_grow_width_scale", "type": "number", "role": "motion", "label": "Grow width", "description": "Final extra width scale of the pill.", "default": 1.08, "min": 1, "max": 1.3, "step": 0.01 },
+    { "id": "pill_grow_height_scale", "type": "number", "role": "motion", "label": "Grow height", "description": "Final extra height scale of the pill.", "default": 1.16, "min": 1, "max": 1.5, "step": 0.01 },
+    { "id": "outer_exit_frames", "type": "number", "role": "motion", "label": "Outer exit frames", "description": "Frames the surrounding copy takes to blur and fade.", "default": 18, "min": 6, "max": 30, "step": 1, "unit": "frames" },
+    { "id": "takeover_at", "type": "number", "role": "motion", "label": "Takeover at", "description": "Frame where the camera starts to push in.", "default": 12, "min": 12, "max": 40, "step": 1, "unit": "frames" },
+    { "id": "takeover_scale", "type": "number", "role": "motion", "label": "Takeover scale", "description": "Camera scale once the pill has taken over.", "default": 2.15, "min": 1, "max": 4, "step": 0.05 },
+    { "id": "blur", "type": "number", "role": "motion", "label": "Blur", "description": "Blur in pixels the surrounding copy ends at.", "default": 12, "min": 0, "max": 30, "step": 1, "unit": "px" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Inline Pill Takeover</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #fff3df);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .ipt-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ipt-cam { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transform-origin: 50% 50%; }
+        .ipt-row { display: flex; align-items: center; justify-content: center; width: 100%; white-space: nowrap; letter-spacing: -0.02em; line-height: 1; }
+        .ipt-side { flex: 1; color: var(--color, #fff3df); }
+        .ipt-before { text-align: right; }
+        .ipt-after { text-align: left; }
+        .ipt-pill { position: relative; display: inline-block; flex-shrink: 0; overflow: hidden; }
+        .ipt-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="inline-pill-takeover" data-duration="1.5" data-fps="30">
+        <div id="ipt-clip" class="ipt-stage clip" data-start="0" data-duration="1.5" data-track-index="0">
+          <div id="ipt-cam" class="ipt-cam">
+            <div id="ipt-row" class="ipt-row">
+              <span id="ipt-before" class="ipt-side ipt-before"></span>
+              <span id="ipt-pill" class="ipt-pill"><span id="ipt-label" class="ipt-label"></span></span>
+              <span id="ipt-after" class="ipt-side ipt-after"></span>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("ipt-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "1.5");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["inline-pill-takeover"] = tl;
+            }
+            // interpolate() with clamping, easing given as a function of progress.
+            function ip(f, a, b, from, to, ease) {
+              var p = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "400");
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            var size = num(vars.font_size, 52, 24, 120);
+            var pillWidth = num(vars.pill_width, 260, 100, 600);
+            var expandFrames = num(vars.expand_frames, 12, 6, 45);
+            var revealH = num(vars.pill_reveal_height_scale, 0.35, 0.05, 1);
+            var growAt = num(vars.pill_grow_at, 12, 6, 30);
+            var growFrames = num(vars.pill_grow_frames, 24, 6, 36);
+            var growW = num(vars.pill_grow_width_scale, 1.08, 1, 1.3);
+            var growH = num(vars.pill_grow_height_scale, 1.16, 1, 1.5);
+            var outerExitFrames = num(vars.outer_exit_frames, 18, 6, 30);
+            var takeoverAt = num(vars.takeover_at, 12, 12, 40);
+            var takeoverScale = num(vars.takeover_scale, 2.15, 1, 4);
+            var blurPx = num(vars.blur, 12, 0, 30);
+            var row = document.getElementById("ipt-row");
+            var cam = document.getElementById("ipt-cam");
+            var pill = document.getElementById("ipt-pill");
+            var label = document.getElementById("ipt-label");
+            var before = document.getElementById("ipt-before");
+            var after = document.getElementById("ipt-after");
+            before.textContent = str(vars.before, "powering 20%");
+            label.textContent = str(vars.insert, "Start building");
+            after.textContent = str(vars.after, "of the Internet.");
+            pill.style.background = str(vars.pill_color, "#fffaf0");
+            pill.style.color = str(vars.pill_text_color, "#1c1210");
+            row.style.fontSize = size + "px";
+            row.style.fontWeight = weight;
+            row.style.gap = size * 0.16 + "px";
+            label.style.fontSize = size * 0.84 + "px";
+
+            var expandEase = bz("expand", 0.5, 1, 0.89, 1);      // out quad
+            var growEase = bz("grow", 0.455, 0.03, 0.515, 0.955); // in-out quad
+            var fadeEase = bz("fade", 0.55, 0.055, 0.675, 0.19);  // in cubic
+            var preEase = bz("pre", 0.5, 1, 0.89, 1);
+            var settleEase = bz("settle", 0.215, 0.61, 0.355, 1); // out cubic
+            var dash = size * 0.72, pillH = size * 1.22;
+            var cutAt = takeoverAt + 12;
+            var cutEntry = takeoverScale * 0.86;
+            var P = { f: 0 };
+            function apply() {
+              var f = P.f;
+              var expand = ip(f, 0, Math.max(expandFrames, 0.001), 0, 1, expandEase);
+              var grow = ip(f, growAt, growAt + Math.max(growFrames, 0.001), 0, 1, growEase);
+              var outer = ip(f, 2, Math.max(outerExitFrames, 2.001), 0, 1, fadeEase);
+              var w = (dash + (pillWidth - dash) * expand) * (1 + (growW - 1) * grow);
+              var h = pillH * (revealH + (1 - revealH) * expand) * (1 + (growH - 1) * grow);
+              pill.style.width = w + "px";
+              pill.style.height = h + "px";
+              pill.style.borderRadius = h / 2 + "px";
+              label.style.opacity = f >= 3 ? 1 : 0;
+              before.style.opacity = after.style.opacity = 1 - outer;
+              var b = outer > 0 ? "blur(" + blurPx * outer + "px)" : "none";
+              before.style.filter = after.style.filter = b;
+              var s = f < cutAt
+                ? ip(f, takeoverAt, cutAt - 1, 1, 1.25, preEase)
+                : ip(f, cutAt, cutAt + 6, cutEntry, takeoverScale, settleEase);
+              cam.style.transform = "scale(" + s + ")";
+            }
+            apply();
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: apply }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

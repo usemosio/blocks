@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "tabs",
+  "type": "hyperframes:component",
+  "title": "Tabs",
+  "description": "A tab bar: a pointer clicks each tab in turn, the indicator slides to it, the label darkens and the panel text cross-fades.",
+  "tags": [
+    "tabs",
+    "navigation",
+    "segmented",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "A settings or dashboard demo needs to switch sections with an animated indicator.",
+    "Showing tab navigation with content that changes underneath."
+  ],
+  "avoidWhen": [
+    "A segmented single-choice control without panels: use toggle-group.",
+    "A multi-step wizard: use stepper."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/tabs/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "tabs.html",
+      "target": "compositions/components/tabs.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Tabs",
+      "description": "Comma-separated tab labels.",
+      "default": "Account, Password, Settings"
+    },
+    {
+      "id": "contents",
+      "type": "string",
+      "role": "content",
+      "label": "Panel texts",
+      "description": "Panel text per tab, separated by |.",
+      "default": "Make changes to your account here.|Change your password here.|Manage your notification settings."
+    },
+    {
+      "id": "content_height",
+      "type": "number",
+      "role": "style",
+      "label": "Panel height",
+      "description": "Height of the panel area in design pixels.",
+      "default": 72,
+      "min": 24,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "variant",
+      "type": "enum",
+      "role": "style",
+      "label": "Variant",
+      "description": "Pill track or underline.",
+      "default": "pill",
+      "options": [
+        {
+          "value": "pill",
+          "label": "Pill"
+        },
+        {
+          "value": "underline",
+          "label": "Underline"
+        }
+      ]
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+<!doctype html>
+<!--
+  Neon Sign
+
+  A glass neon tube stutters alive segment by segment, buzzes off once, then holds lit with a glow on the wall. Replace the path variable with your own monoline SVG path.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/neon-sign/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="neon-sign"
+  data-composition-duration="2.333"
+  data-composition-variables='[
+    {"id": "path", "type": "string", "role": "content", "label": "Tube path", "description": "SVG path data for the tube. Each subpath (M command) flickers on its own.", "default": "M 30 132 C 52 112 74 70 70 46 C 67 28 50 30 47 52 C 44 76 42 112 40 140 C 46 116 58 100 72 100 C 86 100 84 122 86 134 C 88 144 100 144 110 132 M 110 132 C 124 124 142 110 136 98 C 130 88 112 96 112 116 C 112 138 134 146 156 130 M 156 130 C 176 110 196 66 190 46 C 186 32 170 36 168 60 C 166 90 168 126 172 136 C 176 146 188 142 196 132 M 196 132 C 216 110 232 66 226 46 C 222 32 206 36 204 60 C 202 90 204 126 208 136 C 212 146 224 142 232 132 M 232 132 C 238 116 248 100 262 100 C 278 100 280 124 268 136 C 256 146 242 136 248 118 C 252 106 268 104 290 104 M 52 170 C 120 160 210 162 296 152"},
+    {"id": "color", "type": "color", "role": "style", "label": "Tube", "description": "Tube color when lit.", "default": "#E5322D"},
+    {"id": "glow_color", "type": "color", "role": "style", "label": "Glow", "description": "Color of the halo and the glow on the wall.", "default": "#E5322D"},
+    {"id": "tube_color", "type": "color", "role": "style", "label": "Unlit tube", "description": "Unlit glass tube.", "default": "#2A2A2A"},
+    {"id": "core_color", "type": "color", "role": "style", "label": "Core", "description": "Color of the hot core inside the tube.", "default": "#FFFFFF"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Wall color.", "default": "#111111"},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Tube thickness", "description": "Tube thickness in path units.", "default": 6, "min": 2, "max": 14, "step": 1},
+    {"id": "fit", "type": "number", "role": "style", "label": "Fit", "description": "Share of the frame width the sign spans.", "default": 0.62, "min": 0.3, "max": 0.9, "step": 0.01},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the flicker.", "default": 7, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Neon Sign</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--bg); }
+        .ns-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .ns-glow { position: absolute; inset: 0; opacity: 0; }
+        .ns-svg { position: relative; overflow: visible; }
+      </style>
+
+      <div id="root" data-composition-id="neon-sign" data-duration="2.333" data-fps="30">
+        <div id="ns-clip" class="ns-stage clip" data-start="0" data-duration="2.333" data-track-index="0">
+          <div class="ns-glow" id="ns-glow"></div>
+          <svg class="ns-svg" id="ns-svg"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "neon-sign";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var glow = document.getElementById("ns-glow"), svg = document.getElementById("ns-svg");
+var HELLO = "M 30 132 C 52 112 74 70 70 46 C 67 28 50 30 47 52 C 44 76 42 112 40 140 C 46 116 58 100 72 100 C 86 100 84 122 86 134 C 88 144 100 144 110 132 M 110 132 C 124 124 142 110 136 98 C 130 88 112 96 112 116 C 112 138 134 146 156 130 M 156 130 C 176 110 196 66 190 46 C 186 32 170 36 168 60 C 166 90 168 126 172 136 C 176 146 188 142 196 132 M 196 132 C 216 110 232 66 226 46 C 222 32 206 36 204 60 C 202 90 204 126 208 136 C 212 146 224 142 232 132 M 232 132 C 238 116 248 100 262 100 C 278 100 280 124 268 136 C 256 146 242 136 248 118 C 252 106 268 104 290 104 M 52 170 C 120 160 210 162 296 152";
+var pathD = str(vars.path, HELLO);
+var color = col(vars.color, "#E5322D"), glowC = col(vars.glow_color, "#E5322D"), tubeC = col(vars.tube_color, "#2A2A2A"), coreC = col(vars.core_color, "#FFFFFF"), bg = col(vars.background_color, "#111111");
+var sw = num(vars.stroke_width, 6, 2, 14), fit = num(vars.fit, 0.62, 0.3, 0.9), seed = Math.round(num(vars.seed, 7, 1, 99)), speed = num(vars.speed, 1, 0, 4);
+root.style.setProperty("--bg", bg);
+var W = root.clientWidth, H = root.clientHeight;
+var segs = pathD.split(/(?=[Mm])/).map(function (x) { return x.trim(); }).filter(Boolean);
+// Bounding box of the whole path, measured once on a throwaway element.
+var probe = svgEl("path", { d: pathD }, svg);
+var bb = probe.getBBox(); svg.removeChild(probe);
+var pad = sw * 6, box = { x: bb.x - pad, y: bb.y - pad, w: bb.width + pad * 2, h: bb.height + pad * 2 };
+var scale = Math.min((W * fit) / box.w, (H * 0.7) / box.h), drawW = box.w * scale, drawH = box.h * scale;
+svg.setAttribute("width", drawW); svg.setAttribute("height", drawH);
+svg.setAttribute("viewBox", box.x + " " + box.y + " " + box.w + " " + box.h);
+glow.style.background = "radial-gradient(ellipse " + drawW * 0.75 + "px " + drawH * 0.85 + "px at 50% 50%, " + glowC + " 0%, transparent 100%)";
+var defs = svgEl("defs", {}, svg);
+["wide", "near"].forEach(function (n) {
+  var f = svgEl("filter", { id: "ns-" + n, filterUnits: "userSpaceOnUse", x: box.x - box.w, y: box.y - box.h, width: box.w * 3, height: box.h * 3 }, defs);
+  svgEl("feGaussianBlur", { stdDeviation: n === "wide" ? sw * 2.2 : sw * 0.6 }, f);
+});
+var g = svgEl("g", { fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+segs.forEach(function (d) { svgEl("path", { d: d, stroke: tubeC, "stroke-width": sw }, g); });
+var lit = segs.map(function (d) {
+  var gg = svgEl("g", {}, g);
+  return [
+    svgEl("path", { d: d, stroke: glowC, "stroke-width": sw * 3, filter: "url(#ns-wide)" }, gg),
+    svgEl("path", { d: d, stroke: color, "stroke-width": sw * 1.6, filter: "url(#ns-near)" }, gg),
+    svgEl("path", { d: d, stroke: color, "stroke-width": sw }, gg),
+    svgEl("path", { d: d, stroke: coreC, "stroke-width": sw * 0.36 }, gg)
+  ];
+});
+var FIRST = 3, STEP = 3.4, STUTTER = 7;
+var BUZZ = [[29, 0.1], [30, 0], [31, 0.55], [32, 0.2]];
+function level(t, i) {
+  var onset = FIRST + i * STEP + rnd("neon-sign-" + seed + "-" + i) * 2;
+  if (t < onset) return 0;
+  if (t < onset + STUTTER) {
+    var v = rnd("neon-sign-" + seed + "-" + i + "-" + Math.floor(t));
+    var ramp = (t - onset) / STUTTER;
+    return v < 0.5 - ramp * 0.3 ? 0.04 : 0.55 + 0.45 * v;
+  }
+  return 1;
+}
+var ALPHA = [0.7, 0.9, 1, 0.9];
+function draw(frame) {
+  var t = frame * speed, tick = Math.floor(t), buzz = 1;
+  BUZZ.forEach(function (b) { if (b[0] === tick) buzz = b[1]; });
+  var sum = 0;
+  lit.forEach(function (layers, i) {
+    var lv = level(t, i) * buzz; sum += lv;
+    layers.forEach(function (el, k) { el.setAttribute("opacity", lv > 0 ? ALPHA[k] * lv : 0); });
+  });
+  glow.style.opacity = 0.28 * (sum / Math.max(1, lit.length)) * interp(t, [32, 40], [0.85, 1]);
+}
+finish(drive(draw, TOTAL));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

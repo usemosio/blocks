@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "neon-sign",
+  "type": "hyperframes:component",
+  "title": "Neon Sign",
+  "description": "A glass neon tube stutters alive segment by segment, buzzes off once, then holds lit with a glow on the wall. Replace the path variable with your own monoline SVG path.",
+  "tags": [
+    "logo-sting",
+    "neon",
+    "glow",
+    "retro",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.333,
+  "useWhen": [
+    "The brand, venue or event has a nightlife, retro or hand-lettered feel and the sting should look like a lit sign.",
+    "Your mark or word exists as a monoline SVG path, so each stroke can light as its own tube."
+  ],
+  "avoidWhen": [
+    "Your logo is a filled image rather than a stroke path: wrap it with spotlight or anamorphic-flare instead.",
+    "Letters should draw on as clean outlines without the neon look: use outline-trace."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/neon-sign/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "neon-sign.html",
+      "target": "compositions/components/neon-sign.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "path", "type": "string", "role": "content", "label": "Tube path", "description": "SVG path data for the tube. Each subpath (M command) flickers on its own.", "default": "M 30 132 C 52 112 74 70 70 46 C 67 28 50 30 47 52 C 44 76 42 112 40 140 C 46 116 58 100 72 100 C 86 100 84 122 86 134 C 88 144 100 144 110 132 M 110 132 C 124 124 142 110 136 98 C 130 88 112 96 112 116 C 112 138 134 146 156 130 M 156 130 C 176 110 196 66 190 46 C 186 32 170 36 168 60 C 166 90 168 126 172 136 C 176 146 188 142 196 132 M 196 132 C 216 110 232 66 226 46 C 222 32 206 36 204 60 C 202 90 204 126 208 136 C 212 146 224 142 232 132 M 232 132 C 238 116 248 100 262 100 C 278 100 280 124 268 136 C 256 146 242 136 248 118 C 252 106 268 104 290 104 M 52 170 C 120 160 210 162 296 152"},
+    {"id": "color", "type": "color", "role": "style", "label": "Tube", "description": "Tube color when lit.", "default": "#E5322D"},
+    {"id": "glow_color", "type": "color", "role": "style", "label": "Glow", "description": "Color of the halo and the glow on the wall.", "default": "#E5322D"},
+    {"id": "tube_color", "type": "color", "role": "style", "label": "Unlit tube", "description": "Unlit glass tube.", "default": "#2A2A2A"},
+    {"id": "core_color", "type": "color", "role": "style", "label": "Core", "description": "Color of the hot core inside the tube.", "default": "#FFFFFF"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Wall color.", "default": "#111111"},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Tube thickness", "description": "Tube thickness in path units.", "default": 6, "min": 2, "max": 14, "step": 1},
+    {"id": "fit", "type": "number", "role": "style", "label": "Fit", "description": "Share of the frame width the sign spans.", "default": 0.62, "min": 0.3, "max": 0.9, "step": 0.01},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the flicker.", "default": 7, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

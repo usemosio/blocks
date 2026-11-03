@@ -1,0 +1,206 @@
+<!doctype html>
+<!--
+  Centered Word Build
+
+  Words appear sharply from below while the centered phrase pushes closer on every beat.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/centered-word-build/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="centered-word-build"
+  data-composition-duration="2.5"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short statement assembled one word at a time.", "default": "everything we learn from" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 52, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#fff3df" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] },
+    { "id": "word_gap", "type": "number", "role": "motion", "label": "Word gap", "description": "Frames before the second and third words (30 fps).", "default": 11, "min": 4, "max": 24, "step": 1, "unit": "frames" },
+    { "id": "accel", "type": "number", "role": "motion", "label": "Acceleration", "description": "Each later gap is this fraction of the previous one.", "default": 0.75, "min": 0.4, "max": 1, "step": 0.05 },
+    { "id": "rise", "type": "number", "role": "motion", "label": "Rise", "description": "How far below its place each word starts, in font sizes.", "default": 0.18, "min": 0, "max": 0.5, "step": 0.01 },
+    { "id": "zoom_step", "type": "number", "role": "motion", "label": "Zoom step", "description": "Extra scale the camera pushes in on every new word.", "default": 0.035, "min": 0, "max": 0.1, "step": 0.005 },
+    { "id": "settle_frames", "type": "number", "role": "motion", "label": "Settle frames", "description": "Frames each word takes to settle (30 fps).", "default": 9, "min": 2, "max": 20, "step": 1, "unit": "frames" },
+    { "id": "exit_at", "type": "number", "role": "motion", "label": "Exit at", "description": "Frame where the soft left-to-right wipe starts (30 fps).", "default": 51, "min": 20, "max": 100, "step": 1, "unit": "frames" },
+    { "id": "exit_frames", "type": "number", "role": "motion", "label": "Exit frames", "description": "Frames the exit wipe takes.", "default": 12, "min": 4, "max": 30, "step": 1, "unit": "frames" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Centered Word Build</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #fff3df);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .cwb-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .cwb-line { display: inline-block; letter-spacing: -0.02em; line-height: 1.1; white-space: nowrap; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+        .cwb-word { display: none; white-space: pre; }
+        .cwb-word + .cwb-word { margin-left: 0.25em; }
+      </style>
+
+      <div id="root" data-composition-id="centered-word-build" data-duration="2.5" data-fps="30">
+        <div id="cwb-clip" class="cwb-stage clip" data-start="0" data-duration="2.5" data-track-index="0">
+          <span id="cwb-line" class="cwb-line"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("cwb-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "2.5");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["centered-word-build"] = tl;
+            }
+            var text = str(vars.text, "everything we learn from");
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "400");
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            // interpolate() with clamping, easing given as a function of progress.
+            function ip(f, a, b, from, to, ease) {
+              var p = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+
+            var gap = num(vars.word_gap, 11, 4, 24);
+            var accel = num(vars.accel, 0.75, 0.4, 1);
+            var rise = num(vars.rise, 0.18, 0, 0.5);
+            var zoomStep = num(vars.zoom_step, 0.035, 0, 0.1);
+            var settle = num(vars.settle_frames, 9, 2, 20);
+            var exitAt = num(vars.exit_at, 51, 20, 100);
+            var exitFrames = num(vars.exit_frames, 12, 4, 30);
+            var line = document.getElementById("cwb-line");
+            line.style.fontWeight = weight;
+            var words = text.trim().split(/\s+/).filter(Boolean);
+            var spans = words.map(function (w, i) {
+              var s = document.createElement("span");
+              s.id = "cwb-word-" + i;
+              s.className = "cwb-word";
+              s.textContent = w;
+              line.appendChild(s);
+              return s;
+            });
+            var size = fit(line, num(vars.font_size, 52, 12, 160), 0.8);
+            // Leave room for the camera push (words * zoom step).
+            var push = 1 + zoomStep * words.length;
+            if (line.scrollWidth * push > root.clientWidth * 0.95) {
+              size = Math.max(12, size * (root.clientWidth * 0.95) / (line.scrollWidth * push));
+              line.style.fontSize = size + "px";
+            }
+
+            function revealFrame(index) {
+              var f = 0;
+              for (var step = 1; step <= index; step++) f += gap * Math.pow(accel, Math.max(step - 2, 0));
+              return Math.round(f);
+            }
+            var settleEase = bz("settle", 0.16, 1, 0.3, 1);
+            var P = { f: 0 };
+            function apply() {
+              var f = P.f;
+              var visible = 0;
+              spans.forEach(function (s, i) {
+                var at = revealFrame(i);
+                var on = f >= at;
+                if (on) visible = i + 1;
+                s.style.display = on ? "inline-block" : "none";
+                if (on) s.style.transform = "translateY(" + ip(f, at, at + settle, rise * size, 0, settleEase) + "px)";
+              });
+              var scale = 1;
+              for (var i = 1; i < visible; i++) scale += zoomStep * ip(f, revealFrame(i), revealFrame(i) + settle, 0, 1, settleEase);
+              var exitP = ip(f, exitAt, exitAt + exitFrames, 0, 1);
+              line.style.transform = "scale(" + scale + ")";
+              line.style.opacity = exitP >= 1 ? 0 : 1;
+              var start = -35 + exitP * 135;
+              var mask = exitP > 0 ? "linear-gradient(90deg, transparent " + start + "%, black " + (start + 35) + "%)" : "none";
+              line.style.webkitMaskImage = mask;
+              line.style.maskImage = mask;
+            }
+            apply();
+            var last = revealFrame(spans.length - 1) + settle;
+            var end = Math.max(last, exitAt + exitFrames, TOTAL * 30);
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: end, duration: end / 30, ease: "none", onUpdate: apply }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

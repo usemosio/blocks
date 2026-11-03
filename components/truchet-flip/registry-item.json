@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "truchet-flip",
+  "type": "hyperframes:component",
+  "title": "Truchet Flip",
+  "description": "A grid of quarter-circle tiles flips in waves, then settles into a clean pattern: rings, a field or a silhouette.",
+  "tags": [
+    "pattern",
+    "truchet",
+    "tiles",
+    "generative",
+    "background",
+    "remocn-port"
+  ],
+  "category": "backgrounds",
+  "duration": 4,
+  "useWhen": [
+    "A calm, rule-based pattern background should animate in and settle into a deliberate graphic.",
+    "A bold geometric title card, transition or intro needs a tile grid that flips into order."
+  ],
+  "avoidWhen": [
+    "You need an organic, noisy texture rather than a crisp grid.",
+    "The background must keep moving forever: the pattern settles and holds."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/truchet-flip/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "truchet-flip.html",
+      "target": "compositions/components/truchet-flip.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"tiles","type":"number","role":"layout","label":"Tiles","description":"Number of tiles along the short side.","default":10,"min":4,"max":24,"step":1},
+    {"id":"weight","type":"number","role":"style","label":"Weight","description":"Line weight as a fraction of the tile size (stroke variant).","default":0.2,"min":0.04,"max":0.34,"step":0.01},
+    {"id":"passes","type":"number","role":"motion","label":"Passes","description":"Number of wave passes before the pattern resolves.","default":2,"min":0,"max":4,"step":1},
+    {"id":"wave_mode","type":"enum","role":"motion","label":"Wave mode","description":"Direction the flipping wave travels.","default":"radial","options":[{"value":"radial","label":"Radial"},{"value":"diagonal","label":"Diagonal"},{"value":"random","label":"Random"}]},
+    {"id":"resolve","type":"enum","role":"motion","label":"Resolve","description":"Pattern the tiles settle into.","default":"rings","options":[{"value":"rings","label":"Rings"},{"value":"field","label":"Field"},{"value":"silhouette","label":"Silhouette"}]},
+    {"id":"variant","type":"enum","role":"style","label":"Variant","description":"Outlined arcs or filled sectors.","default":"stroke","options":[{"value":"stroke","label":"Stroke"},{"value":"filled","label":"Filled"}]},
+    {"id":"color","type":"color","role":"style","label":"Line color","description":"Primary tile color.","default":"#ffffff"},
+    {"id":"secondary_color","type":"string","role":"style","label":"Secondary color","description":"CSS color of alternating tiles; leave empty to use the line color.","default":""},
+    {"id":"background_color","type":"color","role":"style","label":"Background","description":"Backdrop color.","default":"#002fa7"},
+    {"id":"seed","type":"number","role":"motion","label":"Seed","description":"Seed for the starting maze.","default":1,"min":1,"max":99,"step":1},
+    {"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}
+  ]
+}

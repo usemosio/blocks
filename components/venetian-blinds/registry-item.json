@@ -1,0 +1,93 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "venetian-blinds",
+  "type": "hyperframes:component",
+  "title": "Venetian Blinds",
+  "description": "The outgoing scene is cut into horizontal slats that turn edge-on one after another, like blinds opening onto the next scene. Built-in placeholder scenes A and B (the two .vnb-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "slats",
+    "3d",
+    "wipe",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 0.8667,
+  "useWhen": [
+    "A crisp, architectural scene change with a visible rhythm.",
+    "Office, real-estate, corporate or editorial pieces that want a tidy reveal."
+  ],
+  "avoidWhen": [
+    "The scenes are very busy: the slat edges add visual noise.",
+    "You want a soft, organic change."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/venetian-blinds/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "venetian-blinds.html",
+      "target": "compositions/components/venetian-blinds.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "slats",
+      "type": "number",
+      "role": "layout",
+      "label": "Slats",
+      "description": "Number of horizontal slats.",
+      "default": 12,
+      "min": 2,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "stagger",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Share of the transition spent rippling across slats, 0 to 0.9.",
+      "default": 0.55,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.05
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Which slat turns first.",
+      "default": "top-down",
+      "options": [
+        {
+          "value": "top-down",
+          "label": "Top down"
+        },
+        {
+          "value": "bottom-up",
+          "label": "Bottom up"
+        },
+        {
+          "value": "center",
+          "label": "From the center"
+        }
+      ]
+    },
+    {
+      "id": "shade_color",
+      "type": "color",
+      "role": "style",
+      "label": "Shade color",
+      "description": "Tint a slat picks up as it turns away from the light.",
+      "default": "#000000"
+    }
+  ]
+}

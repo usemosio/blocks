@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "caption-marker",
+  "type": "hyperframes:component",
+  "title": "Caption Marker",
+  "description": "Plain captions where the words that matter get a highlighter swipe the moment they are spoken.",
+  "tags": [
+    "captions",
+    "word-timed",
+    "marker",
+    "highlight",
+    "keyword",
+    "remocn-port"
+  ],
+  "category": "captions",
+  "duration": 9.3,
+  "useWhen": [
+    "Talking-head or explainer video where a few words carry the point: the marker lands on exactly those words, in time with the voice, and leaves the rest calm.",
+    "You want the hand-made feel of a highlighter pen on top of an ordinary, readable caption line."
+  ],
+  "avoidWhen": [
+    "Every word should be marked as it is spoken, not just the keywords: use caption-highlight-box.",
+    "You want the spoken position shown on every word without singling any out: use caption-karaoke."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/caption-marker/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "caption-marker.html",
+      "target": "compositions/components/caption-marker.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "captions", "type": "string", "role": "content", "label": "Captions", "description": "Word timings as JSON: [{\"text\",\"startMs\",\"endMs\"}] in milliseconds, or [{\"text\",\"start\",\"end\"}] in seconds. A transcript from Mosio works as is.", "default": "[{\"text\":\" So\",\"startMs\":300,\"endMs\":460},{\"text\":\" here's\",\"startMs\":460,\"endMs\":700},{\"text\":\" the\",\"startMs\":700,\"endMs\":820},{\"text\":\" thing.\",\"startMs\":820,\"endMs\":1240},{\"text\":\" Most\",\"startMs\":1700,\"endMs\":1960},{\"text\":\" demo\",\"startMs\":1960,\"endMs\":2240},{\"text\":\" videos\",\"startMs\":2240,\"endMs\":2680},{\"text\":\" lose\",\"startMs\":2680,\"endMs\":2960},{\"text\":\" people\",\"startMs\":2960,\"endMs\":3320},{\"text\":\" in\",\"startMs\":3320,\"endMs\":3420},{\"text\":\" the\",\"startMs\":3420,\"endMs\":3520},{\"text\":\" first\",\"startMs\":3520,\"endMs\":3820},{\"text\":\" three\",\"startMs\":3820,\"endMs\":4100},{\"text\":\" seconds.\",\"startMs\":4100,\"endMs\":4780},{\"text\":\" Captions\",\"startMs\":5400,\"endMs\":5920},{\"text\":\" keep\",\"startMs\":5920,\"endMs\":6140},{\"text\":\" them\",\"startMs\":6140,\"endMs\":6300},{\"text\":\" watching,\",\"startMs\":6300,\"endMs\":6860},{\"text\":\" even\",\"startMs\":6960,\"endMs\":7180},{\"text\":\" with\",\"startMs\":7180,\"endMs\":7320},{\"text\":\" the\",\"startMs\":7320,\"endMs\":7420},{\"text\":\" sound\",\"startMs\":7420,\"endMs\":7760},{\"text\":\" off.\",\"startMs\":7760,\"endMs\":8300}]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Caption text size in pixels (at 1080 px on the short side).", "default": 64, "min": 24, "max": 140, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Font weight", "description": "Weight of the caption text.", "default": 800, "min": 400, "max": 900, "step": 100},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Caption text color.", "default": "#ffffff"},
+    {"id": "combine_tokens_within_milliseconds", "type": "number", "role": "motion", "label": "Page window", "description": "Words that start within this window share one page of captions. A sentence end always starts a new page.", "default": 1200, "min": 0, "max": 3000, "step": 100, "unit": "ms"},
+    {"id": "hold_ms", "type": "number", "role": "motion", "label": "Hold", "description": "How long the last page stays after its final word.", "default": 600, "min": 0, "max": 2000, "step": 50, "unit": "ms"},
+    {"id": "shadow", "type": "boolean", "role": "style", "label": "Shadow", "description": "Soft shadow behind the text for legibility on footage.", "default": true},
+    {"id": "keywords", "type": "string", "role": "content", "label": "Keywords", "description": "Comma-separated words that get the highlighter swipe. Words not listed get no accent.", "default": "thing, lose, three, captions, sound"},
+    {"id": "marker_color", "type": "color", "role": "style", "label": "Marker color", "description": "Color of the highlighter swipe.", "default": "#facc15"},
+    {"id": "marker_text_color", "type": "color", "role": "style", "label": "Marker text color", "description": "Color of the text sitting on the swipe.", "default": "#0a0a0a"}
+  ]
+}

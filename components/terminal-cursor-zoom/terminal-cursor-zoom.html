@@ -1,0 +1,308 @@
+<!doctype html>
+<!--
+  Terminal Cursor Zoom
+
+  Camera locked to the typing cursor, dollying across a terminal as one command types at high zoom.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/terminal-cursor-zoom/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="terminal-cursor-zoom"
+  data-composition-duration="3"
+  data-composition-variables='[{"id":"command","type":"string","role":"content","label":"Command","description":"The single command that types out.","default":"npm run render -- --size 1080x1920"},{"id":"zoom","type":"number","role":"motion","label":"Zoom","description":"Camera zoom on the cursor.","default":2.8,"min":1,"max":4,"step":0.1,"unit":"x"},{"id":"font_size","type":"number","role":"style","label":"Font size","description":"Terminal font size in pixels.","default":20,"min":10,"max":32,"step":1,"unit":"px"},{"id":"prompt","type":"string","role":"content","label":"Prompt","description":"Prompt character before the command.","default":"$"},{"id":"title","type":"string","role":"content","label":"Title","description":"Window title.","default":"~/code/promo-video"},{"id":"chars_per_frame","type":"number","role":"motion","label":"Chars per frame","description":"Typing speed.","default":1,"min":0.25,"max":4,"step":0.25},{"id":"chunk_size","type":"number","role":"motion","label":"Chunk size","description":"Characters revealed per step.","default":1,"min":1,"max":8,"step":1},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":4,"step":0.05,"unit":"x"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Terminal Cursor Zoom</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: #0b0b0e; font-family: "Geist Mono", ui-monospace, SFMono-Regular, monospace; }
+        .tz-stage { position: absolute; inset: 0; }
+        #tz-world { transform-origin: 0 0; }
+        #tz-win { position: absolute; width: 900px; height: 480px; background: #0a0a0a; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06); }
+        #tz-chrome { height: 40px; flex: none; background: #1a1a1a; display: flex; align-items: center; padding: 0 16px; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); box-sizing: border-box; }
+        .tz-light { width: 12px; height: 12px; border-radius: 50%; opacity: 0.85; }
+        #tz-title { flex: 1; text-align: center; color: #71717a; font-size: 13px; }
+        #tz-body { flex: 1; position: relative; padding: 20px; overflow: hidden; }
+        #tz-line { position: absolute; left: 20px; right: 20px; top: 20px; display: flex; align-items: center; white-space: pre; color: #fafafa; }
+        #tz-prompt { color: #22c55e; margin-right: 8px; }
+        #tz-cur { display: inline-block; background: #fafafa; margin-left: 2px; }
+
+      </style>
+
+      <div id="root" data-composition-id="terminal-cursor-zoom" data-duration="3" data-fps="30">
+        <div id="tz-clip" class="tz-stage clip" data-start="0" data-duration="3" data-track-index="0">
+<div id="tz-world"><div id="tz-win"><div id="tz-chrome"><span class="tz-light" style="background:#ff5f57"></span><span class="tz-light" style="background:#febc2e"></span><span class="tz-light" style="background:#28c840"></span><div id="tz-title"></div></div><div id="tz-body"><div id="tz-line"><span id="tz-prompt"></span><span id="tz-text"></span><span id="tz-cur"></span></div></div></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+                        // Stop-motion helpers: poses are held for `step` frames.
+            var DEFAULT_STEP = 3;
+            function qf(frame, step) { step = step || DEFAULT_STEP; return Math.floor(frame / step) * step; }
+            function qstep(frame, step) { step = step || DEFAULT_STEP; return Math.floor(frame / step); }
+            function hash01(seed) { return random(seed); }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            function paperJitter(frame, seed, o) {
+              o = o || {};
+              var amp = o.amp != null ? o.amp : 1.4, rotAmp = o.rotAmp != null ? o.rotAmp : 0.35;
+              var s = qstep(frame, o.step);
+              return { x: hashRange(seed + ":x:" + s, -amp, amp), y: hashRange(seed + ":y:" + s, -amp, amp), rot: hashRange(seed + ":r:" + s, -rotAmp, rotAmp) };
+            }
+            function steppedRamp(frame, from, to, o) {
+              o = o || {};
+              var f = qf(frame, o.step);
+              if (f <= from) return 0;
+              if (f >= to) return 1;
+              var ease = o.ease || function (t) { return t; };
+              return ease((f - from) / (to - from));
+            }
+
+
+            function scaledStage(el, boost) {
+              var W = root.clientWidth, H = root.clientHeight;
+              var s = Math.min(W / 1280, H / 720) * (H > W ? (boost || 1.4) : 1);
+              el.style.position = "absolute"; el.style.left = "0"; el.style.top = "0";
+              el.style.width = W / s + "px"; el.style.height = H / s + "px";
+              el.style.transformOrigin = "0 0"; el.style.transform = "scale(" + s + ")";
+              return s;
+            }
+
+            var world = document.getElementById("tz-world");
+            var s = scaledStage(world, 1.3);
+            var SW = root.clientWidth / s, SH = root.clientHeight / s;
+            var command = str(vars.command, "npm run render -- --size 1080x1920");
+            var zoom = num(vars.zoom, 2.8, 1, 4), fontSize = num(vars.font_size, 20, 10, 32);
+            var prompt = typeof vars.prompt === "string" ? vars.prompt : "$";
+            var cpf = num(vars.chars_per_frame, 1, 0.25, 4), chunk = Math.round(num(vars.chunk_size, 1, 1, 8)), speed = num(vars.speed, 1, 0.25, 4);
+            document.getElementById("tz-title").textContent = str(vars.title, "~/code/promo-video");
+            document.getElementById("tz-prompt").textContent = prompt;
+            var win = document.getElementById("tz-win"), textEl = document.getElementById("tz-text"), cur = document.getElementById("tz-cur"), lineEl = document.getElementById("tz-line");
+            win.style.left = (SW - 900) / 2 + "px"; win.style.top = (SH - 480) / 2 + "px";
+            var lineH = Math.round(fontSize * 1.6);
+            lineEl.style.fontSize = fontSize + "px"; lineEl.style.height = lineH + "px";
+            cur.style.width = fontSize * 0.55 + "px"; cur.style.height = fontSize + "px";
+            var charW = fontSize * 0.6, winL = (SW - 900) / 2, winT = (SH - 480) / 2;
+            var textX = winL + 20 + prompt.length * charW + 8, curY = winT + 40 + 20 + lineH / 2;
+            var lineStart = Math.round(10 / speed);
+            function draw(frame) {
+              var local = (frame - lineStart) * speed;
+              var lin = Math.floor(interpolate(local, [0, command.length / cpf], [0, command.length], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
+              var rev = Math.min(command.length, Math.ceil(lin / chunk) * chunk);
+              var tx = SW / 2 - zoom * (textX + rev * charW), ty = SH / 2 - zoom * curY;
+              world.style.transform = "scale(" + s + ") translate(" + tx + "px," + ty + "px) scale(" + zoom + ")";
+              var started = frame >= lineStart;
+              textEl.textContent = command.substring(0, rev);
+              var blink = Math.floor((Math.max(0, local) / 30) * 2) % 2 === 0;
+              cur.style.display = started && rev < command.length && blink ? "inline-block" : "none";
+              lineEl.style.visibility = started ? "visible" : "hidden";
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 90, draw);
+
+            var total = parseFloat(root.dataset.duration || "3");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["terminal-cursor-zoom"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

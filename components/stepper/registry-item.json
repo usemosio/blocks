@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stepper",
+  "type": "hyperframes:component",
+  "title": "Stepper",
+  "description": "A multi-step progress indicator: circles fill, check marks draw and connectors fill as the position advances.",
+  "tags": [
+    "ui",
+    "stepper",
+    "progress",
+    "steps",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 5,
+  "useWhen": [
+    "Showing a multi-step onboarding, checkout or wizard flow advancing through numbered steps.",
+    "Demonstrating step completion with check marks, circle fills and connector fills.",
+    "Visualizing progress through a sequential workflow with labelled stages."
+  ],
+  "avoidWhen": [
+    "Steps have no sequential order: use tabs.",
+    "You need a continuous fill bar without numbered steps: use progress.",
+    "You need a compact segmented control that switches view modes: use toggle-group."
+  ],
+  "checkAt": [
+    0.6,
+    1.9,
+    3.0,
+    4.7
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/stepper/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "stepper.html",
+      "target": "compositions/components/stepper.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "steps", "type": "string", "role": "content", "label": "Steps", "description": "JSON array of step labels.", "default": "[\"Account\", \"Plan\", \"Done\"]"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

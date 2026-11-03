@@ -1,0 +1,148 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "phyllotaxis",
+  "type": "hyperframes:component",
+  "title": "Phyllotaxis",
+  "description": "Seeds spiral out at the golden angle into a sunflower head, then one Fibonacci arm turns accent and pulses outward while the head slowly turns.",
+  "tags": [
+    "generative",
+    "nature",
+    "golden-ratio",
+    "spiral",
+    "dots",
+    "remocn-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 5.5,
+  "useWhen": [
+    "An opener or section break should grow something natural and precise in about two seconds, then keep a gentle idle motion.",
+    "A story about growth, nature, design systems or the golden ratio needs a literal, recognisable pattern.",
+    "One element of many needs to be singled out, with the accent arm drawing the eye along a spiral path."
+  ],
+  "avoidWhen": [
+    "The figure should be built from straight threads and morph between shapes: use string-art.",
+    "The moment calls for a one-shot burst that clears the frame.",
+    "The scene needs a texture with no focal point: use flow-field."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/phyllotaxis/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "phyllotaxis.html",
+      "target": "compositions/components/phyllotaxis.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "count",
+      "type": "number",
+      "role": "style",
+      "label": "Seeds",
+      "description": "Number of seeds.",
+      "default": 420,
+      "min": 50,
+      "max": 1200,
+      "step": 10
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Seed size",
+      "description": "Seed size multiplier.",
+      "default": 1,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "arm",
+      "type": "number",
+      "role": "style",
+      "label": "Arm spacing",
+      "description": "Every n-th seed forms one arm; a Fibonacci number reads best.",
+      "default": 21,
+      "min": 1,
+      "max": 89,
+      "step": 1
+    },
+    {
+      "id": "grow_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Grow frames",
+      "description": "Frames for all seeds to spiral out.",
+      "default": 60,
+      "min": 15,
+      "max": 150,
+      "step": 5,
+      "unit": "frames"
+    },
+    {
+      "id": "pulse_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Pulse frames",
+      "description": "Frames per pulse along the accent arm once grown.",
+      "default": 45,
+      "min": 15,
+      "max": 120,
+      "step": 5,
+      "unit": "frames"
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "motion",
+      "label": "Rotation",
+      "description": "Slow rotation of the head in degrees per second; 0 holds still.",
+      "default": 4,
+      "min": -30,
+      "max": 30,
+      "step": 1,
+      "unit": "deg/s"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background color.",
+      "default": "#111111"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Seeds",
+      "description": "Seed color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Arm",
+      "description": "Accent arm color.",
+      "default": "#E5322D"
+    }
+  ]
+}

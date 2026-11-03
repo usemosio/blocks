@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "anamorphic-flare",
+  "type": "hyperframes:component",
+  "title": "Anamorphic Flare",
+  "description": "A point of light stretches into a cinematic horizontal streak that sweeps the frame and reveals the logo behind it. The placeholder lockup is a stand-in: a host swaps in its own logo by editing the .af-logo element.",
+  "tags": [
+    "logo-sting",
+    "lens-flare",
+    "cinematic",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.333,
+  "useWhen": [
+    "A film, studio, automotive or premium product needs a cinematic opener with a lens-flare look.",
+    "You want a fast left-to-right sweep that has a centered logo fully revealed by about 0.7 s."
+  ],
+  "avoidWhen": [
+    "The light should search and land on the logo like a stage light: use spotlight.",
+    "You want warm light flooding a cut between two scenes, not a logo reveal: use light-leak."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/anamorphic-flare/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "anamorphic-flare.html",
+      "target": "compositions/components/anamorphic-flare.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Placeholder lockup text revealed behind the streak.", "default": "studio"},
+    {"id": "tint", "type": "color", "role": "style", "label": "Tint", "description": "Warm tint of the streak glow and ghosts.", "default": "#E5322D"},
+    {"id": "core_color", "type": "color", "role": "style", "label": "Core", "description": "Color of the hot core line.", "default": "#FFFFFF"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color.", "default": "#111111"},
+    {"id": "ghosts", "type": "number", "role": "style", "label": "Ghosts", "description": "Number of ghost orbs mirrored across the frame center.", "default": 4, "min": 0, "max": 12, "step": 1},
+    {"id": "y", "type": "number", "role": "style", "label": "Streak height", "description": "Vertical position of the streak, 0 to 1.", "default": 0.5, "min": 0, "max": 1, "step": 0.01},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the ghost orbs.", "default": 2, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

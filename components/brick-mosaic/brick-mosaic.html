@@ -1,0 +1,240 @@
+<!doctype html>
+<!--
+  Brick Mosaic
+
+  Toy bricks drop in row by row from the bottom with a small bounce and build a pixel-art image on a baseplate. The image is a text grid in the pattern variable, one row per line (use / between rows), where each character is looked up in the colors variable; without a pattern it builds a red disc.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/brick-mosaic/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="brick-mosaic"
+  data-composition-duration="2.84"
+  data-composition-variables='[
+    {"id": "pattern", "type": "string", "role": "content", "label": "Pattern", "description": "Pixel art as text: rows separated by / , one character per cell. Characters are looked up in Colors; unknown characters and spaces leave the cell empty. Empty builds the default disc.", "default": ""},
+    {"id": "colors", "type": "string", "role": "style", "label": "Colors", "description": "JSON map from pattern character to a CSS color.", "default": "{\"#\":\"#E5322D\",\".\":\"#FFFFFF\",\"x\":\"#111111\"}"},
+    {"id": "cols", "type": "number", "role": "style", "label": "Columns", "description": "Grid columns of the default disc.", "default": 24, "min": 6, "max": 40, "step": 1},
+    {"id": "rows", "type": "number", "role": "style", "label": "Rows", "description": "Grid rows of the default disc.", "default": 14, "min": 4, "max": 24, "step": 1},
+    {"id": "row_delay", "type": "number", "role": "motion", "label": "Row delay", "description": "Frames between rows.", "default": 3, "min": 1, "max": 8, "step": 1, "unit": "frames"},
+    {"id": "background", "type": "color", "role": "style", "label": "Baseplate", "description": "Baseplate color behind the bricks.", "default": "#111111"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Brick Mosaic</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #111111; }
+        .bm-stage { position: absolute; inset: 0; }
+        .bm-stage svg { display: block; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="brick-mosaic" data-duration="2.84" data-fps="30">
+        <div id="bm-clip" class="bm-stage clip" data-start="0" data-duration="2.84" data-track-index="0">
+          <svg id="bm-svg" aria-hidden="true"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Seeded random in [0, 1): a string hash, so the same key always gives the same value.
+            function rnd(key) {
+              var h = 1779033703 ^ key.length;
+              for (var i = 0; i < key.length; i++) {
+                h = Math.imul(h ^ key.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+              }
+              h = Math.imul(h ^ (h >>> 16), 2246822507);
+              h = Math.imul(h ^ (h >>> 13), 3266489909);
+              h ^= h >>> 16;
+              return (h >>> 0) / 4294967296;
+            }
+
+            // Piecewise-linear map of x from inR to outR, optionally eased per segment and clamped.
+            function interp(x, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var i = 0;
+              if (x >= inR[n - 1]) i = n - 2;
+              else if (x > inR[0]) { while (x > inR[i + 1]) i++; }
+              var t = (x - inR[i]) / (inR[i + 1] - inR[i]);
+              if (o.clamp !== false) t = Math.min(1, Math.max(0, t));
+              if (o.easing) t = o.easing(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+
+            // Easings with Remotion's names; every one maps 0..1 to 0..1.
+            var E = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              back: function (s) { return function (t) { return t * t * ((s + 1) * t - s); }; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; },
+              bezier: function (x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var k = 0; k < 24; k++) {
+                    var mt = 1 - t;
+                    var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                    if (bx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var m = 1 - t;
+                  return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+                };
+              }
+            };
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var cols = Math.round(num(vars.cols, 24, 6, 40)), rows = Math.round(num(vars.rows, 14, 4, 24));
+            var rowDelay = num(vars.row_delay, 3, 1, 8);
+            var speed = num(vars.speed, 1, 0.1, 4);
+            root.style.background = str(vars.background, "#111111");
+            var colors = { "#": "#E5322D", ".": "#FFFFFF", x: "#111111" };
+            try {
+              var parsedColors = JSON.parse(str(vars.colors, ""));
+              if (parsedColors && typeof parsedColors === "object" && !Array.isArray(parsedColors)) colors = parsedColors;
+            } catch (e) { /* keep the default colors */ }
+
+            // The grid: text rows turned into a color per cell ("" leaves the cell empty).
+            var source;
+            var given = str(vars.pattern, "");
+            if (given) source = given.split("/").map(function (row) { return row.replace(/\s+$/, ""); });
+            else {
+              var ccx = (cols - 1) / 2, ccy = (rows - 1) / 2, rad = Math.min(cols, rows) * 0.4;
+              source = [];
+              for (var y = 0; y < rows; y++) { var line = ""; for (var x = 0; x < cols; x++) line += Math.hypot(x - ccx, y - ccy) <= rad ? "#" : "."; source.push(line); }
+            }
+            var grid = source.map(function (row) { return row.split("").map(function (ch) { return Object.prototype.hasOwnProperty.call(colors, ch) ? String(colors[ch]) : ""; }); });
+            var nRows = grid.length, nCols = Math.max.apply(null, [1].concat(grid.map(function (r) { return r.length; })));
+            var s = Math.min((W * 0.86) / nCols, (H * 0.86) / nRows);
+            var ox = (W - s * nCols) / 2, oy = (H - s * nRows) / 2;
+            var gap = s * 0.04, bevel = s * 0.09, stud = s * 0.28, b = s - gap;
+            var FALL = 7, HOP = 5;
+
+            var svg = document.getElementById("bm-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var defs = el("defs", {}, svg);
+            var lg = el("linearGradient", { id: "bm-stud", x1: 0.15, y1: 0.1, x2: 0.85, y2: 0.9 }, defs);
+            [["0", "#FFFFFF", 0.5], ["0.45", "#FFFFFF", 0], ["1", "#000000", 0.22]].forEach(function (st) { el("stop", { offset: st[0], "stop-color": st[1], "stop-opacity": st[2] }, lg); });
+            // Baseplate studs the bricks snap onto.
+            var plate = el("g", { fill: "#FFFFFF", opacity: 0 }, svg);
+            grid.forEach(function (row, r) { row.forEach(function (_, c) { el("circle", { cx: ox + (c + 0.5) * s, cy: oy + (r + 0.5) * s, r: stud }, plate); }); });
+            var bricks = [];
+            grid.forEach(function (row, r) {
+              row.forEach(function (color, c) {
+                if (!color) return;
+                var g = el("g", { opacity: 0 }, svg);
+                el("rect", { width: b, height: b, rx: s * 0.06, fill: color }, g);
+                el("path", { d: "M 0 " + b + " V 0 H " + b + " L " + (b - bevel) + " " + bevel + " H " + bevel + " V " + (b - bevel) + " Z", fill: "#FFFFFF", opacity: 0.22 }, g);
+                el("path", { d: "M " + b + " 0 V " + b + " H 0 L " + bevel + " " + (b - bevel) + " H " + (b - bevel) + " V " + bevel + " Z", fill: "#000000", opacity: 0.22 }, g);
+                el("circle", { cx: b / 2 + s * 0.035, cy: b / 2 + s * 0.05, r: stud, fill: "#000000", opacity: 0.28 }, g);
+                el("circle", { cx: b / 2, cy: b / 2, r: stud, fill: color }, g);
+                el("circle", { cx: b / 2, cy: b / 2, r: stud, fill: "url(#bm-stud)" }, g);
+                bricks.push({ g: g, x0: ox + c * s + gap / 2, y0: oy + r * s + gap / 2, start: (nRows - 1 - r) * rowDelay + c * 0.12 + rnd("brick-" + r + "-" + c) * 1.5 });
+              });
+            });
+            var outCubic = E.out(E.cubic);
+
+            function draw(frame) {
+              var t = frame * speed;
+              plate.setAttribute("opacity", 0.07 * interp(t, [0, 10], [0, 1], { easing: outCubic }));
+              bricks.forEach(function (br) {
+                var local = t - br.start;
+                if (local < 0) { br.g.setAttribute("opacity", 0); return; }
+                var y = 0;
+                if (local < FALL) { var p = local / FALL; y = -s * 1.8 * (1 - p * p); }
+                else if (local < FALL + HOP) { var q = (local - FALL) / HOP; y = -s * 0.12 * 4 * q * (1 - q); }
+                br.g.setAttribute("opacity", interp(local, [0, 2], [0, 1]));
+                br.g.setAttribute("transform", "translate(" + br.x0 + " " + (br.y0 + y) + ")");
+              });
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "2.84") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "2.84");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["brick-mosaic"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

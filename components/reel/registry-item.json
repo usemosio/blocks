@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "reel",
+  "type": "hyperframes:component",
+  "title": "Reel",
+  "description": "A fixed centered card where images stack on the z-axis and each blooms open over the last. Five CSS-drawn placeholder screens stand in for your shots: a host swaps its own images in by replacing the contents of each .rl-shot with an img (object-fit cover).",
+  "tags": [
+    "gallery",
+    "reveal",
+    "screenshots",
+    "stack",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 5.333,
+  "useWhen": [
+    "Showing a sequence of screenshots or product shots that should bloom open one over the last in a fixed frame.",
+    "You want the reveal itself (the centre-out mask) to be the only motion in the scene."
+  ],
+  "avoidWhen": [
+    "You need a single framed photo rather than a sequence: use polaroid.",
+    "You want a scrolling wall of items rather than a stacked reveal: use infinite-marquee or perspective-marquee."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/reel/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "reel.html",
+      "target": "compositions/components/reel.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "width", "type": "number", "role": "style", "label": "Card width", "description": "Card width in px.", "default": 1180, "min": 600, "max": 1280, "step": 20, "unit": "px"},
+    {"id": "height", "type": "number", "role": "style", "label": "Card height", "description": "Card height in px.", "default": 676, "min": 360, "max": 720, "step": 4, "unit": "px"},
+    {"id": "radius", "type": "number", "role": "style", "label": "Radius", "description": "Corner radius.", "default": 16, "min": 0, "max": 40, "step": 1, "unit": "px"},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frames per image", "description": "Frames between one image starting and the next.", "default": 20, "min": 6, "max": 40, "step": 1},
+    {"id": "reveal", "type": "number", "role": "motion", "label": "Reveal frames", "description": "Frames for one image to open.", "default": 13, "min": 4, "max": 30, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Card background", "description": "Color behind the images.", "default": "#050506"},
+    {"id": "stage_color", "type": "color", "role": "style", "label": "Stage", "description": "Frame background.", "default": "#0b0b0c"}
+  ]
+}

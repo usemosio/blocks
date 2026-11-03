@@ -1,0 +1,235 @@
+<!doctype html>
+<!--
+  Reel
+
+  A fixed centered card where images stack on the z-axis and each blooms open over the last. Five CSS-drawn placeholder screens stand in for your shots: a host swaps its own images in by replacing the contents of each .rl-shot with an img (object-fit cover).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/reel/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="reel"
+  data-composition-duration="5.333"
+  data-composition-variables='[
+    {"id": "width", "type": "number", "role": "style", "label": "Card width", "description": "Card width in px.", "default": 1180, "min": 600, "max": 1280, "step": 20, "unit": "px"},
+    {"id": "height", "type": "number", "role": "style", "label": "Card height", "description": "Card height in px.", "default": 676, "min": 360, "max": 720, "step": 4, "unit": "px"},
+    {"id": "radius", "type": "number", "role": "style", "label": "Radius", "description": "Corner radius.", "default": 16, "min": 0, "max": 40, "step": 1, "unit": "px"},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frames per image", "description": "Frames between one image starting and the next.", "default": 20, "min": 6, "max": 40, "step": 1},
+    {"id": "reveal", "type": "number", "role": "motion", "label": "Reveal frames", "description": "Frames for one image to open.", "default": 13, "min": 4, "max": 30, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Card background", "description": "Color behind the images.", "default": "#050506"},
+    {"id": "stage_color", "type": "color", "role": "style", "label": "Stage", "description": "Frame background.", "default": "#0b0b0c"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reel</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--bg); }
+        .rl-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .rl-frame { position: relative; flex-shrink: 0; }
+        .rl-card { position: absolute; inset: 0; box-shadow: 0 30px 80px rgba(0,0,0,0.6); overflow: hidden; opacity: 0; }
+        .rl-shot { position: absolute; inset: 0; transform-origin: 50% 0%; font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; }
+        .rl-edge { position: absolute; inset: 0; border: 1px solid rgba(255,255,255,0.08); }
+        /* Placeholder screens drawn in CSS. A host replaces the contents of .rl-shot with an img (object-fit: cover). */
+        .rl-bar { position: absolute; left: 0; right: 0; top: 0; height: 9%; background: rgba(255,255,255,0.08); display: flex; align-items: center; gap: 1.2%; padding: 0 2.5%; }
+        .rl-bar i { width: 1.1%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.35); }
+        .rl-side { position: absolute; left: 0; top: 9%; bottom: 0; width: 17%; background: rgba(0,0,0,0.22); }
+        .rl-side b { display: block; height: 3.2%; margin: 12% 14% 0; border-radius: 99px; background: rgba(255,255,255,0.18); }
+        .rl-tile { position: absolute; border-radius: 1.6%; }
+      </style>
+
+      <div id="root" data-composition-id="reel" data-duration="5.333" data-fps="30">
+        <div id="rl-clip" class="rl-stage clip" data-start="0" data-duration="5.333" data-track-index="0">
+          <div class="rl-frame" id="rl-frame"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "reel";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var frameEl = document.getElementById("rl-frame");
+var cw = num(vars.width, 1180, 300, 1600), ch = num(vars.height, 676, 200, 900), radius = num(vars.radius, 16, 0, 60), stepF = num(vars.step, 20, 6, 40), revealF = num(vars.reveal, 13, 4, 30);
+var bg = col(vars.background_color, "#050506"), stageBg = col(vars.stage_color, "#0b0b0c");
+root.style.setProperty("--bg", stageBg);
+var W = root.clientWidth, H = root.clientHeight;
+// Cards are laid out at 1180 by 676 and scaled down when the frame is narrower than the card.
+var scale = Math.min(1, (W * 0.94) / cw, (H * 0.9) / ch);
+frameEl.style.width = cw + "px"; frameEl.style.height = ch + "px"; frameEl.style.transform = "scale(" + scale + ")";
+var HUES = [["#3159ff", "#7c9bff"], ["#e5322d", "#ff8a7a"], ["#12a37f", "#7de3c3"], ["#a800b7", "#e08cff"], ["#f2a900", "#ffd96b"]];
+function screen(h) {
+  var a = h[0], b = h[1];
+  return '<div class="rl-bar"><i></i><i></i><i></i></div><div class="rl-side"><b></b><b></b><b></b><b></b></div>' +
+    '<div class="rl-tile" style="left:21%;top:15%;width:34%;height:26%;background:linear-gradient(135deg,' + a + ',' + b + ')"></div>' +
+    '<div class="rl-tile" style="left:58%;top:15%;width:18%;height:26%;background:rgba(255,255,255,0.10)"></div>' +
+    '<div class="rl-tile" style="left:79%;top:15%;width:17%;height:26%;background:rgba(255,255,255,0.10)"></div>' +
+    '<div class="rl-tile" style="left:21%;top:46%;width:75%;height:46%;background:rgba(255,255,255,0.06)"></div>' +
+    [0.3, 0.55, 0.4, 0.8, 0.65, 0.9, 0.5].map(function (v, i) { return '<div class="rl-tile" style="left:' + (25 + i * 9.6) + '%;bottom:11%;width:5.4%;height:' + v * 34 + '%;background:' + (i % 2 ? b : a) + ';opacity:.85"></div>'; }).join("");
+}
+var cards = HUES.map(function (h, i) {
+  var card = document.createElement("div"); card.className = "rl-card"; card.style.background = "linear-gradient(160deg, #15161b, #0c0d10)"; card.style.zIndex = i;
+  var shot = document.createElement("div"); shot.className = "rl-shot"; shot.innerHTML = screen(h); card.appendChild(shot);
+  var edge = document.createElement("div"); edge.className = "rl-edge"; edge.style.borderRadius = radius + "px"; card.appendChild(edge);
+  frameEl.appendChild(card);
+  return { card: card, shot: shot };
+});
+var total = (cards.length - 1) * stepF + revealF;
+function draw(frame) {
+  cards.forEach(function (c, i) {
+    var pr = interp(frame, [i * stepF, i * stepF + revealF], [0, 1], outCubic);
+    if (pr <= 0) { c.card.style.opacity = 0; return; }
+    var inset = (1 - pr) * 50;
+    c.card.style.opacity = 1;
+    c.card.style.clipPath = "inset(" + inset + "% " + inset + "% round " + radius + "px)";
+    c.shot.style.transform = "scale(" + lerp(1.08, 1, pr) + ")";
+  });
+}
+finish(drive(draw, Math.max(TOTAL, total)));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

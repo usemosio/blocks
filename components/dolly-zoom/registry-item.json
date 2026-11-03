@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dolly-zoom",
+  "type": "hyperframes:component",
+  "title": "Dolly Zoom",
+  "description": "The vertigo shot: a corridor with a red door stretches deeper while the subject in the middle keeps its exact size. A host puts its own subject in by replacing the .dz-subject svg with its own centered content.",
+  "tags": [
+    "camera",
+    "vertigo",
+    "dolly",
+    "cinematic",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 2.2,
+  "useWhen": [
+    "A realization or a turning point in the story needs one unsettling, cinematic beat.",
+    "A logo, product or figure should stay perfectly still while the space around it warps."
+  ],
+  "avoidWhen": [
+    "You need to move from one scene to the next, not a held shot: use push-through.",
+    "The move should feel calm and simply show depth: use parallax-depth."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/dolly-zoom/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "dolly-zoom.html",
+      "target": "compositions/components/dolly-zoom.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "intensity", "type": "number", "role": "motion", "label": "Intensity", "description": "How far the camera dollies in while zooming out, 0 to 2.", "default": 1, "min": 0, "max": 2, "step": 0.05},
+    {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "Play the move in reverse: the background compresses toward the subject.", "default": false},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Frame background.", "default": "#0B0B0B"},
+    {"id": "wall_color", "type": "color", "role": "style", "label": "Wall", "description": "Wall color.", "default": "#1B1B1B"},
+    {"id": "wall_alt_color", "type": "color", "role": "style", "label": "Wall alt", "description": "Alternate wall and ceiling color.", "default": "#151515"},
+    {"id": "floor_color", "type": "color", "role": "style", "label": "Floor", "description": "Floor color.", "default": "#262626"},
+    {"id": "floor_alt_color", "type": "color", "role": "style", "label": "Floor alt", "description": "Alternate floor color.", "default": "#1D1D1D"},
+    {"id": "line_color", "type": "color", "role": "style", "label": "Lines", "description": "Corridor edge line color.", "default": "#FFFFFF"},
+    {"id": "light_color", "type": "color", "role": "style", "label": "Ceiling lights", "description": "Ceiling light color.", "default": "#FFFFFF"},
+    {"id": "door_color", "type": "color", "role": "style", "label": "Door", "description": "Door color at the end of the corridor.", "default": "#E5322D"},
+    {"id": "figure_color", "type": "color", "role": "style", "label": "Figure", "description": "Color of the default standing figure.", "default": "#FFFFFF"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

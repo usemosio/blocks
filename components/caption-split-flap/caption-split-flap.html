@@ -1,0 +1,420 @@
+<!doctype html>
+<!--
+  Caption Split Flap
+
+  Every letter sits on its own flap tile and clatters through a few characters before landing the moment the word is spoken, like a station departure board.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/caption-split-flap/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="caption-split-flap"
+  data-composition-duration="9.3"
+  data-composition-variables='[
+    {"id": "captions", "type": "string", "role": "content", "label": "Captions", "description": "Word timings as JSON: [{\"text\",\"startMs\",\"endMs\"}] in milliseconds, or [{\"text\",\"start\",\"end\"}] in seconds. A transcript from Mosio works as is.", "default": "[{\"text\":\" So\",\"startMs\":300,\"endMs\":460},{\"text\":\" here&#39;s\",\"startMs\":460,\"endMs\":700},{\"text\":\" the\",\"startMs\":700,\"endMs\":820},{\"text\":\" thing.\",\"startMs\":820,\"endMs\":1240},{\"text\":\" Most\",\"startMs\":1700,\"endMs\":1960},{\"text\":\" demo\",\"startMs\":1960,\"endMs\":2240},{\"text\":\" videos\",\"startMs\":2240,\"endMs\":2680},{\"text\":\" lose\",\"startMs\":2680,\"endMs\":2960},{\"text\":\" people\",\"startMs\":2960,\"endMs\":3320},{\"text\":\" in\",\"startMs\":3320,\"endMs\":3420},{\"text\":\" the\",\"startMs\":3420,\"endMs\":3520},{\"text\":\" first\",\"startMs\":3520,\"endMs\":3820},{\"text\":\" three\",\"startMs\":3820,\"endMs\":4100},{\"text\":\" seconds.\",\"startMs\":4100,\"endMs\":4780},{\"text\":\" Captions\",\"startMs\":5400,\"endMs\":5920},{\"text\":\" keep\",\"startMs\":5920,\"endMs\":6140},{\"text\":\" them\",\"startMs\":6140,\"endMs\":6300},{\"text\":\" watching,\",\"startMs\":6300,\"endMs\":6860},{\"text\":\" even\",\"startMs\":6960,\"endMs\":7180},{\"text\":\" with\",\"startMs\":7180,\"endMs\":7320},{\"text\":\" the\",\"startMs\":7320,\"endMs\":7420},{\"text\":\" sound\",\"startMs\":7420,\"endMs\":7760},{\"text\":\" off.\",\"startMs\":7760,\"endMs\":8300}]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Caption text size in pixels (at 1080 px on the short side).", "default": 56, "min": 24, "max": 140, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Font weight", "description": "Weight of the caption text.", "default": 800, "min": 400, "max": 900, "step": 100},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Caption text color.", "default": "#ffffff"},
+    {"id": "combine_tokens_within_milliseconds", "type": "number", "role": "motion", "label": "Page window", "description": "Words that start within this window share one page of captions. A sentence end always starts a new page.", "default": 1000, "min": 0, "max": 3000, "step": 100, "unit": "ms"},
+    {"id": "hold_ms", "type": "number", "role": "motion", "label": "Hold", "description": "How long the last page stays after its final word.", "default": 600, "min": 0, "max": 2000, "step": 50, "unit": "ms"},
+    {"id": "tile_color", "type": "color", "role": "style", "label": "Tile color", "description": "Color of the flap tiles.", "default": "#111111"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Caption Split Flap</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: #ffffff;
+          font-family: Geist, system-ui, sans-serif;
+          pointer-events: none;
+        }
+        .csfl-stage {
+          position: absolute;
+          left: 6%;
+          right: 6%;
+          bottom: 14%;
+          display: flex;
+          justify-content: center;
+        }
+        .csfl-line {
+          width: 100%;
+          text-align: center;
+          line-height: 1.2;
+          text-wrap: pretty;
+        }
+      </style>
+
+      <div id="root" data-composition-id="caption-split-flap" data-duration="9.3" data-fps="30">
+        <div id="csfl-clip" class="csfl-stage clip" data-start="0" data-duration="9.3" data-track-index="0">
+          <div id="csfl-line" class="csfl-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var line = document.getElementById("csfl-line");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function bool(v, f) {
+              if (v === undefined || v === null || v === "") return f;
+              return !(v === false || v === "false" || v === 0 || v === "0");
+            }
+            function str(v, f) {
+              return typeof v === "string" && v ? v : f;
+            }
+            function jsonObject(v) {
+              if (v && typeof v === "object" && !Array.isArray(v)) return v;
+              try {
+                var o = JSON.parse(v);
+                return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+              } catch (e) {
+                return {};
+              }
+            }
+
+            // ---- Captions: parse, page, and look up the page for a time (shared by every caption block) ----
+            var DEFAULT_CAPTIONS = "[{\"text\":\" So\",\"startMs\":300,\"endMs\":460},{\"text\":\" here's\",\"startMs\":460,\"endMs\":700},{\"text\":\" the\",\"startMs\":700,\"endMs\":820},{\"text\":\" thing.\",\"startMs\":820,\"endMs\":1240},{\"text\":\" Most\",\"startMs\":1700,\"endMs\":1960},{\"text\":\" demo\",\"startMs\":1960,\"endMs\":2240},{\"text\":\" videos\",\"startMs\":2240,\"endMs\":2680},{\"text\":\" lose\",\"startMs\":2680,\"endMs\":2960},{\"text\":\" people\",\"startMs\":2960,\"endMs\":3320},{\"text\":\" in\",\"startMs\":3320,\"endMs\":3420},{\"text\":\" the\",\"startMs\":3420,\"endMs\":3520},{\"text\":\" first\",\"startMs\":3520,\"endMs\":3820},{\"text\":\" three\",\"startMs\":3820,\"endMs\":4100},{\"text\":\" seconds.\",\"startMs\":4100,\"endMs\":4780},{\"text\":\" Captions\",\"startMs\":5400,\"endMs\":5920},{\"text\":\" keep\",\"startMs\":5920,\"endMs\":6140},{\"text\":\" them\",\"startMs\":6140,\"endMs\":6300},{\"text\":\" watching,\",\"startMs\":6300,\"endMs\":6860},{\"text\":\" even\",\"startMs\":6960,\"endMs\":7180},{\"text\":\" with\",\"startMs\":7180,\"endMs\":7320},{\"text\":\" the\",\"startMs\":7320,\"endMs\":7420},{\"text\":\" sound\",\"startMs\":7420,\"endMs\":7760},{\"text\":\" off.\",\"startMs\":7760,\"endMs\":8300}]";
+            var SENTENCE_END = /[.!?…]["')\]]*$/;
+            function parseCaptions(raw) {
+              var data = raw;
+              if (typeof raw === "string") {
+                try { data = JSON.parse(raw); } catch (e) { data = null; }
+              }
+              if (!Array.isArray(data)) return null;
+              var out = [];
+              data.forEach(function (c) {
+                if (!c || typeof c.text !== "string") return;
+                var s = c.startMs !== undefined ? Number(c.startMs) : Number(c.start) * 1000;
+                var e = c.endMs !== undefined ? Number(c.endMs) : Number(c.end) * 1000;
+                if (!Number.isFinite(s) || !Number.isFinite(e)) return;
+                out.push({ text: c.text, startMs: s, endMs: Math.max(s, e), speaker: typeof c.speaker === "string" ? c.speaker : undefined });
+              });
+              if (!out.length) return null;
+              out.sort(function (a, b) { return a.startMs - b.startMs; });
+              // Words given without leading spaces ({text, start, end} transcripts) become separate words.
+              var spaced = out.some(function (c, i) { return i > 0 && /^\s/.test(c.text); });
+              if (!spaced) out.forEach(function (c, i) { if (i > 0) c.text = " " + c.text; });
+              return out;
+            }
+            function buildWindows(list, combine, hold) {
+              var pages = [], cur = null, prev = null;
+              var silenceBreak = Math.max(hold, 300);
+              list.forEach(function (c, i) {
+                if (cur && /^\s/.test(c.text)) {
+                  if (prev.breakAfter || c.startMs - cur.startMs >= combine || c.startMs - prev.endMs >= silenceBreak) {
+                    pages.push(cur);
+                    cur = null;
+                  }
+                }
+                if (!cur) cur = { startMs: c.startMs, tokens: [], speaker: c.speaker };
+                cur.tokens.push({ text: c.text, fromMs: c.startMs, toMs: c.endMs });
+                var next = list[i + 1];
+                c.breakAfter = SENTENCE_END.test(c.text.trim()) || (next !== undefined && next.speaker !== c.speaker);
+                prev = c;
+              });
+              if (cur) pages.push(cur);
+              return pages.map(function (p, i) {
+                var speechEnd = p.tokens[p.tokens.length - 1].toMs;
+                var held = speechEnd + Math.max(0, hold);
+                var next = pages[i + 1];
+                var silent = !next || next.startMs > held;
+                return {
+                  tokens: p.tokens, index: i, speaker: p.speaker, startMs: p.startMs, speechEndMs: speechEnd,
+                  endMs: silent ? held : Math.max(p.startMs, next.startMs), endsInSilence: silent
+                };
+              });
+            }
+            function tokenStates(tokens, t) {
+              var active = -1;
+              tokens.forEach(function (k, i) { if (k.fromMs <= t) active = i; });
+              return {
+                activeIndex: active,
+                tokens: tokens.map(function (k, i) {
+                  var p = t < k.fromMs ? 0 : k.toMs <= k.fromMs ? 1 : Math.min(1, (t - k.fromMs) / (k.toMs - k.fromMs));
+                  return {
+                    text: k.text.trim(), spaceBefore: i > 0 && /^\s/.test(k.text), fromMs: k.fromMs, toMs: k.toMs,
+                    progress: p, status: i < active ? "spoken" : i === active ? "active" : "upcoming"
+                  };
+                })
+              };
+            }
+            function stateAt(windows, t) {
+              var lo = 0, hi = windows.length - 1, found = -1;
+              while (lo <= hi) {
+                var mid = (lo + hi) >> 1;
+                if (windows[mid].startMs <= t) { found = mid; lo = mid + 1; } else hi = mid - 1;
+              }
+              if (found < 0 || t >= windows[found].endMs) return null;
+              var w = windows[found];
+              var ts = tokenStates(w.tokens, t);
+              var before = found > 0 ? windows[found - 1] : null;
+              return {
+                pageIndex: w.index, speaker: w.speaker, timeMs: t, activeIndex: ts.activeIndex, tokens: ts.tokens,
+                sinceStartMs: t - w.startMs, untilEndMs: w.endMs - t, holdRoomMs: w.endMs - w.speechEndMs,
+                endsInSilence: w.endsInSilence,
+                previous: before && !before.endsInSilence
+                  ? { pageIndex: before.index, tokens: tokenStates(before.tokens, before.endMs).tokens }
+                  : null
+              };
+            }
+            function groupWords(tokens) {
+              var words = [];
+              tokens.forEach(function (token, index) {
+                var cur = words[words.length - 1];
+                if (!cur || token.spaceBefore) words.push([{ index: index, token: token }]);
+                else cur.push({ index: index, token: token });
+              });
+              return words;
+            }
+            function normWord(text) {
+              return text.toLowerCase().replace(/[‘’]/g, "'").replace(/[^\p{L}\p{N}']/gu, "");
+            }
+
+            // ---- Easing, springs, colour ----
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            // Clamped linear map of v from [a, b] to [from, to], optionally eased.
+            function ramp(v, a, b, from, to, ease) {
+              var p = b === a ? 1 : (v - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (ease) p = ease(p);
+              return from + (to - from) * p;
+            }
+            // Damped spring from 0 to 1 (zero start velocity), sampled at tSec seconds.
+            function spring(tSec, mass, stiffness, damping) {
+              if (tSec <= 0) return 0;
+              var w0 = Math.sqrt(stiffness / mass);
+              var z = damping / (2 * Math.sqrt(stiffness * mass));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * tSec) * (Math.cos(wd * tSec) + ((z * w0) / wd) * Math.sin(wd * tSec));
+              }
+              if (z === 1) return 1 - Math.exp(-w0 * tSec) * (1 + w0 * tSec);
+              var q = Math.sqrt(z * z - 1);
+              var r1 = -w0 * (z - q), r2 = -w0 * (z + q);
+              return 1 - (r2 * Math.exp(r1 * tSec) - r1 * Math.exp(r2 * tSec)) / (r2 - r1);
+            }
+            function mixColor(a, b, t) {
+              var pct = Math.round(Math.min(1, Math.max(0, t)) * 10000) / 100;
+              return "color-mix(in srgb, " + b + " " + pct + "%, " + a + ")";
+            }
+            var SHADOW = "0 2px 3px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.35)";
+            var enterEase = bezier(0.2, 0.8, 0.2, 1);
+            function mk(tag, parent, css, text) {
+              var e = document.createElement(tag);
+              if (css) e.style.cssText = css;
+              if (text !== undefined) e.textContent = text;
+              parent.appendChild(e);
+              return e;
+            }
+            function exitFactor(s, exitMs) {
+              return s.endsInSilence ? ramp(s.untilEndMs, 0, Math.max(1, Math.min(exitMs, s.holdRoomMs)), 0, 1) : 1;
+            }
+            // The usual fade + small rise on page change, and fade out in the pause after the last word.
+            function stdLine(s, enterMs, exitMs, riseEm) {
+              var enter = ramp(s.previous ? enterMs : s.sinceStartMs, 0, enterMs, 0, 1, enterEase);
+              line.style.opacity = String(Math.min(enter, exitFactor(s, exitMs)));
+              line.style.transform = "translateY(" + (1 - enter) * riseEm + "em)";
+            }
+            var builtKey = null, refs = null;
+            function ensure(s, build) {
+              var key = s.pageIndex + ":" + (s.previous ? s.previous.pageIndex : "-");
+              if (key !== builtKey) {
+                builtKey = key;
+                line.textContent = "";
+                refs = build();
+              }
+              return refs;
+            }
+            function rectOf(el) {
+              return { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
+            }
+            function mix(a, b, t) { return a + (b - a) * t; }
+
+            // ---- Common settings ----
+            var fontSize = num(vars.font_size, 56, 24, 140);
+            var fontWeight = num(vars.font_weight, 800, 400, 900);
+            var color = str(vars.color, "#ffffff");
+            var combine = num(vars.combine_tokens_within_milliseconds, 1000, 0, 6000);
+            var holdMs = num(vars.hold_ms, 600, 0, 2000);
+            var shadow = false;
+            var SH = shadow ? SHADOW : "";
+            var captions = parseCaptions(vars.captions) || parseCaptions(DEFAULT_CAPTIONS);
+            var windows = buildWindows(captions, combine, holdMs);
+            line.style.fontSize = fontSize + "px";
+            line.style.fontWeight = String(fontWeight);
+            line.style.color = color;
+
+            function wordText(w) { return w.map(function (it) { return it.token.text; }).join(""); }
+
+
+            // Seeded hash -> [0, 1): the same key always gives the same number.
+            function seeded(key) {
+              var h = 1779033703 ^ key.length;
+              for (var i = 0; i < key.length; i++) {
+                h = Math.imul(h ^ key.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+              }
+              h = Math.imul(h ^ (h >>> 16), 2246822507);
+              h = Math.imul(h ^ (h >>> 13), 3266489909);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+
+            var tileColor = str(vars.tile_color, "#111111");
+            var TILE_W = 0.78, TILE_H = 1.2, TILE_GAP = 0.06, FLIP_MS = 60;
+            var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            line.style.lineHeight = String(TILE_H + 0.24);
+            function leaf(parent, clip) {
+              var el = mk("span", parent, "position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:" + tileColor + ";border-radius:0.08em;transform-origin:50% 50%" + (clip ? ";clip-path:" + clip : ""));
+              var g = mk("span", el, "font-size:0.8em;line-height:1");
+              return { el: el, g: g };
+            }
+            function flapFrame(target, seed, index, count, fromMs, windowMs, t) {
+              var flips = 3 + Math.floor(seeded(seed + "-flips") * 4);
+              var share = count > 1 ? index / (count - 1) : 1;
+              var endMs = fromMs + windowMs * (0.55 + 0.45 * share);
+              var flipMs = Math.min(FLIP_MS, (endMs - fromMs) / flips);
+              var startMs = endMs - flips * flipMs;
+              if (t < startMs) return { current: "", next: "", progress: null };
+              if (t >= endMs) return { current: target, next: target, progress: null };
+              function glyphAt(k) {
+                if (k <= 0) return "";
+                if (k >= flips) return target;
+                return GLYPHS[Math.floor(seeded(seed + "-" + k) * GLYPHS.length)];
+              }
+              var elapsed = (t - startMs) / flipMs, k = Math.floor(elapsed);
+              return { current: glyphAt(k), next: glyphAt(k + 1), progress: elapsed - k };
+            }
+            function show(l, on, ch) { l.el.style.display = on ? "flex" : "none"; if (on) l.g.textContent = ch; }
+            function draw(s) {
+              var r = ensure(s, function () {
+                var words = [];
+                groupWords(s.tokens).forEach(function (w, wi) {
+                  if (wi > 0) line.appendChild(document.createTextNode(" "));
+                  var first = w[0], from = first.token.fromMs, to = w[w.length - 1].token.toMs;
+                  var chars = Array.from(wordText(w));
+                  var wrap = mk("span", line, "display:inline-flex;gap:" + TILE_GAP + "em;vertical-align:top;padding-inline:" + TILE_GAP + "em");
+                  var tiles = chars.map(function (ch, c) {
+                    var tile = mk("span", wrap, "position:relative;display:inline-block;flex-shrink:0;width:" + TILE_W + "em;height:" + TILE_H + "em");
+                    var t = { full: leaf(tile), next: leaf(tile, "inset(0 0 50% 0)"), cur: leaf(tile, "inset(50% 0 0 0)"), flip: leaf(tile), ch: ch, c: c };
+                    mk("span", tile, "position:absolute;left:0;right:0;top:50%;height:max(1px, 0.025em);transform:translateY(-50%);background:rgba(0,0,0,0.6)").setAttribute("aria-hidden", "true");
+                    return t;
+                  });
+                  words.push({ tiles: tiles, seedBase: s.pageIndex + "-" + first.index, from: from, win: Math.max(to - from, 350), n: chars.length });
+                });
+                return { words: words };
+              });
+              stdLine(s, 160, 220, 0.14);
+              var persp = "perspective(" + TILE_H * 4 + "em) ";
+              r.words.forEach(function (w) {
+                w.tiles.forEach(function (t) {
+                  var f = flapFrame(t.ch, w.seedBase + "-" + t.c, t.c, w.n, w.from, w.win, s.timeMs);
+                  if (f.progress === null) {
+                    show(t.full, true, f.current);
+                    show(t.next, false); show(t.cur, false); show(t.flip, false);
+                    return;
+                  }
+                  show(t.full, false);
+                  show(t.next, true, f.next);
+                  show(t.cur, true, f.current);
+                  var p = f.progress;
+                  t.flip.el.style.display = "flex";
+                  if (p < 0.5) {
+                    t.flip.g.textContent = f.current;
+                    t.flip.el.style.clipPath = "inset(0 0 50% 0)";
+                    t.flip.el.style.transform = persp + "rotateX(" + -180 * p + "deg)";
+                    t.flip.el.style.filter = "brightness(" + (1 - 0.7 * p) + ")";
+                  } else {
+                    t.flip.g.textContent = f.next;
+                    t.flip.el.style.clipPath = "inset(50% 0 0 0)";
+                    t.flip.el.style.transform = persp + "rotateX(" + 180 * (1 - p) + "deg)";
+                    t.flip.el.style.filter = "brightness(" + (0.65 + 0.7 * (p - 0.5)) + ")";
+                  }
+                });
+              });
+            }
+
+            // Every frame is drawn from the time alone, so seeking anywhere draws the same frame.
+            function frame(ms) {
+              var s = stateAt(windows, ms);
+              if (!s) {
+                line.style.opacity = "0";
+                return;
+              }
+              line.style.opacity = "1";
+              draw(s);
+            }
+
+            var total = parseFloat(root.dataset.duration || "9.3");
+            var clock = { t: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              t: total,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { frame(clock.t * 1000); }
+            }, 0);
+            frame(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["caption-split-flap"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

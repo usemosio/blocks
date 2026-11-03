@@ -1,0 +1,92 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "slide-swap",
+  "type": "hyperframes:component",
+  "title": "Slide Swap",
+  "description": "Scenes swap on one canvas, never overlapping: the old scene is shoved off under power and the next one springs in and brakes into place. Plays three scenes (A, B, C). Built-in placeholder scenes A, B and C (the three .ssw-panel elements) make it preview on its own; to use it with your own scenes, replace the contents of those panels (each holds for 70 frames) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "slide",
+    "spring",
+    "scene-swap",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 7.0,
+  "useWhen": [
+    "Slide-deck style content with several scenes that should swap crisply.",
+    "UI walkthroughs where scenes slide in like screens."
+  ],
+  "avoidWhen": [
+    "You need the scenes to overlap or crossfade.",
+    "Cinematic pieces that want depth rather than flat slides."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/slide-swap/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "slide-swap.html",
+      "target": "compositions/components/slide-swap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "axis",
+      "type": "enum",
+      "role": "motion",
+      "label": "Axis",
+      "description": "Direction scenes travel along.",
+      "default": "x",
+      "options": [
+        {
+          "value": "x",
+          "label": "Horizontal"
+        },
+        {
+          "value": "y",
+          "label": "Vertical"
+        }
+      ]
+    },
+    {
+      "id": "in_distance",
+      "type": "number",
+      "role": "motion",
+      "label": "In distance",
+      "description": "How far the incoming scene starts away, as a fraction of the frame size.",
+      "default": 0.28,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "out_distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Out distance",
+      "description": "How far the outgoing scene is shoved, as a fraction of the frame size.",
+      "default": 0.1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "slide_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Slide frames",
+      "description": "Frames (at 30 fps) the entrance slide lasts.",
+      "default": 30,
+      "min": 6,
+      "max": 60,
+      "step": 1
+    }
+  ]
+}

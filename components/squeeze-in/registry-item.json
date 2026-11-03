@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "squeeze-in",
+  "type": "hyperframes:component",
+  "title": "Squeeze In",
+  "description": "Characters are uncovered one by one by a clean wipe, then the whole word squeezes tighter as the last one lands.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "wipe",
+    "tracking",
+    "wordmark",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A wordmark or short title should be uncovered by a clean wipe, as if a cover slid off it.",
+    "The arrival of the last character should compress every letter gap, so the word settles tighter."
+  ],
+  "avoidWhen": [
+    "The word should collapse from a wide tracked-out state with blur: use tracking-in.",
+    "Characters should rise or drop into place: use per-character-rise or top-down-letters."
+  ],
+  "author": "Studio",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/squeeze-in/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "squeeze-in.html",
+      "target": "compositions/components/squeeze-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short title.", "default": "Studio" },
+    { "id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Frames per character while the wipe uncovers it (30 fps).", "default": 3, "min": 1, "max": 8, "step": 1, "unit": "frames" },
+    { "id": "squeeze", "type": "number", "role": "motion", "label": "Squeeze", "description": "How wide the letter gaps start, as a fraction of the font size. They close to zero.", "default": 0.03, "min": 0, "max": 0.2, "step": 0.005 },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

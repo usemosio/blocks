@@ -1,0 +1,41 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "per-character-rise",
+  "type": "hyperframes:component",
+  "title": "Per Character Rise",
+  "description": "Letters slide up from below with no blur, one after another: crisp and kinetic.",
+  "tags": ["text-effects", "reveal", "kinetic-type", "letters", "remocn-port"],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A short word or phrase needs a crisp, character-by-character entrance with an even, readable stagger.",
+    "The tone is clean and precise: no blur, no dramatic staircase."
+  ],
+  "avoidWhen": [
+    "You want a pronounced staircase where each letter visibly lags: use bottom-up-letters.",
+    "The text is several lines that should reveal line by line: use mask-reveal-up or line-by-line-slide.",
+    "The reveal should be soft or blurred: use focus-blur-resolve or soft-blur-in."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/per-character-rise/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "per-character-rise.html",
+      "target": "compositions/components/per-character-rise.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase that rises in.", "default": "One more thing." },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 220, "step": 1, "unit": "px" },
+    { "id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far below its place each letter starts.", "default": 32, "min": 0, "max": 120, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }] }
+  ]
+}

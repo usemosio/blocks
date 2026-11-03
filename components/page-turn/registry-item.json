@@ -1,0 +1,72 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "page-turn",
+  "type": "hyperframes:component",
+  "title": "Page Turn",
+  "description": "The outgoing scene lifts off like a page and rotates up out of the frame in a few stepped poses, uncovering the next scene. Built-in placeholder scenes A and B (the two .pgt-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "page",
+    "stop-motion",
+    "reveal",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 4.2667,
+  "useWhen": [
+    "A tactile, stop-motion style page flip between chapters or slides.",
+    "The deck or story metaphor is a book, notebook or magazine."
+  ],
+  "avoidWhen": [
+    "You want smooth, continuous motion: use a slide or wipe.",
+    "The pages carry fine detail that stepped poses would stutter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/page-turn/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "page-turn.html",
+      "target": "compositions/components/page-turn.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "angle",
+      "type": "number",
+      "role": "motion",
+      "label": "Angle",
+      "description": "Rotation reached at the end of the lift, in degrees.",
+      "default": -7,
+      "min": -30,
+      "max": 30,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "poses",
+      "type": "number",
+      "role": "motion",
+      "label": "Poses",
+      "description": "How many stepped poses the lift is held in (1 is a single jump).",
+      "default": 8,
+      "min": 1,
+      "max": 30,
+      "step": 1
+    },
+    {
+      "id": "origin",
+      "type": "string",
+      "role": "motion",
+      "label": "Origin",
+      "description": "CSS transform-origin of the page (the hinge).",
+      "default": "18% 100%"
+    }
+  ]
+}

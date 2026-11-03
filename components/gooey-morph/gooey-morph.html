@@ -1,0 +1,219 @@
+<!doctype html>
+<!--
+  Gooey Morph
+
+  Bars fly in Tetris-style, land as a row, then melt into a word through a gooey blur-and-threshold morph.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/gooey-morph/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="gooey-morph"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "word", "type": "string", "role": "content", "label": "Word", "description": "Short word the bars melt into.", "default": "HELLO"},
+    {"id": "fill", "type": "color", "role": "style", "label": "Fill", "description": "Color of the bars and the word.", "default": "#f2f2f2"},
+    {"id": "font_family", "type": "string", "role": "style", "label": "Font family", "description": "CSS font-family for the word. Bodoni Moda is loaded.", "default": "&#39;Bodoni Moda&#39;, Georgia, serif"},
+    {"id": "blur_radius", "type": "number", "role": "motion", "label": "Goo blur radius", "description": "Peak blur radius of the melt.", "default": 6, "min": 0, "max": 16, "step": 1, "unit": "px"},
+    {"id": "displace_amount", "type": "number", "role": "motion", "label": "Displace amount", "description": "Peak noise displacement during the melt.", "default": 20, "min": 0, "max": 60, "step": 1, "unit": "px"},
+    {"id": "bar_travel_frames", "type": "number", "role": "motion", "label": "Bar travel", "description": "Frames each bar takes to land (30 fps).", "default": 30, "min": 10, "max": 60, "step": 1, "unit": "frames"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gooey Morph</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .gm-stage { position: absolute; inset: 0; }
+        .gm-svg { display: block; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="gooey-morph" data-duration="4" data-fps="30">
+        <div id="gm-clip" class="gm-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <svg id="gm-svg" class="gm-svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="gm-filter" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+                <feGaussianBlur id="gm-blur" in="SourceGraphic" stdDeviation="0" result="blurred" />
+                <feColorMatrix id="gm-matrix" in="blurred" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" result="threshold" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.0526" numOctaves="1" seed="7" result="noise" />
+                <feOffset id="gm-offset" in="noise" dx="0" dy="0" result="noiseMoved" />
+                <feDisplacementMap id="gm-disp" in="threshold" in2="noiseMoved" scale="0" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            </defs>
+            <g filter="url(#gm-filter)">
+              <g id="gm-bars"></g>
+              <text id="gm-word" x="961.4" y="601.3" text-anchor="middle" font-weight="900" opacity="0"></text>
+            </g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "4");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var NS = "http://www.w3.org/2000/svg";
+            var fill = col(vars.fill, "#f2f2f2");
+            var blurR = num(vars.blur_radius, 6, 0, 16);
+            var dispAmt = num(vars.displace_amount, 20, 0, 60);
+            var travel = num(vars.bar_travel_frames, 30, 10, 60);
+            var word = document.getElementById("gm-word");
+            word.textContent = str(vars.word, "HELLO");
+            word.setAttribute("fill", fill);
+            word.setAttribute("font-family", str(vars.font_family, "'Bodoni Moda', Georgia, serif"));
+            var fsize = 237;
+            word.setAttribute("font-size", fsize);
+            // Longer words shrink so they stay inside the 1920 wide stage.
+            var wl = word.getComputedTextLength ? word.getComputedTextLength() : 0;
+            if (wl > 1500) { fsize = fsize * 1500 / wl; word.setAttribute("font-size", fsize); }
+            var BW = 213, BH = 181;
+            var starts = [[956.9, 764.9], [297.5, 799.9], [738.2, 257.9], [1617.9, 302.9]];
+            var rests = [[634.9, 538.9], [852.5, 538.9], [1070.2, 538.9], [1287.9, 538.9]];
+            var entries = [8, 0, 4, 13];
+            var bars = rests.map(function (r, i) {
+              var rect = document.createElementNS(NS, "rect");
+              rect.setAttribute("id", "gm-bar-" + i);
+              rect.setAttribute("width", BW); rect.setAttribute("height", BH);
+              rect.setAttribute("fill", fill);
+              document.getElementById("gm-bars").appendChild(rect);
+              return rect;
+            });
+            var barsG = document.getElementById("gm-bars");
+            var blurEl = document.getElementById("gm-blur"), offEl = document.getElementById("gm-offset"), dispEl = document.getElementById("gm-disp");
+            var travelEase = ease("gm-travel", 0.88, 0.14, 0.12, 0.86);
+            var morphEase = ease("gm-morph", 0.33, 0, 0.67, 1);
+            var MS = 50, MP = 63, ME = 76;
+            // Alpha threshold of the blur: black 0.4588, white 0.5098.
+            var slope = 1 / (0.5098 - 0.4588), offset = -0.4588 * slope;
+            document.getElementById("gm-matrix").setAttribute("values", "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 " + slope + " " + offset);
+            function sigma(r) { var w = 2 * r + 1; return Math.sqrt((6 * (w * w - 1)) / 12); }
+            tick(function (t) {
+              var f = t * 30;
+              var blur = kf(f, [MS, MP, ME], [0, blurR, 0], morphEase);
+              blurEl.setAttribute("stdDeviation", sigma(blur));
+              dispEl.setAttribute("scale", kf(f, [MS, MP, ME], [0, dispAmt, 0], morphEase));
+              var ev = (f / 30) * 50;
+              offEl.setAttribute("dx", ev); offEl.setAttribute("dy", ev * 0.6);
+              barsG.setAttribute("opacity", ip(f, MS, ME, 1, 0));
+              word.setAttribute("opacity", ip(f, MS, ME, 0, 1));
+              bars.forEach(function (rect, i) {
+                var local = f - entries[i];
+                var stops = [0, travel / 2, travel];
+                var x = kf(local, stops, [starts[i][0], rests[i][0], rests[i][0]], travelEase);
+                var y = kf(local, stops, [starts[i][1], starts[i][1], rests[i][1]], travelEase);
+                rect.setAttribute("x", x - BW / 2); rect.setAttribute("y", y - BH / 2);
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "4");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["gooey-morph"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

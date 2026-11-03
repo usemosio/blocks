@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "accordion-unfold",
+  "type": "hyperframes:component",
+  "title": "Accordion Unfold",
+  "description": "A tight paper zigzag unfolds sideways into a flat card with the logo printed across it. The placeholder lockup is a stand-in: a host prints its own logo by replacing the .au-print contents in the script.",
+  "tags": [
+    "logo-sting",
+    "paper",
+    "fold",
+    "3d",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.2,
+  "useWhen": [
+    "A print, stationery, travel or editorial brand wants a tactile reveal, like opening a folded brochure or map.",
+    "Your logo should sit on a card or label rather than float on the background."
+  ],
+  "avoidWhen": [
+    "The logo should float freely on the background instead of on a card: use spotlight or anamorphic-flare.",
+    "The paper motion is a scene change, not a logo reveal: use page-turn."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/accordion-unfold/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "accordion-unfold.html",
+      "target": "compositions/components/accordion-unfold.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Placeholder lockup text printed across the card.", "default": "studio"},
+    {"id": "panels", "type": "number", "role": "style", "label": "Panels", "description": "Number of vertical pleats.", "default": 6, "min": 2, "max": 12, "step": 1},
+    {"id": "color", "type": "color", "role": "style", "label": "Paper", "description": "Paper color of the card.", "default": "#FFFFFF"},
+    {"id": "shade", "type": "number", "role": "style", "label": "Shade", "description": "Darkness of the panels facing away from the light, 0 to 1.", "default": 0.55, "min": 0, "max": 1, "step": 0.01},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color, also the lockup color printed on the paper.", "default": "#111111"},
+    {"id": "fold_angle", "type": "number", "role": "motion", "label": "Fold angle", "description": "Fold angle of each pleat at the start, in degrees.", "default": 82, "min": 0, "max": 89, "step": 1, "unit": "deg"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

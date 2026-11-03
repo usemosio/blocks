@@ -1,0 +1,61 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "fog-rise",
+  "type": "hyperframes:component",
+  "title": "Fog Rise",
+  "description": "Display text resolves out of fog center-out, sharpening from heavy blur as it tilts up on a spring.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "blur",
+    "3d",
+    "display",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.4,
+  "useWhen": [
+    "A big display word should materialize out of atmosphere, resolving from heavy blur as if rising along the z-axis.",
+    "The center characters resolve first and the edges follow."
+  ],
+  "avoidWhen": [
+    "The whole line should sharpen at once without per-character order: use focus-blur-resolve.",
+    "Characters should travel up from below the baseline: use per-character-rise or bottom-up-letters."
+  ],
+  "author": "Studio",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/fog-rise/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "fog-rise.html",
+      "target": "compositions/components/fog-rise.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Big display word.", "default": "Studio" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 304, "min": 12, "max": 560, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#004CFF" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] },
+    { "id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Frames between each ring of characters, center first (30 fps).", "default": 5, "min": 0, "max": 15, "step": 1, "unit": "frames" },
+    { "id": "blur", "type": "number", "role": "motion", "label": "Blur", "description": "Starting blur as a fraction of the font size.", "default": 0.17, "min": 0, "max": 0.5, "step": 0.01 },
+    { "id": "tilt", "type": "number", "role": "motion", "label": "Tilt", "description": "Degrees the line is tipped back before it rises.", "default": 55, "min": 0, "max": 90, "step": 1, "unit": "deg" },
+    { "id": "depth", "type": "number", "role": "motion", "label": "Depth", "description": "Perspective distance in font sizes.", "default": 5, "min": 1, "max": 8, "step": 0.1 },
+    { "id": "lift", "type": "number", "role": "motion", "label": "Lift", "description": "How far below its place the line starts, in font sizes.", "default": 0.85, "min": 0, "max": 1, "step": 0.05 },
+    { "id": "drift", "type": "number", "role": "motion", "label": "Drift", "description": "Slow upward creep per frame, in font sizes.", "default": 0.005, "min": 0, "max": 0.012, "step": 0.001 },
+    { "id": "exit_at", "type": "number", "role": "motion", "label": "Exit at", "description": "Frame where the line starts to accelerate upward and out (30 fps).", "default": 60, "min": 0, "max": 200, "step": 1, "unit": "frames" },
+    { "id": "exit_accel", "type": "number", "role": "motion", "label": "Exit acceleration", "description": "How hard the line accelerates out.", "default": 0.04, "min": 0.002, "max": 0.05, "step": 0.002 },
+    { "id": "mass", "type": "number", "role": "motion", "label": "Mass", "description": "Spring mass.", "default": 1.3, "min": 0.3, "max": 3, "step": 0.1 },
+    { "id": "stiffness", "type": "number", "role": "motion", "label": "Stiffness", "description": "Spring stiffness.", "default": 60, "min": 30, "max": 250, "step": 1 },
+    { "id": "damping", "type": "number", "role": "motion", "label": "Damping", "description": "Spring damping.", "default": 13, "min": 5, "max": 30, "step": 1 },
+    { "id": "spread_gap", "type": "number", "role": "style", "label": "Spread gap", "description": "Extra gap between letters at the start, in font sizes. It closes as the spring settles.", "default": 0.07, "min": 0, "max": 0.3, "step": 0.01 },
+    { "id": "tracking", "type": "number", "role": "style", "label": "Tracking", "description": "Letter spacing in em.", "default": -0.07, "min": -0.12, "max": 0, "step": 0.01, "unit": "em" },
+    { "id": "resolve_frames", "type": "number", "role": "motion", "label": "Resolve frames", "description": "Frames the blur takes to clear after the last ring starts.", "default": 22, "min": 8, "max": 50, "step": 1, "unit": "frames" },
+    { "id": "fade_frames", "type": "number", "role": "motion", "label": "Fade frames", "description": "Frames each character takes to fade in.", "default": 18, "min": 2, "max": 25, "step": 1, "unit": "frames" }
+  ]
+}

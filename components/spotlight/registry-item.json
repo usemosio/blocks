@@ -1,0 +1,46 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "spotlight",
+  "type": "hyperframes:component",
+  "title": "Spotlight",
+  "description": "A soft stage spotlight searches the dark, overshoots, lands on the logo, and the house lights come up. The placeholder lockup is a stand-in: a host swaps in its own logo by editing the .sp-logo element.",
+  "tags": [
+    "logo-sting",
+    "light",
+    "reveal",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.667,
+  "useWhen": [
+    "A launch, keynote or event video should open with a theatrical reveal, the logo waiting in the dark until the light finds it.",
+    "You want a slower, confident reveal with an obvious landing beat around 0.9 s."
+  ],
+  "avoidWhen": [
+    "The light should be a horizontal lens streak with a cinematic film feel: use anamorphic-flare.",
+    "The reveal needs energy and an impact hit rather than a search: use orbit-lock."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/spotlight/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "spotlight.html",
+      "target": "compositions/components/spotlight.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Placeholder lockup text the beam lands on.", "default": "studio"},
+    {"id": "beam_color", "type": "color", "role": "style", "label": "Beam", "description": "Color of the light cone and floor pool, and of the placeholder lockup.", "default": "#FFFFFF"},
+    {"id": "stage_color", "type": "color", "role": "style", "label": "Stage", "description": "Dark stage behind everything.", "default": "#111111"},
+    {"id": "dim", "type": "number", "role": "style", "label": "Dim", "description": "Brightness of the unlit lockup, 0 to 1.", "default": 0.16, "min": 0, "max": 0.6, "step": 0.01},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

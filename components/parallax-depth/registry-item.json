@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "parallax-depth",
+  "type": "hyperframes:component",
+  "title": "Parallax Depth",
+  "description": "A layered landscape trucks sideways with a gentle push-in, near layers sliding faster than far ones. Built-in sun and hills preview on their own; a host adds its own full-frame layers by pushing an element and a depth (1 is nearest, larger moves less) onto LAYERS in the script.",
+  "tags": [
+    "camera",
+    "parallax",
+    "depth",
+    "landscape",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 3,
+  "useWhen": [
+    "An opener or a quiet beat needs a cinematic establishing shot, a slow sideways camera move across a sun and hills.",
+    "You have a few flat layers and want them to read as one scene with real depth."
+  ],
+  "avoidWhen": [
+    "The subject is a screenshot or long page the camera should travel across: use stage.",
+    "The subject should hold its size while the space behind it stretches: use dolly-zoom."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/parallax-depth/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "parallax-depth.html",
+      "target": "compositions/components/parallax-depth.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "Sideways camera travel at depth 1, as a fraction of the frame width.", "default": 0.5, "min": 0, "max": 1.5, "step": 0.01},
+    {"id": "push", "type": "number", "role": "motion", "label": "Push-in", "description": "Push-in toward the scene, in depth units.", "default": 0.16, "min": 0, "max": 0.6, "step": 0.01},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Truck direction: right or left.", "default": "1", "options": [{"value": "1", "label": "Right"}, {"value": "-1", "label": "Left"}]},
+    {"id": "sky_color", "type": "color", "role": "style", "label": "Sky", "description": "Sky color.", "default": "#111111"},
+    {"id": "sun_color", "type": "color", "role": "style", "label": "Sun", "description": "Sun color.", "default": "#E5322D"},
+    {"id": "far_color", "type": "color", "role": "style", "label": "Far hills", "description": "Farthest hill layer.", "default": "#2C2C2C"},
+    {"id": "mid_color", "type": "color", "role": "style", "label": "Mid hills", "description": "Middle hill layer.", "default": "#555555"},
+    {"id": "near_color", "type": "color", "role": "style", "label": "Near hills", "description": "Nearest hill layer.", "default": "#8E8E8E"},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the hill outlines.", "default": 3, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

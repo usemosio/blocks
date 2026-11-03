@@ -1,0 +1,71 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "pixel-sort",
+  "type": "hyperframes:component",
+  "title": "Pixel Sort",
+  "description": "The outgoing scene melts downward in vertical columns of different speeds, smeared into bright streaks, and the incoming scene drops in column by column and snaps sharp. Built-in placeholder scenes A and B (the two .pxs-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "glitch",
+    "melt",
+    "columns",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.0,
+  "useWhen": [
+    "Glitchy, digital or music-video scene changes.",
+    "A fast cut with a strong graphic signature."
+  ],
+  "avoidWhen": [
+    "Warm, organic or luxury pieces.",
+    "Scenes with fine text that would smear unreadably."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/pixel-sort/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "pixel-sort.html",
+      "target": "compositions/components/pixel-sort.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "columns",
+      "type": "number",
+      "role": "style",
+      "label": "Columns",
+      "description": "Number of vertical columns the frame is sliced into.",
+      "default": 40,
+      "min": 2,
+      "max": 120,
+      "step": 1
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Seed for per-column melt amount and timing.",
+      "default": 5,
+      "min": 0,
+      "max": 9999,
+      "step": 1
+    },
+    {
+      "id": "streak_color",
+      "type": "color",
+      "role": "style",
+      "label": "Streak color",
+      "description": "Color of the bright smeared streaks.",
+      "default": "#FFFFFF"
+    }
+  ]
+}

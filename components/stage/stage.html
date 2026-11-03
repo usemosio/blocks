@@ -1,0 +1,358 @@
+<!doctype html>
+<!--
+  Stage
+
+  A long page on a perspective studio plane, with the camera travelling across it on keyframes. The plane holds a built-in placeholder page drawn in CSS; to use your own, replace the markup inside #st-page in the file (it is 1265 wide and 5000 tall, scaled to the plane).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/stage/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="stage"
+  data-composition-duration="10"
+  data-composition-variables='[{"id":"preset","type":"enum","role":"motion","label":"Camera path","description":"Camera keyframes for the move across the page.","default":"smooth-descent","options":[{"value":"smooth-descent","label":"Smooth descent"},{"value":"site-tour","label":"Site tour"},{"value":"hero-push","label":"Hero push"},{"value":"section-hop","label":"Section hop"}]},{"id":"shake","type":"number","role":"motion","label":"Handheld shake","description":"Amount of deterministic handheld motion.","default":0,"min":0,"max":1,"step":0.05},{"id":"seed","type":"string","role":"motion","label":"Shake seed","description":"Seed for the handheld motion.","default":"smooth-descent"},{"id":"backdrop","type":"string","role":"style","label":"Backdrop","description":"CSS background behind the plane.","default":"linear-gradient(145deg, #17181d 0%, #09090b 72%)"},{"id":"rotate_x","type":"number","role":"style","label":"Rotate X","description":"Tilt of the plane around the horizontal axis.","default":14,"min":-180,"max":180,"step":1,"unit":"deg"},{"id":"rotate_y","type":"number","role":"style","label":"Rotate Y","description":"Turn of the plane around the vertical axis.","default":-20,"min":-180,"max":180,"step":1,"unit":"deg"},{"id":"perspective","type":"number","role":"style","label":"Perspective","description":"Camera perspective distance.","default":900,"min":50,"max":5000,"step":25,"unit":"px"},{"id":"scale","type":"number","role":"style","label":"Scale","description":"Plane scale.","default":0.86,"min":0.1,"max":3,"step":0.01},{"id":"radius","type":"number","role":"style","label":"Radius","description":"Corner radius as a percentage of the frame width.","default":1.4,"min":0,"max":4,"step":0.1,"unit":"%"},{"id":"reflection","type":"number","role":"style","label":"Reflection","description":"Strength of the floor reflection.","default":0.24,"min":0,"max":1,"step":0.05},{"id":"shadow","type":"number","role":"style","label":"Contact shadow","description":"Strength of the contact shadow.","default":0.7,"min":0,"max":1,"step":0.05},{"id":"light","type":"number","role":"style","label":"Studio light","description":"Strength of the studio light overlay.","default":0.55,"min":0,"max":1,"step":0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stage</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: linear-gradient(145deg, #17181d 0%, #09090b 72%); font-family: Geist, system-ui, sans-serif; }
+        .st-stage { position: absolute; inset: 0; overflow: hidden; }
+        #st-reflect { position: absolute; left: 13%; top: 72%; width: 74%; height: 30%; background: linear-gradient(to bottom, rgba(188,181,255,0.32), rgba(91,81,145,0.1) 35%, transparent 76%); clip-path: polygon(7% 0, 93% 0, 78% 100%, 22% 100%); filter: blur(18px); transform-origin: center top; pointer-events: none; }
+        #st-shadow { position: absolute; left: 16%; top: 70%; width: 68%; height: 11%; border-radius: 50%; pointer-events: none; }
+        #st-persp { position: absolute; inset: 0; perspective-origin: 50% 42%; pointer-events: none; }
+        #st-plane { position: absolute; overflow: hidden; transform-style: preserve-3d; background: #f6f6fa; }
+        #st-light { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(ellipse at 38% 7%, rgba(255,255,255,0.2), transparent 36%), linear-gradient(115deg, rgba(255,255,255,0.08), transparent 38%, rgba(255,255,255,0.02) 68%, rgba(0,0,0,0.24)); }
+        /* placeholder page, 1265 x 5000 design px */
+        #st-page { position: absolute; left: 0; top: 0; width: 1265px; height: 5000px; transform-origin: 0 0; color: #1a1b22; background: #f6f6fa; }
+        #st-page > div { position: relative; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #st-page i { display: block; background: #d9dae4; border-radius: 8px; }
+        .pg-nav { height: 120px; flex-direction: row !important; justify-content: space-between !important; padding: 0 80px; background: #fff; }
+        .pg-logo { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #6366f1, #a855f7); }
+        .pg-links { display: flex; gap: 28px; } .pg-links i { width: 90px; height: 14px; } .pg-links.f { margin-top: 80px; flex-wrap: wrap; justify-content: center; }
+        .pg-btn { display: inline-block; padding: 22px 44px; border-radius: 16px; background: #1a1b22; color: #fff; font-size: 30px; font-weight: 600; } .pg-btn.sm { padding: 12px 24px; font-size: 22px; } .pg-btn.ghost { background: transparent; color: #1a1b22; border: 2px solid #c8c9d6; }
+        .pg-hero { height: 900px; background: linear-gradient(#fff, #f0f0f8); } .pg-eyebrow { font-size: 24px; letter-spacing: 0.2em; text-transform: uppercase; color: #6366f1; font-weight: 600; }
+        .pg-h1 { font-size: 104px; line-height: 1.02; font-weight: 700; letter-spacing: -0.045em; text-align: center; margin: 24px 0; } .pg-p { font-size: 30px; color: #6b6c7b; margin-bottom: 36px; } .pg-row { display: flex; gap: 20px; }
+        .pg-shot { width: 900px; height: 200px; margin-top: 50px; border-radius: 28px 28px 0 0; background: linear-gradient(135deg, #6366f1, #a855f7); } .pg-shot.big { width: 1000px; height: 480px; border-radius: 28px; margin-top: 50px; }
+        .pg-logos { height: 260px; flex-direction: row !important; gap: 70px; } .pg-logos i { width: 150px; height: 40px; }
+        .pg-feat, .pg-pricing { height: 900px; } .pg-h2 { font-size: 72px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 70px; } .pg-h2.l { color: #fff; }
+        .pg-cards { display: flex; gap: 32px; } .pg-card { width: 340px; padding: 40px; border-radius: 28px; background: #fff; border: 2px solid #e6e7ef; display: block !important; } .pg-card.hi { background: #1a1b22; color: #fff; }
+        .pg-card b { display: block; width: 70px; height: 70px; border-radius: 20px; background: linear-gradient(135deg, #6366f1, #a855f7); margin-bottom: 30px; } .pg-card h4 { font-size: 38px; margin-bottom: 18px; } .pg-card .pr { font-size: 80px; font-weight: 700; margin: 10px 0 24px; }
+        .pg-card p { height: 16px; border-radius: 8px; background: #e2e3ec; margin-top: 14px; } .pg-card.hi p { background: #3a3b48; } .pg-card p.s { width: 60%; }
+        .pg-panel { height: 800px; background: #1a1b22; } .pg-panel .pg-h2 { margin-bottom: 0; }
+        .pg-quote { height: 600px; background: #fff; } .pg-q { font-size: 84px; font-weight: 600; letter-spacing: -0.04em; } .pg-who { margin-top: 24px; font-size: 28px; color: #6b6c7b; }
+        .pg-foot { height: 520px; background: linear-gradient(135deg, #6366f1, #a855f7); } .pg-foot .pg-h2 { margin-bottom: 40px; } .pg-foot .pg-btn { background: #fff; color: #1a1b22; } .pg-foot i { background: rgba(255,255,255,0.4); }
+
+      </style>
+
+      <div id="root" data-composition-id="stage" data-duration="10" data-fps="30">
+        <div id="st-clip" class="st-stage clip" data-start="0" data-duration="10" data-track-index="0">
+<div id="st-reflect"></div><div id="st-shadow"></div><div id="st-persp"><div id="st-plane"><div id="st-page"><div class="pg-nav"><span class="pg-logo"></span><span class="pg-links"><i></i><i></i><i></i><i></i></span><span class="pg-btn sm">Sign up</span></div>
+<div class="pg-hero"><div class="pg-eyebrow">Introducing</div><div class="pg-h1">Your product,<br>photographed.</div><div class="pg-p">A long page on a studio plane, with the camera moving across it.</div><div class="pg-row"><span class="pg-btn">Get started</span><span class="pg-btn ghost">Learn more</span></div><div class="pg-shot"></div></div>
+<div class="pg-logos"><i></i><i></i><i></i><i></i><i></i></div>
+<div class="pg-feat"><div class="pg-h2">Everything in one place</div><div class="pg-cards"><div class="pg-card"><b></b><h4>Fast</h4><p></p><p class="s"></p></div><div class="pg-card"><b></b><h4>Simple</h4><p></p><p class="s"></p></div><div class="pg-card"><b></b><h4>Yours</h4><p></p><p class="s"></p></div></div></div>
+<div class="pg-panel"><div class="pg-h2 l">See it in action</div><div class="pg-shot big"></div></div>
+<div class="pg-pricing"><div class="pg-h2">Simple pricing</div><div class="pg-cards"><div class="pg-card"><h4>Starter</h4><div class="pr">$9</div><p></p><p class="s"></p></div><div class="pg-card hi"><h4>Growth</h4><div class="pr">$29</div><p></p><p class="s"></p></div><div class="pg-card"><h4>Scale</h4><div class="pr">$79</div><p></p><p class="s"></p></div></div></div>
+<div class="pg-quote"><div class="pg-q">"It just works."</div><div class="pg-who">A happy customer</div></div>
+<div class="pg-foot"><div class="pg-h2 l">Ready when you are</div><span class="pg-btn">Get started</span><div class="pg-links f"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></div></div><div id="st-light"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+                        // Stop-motion helpers: poses are held for `step` frames.
+            var DEFAULT_STEP = 3;
+            function qf(frame, step) { step = step || DEFAULT_STEP; return Math.floor(frame / step) * step; }
+            function qstep(frame, step) { step = step || DEFAULT_STEP; return Math.floor(frame / step); }
+            function hash01(seed) { return random(seed); }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            function paperJitter(frame, seed, o) {
+              o = o || {};
+              var amp = o.amp != null ? o.amp : 1.4, rotAmp = o.rotAmp != null ? o.rotAmp : 0.35;
+              var s = qstep(frame, o.step);
+              return { x: hashRange(seed + ":x:" + s, -amp, amp), y: hashRange(seed + ":y:" + s, -amp, amp), rot: hashRange(seed + ":r:" + s, -rotAmp, rotAmp) };
+            }
+            function steppedRamp(frame, from, to, o) {
+              o = o || {};
+              var f = qf(frame, o.step);
+              if (f <= from) return 0;
+              if (f >= to) return 1;
+              var ease = o.ease || function (t) { return t; };
+              return ease((f - from) / (to - from));
+            }
+
+
+            var W = root.clientWidth, H = root.clientHeight;
+            var P = {
+              "smooth-descent": [[0, 0.5, 0.035, 1.04, 0], [30, 0.5, 0.07052, 1.04, 0, "in"], [269, 0.5, 0.91948, 1.04, 0, "lin"], [299, 0.5, 0.955, 1.04, 0, "out"]],
+              "site-tour": [[0, 0.48, 0.035, 1.04, -0.35], [38, 0.48, 0.035, 1.04, -0.35], [88, 0.53, 0.28, 1.12, 0.15], [116, 0.53, 0.28, 1.12, 0.15], [174, 0.47, 0.58, 1.08, -0.2], [204, 0.47, 0.58, 1.08, -0.2], [268, 0.52, 0.955, 1.02, 0.1], [299, 0.52, 0.955, 1.02, 0.1]],
+              "hero-push": [[0, 0.5, 0.045, 0.94, 0], [90, 0.5, 0.045, 1.2, 0], [160, 0.5, 0.045, 1.2, 0], [299, 0.5, 0.2, 1.08, 0]],
+              "section-hop": [[0, 0.5, 0.04, 1.1, 0], [52, 0.5, 0.04, 1.1, 0], [92, 0.46, 0.38, 1.18, -0.3], [142, 0.46, 0.38, 1.18, -0.3], [184, 0.54, 0.72, 1.14, 0.25], [234, 0.54, 0.72, 1.14, 0.25], [278, 0.5, 0.96, 1.06, 0], [299, 0.5, 0.96, 1.06, 0]]
+            };
+            var keys = P[pick(vars.preset, Object.keys(P), "smooth-descent")].map(function (k) { return { at: k[0], x: k[1], y: k[2], zoom: k[3], rotate: k[4], ease: k[5] }; });
+            var EXPO = Easing.bezier(0.16, 1, 0.3, 1);
+            var EASE = { "in": Easing.cubic, "out": Easing.out(Easing.cubic), "lin": Easing.linear };
+            var SETTLE_SOFT = function (t) { return spring({ frame: t, fps: 1, durationInFrames: 1, config: { damping: 26, stiffness: 90, mass: 1 } }); };
+            var CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" };
+            var shake = num(vars.shake, 0, 0, 1), seed = str(vars.seed, "smooth-descent");
+            var rotX = num(vars.rotate_x, 14, -180, 180), rotY = num(vars.rotate_y, -20, -180, 180);
+            var persp = num(vars.perspective, 900, 50, 5000), scale = num(vars.scale, 0.86, 0.1, 3);
+            var radius = num(vars.radius, 1.4, 0, 4), refl = num(vars.reflection, 0.24, 0, 1), shadowS = num(vars.shadow, 0.7, 0, 1), light = num(vars.light, 0.55, 0, 1);
+            root.style.background = str(vars.backdrop, "linear-gradient(145deg, #17181d 0%, #09090b 72%)");
+            var elRef = document.getElementById("st-reflect"), elSh = document.getElementById("st-shadow");
+            var elP = document.getElementById("st-persp"), plane = document.getElementById("st-plane"), elLight = document.getElementById("st-light"), page = document.getElementById("st-page");
+            elP.style.perspective = persp + "px"; elLight.style.opacity = light;
+            // Plane geometry: 84 % of the frame width, content ratio 1265 x 5000.
+            var CW = 1265, CH = 5000;
+            var pw = W * 0.84, ph = pw * (CH / CW), pl = (W - pw) / 2, pt = (H - ph) / 2;
+            plane.style.left = pl + "px"; plane.style.top = pt + "px"; plane.style.width = pw + "px"; plane.style.height = ph + "px";
+            plane.style.borderRadius = (radius / 100) * W + "px";
+            page.style.transform = "scale(" + pw / CW + ")";
+            function pose(frame) {
+              var f = Math.min(Math.max(frame, keys[0].at), keys[keys.length - 1].at), i = 1;
+              while (i < keys.length - 1 && f > keys[i].at) i++;
+              var a = keys[i - 1], b = keys[i];
+              var p = f <= a.at ? 0 : f >= b.at ? 1 : interpolate(f, [a.at, b.at], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: b.ease ? EASE[b.ease] : EXPO });
+              function l(u, v) { return u + (v - u) * p; }
+              return { x: Math.min(1, Math.max(0, l(a.x, b.x))), y: Math.min(1, Math.max(0, l(a.y, b.y))), zoom: l(a.zoom, b.zoom), rotate: l(a.rotate, b.rotate) };
+            }
+            function smoothstep(v) { return v * v * (3 - 2 * v); }
+            function smoothNoise(frame, axis) {
+              var s = frame / 6, idx = Math.floor(s), mix = smoothstep(s - idx);
+              var a = random(seed + "-" + axis + "-" + idx) * 2 - 1, b = random(seed + "-" + axis + "-" + (idx + 1)) * 2 - 1;
+              return a + (b - a) * mix;
+            }
+            function shakeAt(frame) {
+              if (shake === 0) return { x: 0, y: 0, rotate: 0 };
+              var ph0 = random(seed + "-phase") * Math.PI * 2;
+              var xw = Math.sin(frame * 0.19 + ph0) * 0.58, yw = Math.sin(frame * 0.13 + ph0 * 1.37) * 0.5;
+              var xf = Math.sin(frame * 0.047 + ph0 * 0.71) * 0.22, yf = Math.sin(frame * 0.071 + ph0 * 1.91) * 0.2;
+              return { x: (xw + xf + smoothNoise(frame, "x") * 0.32) * 7 * shake, y: (yw + yf + smoothNoise(frame, "y") * 0.3) * 5 * shake,
+                rotate: (Math.sin(frame * 0.083 + ph0 * 0.43) * 0.65 + smoothNoise(frame, "roll") * 0.35) * 0.28 * shake };
+            }
+            function draw(frame) {
+              var settle = interpolate(frame, [0, 24], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: SETTLE_SOFT });
+              var opacity = interpolate(frame, [0, 9], [0, 1], CLAMP);
+              var po = pose(frame), hh = shakeAt(frame);
+              var tx = pw * po.x, ty = ph * po.y;
+              var entryY = interpolate(settle, [0, 1], [64, 0]);
+              var sc = interpolate(settle, [0, 1], [scale * 0.94, scale]);
+              var rx = interpolate(settle, [0, 1], [rotX + 8, rotX]), ry = interpolate(settle, [0, 1], [rotY - 5, rotY]);
+              var dx = W / 2 - (pl + tx) - hh.x, dy = H / 2 - (pt + ty) + entryY - hh.y;
+              plane.style.transformOrigin = tx + "px " + ty + "px";
+              plane.style.transform = "translate3d(" + dx + "px," + dy + "px,0) scale(" + sc * po.zoom + ") rotateZ(" + (-po.rotate - hh.rotate) + "deg) rotateX(" + rx + "deg) rotateY(" + ry + "deg)";
+              elP.style.opacity = opacity;
+              elRef.style.opacity = refl * opacity;
+              elRef.style.transform = "perspective(650px) rotateX(58deg) translateY(" + entryY * 0.28 + "px)";
+              elSh.style.background = "rgba(0,0,0," + 0.52 * shadowS * opacity + ")";
+              elSh.style.filter = "blur(" + (20 + 30 * shadowS) + "px)";
+              elSh.style.transform = "translateY(" + entryY * 0.35 + "px)";
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 300, draw);
+
+            var total = parseFloat(root.dataset.duration || "10");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["stage"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "warp-dissolve",
+  "type": "hyperframes:component",
+  "title": "Warp Dissolve",
+  "description": "The outgoing scene melts and blurs into a flowing, domain-warped color field that then resolves into the incoming scene. Rebuilt with a deterministic Canvas 2D noise field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .wpd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "warp",
+    "liquid",
+    "dissolve",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 2.5333,
+  "useWhen": [
+    "A fluid, liquid-feeling scene change.",
+    "Creative or music content where a melt reads as intentional."
+  ],
+  "avoidWhen": [
+    "Sharp, technical content.",
+    "A very short cut: the melt needs about two and a half seconds."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/warp-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "warp-dissolve.html",
+      "target": "compositions/components/warp-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Distortion",
+      "description": "How strongly the color field warps.",
+      "default": 0.8,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "swirl",
+      "type": "number",
+      "role": "style",
+      "label": "Swirl",
+      "description": "How much the field twists around the center.",
+      "default": 0.6,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How soft the color transitions are.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Comma-separated hex colors the field moves through.",
+      "default": "#141318,#3a3a5c,#1f1d29,#8f88ae"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the field\u2019s own drift.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

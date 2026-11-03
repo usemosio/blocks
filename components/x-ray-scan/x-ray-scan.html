@@ -1,0 +1,281 @@
+<!doctype html>
+<!--
+  X-Ray Scan
+
+  A glowing scanner bar sweeps across a device and reveals its white-line internals, with one part marked in the accent color. A built-in phone back and its internals stand in for the product: a host swaps in its own pictures by replacing the contents of the .xr-outside layer (the exterior, ahead of the bar) and the .xr-inside layers (the interior, behind the bar; both layers hold the same picture).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/x-ray-scan/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="x-ray-scan"
+  data-composition-duration="2.17"
+  data-composition-variables='[
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Horizontal sweeps left to right, vertical sweeps top to bottom.", "default": "horizontal", "options": [{"value": "horizontal", "label": "Horizontal"}, {"value": "vertical", "label": "Vertical"}]},
+    {"id": "shell", "type": "color", "role": "style", "label": "Shell", "description": "Color of the built-in phone shell.", "default": "#E5322D"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent part", "description": "Color of the highlighted internal part.", "default": "#E5322D"},
+    {"id": "line", "type": "color", "role": "style", "label": "Scan line", "description": "Scan bar and interior line art color.", "default": "#FFFFFF"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>X-Ray Scan</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #111111; }
+        .xr-stage { position: absolute; inset: 0; overflow: hidden; }
+        .xr-layer { position: absolute; inset: 0; }
+        .xr-layer svg { display: block; width: 100%; height: 100%; }
+        .xr-trail { position: absolute; inset: 0; opacity: 0; }
+        .xr-bar { position: absolute; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="x-ray-scan" data-duration="2.17" data-fps="30">
+        <div id="xr-clip" class="xr-stage clip" data-start="0" data-duration="2.17" data-track-index="0">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="xr-defs"></defs></svg>
+          <div id="xr-outside" class="xr-layer xr-outside"></div>
+          <div id="xr-inside" class="xr-layer xr-inside"></div>
+          <div id="xr-hot" class="xr-layer xr-inside"></div>
+          <div id="xr-trail" class="xr-trail"></div>
+          <div id="xr-bar" class="xr-bar"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Piecewise-linear map of x from inR to outR, optionally eased per segment and clamped.
+            function interp(x, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var i = 0;
+              if (x >= inR[n - 1]) i = n - 2;
+              else if (x > inR[0]) { while (x > inR[i + 1]) i++; }
+              var t = (x - inR[i]) / (inR[i + 1] - inR[i]);
+              if (o.clamp !== false) t = Math.min(1, Math.max(0, t));
+              if (o.easing) t = o.easing(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+
+            // Easings with Remotion's names; every one maps 0..1 to 0..1.
+            var E = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              back: function (s) { return function (t) { return t * t * ((s + 1) * t - s); }; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; },
+              bezier: function (x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var k = 0; k < 24; k++) {
+                    var mt = 1 - t;
+                    var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                    if (bx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var m = 1 - t;
+                  return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+                };
+              }
+            };
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var vertical = str(vars.direction, "horizontal") === "vertical";
+            var c = { shell: str(vars.shell, "#E5322D"), accent: str(vars.accent, "#E5322D"), line: str(vars.line, "#FFFFFF"), detail: "#111111", xray: "#07080A" };
+            root.style.background = str(vars.background, "#111111");
+            var speed = num(vars.speed, 1, 0.1, 4);
+
+            var MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
+            var u = Math.min(W, H) / 720;
+            function rgba(hex, a) {
+              var h = String(hex).replace("#", "");
+              if (h.length === 3) h = h.split("").map(function (ch) { return ch + ch; }).join("");
+              var n = parseInt(h.slice(0, 6), 16);
+              if (Number.isNaN(n)) n = 0xffffff;
+              return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+            }
+            var dh = 0.8 * H, dw = dh * 0.49;
+            var d = { x: (W - dw) / 2, y: (H - dh) / 2, w: dw, h: dh, r: dw * 0.17 };
+            var LENSES = [[0.17, 0.17], [0.37, 0.17], [0.17, 0.37]];
+            function box(parent) { return el("svg", { viewBox: "0 0 " + W + " " + H, "aria-hidden": "true" }, parent); }
+
+            function buildOutside(parent) {
+              var svg = box(parent);
+              var lens = d.w * 0.085;
+              var defs = el("defs", {}, svg);
+              var lg = el("linearGradient", { id: "xr-gloss", x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+              [["0", "#FFFFFF", 0.22], ["0.45", "#FFFFFF", 0], ["1", "#000000", 0.18]].forEach(function (s) { el("stop", { offset: s[0], "stop-color": s[1], "stop-opacity": s[2] }, lg); });
+              el("rect", { x: d.x, y: d.y, width: d.w, height: d.h, rx: d.r, fill: c.shell }, svg);
+              el("rect", { x: d.x, y: d.y, width: d.w, height: d.h, rx: d.r, fill: "url(#xr-gloss)" }, svg);
+              el("rect", { x: d.x + d.w * 0.07, y: d.y + d.w * 0.07, width: d.w * 0.4, height: d.w * 0.4, rx: d.w * 0.1, fill: c.detail, opacity: 0.92 }, svg);
+              LENSES.forEach(function (p) {
+                el("circle", { cx: d.x + d.w * p[0], cy: d.y + d.w * p[1], r: lens, fill: "#000", stroke: "#2A2A2A", "stroke-width": lens * 0.25 }, svg);
+                el("circle", { cx: d.x + d.w * p[0] - lens * 0.3, cy: d.y + d.w * p[1] - lens * 0.3, r: lens * 0.18, fill: "#FFFFFF", opacity: 0.6 }, svg);
+              });
+              el("circle", { cx: d.x + d.w / 2, cy: d.y + d.h * 0.5, r: d.w * 0.07, fill: c.detail, opacity: 0.85 }, svg);
+            }
+            function buildInside(parent) {
+              var svg = box(parent);
+              function X(f) { return d.x + d.w * f; }
+              function Y(f) { return d.y + d.h * f; }
+              function pins(x, y, w, h, n) {
+                var out = "";
+                for (var i = 0; i < n; i++) { var px = x + ((i + 0.5) / n) * w; out += "M " + px + " " + (y - 4 * u) + " V " + y + " M " + px + " " + (y + h) + " V " + (y + h + 4 * u) + " "; }
+                return out;
+              }
+              el("rect", { x: d.x, y: d.y, width: d.w, height: d.h, rx: d.r, fill: c.xray }, svg);
+              var g = el("g", { fill: "none", stroke: c.line, "stroke-width": 2 * u, "stroke-linejoin": "round" }, svg);
+              el("rect", { x: d.x, y: d.y, width: d.w, height: d.h, rx: d.r }, g);
+              el("rect", { x: X(0.04), y: Y(0.02), width: d.w * 0.92, height: d.h * 0.96, rx: d.r * 0.82, "stroke-opacity": 0.4 }, g);
+              LENSES.forEach(function (p) {
+                el("circle", { cx: X(p[0]), cy: d.y + d.w * p[1], r: d.w * 0.085 }, g);
+                el("circle", { cx: X(p[0]), cy: d.y + d.w * p[1], r: d.w * 0.045, "stroke-opacity": 0.6 }, g);
+              });
+              // Logic board.
+              el("path", { d: "M " + X(0.52) + " " + Y(0.05) + " H " + X(0.9) + " V " + Y(0.36) + " H " + X(0.1) + " V " + Y(0.27) + " H " + X(0.52) + " Z" }, g);
+              el("rect", { x: X(0.6), y: Y(0.08), width: d.w * 0.22, height: d.h * 0.07, rx: 2 * u }, g);
+              el("path", { d: pins(X(0.6), Y(0.08), d.w * 0.22, d.h * 0.07, 6), "stroke-opacity": 0.6, "stroke-width": 1.3 * u }, g);
+              el("rect", { x: X(0.16), y: Y(0.295), width: d.w * 0.16, height: d.h * 0.04, rx: 2 * u, "stroke-opacity": 0.8 }, g);
+              el("rect", { x: X(0.38), y: Y(0.295), width: d.w * 0.12, height: d.h * 0.04, rx: 2 * u, "stroke-opacity": 0.8 }, g);
+              // Battery with wireless coil.
+              el("rect", { x: X(0.12), y: Y(0.4), width: d.w * 0.76, height: d.h * 0.44, rx: 6 * u }, g);
+              el("path", { d: "M " + X(0.42) + " " + Y(0.4) + " V " + Y(0.385) + " H " + X(0.58) + " V " + Y(0.4) }, g);
+              [0.26, 0.2, 0.14].forEach(function (f) { el("circle", { cx: X(0.5), cy: Y(0.62), r: d.w * f, "stroke-opacity": 0.45 }, g); });
+              el("path", { d: "M " + X(0.5) + " " + Y(0.47) + " V " + Y(0.5) + " M " + X(0.485) + " " + Y(0.485) + " H " + X(0.515) }, g);
+              // Flex cable, speaker and port.
+              el("path", { d: "M " + X(0.86) + " " + Y(0.36) + " V " + Y(0.38) + " H " + X(0.92) + " V " + Y(0.89) + " H " + X(0.66), "stroke-opacity": 0.6 }, g);
+              el("rect", { x: X(0.38), y: Y(0.935), width: d.w * 0.24, height: d.h * 0.025, rx: d.h * 0.0125 }, g);
+              for (var i = 0; i < 6; i++) el("circle", { cx: X(0.14 + i * 0.035), cy: Y(0.947), r: 1.8 * u }, g);
+              // The one part in the accent color: the chip.
+              var a = el("g", { stroke: c.accent, "stroke-width": 2.4 * u, fill: "none" }, svg);
+              el("rect", { x: X(0.6), y: Y(0.17), width: d.w * 0.22, height: d.w * 0.22, rx: 3 * u, fill: c.accent, "fill-opacity": 0.22 }, a);
+              el("path", { d: pins(X(0.6), Y(0.17), d.w * 0.22, d.w * 0.22, 5), "stroke-width": 1.4 * u }, a);
+              var tx = el("text", { x: X(0.5), y: Y(0.79), "text-anchor": "middle", "font-family": MONO, "font-size": 12 * u, "letter-spacing": 2 * u, fill: c.line, opacity: 0.7 }, svg);
+              tx.textContent = "Li-ion 4500 mAh";
+            }
+            var outside = document.getElementById("xr-outside"), inside = document.getElementById("xr-inside"), hot = document.getElementById("xr-hot");
+            buildOutside(outside); buildInside(inside); buildInside(hot);
+
+            var f = el("filter", { id: "xr-glow", x: "-10%", y: "-10%", width: "120%", height: "120%" }, document.getElementById("xr-defs"));
+            el("feGaussianBlur", { stdDeviation: 3 * u, result: "blur" }, f);
+            var mg = el("feMerge", {}, f);
+            el("feMergeNode", { in: "blur" }, mg); el("feMergeNode", { in: "blur" }, mg); el("feMergeNode", { in: "SourceGraphic" }, mg);
+            hot.style.filter = "url(#xr-glow)";
+
+            var span = vertical ? H : W;
+            var start = vertical ? d.y - 0.1 * H : d.x - 0.12 * W;
+            var end = vertical ? d.y + d.h + 0.1 * H : d.x + d.w + 0.12 * W;
+            var band = 0.12 * span;
+            var trail = document.getElementById("xr-trail"), bar = document.getElementById("xr-bar");
+            trail.style.background = "linear-gradient(" + (vertical ? "to top" : "to left") + ", " + rgba(c.line, 0.18) + " 0px, transparent " + band + "px)";
+            trail.style.backgroundRepeat = "no-repeat";
+            bar.style.left = vertical ? "0" : "auto"; bar.style.top = vertical ? "auto" : "0";
+            bar.style.width = (vertical ? W : 3 * u) + "px"; bar.style.height = (vertical ? 3 * u : H) + "px";
+            bar.style.backgroundColor = c.line;
+            bar.style.boxShadow = "0 0 " + 16 * u + "px " + 4 * u + "px " + rgba(c.line, 0.67) + ", 0 0 " + 60 * u + "px " + 12 * u + "px " + rgba(c.line, 0.2);
+            var sinInOut = E.inOut(E.sin);
+
+            function draw(frame) {
+              var t = frame * speed;
+              var pos = interp(t, [5, 32], [start, end], { easing: sinInOut });
+              var scanning = t > 5 && t < 32;
+              var behind = vertical ? "inset(0 0 " + (H - pos) + "px 0)" : "inset(0 " + (W - pos) + "px 0 0)";
+              var ahead = vertical ? "inset(" + pos + "px 0 0 0)" : "inset(0 0 0 " + pos + "px)";
+              var hotClip = vertical ? "inset(" + Math.max(0, pos - band) + "px 0 " + (H - pos) + "px 0)" : "inset(0 " + (W - pos) + "px 0 " + Math.max(0, pos - band) + "px)";
+              outside.style.clipPath = ahead;
+              inside.style.clipPath = behind;
+              hot.style.clipPath = hotClip; hot.style.opacity = scanning ? 0.9 : 0;
+              trail.style.clipPath = behind; trail.style.opacity = scanning ? 1 : 0;
+              trail.style.backgroundPosition = vertical ? "0 " + (pos - H) + "px" : (pos - W) + "px 0";
+              if (vertical) bar.style.top = pos - 1.5 * u + "px"; else bar.style.left = pos - 1.5 * u + "px";
+              bar.style.opacity = scanning ? 1 : 0;
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "2.17") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "2.17");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["x-ray-scan"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

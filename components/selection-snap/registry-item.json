@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "selection-snap",
+  "type": "hyperframes:component",
+  "title": "Selection Snap",
+  "description": "A thin word in a loose viewfinder snaps into a design-tool selection while it goes from Thin to Black, pops its handles and counts up a size badge.",
+  "tags": [
+    "text-effects",
+    "design-tool",
+    "selection",
+    "weight",
+    "title",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.5,
+  "useWhen": [
+    "A single word should read as something being designed: a design tool, a component library, a type or layout feature.",
+    "A weight change should carry the beat: the word grows from Thin to Black inside the frame.",
+    "The title needs a precise, UI-flavored accent (selection box, handles, a W × H readout) without building interface chrome."
+  ],
+  "avoidWhen": [
+    "The word should enter with physical motion rather than change in place: use stretch-in.",
+    "A plain, quiet reveal is enough and the design-tool look would distract: use soft-blur-in.",
+    "The text is a full sentence: the selection frames one short word."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/selection-snap/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "selection-snap.html",
+      "target": "compositions/components/selection-snap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "One short word.", "default": "Frame"},
+    {"id": "color", "type": "color", "role": "style", "label": "Start color", "description": "Color of the word at the start.", "default": "#fafafa"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Color the word settles on.", "default": "#ff4d1a"},
+    {"id": "selection_color", "type": "color", "role": "style", "label": "Selection", "description": "Color of the brackets, handles and badge.", "default": "#3d5afe"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (1280×720 stage).", "default": 150, "min": 60, "max": 260, "step": 1, "unit": "px"},
+    {"id": "from_weight", "type": "number", "role": "style", "label": "From weight", "description": "Starting font weight.", "default": 100, "min": 100, "max": 900, "step": 100},
+    {"id": "to_weight", "type": "number", "role": "style", "label": "To weight", "description": "Final font weight.", "default": 900, "min": 100, "max": 900, "step": 100},
+    {"id": "badge", "type": "boolean", "role": "style", "label": "Size badge", "description": "Show the W × H readout under the box.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

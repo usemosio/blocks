@@ -1,0 +1,232 @@
+<!doctype html>
+<!--
+  Type Fossil
+
+  A readable word carries layers of fine contours, revises itself through earlier drafts, then compresses into a clean typographic imprint.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/type-fossil/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="type-fossil"
+  data-composition-duration="6.9333"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Final word", "description": "The word the drafts settle on.", "default": "Form"},
+    {"id": "drafts", "type": "string", "role": "content", "label": "Drafts", "description": "Earlier versions, separated by |. Up to twelve; the clip is sized for six, more drafts play faster.", "default": "Idea | Maybe | Try | Almost | Again | Closer"},
+    {"id": "layers", "type": "number", "role": "style", "label": "Contour layers", "description": "Number of stacked contour slices.", "default": 16, "min": 4, "max": 24, "step": 1},
+    {"id": "depth", "type": "number", "role": "style", "label": "Slice depth", "description": "Thickness of the slice, in reference pixels.", "default": 100, "min": 50, "max": 150, "step": 1},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in reference pixels (1280×720 stage).", "default": 220, "min": 24, "max": 300, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the word.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Ink", "description": "Color of the word.", "default": "#302b26"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Contours", "description": "Color of the contour lines.", "default": "#a800b7"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Backdrop color.", "default": "#eeeae2"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Type Fossil</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .tf-stage { position: absolute; inset: 0; font-family: Arimo, Arial, Helvetica, sans-serif; }
+        .tf-svg { display: block; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="type-fossil" data-duration="6.9333" data-fps="30">
+        <div id="tf-clip" class="tf-stage clip" data-start="0" data-duration="6.9333" data-track-index="0">
+          <svg id="tf-svg" class="tf-svg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <clipPath id="tf-old"><rect id="tf-old-r" x="-100" y="-100" width="1480" height="920" /></clipPath>
+              <clipPath id="tf-new"><rect id="tf-new-r" x="-100" y="-100" width="0" height="920" /></clipPath>
+            </defs>
+            <g id="tf-a" clip-path="url(#tf-old)"></g>
+            <g id="tf-b" clip-path="url(#tf-new)"></g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "6.9333");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var NS = "http://www.w3.org/2000/svg";
+            var stage = document.getElementById("tf-clip");
+            stage.style.backgroundColor = col(vars.background_color, "#eeeae2");
+            var finalText = str(vars.text, "Form").trim().replace(/\s+/g, " ");
+            var drafts = str(vars.drafts, "Idea | Maybe | Try | Almost | Again | Closer").split(/[|\n\r]+/).map(function (s) { return s.trim().replace(/\s+/g, " "); }).filter(Boolean).slice(0, 12);
+            var revisions = drafts.concat([finalText]);
+            var count = Math.round(num(vars.layers, 16, 4, 24)), thickness = num(vars.depth, 100, 50, 150);
+            var size = num(vars.font_size, 220, 24, 300), weight = pick(vars.font_weight, ["400", "600", "700"], "600");
+            var ink = col(vars.color, "#302b26"), accent = col(vars.accent_color, "#a800b7");
+            var draftCount = revisions.length - 1;
+            var collapseStart = draftCount === 0 ? 16 : 20 + (draftCount - 1) * 18 + 16, settle = collapseStart + 48;
+            // The clip is sized for the default six drafts; longer scripts speed up to fit it.
+            var rate = num(vars.speed, 1, 0.25, 4) * Math.max(1, (settle + 34) / (TOTAL * 30));
+            var easeIO = ease("tf-io", 0.65, 0, 0.3, 1), easeOut = ease("tf-out", 0.16, 1, 0.3, 1);
+            function prog(t, a, b) { return Math.min(1, Math.max(0, (t - a) / (b - a))); }
+            function widthUnits(s) {
+              return Array.from(s).reduce(function (sum, ch) {
+                return sum + (/\s/.test(ch) ? 0.35 : /[ilI.,'!:;]/.test(ch) ? 0.4 : /[MW@]/.test(ch) ? 1 : 0.8);
+              }, 0);
+            }
+            function slice(parent) {
+              var list = [];
+              for (var order = 0; order < count; order++) {
+                var tx = document.createElementNS(NS, "text");
+                tx.setAttribute("text-anchor", "middle"); tx.setAttribute("paint-order", "stroke fill");
+                parent.appendChild(tx);
+                list.push(tx);
+              }
+              return list;
+            }
+            var groupA = slice(document.getElementById("tf-a")), groupB = slice(document.getElementById("tf-b"));
+            function drawSlice(list, copy, st) {
+              var font = Math.min(size, 720 / Math.max(1, widthUnits(copy)));
+              list.forEach(function (tx, order) {
+                var index = count - 1 - order, fraction = index / (count - 1);
+                var x = 640 + st.spanX / 2 - st.spanX * fraction, y = 360 + st.spanY / 2 - st.spanY * fraction;
+                tx.textContent = copy;
+                tx.setAttribute("x", 0); tx.setAttribute("y", font * 0.35);
+                tx.setAttribute("font-size", font); tx.setAttribute("font-weight", weight);
+                tx.setAttribute("transform", "translate(" + x + " " + y + ") skewX(" + st.skew + ")");
+                tx.setAttribute("fill", index === 0 ? ink : "none");
+                tx.setAttribute("stroke", index === 0 ? "none" : accent);
+                tx.setAttribute("stroke-width", index === 0 ? 0 : 0.75);
+                tx.setAttribute("stroke-opacity", 0.18 + (1 - fraction) * 0.38);
+                tx.setAttribute("opacity", index === 0 ? 1 : st.ghost);
+              });
+            }
+            var rOld = document.getElementById("tf-old-r"), rNew = document.getElementById("tf-new-r");
+            tick(function (tt) {
+              var t = tt * 30 * rate;
+              var collapse = easeIO(prog(t, collapseStart, settle));
+              var open = 0.55 + 0.45 * easeOut(prog(t, 0, 16));
+              var spread = open * (1 - collapse);
+              var from = 0, to = 0, change = 0;
+              for (var rev = 0; rev < draftCount; rev++) {
+                var start = 20 + rev * 18;
+                if (t < start) break;
+                if (t >= start + 8) { from = rev + 1; to = from; change = 0; }
+                else { from = rev; to = rev + 1; change = easeIO(prog(t, start, start + 8)); break; }
+              }
+              var st = { spanX: thickness * 1.35 * spread, spanY: -thickness * 0.68 * spread, skew: -10 * (1 - collapse), ghost: 1 - easeIO(prog(t, settle - 18, settle)) };
+              var wipeX = -100 + (1380 + 100) * change;
+              rOld.setAttribute("x", wipeX); rOld.setAttribute("width", 1480 - (wipeX + 100));
+              rNew.setAttribute("width", wipeX + 100);
+              drawSlice(groupA, revisions[from], st);
+              if (from === to) { rOld.setAttribute("x", -100); rOld.setAttribute("width", 1480); groupB.forEach(function (tx) { tx.setAttribute("opacity", 0); }); }
+              else drawSlice(groupB, revisions[to], st);
+            });
+            var total = parseFloat(root.dataset.duration || "6.9333");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["type-fossil"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "spring-settle",
+  "type": "hyperframes:component",
+  "title": "Spring Settle",
+  "description": "Scenes leave as one group, shrinking and fading, then the stage changes color on an empty beat and the next scene's items spring in staggered from slightly oversized. Plays three scenes (A, B, C). Built-in placeholder scenes A, B and C (the three .ssl-scene elements, whose .ssl-item children settle in one after another) make it preview on its own; to use it with your own scenes, replace the contents of those scenes, give the elements that should settle in the class ssl-item, and set each scene's stage color in the SCENES list in the script.",
+  "tags": [
+    "transition",
+    "spring",
+    "stagger",
+    "scene-swap",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 7.1,
+  "useWhen": [
+    "Scene-by-scene explainers where each beat should land with a springy, staggered entrance.",
+    "A change of stage color between beats."
+  ],
+  "avoidWhen": [
+    "You need scenes to overlap.",
+    "Scenes with no distinct items to stagger."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/spring-settle/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "spring-settle.html",
+      "target": "compositions/components/spring-settle.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "enter_scale",
+      "type": "number",
+      "role": "motion",
+      "label": "Enter scale",
+      "description": "Starting scale of each item as it settles in.",
+      "default": 1.24,
+      "min": 1,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "enter_stagger",
+      "type": "number",
+      "role": "motion",
+      "label": "Enter stagger",
+      "description": "Frames between items settling in (at 30 fps).",
+      "default": 3,
+      "min": 0,
+      "max": 10,
+      "step": 0.5
+    },
+    {
+      "id": "exit_scale",
+      "type": "number",
+      "role": "motion",
+      "label": "Exit scale",
+      "description": "Scale the scene shrinks to as it leaves.",
+      "default": 0.84,
+      "min": 0.3,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "exit_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Exit frames",
+      "description": "Frames the exit lasts (at 30 fps).",
+      "default": 6,
+      "min": 2,
+      "max": 20,
+      "step": 1
+    }
+  ]
+}

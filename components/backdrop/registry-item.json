@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "backdrop",
+  "type": "hyperframes:component",
+  "title": "Backdrop",
+  "description": "Full-frame colour or gradient fill with a padded, rounded, shadowed content frame (the floating-card look). Frame holds a built-in placeholder.",
+  "tags": [
+    "background",
+    "frame",
+    "padding",
+    "screen-studio",
+    "remocn-port"
+  ],
+  "category": "layout",
+  "duration": 5,
+  "useWhen": [
+    "You need a scene background: a coloured surround with a padded, rounded, shadowed inner frame.",
+    "You want the floating-card look for a screen recording or UI scene."
+  ],
+  "avoidWhen": [
+    "You want a raw full-bleed colour with no frame: set padding and radius to 0.",
+    "You are inside a transition that manages its own full-frame layout."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/backdrop/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "backdrop.html",
+      "target": "compositions/components/backdrop.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "fill_type",
+      "type": "enum",
+      "role": "style",
+      "label": "Fill type",
+      "description": "Kind of background.",
+      "default": "gradient",
+      "options": [
+        {
+          "value": "color",
+          "label": "Color"
+        },
+        {
+          "value": "gradient",
+          "label": "Gradient"
+        }
+      ]
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Background colour when the fill type is Color.",
+      "default": "#6366f1"
+    },
+    {
+      "id": "gradient",
+      "type": "string",
+      "role": "style",
+      "label": "Gradient",
+      "description": "CSS gradient when the fill type is Gradient.",
+      "default": "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)"
+    },
+    {
+      "id": "padding",
+      "type": "number",
+      "role": "style",
+      "label": "Padding",
+      "description": "Gap between frame and edge, as a percentage of the frame width.",
+      "default": 4,
+      "min": 0,
+      "max": 12,
+      "step": 0.5,
+      "unit": "%"
+    },
+    {
+      "id": "radius",
+      "type": "number",
+      "role": "style",
+      "label": "Radius",
+      "description": "Corner radius of the frame, as a percentage of the frame width.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.25,
+      "unit": "%"
+    },
+    {
+      "id": "shadow",
+      "type": "string",
+      "role": "style",
+      "label": "Shadow",
+      "description": "CSS box-shadow of the frame. Empty for none.",
+      "default": "0 20px 60px rgba(0,0,0,0.4)"
+    },
+    {
+      "id": "placeholder",
+      "type": "boolean",
+      "role": "content",
+      "label": "Placeholder content",
+      "description": "Draw a placeholder window inside the frame. Turn off for an empty frame a host layers its own scene over.",
+      "default": true
+    }
+  ],
+  "static": true
+}

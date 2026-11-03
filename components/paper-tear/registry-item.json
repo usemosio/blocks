@@ -1,0 +1,90 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "paper-tear",
+  "type": "hyperframes:component",
+  "title": "Paper Tear",
+  "description": "The outgoing scene is printed on paper that strains, rips down the middle with a jolt of the camera and a flash, and is flung apart in two torn halves with flying scraps, revealing the next scene. Built-in placeholder scenes A and B (the two .ptr-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "paper",
+    "tear",
+    "impact",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.2,
+  "useWhen": [
+    "A violent, physical scene change: a reveal, a breakthrough, a big announcement.",
+    "Scenes that already feel printed or poster-like."
+  ],
+  "avoidWhen": [
+    "Calm or elegant pieces where an impact would feel out of place.",
+    "Scenes with important content on the seam in the middle."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/paper-tear/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "paper-tear.html",
+      "target": "compositions/components/paper-tear.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "impact",
+      "type": "number",
+      "role": "motion",
+      "label": "Impact",
+      "description": "Strength of the shake, flash and debris. 0 turns them off.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.1
+    },
+    {
+      "id": "roughness",
+      "type": "number",
+      "role": "style",
+      "label": "Roughness",
+      "description": "How jagged the rip is, 0 to 1.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Seed for the shape of the rip.",
+      "default": 7,
+      "min": 0,
+      "max": 9999,
+      "step": 1
+    },
+    {
+      "id": "edge_color",
+      "type": "color",
+      "role": "style",
+      "label": "Edge color",
+      "description": "Color of the fibrous torn edge.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "shadow_color",
+      "type": "string",
+      "role": "style",
+      "label": "Shadow color",
+      "description": "CSS color of the shadow the torn halves cast.",
+      "default": "rgba(0, 0, 0, 0.45)"
+    }
+  ]
+}

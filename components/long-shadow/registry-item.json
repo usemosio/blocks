@@ -1,0 +1,122 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "long-shadow",
+  "type": "hyperframes:component",
+  "title": "Long Shadow",
+  "description": "A flat icon pops in and casts a long shadow to the frame edge, then the light swings and the shadow sweeps around on a spring. A built-in check badge stands in for the mark; a host replaces the contents of the .ls-mark layers with its own flat icon.",
+  "tags": [
+    "flat-design",
+    "shadow",
+    "icon",
+    "badge",
+    "clean",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 2.34,
+  "useWhen": [
+    "A flat icon, badge or logo mark should get the classic flat-design long shadow, with a little motion in it.",
+    "A success, feature or app icon beat needs a calm, clean accent that fills the frame without extra elements.",
+    "You want depth on a flat mark without lighting it in 3D."
+  ],
+  "avoidWhen": [
+    "The subject is a word that should rise out of the plane on a solid 3D body: use extrude-pop.",
+    "A line of text should be uncovered and wiped by moving shadows: use shadow-sweep-text.",
+    "The mark should land with a heavy impact rather than a soft pop: use impact-shake."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/long-shadow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "long-shadow.html",
+      "target": "compositions/components/long-shadow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "angle_from",
+      "type": "number",
+      "role": "motion",
+      "label": "Start angle",
+      "description": "Shadow direction in degrees at the start (0 is right, 90 is down).",
+      "default": 45,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "unit": "deg"
+    },
+    {
+      "id": "angle_to",
+      "type": "number",
+      "role": "motion",
+      "label": "End angle",
+      "description": "Shadow direction after the light swings.",
+      "default": 135,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "unit": "deg"
+    },
+    {
+      "id": "fade",
+      "type": "number",
+      "role": "style",
+      "label": "Fade",
+      "description": "Fade the shadow toward its far end, 0 to 1.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "shadow_color",
+      "type": "color",
+      "role": "style",
+      "label": "Shadow",
+      "description": "Shadow color.",
+      "default": "#ECEAE6"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "icon_color",
+      "type": "color",
+      "role": "style",
+      "label": "Badge",
+      "description": "Color of the built-in badge.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "check_color",
+      "type": "color",
+      "role": "style",
+      "label": "Check",
+      "description": "Color of the check mark on the built-in badge.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

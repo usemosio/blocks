@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rolodex-flip",
+  "type": "hyperframes:component",
+  "title": "Rolodex Flip",
+  "description": "Cycle a word through a list of values inside a held line, with a 3D rolodex card flip.",
+  "tags": [
+    "text-effects",
+    "flip",
+    "3d",
+    "cycle",
+    "terminal",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.6667,
+  "useWhen": [
+    "Cycling package, feature, or value names inside a held line: install commands, \"works with X\" beats, plan names.",
+    "The \"any component, same command\" bit."
+  ],
+  "avoidWhen": [
+    "The values are numbers with a counting story: use number-wheel or rolling-number.",
+    "Only two values swap once: value-swap or per-word-crossfade is lighter.",
+    "The line reflows per value: the fixed sizer width leaves a gap next to short values."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/rolodex-flip/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "rolodex-flip.html",
+      "target": "compositions/components/rolodex-flip.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "Comma-separated values to flip through. The first shows from the start, the last stays.", "default": "button, dialog, command, tabs, chart-area"},
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Fixed text before the flipping word.", "default": "$ npm run "},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Frames between flips (30 fps).", "default": 20, "min": 10, "max": 40, "step": 2, "unit": "frames"},
+    {"id": "flip_duration", "type": "number", "role": "motion", "label": "Flip duration", "description": "Frames each flip takes (30 fps).", "default": 10, "min": 4, "max": 20, "step": 1, "unit": "frames"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 36, "min": 12, "max": 160, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Word color", "description": "Color of the flipping word.", "default": "#f2f2f2"},
+    {"id": "prefix_color", "type": "color", "role": "style", "label": "Prefix color", "description": "Color of the fixed text.", "default": "#8a8794"}
+  ]
+}

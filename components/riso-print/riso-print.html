@@ -1,0 +1,283 @@
+<!doctype html>
+<!--
+  Riso Print
+
+  A subject printed in two risograph inks: the accent plate slides in off-register and settles a hair out of alignment over grainy paper. The built-in geometric poster is a stand-in: a host prints its own picture by replacing the contents of both .rp-subject layers (dark tones go to the key plate, warm tones to the accent plate).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/riso-print/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="riso-print"
+  data-composition-duration="2.5"
+  data-composition-variables='[
+    {"id": "key_ink", "type": "color", "role": "style", "label": "Key ink", "description": "Ink of the key plate: dark tones print here.", "default": "#111111"},
+    {"id": "accent_ink", "type": "color", "role": "style", "label": "Accent ink", "description": "Ink of the accent plate: warm tones print here.", "default": "#E5322D"},
+    {"id": "paper", "type": "color", "role": "style", "label": "Paper", "description": "Paper color.", "default": "#F2F0EA"},
+    {"id": "grain", "type": "number", "role": "style", "label": "Grain", "description": "Ink speckle and paper tooth.", "default": 0.5, "min": 0, "max": 1, "step": 0.05},
+    {"id": "jitter", "type": "number", "role": "motion", "label": "Jitter", "description": "Stop-motion wobble of the accent plate after it settles, in pixels at 720p. 0 turns it off.", "default": 1.2, "min": 0, "max": 6, "step": 0.1, "unit": "px"},
+    {"id": "marks", "type": "boolean", "role": "style", "label": "Registration marks", "description": "Print registration marks in the corners.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Riso Print</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #F2F0EA; }
+        .rp-stage { position: absolute; inset: 0; overflow: hidden; }
+        .rp-plate { position: absolute; inset: 0; mix-blend-mode: multiply; }
+        .rp-plate svg, .rp-paper { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .rp-paper { mix-blend-mode: multiply; }
+      </style>
+
+      <div id="root" data-composition-id="riso-print" data-duration="2.5" data-fps="30">
+        <div id="rp-clip" class="rp-stage clip" data-start="0" data-duration="2.5" data-track-index="0">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="rp-defs"></defs></svg>
+          <div id="rp-plate-0" class="rp-plate"><div class="rp-subject" id="rp-subject-0"></div></div>
+          <div id="rp-plate-1" class="rp-plate"><div class="rp-subject" id="rp-subject-1"></div></div>
+          <svg class="rp-paper" aria-hidden="true"><rect id="rp-paper-rect" fill="#fff" /></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Seeded random in [0, 1): a string hash, so the same key always gives the same value.
+            function rnd(key) {
+              var h = 1779033703 ^ key.length;
+              for (var i = 0; i < key.length; i++) {
+                h = Math.imul(h ^ key.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+              }
+              h = Math.imul(h ^ (h >>> 16), 2246822507);
+              h = Math.imul(h ^ (h >>> 13), 3266489909);
+              h ^= h >>> 16;
+              return (h >>> 0) / 4294967296;
+            }
+
+            // Piecewise-linear map of x from inR to outR, optionally eased per segment and clamped.
+            function interp(x, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var i = 0;
+              if (x >= inR[n - 1]) i = n - 2;
+              else if (x > inR[0]) { while (x > inR[i + 1]) i++; }
+              var t = (x - inR[i]) / (inR[i + 1] - inR[i]);
+              if (o.clamp !== false) t = Math.min(1, Math.max(0, t));
+              if (o.easing) t = o.easing(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+
+            // Easings with Remotion's names; every one maps 0..1 to 0..1.
+            var E = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              back: function (s) { return function (t) { return t * t * ((s + 1) * t - s); }; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; },
+              bezier: function (x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var k = 0; k < 24; k++) {
+                    var mt = 1 - t;
+                    var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                    if (bx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var m = 1 - t;
+                  return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+                };
+              }
+            };
+
+            // Closed-form damped spring from 0 to 1 (rest at 1), sampled at `frame` frames.
+            function spring(frame, mass, stiffness, damping) {
+              if (frame <= 0) return 0;
+              var t = frame / FPS;
+              var w0 = Math.sqrt(stiffness / mass);
+              var z = damping / (2 * Math.sqrt(stiffness * mass));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+              }
+              return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+            }
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var keyInk = str(vars.key_ink, "#111111");
+            var accentInk = str(vars.accent_ink, "#E5322D");
+            var paper = str(vars.paper, "#F2F0EA");
+            var grain = clamp01(num(vars.grain, 0.5, 0, 1));
+            var jitter = num(vars.jitter, 1.2, 0, 6);
+            var marks = bool(vars.marks, true);
+            var speed = num(vars.speed, 1, 0.1, 4);
+            root.style.background = paper;
+
+            var unit = Math.min(W, H) / 720, s = Math.min(W, H), cx = W / 2, cy = H / 2;
+            var offset = [7, -5];
+            var plates = [document.getElementById("rp-plate-0"), document.getElementById("rp-plate-1")];
+            var subjects = [document.getElementById("rp-subject-0"), document.getElementById("rp-subject-1")];
+            var inks = [keyInk, accentInk];
+
+            // The geometric poster that stands in for the subject; each plate gets its own shapes.
+            function poster(plate) {
+              var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Geometric poster" });
+              var g = el("g", { fill: "#000" }, svg);
+              if (plate === 0) {
+                el("rect", { x: cx - 0.42 * s, y: cy - 0.1 * s, width: 0.36 * s, height: 0.36 * s }, g);
+                for (var i = 0; i < 3; i++) el("rect", { x: cx + 0.2 * s, y: cy + 0.2 * s + i * 0.045 * s, width: (0.3 - i * 0.07) * s, height: 0.018 * s }, g);
+              } else {
+                el("circle", { cx: cx + 0.08 * s, cy: cy - 0.04 * s, r: 0.26 * s }, g);
+                el("rect", { x: cx - 0.46 * s, y: cy - 0.34 * s, width: 0.07 * s, height: 0.07 * s }, g);
+              }
+              return svg;
+            }
+            function registrationMarks() {
+              var svg = el("svg", { viewBox: "0 0 " + W + " " + H, "aria-hidden": "true" });
+              var m = 0.06 * s, r = 0.018 * s;
+              [[m, m], [W - m, m], [m, H - m], [W - m, H - m]].forEach(function (p) {
+                var g = el("g", { stroke: "#000", "stroke-width": 0.0035 * s, fill: "none" }, svg);
+                el("circle", { cx: p[0], cy: p[1], r: r }, g);
+                el("line", { x1: p[0] - r * 1.7, y1: p[1], x2: p[0] + r * 1.7, y2: p[1] }, g);
+                el("line", { x1: p[0], y1: p[1] - r * 1.7, x2: p[0], y2: p[1] + r * 1.7 }, g);
+              });
+              return svg;
+            }
+            subjects.forEach(function (box, i) {
+              box.style.cssText = "position:absolute;inset:0;";
+              box.appendChild(poster(i));
+              if (marks) plates[i].appendChild(registrationMarks());
+            });
+
+            // Coverage = A - channel: the key plate takes everything without red, the accent plate everything without green.
+            function plateMatrix(channel) {
+              var k = 1.4, r = channel === 0 ? -k : 0, g = channel === 1 ? -k : 0;
+              return "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  " + r + " " + g + " 0 " + k + " -0.2";
+            }
+            var speckle = "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  " + -5 * grain + " 0 0 0 " + (1 + 5 * grain * 0.56);
+            var defs = document.getElementById("rp-defs");
+            [0, 1].forEach(function (i) {
+              var f = el("filter", { id: "rp-plate-f" + i, x: 0, y: 0, width: 1, height: 1, "color-interpolation-filters": "sRGB" }, defs);
+              el("feColorMatrix", { in: "SourceGraphic", type: "matrix", values: plateMatrix(i), result: "coverage" }, f);
+              el("feTurbulence", { type: "fractalNoise", baseFrequency: 0.9 / unit, numOctaves: 2, seed: 7 + i * 13, result: "noise" }, f);
+              el("feColorMatrix", { in: "noise", type: "matrix", values: speckle, result: "mask" }, f);
+              el("feComposite", { in: "coverage", in2: "mask", operator: "in", result: "inked" }, f);
+              el("feFlood", { "flood-color": inks[i], result: "ink" }, f);
+              el("feComposite", { in: "ink", in2: "inked", operator: "in" }, f);
+              plates[i].style.filter = "url(#rp-plate-f" + i + ")";
+            });
+            var pf = el("filter", { id: "rp-paper-f", x: 0, y: 0, width: 1, height: 1, "color-interpolation-filters": "sRGB" }, defs);
+            el("feTurbulence", { type: "fractalNoise", baseFrequency: 0.65 / unit, numOctaves: 3, seed: 3 }, pf);
+            el("feColorMatrix", { type: "matrix", values: "0 0 0 0 0.25  0 0 0 0 0.2  0 0 0 0 0.12  " + 0.5 * grain + " 0 0 0 " + -0.18 * grain }, pf);
+            var rect = document.getElementById("rp-paper-rect");
+            rect.setAttribute("width", W); rect.setAttribute("height", H);
+            rect.setAttribute("filter", "url(#rp-paper-f)");
+
+            var outCubic = E.out(E.cubic);
+            function draw(frame) {
+              var t = frame * speed;
+              // Key plate: the ink hits the paper.
+              var press = interp(t, [0, 8], [0, 1], { easing: outCubic });
+              // Accent plate: slides in off-register, wobbles, settles a hair off.
+              var slide = spring(t - 4, 0.8, 120, 9);
+              var step = Math.floor(t / 4);
+              var jitterIn = interp(t, [26, 34], [0, 1]);
+              var jx = (rnd("riso-jx-" + step) - 0.5) * 2 * jitter * unit * jitterIn;
+              var jy = (rnd("riso-jy-" + step) - 0.5) * 2 * jitter * unit * jitterIn;
+              var ax = interp(slide, [0, 1], [-0.22 * W, offset[0] * unit], { clamp: false }) + jx;
+              var ay = interp(slide, [0, 1], [0.08 * H, offset[1] * unit], { clamp: false }) + jy;
+              var arot = interp(slide, [0, 1], [-4, 0.35], { clamp: false });
+              plates[0].style.opacity = press * 0.94;
+              plates[0].style.transform = "scale(" + interp(press, [0, 1], [1.035, 1]) + ")";
+              plates[1].style.opacity = interp(t, [4, 8], [0, 1]) * 0.9;
+              plates[1].style.transform = "translate(" + ax + "px, " + ay + "px) rotate(" + arot + "deg)";
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "2.5") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "2.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["riso-print"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

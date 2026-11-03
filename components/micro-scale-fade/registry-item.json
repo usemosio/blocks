@@ -1,0 +1,46 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "micro-scale-fade",
+  "type": "hyperframes:component",
+  "title": "Micro Scale Fade",
+  "description": "A calm, tiny scale pop for subtle premium polish on labels and headings.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "fade",
+    "subtle",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A label, subheading or supporting text needs a polished entrance that does not draw attention.",
+    "A single block of text should appear in a neutral way that suits product, SaaS or corporate video."
+  ],
+  "avoidWhen": [
+    "The reveal should be the hero moment: use kinetic-center-build or per-character-rise.",
+    "The text must also exit: this block is entrance-only."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/micro-scale-fade/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "micro-scale-fade.html",
+      "target": "compositions/components/micro-scale-fade.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text that fades and scales in.", "default": "Welcome to motion." },
+    { "id": "scale_from", "type": "number", "role": "motion", "label": "Scale from", "description": "Starting scale the text grows from as it fades in.", "default": 0.96, "min": 0.8, "max": 1, "step": 0.01 },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

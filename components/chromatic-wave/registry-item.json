@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "chromatic-wave",
+  "type": "hyperframes:component",
+  "title": "Chromatic Wave",
+  "description": "A soft wave travels down through the type; where it crosses, the letters ripple and split into RGB fringes, then settle back to white.",
+  "tags": [
+    "text-effects",
+    "rgb-split",
+    "glass",
+    "wave",
+    "music-video",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A held title (an album cover, a poster hold, a loop) needs slow, ambient distortion instead of a one-shot entrance.",
+    "The look is music-video or vaporwave: rippling glass with red, green and blue fringes at the distortion edges.",
+    "The type can sit on a dark background: the channel split sums back to white via screen blending, exact only over black."
+  ],
+  "avoidWhen": [
+    "You need a quick glitch accent rather than a five-second traveling wave: use rgb-glitch-text.",
+    "The background is light: the screen blend that reassembles the channels breaks over anything but dark fills.",
+    "The copy enters or changes mid-scene: the type is static, this is a treatment, not a reveal."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/chromatic-wave/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "chromatic-wave.html",
+      "target": "compositions/components/chromatic-wave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "headline", "type": "string", "role": "content", "label": "Headline", "description": "Large centre word.", "default": "MUSIC"},
+    {"id": "kicker", "type": "string", "role": "content", "label": "Kicker", "description": "Small spaced word above and below the headline.", "default": "LIVE"},
+    {"id": "fill", "type": "color", "role": "style", "label": "Fill", "description": "Text color. The channel split reassembles to this over a dark background.", "default": "#ffffff"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Backdrop color. Keep it dark.", "default": "#000000"},
+    {"id": "wave_height", "type": "number", "role": "motion", "label": "Wave height", "description": "Amplitude of the wave edge.", "default": 28, "min": 0, "max": 40, "step": 1},
+    {"id": "max_displacement_px", "type": "number", "role": "motion", "label": "Displacement", "description": "Largest glass displacement in pixels.", "default": 39, "min": 0, "max": 60, "step": 1, "unit": "px"},
+    {"id": "turbulence", "type": "number", "role": "motion", "label": "Turbulence", "description": "How much noise ripples the wave.", "default": 130, "min": 0, "max": 200, "step": 1}
+  ]
+}

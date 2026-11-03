@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "squiggle",
+  "type": "hyperframes:component",
+  "title": "Squiggle",
+  "description": "A wavy, zigzag, looping or coiled line draws itself with a springy swim, settles, holds and erases.",
+  "tags": [
+    "line",
+    "squiggle",
+    "wave",
+    "zigzag",
+    "accent",
+    "underline",
+    "remocn-port"
+  ],
+  "category": "shapes",
+  "duration": 2.7,
+  "useWhen": [
+    "A title or number needs a lively hand-drawn style underline or flourish.",
+    "A playful accent line should draw in, wiggle and clear out."
+  ],
+  "avoidWhen": [
+    "A clean, static divider is needed.",
+    "The line must connect two specific elements: it is placed at a fixed center and angle."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/squiggle/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "squiggle.html",
+      "target": "compositions/components/squiggle.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"shape","type":"enum","role":"layout","label":"Shape","description":"Kind of line.","default":"wave","options":[{"value":"wave","label":"Wave"},{"value":"zigzag","label":"Zigzag"},{"value":"loops","label":"Loops"},{"value":"coil","label":"Coil"}]},
+    {"id":"color","type":"color","role":"style","label":"Line color","description":"Stroke color.","default":"#ffffff"},
+    {"id":"weight","type":"number","role":"style","label":"Weight","description":"Stroke thickness at a 720 px frame height.","default":3,"min":1,"max":12,"step":0.5},
+    {"id":"amplitude","type":"number","role":"layout","label":"Amplitude","description":"Height of the waves.","default":14,"min":0,"max":60,"step":1,"unit":"px"},
+    {"id":"wavelength","type":"number","role":"layout","label":"Wavelength","description":"Distance between wave crests.","default":48,"min":12,"max":160,"step":1,"unit":"px"},
+    {"id":"length","type":"number","role":"layout","label":"Length","description":"Length of the line.","default":320,"min":40,"max":1200,"step":1,"unit":"px"},
+    {"id":"angle","type":"number","role":"layout","label":"Angle","description":"Rotation of the line in degrees.","default":0,"min":-180,"max":180,"step":1,"unit":"deg"},
+    {"id":"x","type":"number","role":"layout","label":"X","description":"Line center across the frame, 0 to 1.","default":0.375,"min":0,"max":1,"step":0.01},
+    {"id":"y","type":"number","role":"layout","label":"Y","description":"Line center down the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},
+    {"id":"settle","type":"number","role":"motion","label":"Settle","description":"How much the line calms down while it holds, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.05},
+    {"id":"hold","type":"number","role":"motion","label":"Hold","description":"Frames (30 fps) the finished line holds.","default":12,"min":0,"max":90,"step":1,"unit":"frames"},
+    {"id":"erase","type":"boolean","role":"motion","label":"Erase","description":"Erase the line at the end.","default":true},
+    {"id":"delay","type":"number","role":"motion","label":"Delay","description":"Frames (30 fps) before the line starts.","default":0,"min":0,"max":60,"step":1,"unit":"frames"}
+  ]
+}

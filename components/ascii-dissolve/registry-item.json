@@ -1,0 +1,78 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ascii-dissolve",
+  "type": "hyperframes:component",
+  "title": "ASCII Dissolve",
+  "description": "The frame turns into plain text: a field of monospace characters rises over the outgoing scene, flows as living ASCII, then dissolves cell by cell into the incoming scene. Built-in placeholder scenes A and B (the two .asd-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "ascii",
+    "text",
+    "retro",
+    "terminal",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.3333,
+  "useWhen": [
+    "Developer, terminal or hacker-style content.",
+    "A short glitchy cover transition with a typographic texture."
+  ],
+  "avoidWhen": [
+    "Warm, human or premium brand pieces.",
+    "Scenes where the character grid would feel noisy."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/ascii-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ascii-dissolve.html",
+      "target": "compositions/components/ascii-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "cell_size",
+      "type": "number",
+      "role": "style",
+      "label": "Cell size",
+      "description": "Row height of one character cell in pixels.",
+      "default": 22,
+      "min": 10,
+      "max": 48,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color_front",
+      "type": "color",
+      "role": "style",
+      "label": "Glyph color",
+      "description": "Color of the characters.",
+      "default": "#f2f2f2"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Backdrop behind the characters while the field is dense.",
+      "default": "#0d0d10"
+    },
+    {
+      "id": "ramp",
+      "type": "string",
+      "role": "style",
+      "label": "Character ramp",
+      "description": "Characters from lightest to densest.",
+      "default": " .:-=+*#%@"
+    }
+  ]
+}

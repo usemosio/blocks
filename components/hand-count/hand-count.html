@@ -1,0 +1,201 @@
+<!doctype html>
+<!--
+  Hand Count
+
+  A number that counts up in stop-motion poses, rewritten by hand at every pose.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/hand-count/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="hand-count"
+  data-composition-duration="3"
+  data-composition-variables='[
+    {"id": "to", "type": "number", "role": "content", "label": "Count to", "description": "Final number.", "default": 1284, "min": 0, "max": 10000, "step": 1},
+    {"id": "from", "type": "number", "role": "content", "label": "Count from", "description": "Starting number.", "default": 0, "min": 0, "max": 1000, "step": 1},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Frames before counting starts (30 fps).", "default": 0, "min": 0, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "duration_steps", "type": "number", "role": "motion", "label": "Poses counting", "description": "Stop-motion poses the count takes.", "default": 18, "min": 2, "max": 24, "step": 1},
+    {"id": "decimals", "type": "number", "role": "content", "label": "Decimals", "description": "Digits after the decimal point.", "default": 0, "min": 0, "max": 2, "step": 1},
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Written before the number, for example Rp.", "default": ""},
+    {"id": "suffix", "type": "string", "role": "content", "label": "Suffix", "description": "Written after the number, for example %.", "default": ""},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Wider numbers shrink to fit.", "default": 96, "min": 32, "max": 300, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Ink color.", "default": "#26242c"},
+    {"id": "weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the handwriting.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "ease", "type": "enum", "role": "motion", "label": "Ease", "description": "Pacing of the count.", "default": "in-out", "options": [{"value": "in-out", "label": "In-out"}, {"value": "out", "label": "Out"}, {"value": "linear", "label": "Linear"}]},
+    {"id": "align", "type": "enum", "role": "style", "label": "Align", "description": "Where the number sits.", "default": "center", "options": [{"value": "center", "label": "Center"}, {"value": "left", "label": "Left"}]},
+    {"id": "seed", "type": "string", "role": "style", "label": "Seed", "description": "Any text; changes the per-pose wobble.", "default": "count"},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frames per pose", "description": "Stop-motion clock, in frames at 30 fps.", "default": 3, "min": 1, "max": 6, "step": 1, "unit": "frames"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hand Count</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .hc-stage { position: absolute; inset: 0; display: flex; align-items: center; }
+        .hc-line { display: inline-block; font-family: Caveat, cursive; line-height: 1.15; white-space: pre; }
+        .hc-char { display: inline-block; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="hand-count" data-duration="3" data-fps="30">
+        <div id="hc-clip" class="hc-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <span id="hc-line" class="hc-line"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "3");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var stage = document.getElementById("hc-clip");
+            var line = document.getElementById("hc-line");
+            var to = num(vars.to, 1284, 0, 1000000), from = num(vars.from, 0, 0, 1000000);
+            var delay = num(vars.delay, 0, 0, 120), poses = num(vars.duration_steps, 18, 2, 24);
+            var decimals = num(vars.decimals, 0, 0, 2), step = num(vars.step, 3, 1, 6);
+            var prefix = typeof vars.prefix === "string" ? vars.prefix : "", suffix = typeof vars.suffix === "string" ? vars.suffix : "";
+            var seed = str(vars.seed, "count");
+            var easeName = pick(vars.ease, ["in-out", "out", "linear"], "in-out");
+            var align = pick(vars.align, ["center", "left"], "center");
+            var eases = {
+              "in-out": function (p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; },
+              out: function (p) { return 1 - Math.pow(1 - p, 3); },
+              linear: function (p) { return p; }
+            };
+            stage.style.justifyContent = align === "center" ? "center" : "flex-start";
+            if (align === "left") stage.style.paddingLeft = "4%";
+            line.style.color = col(vars.color, "#26242c");
+            line.style.fontWeight = pick(vars.weight, ["400", "500", "600", "700"], "700");
+            function textFor(v) { return prefix + v.toFixed(decimals) + suffix; }
+            line.textContent = textFor(Math.max(from, to));
+            fit(line, 0, num(vars.font_size, 96, 32, 300), 0.9);
+            var settled = Math.ceil((delay + poses * step) / step) * step;
+            tick(function (t) {
+              var frame = Math.floor(t * 30 + 1e-6);
+              var f = qf(frame, step);
+              var end = delay + poses * step;
+              var progress = f <= delay ? 0 : f >= end ? 1 : eases[easeName]((f - delay) / (end - delay));
+              var value = from + (to - from) * progress;
+              var pose = Math.min(Math.floor(Math.max(0, frame) / step + 1e-6), Math.floor(settled / step + 1e-6));
+              var chars = Array.from(textFor(value));
+              line.textContent = "";
+              chars.forEach(function (ch, i) {
+                var s = document.createElement("span");
+                s.className = "hc-char"; s.textContent = ch;
+                var rot = hashRange(seed + ":" + pose + ":" + i + ":r", -3.2, 3.2), dy = hashRange(seed + ":" + pose + ":" + i + ":y", -1.8, 1.8);
+                s.style.transform = "translateY(" + dy + "px) rotate(" + rot + "deg)";
+                line.appendChild(s);
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "3");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["hand-count"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

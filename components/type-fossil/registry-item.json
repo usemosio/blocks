@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "type-fossil",
+  "type": "hyperframes:component",
+  "title": "Type Fossil",
+  "description": "A readable word carries layers of fine contours, revises itself through earlier drafts, then compresses into a clean typographic imprint.",
+  "tags": [
+    "text-effects",
+    "contour",
+    "process",
+    "premium",
+    "title",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 6.9333,
+  "useWhen": [
+    "A creative process should move from earlier wording to a finished idea.",
+    "A title needs a sculptural contour effect that resolves into clean typography."
+  ],
+  "avoidWhen": [
+    "Letters must morph individually between phrases: use kinetic-morph-text.",
+    "Long paragraphs need to be read: this is built for words and short phrases."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/type-fossil/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "type-fossil.html",
+      "target": "compositions/components/type-fossil.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Final word", "description": "The word the drafts settle on.", "default": "Form"},
+    {"id": "drafts", "type": "string", "role": "content", "label": "Drafts", "description": "Earlier versions, separated by |. Up to twelve; the clip is sized for six, more drafts play faster.", "default": "Idea | Maybe | Try | Almost | Again | Closer"},
+    {"id": "layers", "type": "number", "role": "style", "label": "Contour layers", "description": "Number of stacked contour slices.", "default": 16, "min": 4, "max": 24, "step": 1},
+    {"id": "depth", "type": "number", "role": "style", "label": "Slice depth", "description": "Thickness of the slice, in reference pixels.", "default": 100, "min": 50, "max": 150, "step": 1},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in reference pixels (1280×720 stage).", "default": 220, "min": 24, "max": 300, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the word.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Ink", "description": "Color of the word.", "default": "#302b26"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Contours", "description": "Color of the contour lines.", "default": "#a800b7"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Backdrop color.", "default": "#eeeae2"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

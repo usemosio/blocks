@@ -1,0 +1,215 @@
+<!doctype html>
+<!--
+  Type Wall
+
+  Rows of one word fill the frame, run in alternating directions at different speeds in heavy, narrow and outline faces, with an accent band through the middle.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/type-wall/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="type-wall"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The word repeated along every row.", "default": "MOTION"},
+    {"id": "separator", "type": "string", "role": "content", "label": "Separator", "description": "Mark between repeats.", "default": "·"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the rows.", "default": "#fafafa"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Band color", "description": "Color of the middle band.", "default": "#ff4d1a"},
+    {"id": "accent_text", "type": "color", "role": "style", "label": "Band text", "description": "Text color on the band.", "default": "#111111"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Row height", "description": "Height of one row in reference pixels (720 high stage).", "default": 64, "min": 24, "max": 180, "step": 1, "unit": "px"},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Changes each row&#39;s speed and starting point.", "default": 7, "min": 0, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Type Wall</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@900&family=Anton&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .tw-stage { position: absolute; inset: 0; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+        .tw-row { position: absolute; left: 0; right: 0; }
+        .tw-band { position: absolute; inset: 0; transform-origin: 50% 50%; }
+        .tw-strip { position: absolute; left: 0; top: 0; width: max-content; height: 100%; display: flex; align-items: center; white-space: pre; line-height: 1; }
+      </style>
+
+      <div id="root" data-composition-id="type-wall" data-duration="5" data-fps="30">
+        <div id="tw-clip" class="tw-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+            <defs>
+              <filter id="tw-outline">
+                <feMorphology id="tw-erode" in="SourceAlpha" operator="erode" radius="1.5" result="inner" />
+                <feComposite in="SourceAlpha" in2="inner" operator="out" result="ring" />
+                <feFlood id="tw-flood" flood-color="#fafafa" />
+                <feComposite in2="ring" operator="in" />
+              </filter>
+            </defs>
+          </svg>
+          <div id="tw-rows"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "5");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var text = str(vars.text, "MOTION"), sep = typeof vars.separator === "string" ? vars.separator : "·";
+            var color = col(vars.color, "#fafafa"), accent = col(vars.accent, "#ff4d1a"), accentText = col(vars.accent_text, "#111111");
+            var seed = num(vars.seed, 7, 0, 99), speed = num(vars.speed, 1, 0.25, 4);
+            var W = root.clientWidth, H = root.clientHeight, unit = H / 720;
+            var rowH = Math.max(8, num(vars.font_size, 64, 24, 180) * unit);
+            document.getElementById("tw-erode").setAttribute("radius", 1.5 * unit);
+            document.getElementById("tw-flood").setAttribute("flood-color", color);
+            var token = text + " " + sep + " ";
+            var reachRows = Math.ceil((H / 2 - rowH / 2) / rowH) + 1;
+            var wrap = document.getElementById("tw-rows");
+            var styles = ["solid", "narrow", "outline"];
+            var NARROW = 0.7275 / 0.8594;
+            var easeOutCubic = function (p) { return 1 - Math.pow(1 - p, 3); };
+            var rows = [];
+            for (var r = -reachRows; r <= reachRows; r++) {
+              var style = r === 0 ? "solid" : styles[((r % 3) + 3) % 3];
+              var narrow = style === "narrow", size = narrow ? rowH * NARROW : rowH;
+              var count = Math.min(48, Math.ceil(W / (Math.max(1, Array.from(token).length) * 0.4 * size)) + 2);
+              var rowEl = document.createElement("div");
+              rowEl.className = "tw-row"; rowEl.style.top = H / 2 + (r - 0.5) * rowH + "px"; rowEl.style.height = rowH + "px";
+              if (r === 0) { var b = document.createElement("div"); b.className = "tw-band"; b.style.background = accent; rowEl.appendChild(b); }
+              var strip = document.createElement("div");
+              strip.className = "tw-strip";
+              strip.style.fontFamily = narrow ? "Anton, Impact, sans-serif" : "Inter, system-ui, sans-serif";
+              strip.style.fontSize = size + "px"; strip.style.fontWeight = narrow ? 400 : 900;
+              strip.style.color = r === 0 ? accentText : color;
+              if (style === "outline") strip.style.filter = "url(#tw-outline)";
+              for (var i = 0; i < count; i++) { var sp = document.createElement("span"); sp.textContent = token; strip.appendChild(sp); }
+              rowEl.appendChild(strip);
+              wrap.appendChild(rowEl);
+              var factor = 0.7 + 0.6 * hash01("type-wall-" + seed + "-speed-" + r);
+              rows.push({ r: r, el: rowEl, strip: strip, band: r === 0 ? rowEl.firstChild : null, count: count,
+                velocity: (0.22 * factor) / 30, phase: hash01("type-wall-" + seed + "-phase-" + r), dir: Math.abs(r) % 2 === 0 ? -1 : 1 });
+            }
+            function fract(x) { return x - Math.floor(x); }
+            tick(function (tt) {
+              var t = tt * 30 * speed;
+              var band = ip(t, 6, 20, 0, 1, easeOutCubic);
+              rows.forEach(function (row) {
+                var e = easeOutCubic(Math.min(1, Math.max(0, (t - 2 * Math.abs(row.r)) / 20)));
+                var travel = row.phase + row.velocity * t + 2.5 * e;
+                var shift = row.dir < 0 ? -fract(travel) : fract(travel) - 1;
+                var hidden = (1 - e) * 100 + "%";
+                row.el.style.clipPath = row.dir < 0 ? "inset(0 0 0 " + hidden + ")" : "inset(0 " + hidden + " 0 0)";
+                row.strip.style.transform = "translateX(" + (shift * 100) / row.count + "%)";
+                if (row.band) row.band.style.transform = "scaleX(" + band + ")";
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["type-wall"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

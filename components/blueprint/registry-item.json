@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "blueprint",
+  "type": "hyperframes:component",
+  "title": "Blueprint",
+  "description": "A product wipes left to right into a technical drawing with a blueprint grid, white linework, dimension lines and a red callout. A built-in red device stands in for the product; labels and colors are variables.",
+  "tags": [
+    "technical",
+    "drawing",
+    "product",
+    "callout",
+    "dimensions",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 2.5,
+  "useWhen": [
+    "A hardware or product launch should show the object as an engineering drawing: measured, labelled and precise.",
+    "One feature of the product deserves a callout, like a sensor, a port or a button.",
+    "The scene should switch from a glossy product shot to a technical one in a single readable move."
+  ],
+  "avoidWhen": [
+    "The product should come apart into labelled layers instead of being measured: use exploded-view.",
+    "The reveal should show what is inside the device rather than its outline: use x-ray-scan.",
+    "The subject is a word whose outlines should draw themselves: use outline-trace."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/blueprint/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "blueprint.html",
+      "target": "compositions/components/blueprint.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "blueprint_color",
+      "type": "color",
+      "role": "style",
+      "label": "Blueprint",
+      "description": "Blueprint paper color.",
+      "default": "#173C8F"
+    },
+    {
+      "id": "line_color",
+      "type": "color",
+      "role": "style",
+      "label": "Lines",
+      "description": "Linework and grid color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "callout_color",
+      "type": "color",
+      "role": "style",
+      "label": "Callout",
+      "description": "Callout color.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "product_color",
+      "type": "color",
+      "role": "style",
+      "label": "Product",
+      "description": "Color of the built-in product before the wipe.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Ground behind the product before the wipe.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "width_label",
+      "type": "string",
+      "role": "content",
+      "label": "Width label",
+      "description": "Text on the horizontal dimension.",
+      "default": "71.6 mm"
+    },
+    {
+      "id": "height_label",
+      "type": "string",
+      "role": "content",
+      "label": "Height label",
+      "description": "Text on the vertical dimension.",
+      "default": "147.5 mm"
+    },
+    {
+      "id": "callout_label",
+      "type": "string",
+      "role": "content",
+      "label": "Callout",
+      "description": "Text next to the red callout.",
+      "default": "SENSOR"
+    },
+    {
+      "id": "title_label",
+      "type": "string",
+      "role": "content",
+      "label": "Title block",
+      "description": "Text in the drawing title block.",
+      "default": "DWG A-01  SCALE 1:1"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

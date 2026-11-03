@@ -1,0 +1,68 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "smoke-dissolve",
+  "type": "hyperframes:component",
+  "title": "Smoke Dissolve",
+  "description": "A ring of smoke expands from the center of the frame and the incoming scene materializes out of it. Rebuilt with a deterministic Canvas 2D noise field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .smd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "smoke",
+    "shader",
+    "dissolve",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 3.4667,
+  "useWhen": [
+    "A moody, atmospheric reveal where the next scene should emerge from the middle of the frame.",
+    "Slow chapter breaks with a lot of runtime."
+  ],
+  "avoidWhen": [
+    "Fast cuts or upbeat promos: the smoke needs time to read.",
+    "Repeated use in one video."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/smoke-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "smoke-dissolve.html",
+      "target": "compositions/components/smoke-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Backdrop behind the smoke.",
+      "default": "#141318"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Smoke color",
+      "description": "Color of the smoke ring.",
+      "default": "#8f88ae"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the smoke\u2019s own drift.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

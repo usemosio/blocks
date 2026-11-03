@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "value-swap",
+  "type": "hyperframes:component",
+  "title": "Value Swap",
+  "description": "Swap a value in place with a vertical slide so the layout never shifts.",
+  "tags": [
+    "text-effects",
+    "swap",
+    "status",
+    "inline",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.3333,
+  "useWhen": [
+    "A value changes at a specific story beat: before/after price, status promotion, a token flip.",
+    "You control the exact swap times."
+  ],
+  "avoidWhen": [
+    "Values should cycle continuously as a montage: use rolodex-flip.",
+    "The value is a large number counting up: use rolling-number or number-wheel."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/value-swap/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "value-swap.html",
+      "target": "compositions/components/value-swap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "values", "type": "string", "role": "content", "label": "Values", "description": "Comma-separated values; each swap shows the next one.", "default": "Draft, In review, Shipped"},
+    {"id": "at", "type": "string", "role": "motion", "label": "Swap frames", "description": "Comma-separated frame numbers (30 fps) where each swap starts.", "default": "30, 60"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Duration", "description": "Frames each swap takes (30 fps).", "default": 10, "min": 4, "max": 24, "step": 1, "unit": "frames"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far the values slide, in pixels.", "default": 12, "min": 4, "max": 32, "step": 2, "unit": "px"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Slide direction of the outgoing value.", "default": "up", "options": [{"value": "up", "label": "Up"}, {"value": "down", "label": "Down"}]},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 40, "min": 12, "max": 200, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#f2f2f2"}
+  ]
+}

@@ -1,0 +1,123 @@
+<!doctype html>
+<!--
+  Backdrop
+
+  Full-frame colour or gradient fill with a padded, rounded, shadowed content frame (the floating-card look). Frame holds a built-in placeholder.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/backdrop/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="backdrop"
+  data-composition-duration="5"
+  data-composition-variables='[{"id":"fill_type","type":"enum","role":"style","label":"Fill type","description":"Kind of background.","default":"gradient","options":[{"value":"color","label":"Color"},{"value":"gradient","label":"Gradient"}]},{"id":"color","type":"color","role":"style","label":"Color","description":"Background colour when the fill type is Color.","default":"#6366f1"},{"id":"gradient","type":"string","role":"style","label":"Gradient","description":"CSS gradient when the fill type is Gradient.","default":"linear-gradient(135deg, #6366f1 0%, #a855f7 100%)"},{"id":"padding","type":"number","role":"style","label":"Padding","description":"Gap between frame and edge, as a percentage of the frame width.","default":4,"min":0,"max":12,"step":0.5,"unit":"%"},{"id":"radius","type":"number","role":"style","label":"Radius","description":"Corner radius of the frame, as a percentage of the frame width.","default":1,"min":0,"max":4,"step":0.25,"unit":"%"},{"id":"shadow","type":"string","role":"style","label":"Shadow","description":"CSS box-shadow of the frame. Empty for none.","default":"0 20px 60px rgba(0,0,0,0.4)"},{"id":"placeholder","type":"boolean","role":"content","label":"Placeholder content","description":"Draw a placeholder window inside the frame. Turn off for an empty frame a host layers its own scene over.","default":true}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Backdrop</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { font-family: Geist, system-ui, sans-serif; }
+        .bd-stage { position: absolute; inset: 0; }
+        #bd-fill { position: absolute; inset: 0; }
+        #bd-frame { position: absolute; overflow: hidden; display: flex; background: #fdfdfd; }
+        .bd-win { width: 100%; height: 100%; display: flex; flex-direction: column; }
+        .bd-bar { height: 7%; min-height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 3%; background: #f1f1f4; border-bottom: 1px solid #e3e3e8; }
+        .bd-dot { width: 12px; height: 12px; border-radius: 50%; background: #d4d4da; }
+        .bd-body { flex: 1; padding: 6%; display: flex; flex-direction: column; gap: 3%; justify-content: center; }
+        .bd-h { font-size: min(7cqw, 5cqh); font-weight: 600; letter-spacing: -0.04em; color: #1c1c22; }
+        .bd-line { height: 3.2%; border-radius: 6px; background: #e6e6ec; }
+        .bd-block { height: 30%; border-radius: 16px; background: linear-gradient(135deg, #eceef9, #f4ecfa); border: 1px solid #e3e3ee; }
+
+      </style>
+
+      <div id="root" data-composition-id="backdrop" data-duration="5" data-fps="30">
+        <div id="bd-clip" class="bd-stage clip" data-start="0" data-duration="5" data-track-index="0">
+<div id="bd-fill"></div><div id="bd-frame"><div id="bd-win" class="bd-win"><div class="bd-bar"><span class="bd-dot"></span><span class="bd-dot"></span><span class="bd-dot"></span></div><div class="bd-body"><div class="bd-h">Your content here</div><div class="bd-line" style="width:80%"></div><div class="bd-line" style="width:62%"></div><div class="bd-block"></div></div></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+
+
+            var fillType = pick(vars.fill_type, ["color", "gradient"], "gradient");
+            var fill = document.getElementById("bd-fill");
+            fill.style.background = fillType === "color" ? str(vars.color, "#6366f1") : str(vars.gradient, "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)");
+            var W = root.clientWidth;
+            var pad = (num(vars.padding, 4, 0, 12) / 100) * W;
+            var rad = (num(vars.radius, 1, 0, 4) / 100) * W;
+            var frame = document.getElementById("bd-frame");
+            frame.style.inset = pad + "px";
+            frame.style.borderRadius = rad + "px";
+            var shadow = typeof vars.shadow === "string" ? vars.shadow : "0 20px 60px rgba(0,0,0,0.4)";
+            frame.style.boxShadow = shadow;
+            if (!bool(vars.placeholder, true)) document.getElementById("bd-win").style.display = "none";
+            if (!bool(vars.placeholder, true)) frame.style.background = "transparent";
+            var tl = gsap.timeline({ paused: true });
+            // A static layout block: nothing moves.
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["backdrop"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

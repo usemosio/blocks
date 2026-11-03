@@ -1,0 +1,47 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "short-slide-down",
+  "type": "hyperframes:component",
+  "title": "Short Slide Down",
+  "description": "Words drop in from above and stack into a centered multi-line composition.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "stack",
+    "words",
+    "slide",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A multi-word headline should build its layout visibly, each word stacking into a composed block.",
+    "A fast entrance that still feels structured, with vertical motion and no outgoing text."
+  ],
+  "avoidWhen": [
+    "You are swapping between two text values: use shared-axis-y.",
+    "A single word or short phrase does not benefit from stacking: use scale-down-fade or soft-blur-in."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/short-slide-down/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "short-slide-down.html",
+      "target": "compositions/components/short-slide-down.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Headline whose words stack one per line.", "default": "Build from above." },
+    { "id": "entry_offset", "type": "number", "role": "motion", "label": "Entry offset", "description": "How far above its row each new word starts.", "default": 28, "min": 8, "max": 80, "step": 1, "unit": "px" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in pixels. Larger text shrinks so the stack fits the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

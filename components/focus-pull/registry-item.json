@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "focus-pull",
+  "type": "hyperframes:component",
+  "title": "Focus Pull",
+  "description": "A rack focus between scenes: the outgoing scene defocuses and brightens, the incoming scene pulls into sharp focus. Built-in placeholder scenes A and B (the two .fcp-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "blur",
+    "focus",
+    "camera",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.5333,
+  "useWhen": [
+    "A calm, cinematic scene change that mimics a camera rack focus.",
+    "Moving between two ideas of equal weight without a hard cut."
+  ],
+  "avoidWhen": [
+    "You need a fast, punchy cut: use push-through or zoom-blur.",
+    "The outgoing scene must stay legible until the last frame."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/focus-pull/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "focus-pull.html",
+      "target": "compositions/components/focus-pull.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Peak blur of the defocused scene.",
+      "default": 16,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}

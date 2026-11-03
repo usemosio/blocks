@@ -1,0 +1,184 @@
+<!doctype html>
+<!--
+  Infinite Marquee
+
+  A continuously scrolling horizontal text strip that loops seamlessly.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/infinite-marquee/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="infinite-marquee"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text that repeats along the strip.", "default": "ship · build · animate · "},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 120, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "pixels_per_frame", "type": "number", "role": "motion", "label": "Pixels per frame", "description": "Scroll speed at 30 fps.", "default": 4, "min": 1, "max": 30, "step": 1, "unit": "px"},
+    {"id": "stroke", "type": "boolean", "role": "style", "label": "Stroke", "description": "Outline the letters instead of filling them.", "default": false},
+    {"id": "stroke_color", "type": "color", "role": "style", "label": "Stroke color", "description": "Outline color when Stroke is on.", "default": "#171717"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Infinite Marquee</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .mq-stage { position: absolute; inset: 0; display: flex; align-items: center; overflow: hidden; }
+        .mq-strip { display: flex; white-space: nowrap; will-change: transform; font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif); letter-spacing: -0.03em; line-height: 1.2; }
+        .mq-item { padding-right: 0.4em; }
+      </style>
+
+      <div id="root" data-composition-id="infinite-marquee" data-duration="6" data-fps="30">
+        <div id="mq-clip" class="mq-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="mq-strip" class="mq-strip"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "6");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var strip = document.getElementById("mq-strip");
+            var text = str(vars.text, "ship · build · animate · ");
+            var size = num(vars.font_size, 120, 12, 240);
+            var ppf = num(vars.pixels_per_frame, 4, 1, 30);
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var stroke = bool(vars.stroke, false);
+            var color = col(vars.color, "#171717");
+            strip.style.fontSize = size + "px";
+            strip.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700"], "700");
+            function item() {
+              var s = document.createElement("span");
+              s.className = "mq-item";
+              s.textContent = text;
+              s.style.color = stroke ? "transparent" : color;
+              if (stroke) s.style.webkitTextStroke = "2px " + col(vars.stroke_color, "#171717");
+              strip.appendChild(s);
+              return s;
+            }
+            var first = item();
+            var period = Math.max(1, first.getBoundingClientRect().width);
+            var copies = Math.ceil(root.clientWidth / period) + 2;
+            for (var i = 1; i < copies; i++) item();
+            // The strip starts centred on the frame, as in remocn, and scrolls left by exactly one repeat per loop.
+            var base = (root.clientWidth - period * copies) / 2;
+            tick(function (t) {
+              var off = -((t * 30 * speed * ppf) % period);
+              gsap.set(strip, { x: base + off });
+            });
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["infinite-marquee"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

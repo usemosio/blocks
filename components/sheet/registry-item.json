@@ -1,0 +1,119 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "sheet",
+  "type": "hyperframes:component",
+  "title": "Sheet",
+  "description": "A side panel: a pointer clicks a trigger inside a mock app window, the scrim dims it and a panel slides in from the right; clicking Save closes it.",
+  "tags": [
+    "sheet",
+    "side-panel",
+    "overlay",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "useWhen": [
+    "A form or detail view should slide in beside the page.",
+    "Showing an edit-in-place panel in a product tour."
+  ],
+  "avoidWhen": [
+    "A centred modal is wanted: use dialog.",
+    "The panel should rise from the bottom (mobile feel): use drawer."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/sheet/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "sheet.html",
+      "target": "compositions/components/sheet.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading of the popup.",
+      "default": "Edit profile"
+    },
+    {
+      "id": "description",
+      "type": "string",
+      "role": "content",
+      "label": "Description",
+      "description": "Body text under the heading.",
+      "default": "Make changes to your profile here. Click save when you're done."
+    },
+    {
+      "id": "action_label",
+      "type": "string",
+      "role": "content",
+      "label": "Action label",
+      "description": "Primary button text.",
+      "default": "Save changes"
+    },
+    {
+      "id": "cancel_label",
+      "type": "string",
+      "role": "content",
+      "label": "Cancel label",
+      "description": "Secondary button text.",
+      "default": "Cancel"
+    },
+    {
+      "id": "trigger_label",
+      "type": "string",
+      "role": "content",
+      "label": "Trigger label",
+      "description": "Text of the button the pointer clicks to open it.",
+      "default": "Edit profile"
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

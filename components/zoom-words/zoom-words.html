@@ -1,0 +1,203 @@
+<!doctype html>
+<!--
+  Zoom Words
+
+  Huge words fade into a long line while the camera rides the write head.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/zoom-words/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="zoom-words"
+  data-composition-duration="2.5"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Phrase written word by word while the camera follows.", "default": "Still piecing together tools" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in pixels, before the camera zoom.", "default": 64, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "zoom", "type": "number", "role": "motion", "label": "Zoom", "description": "Camera zoom on the whole line.", "default": 2.2, "min": 1, "max": 4, "step": 0.1 },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#cfc2ff" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] },
+    { "id": "word_gap", "type": "number", "role": "motion", "label": "Word gap", "description": "Frames per word across the whole phrase (30 fps).", "default": 12, "min": 4, "max": 24, "step": 1, "unit": "frames" },
+    { "id": "anchor", "type": "number", "role": "motion", "label": "Anchor", "description": "Horizontal position of the write head, 0 left to 1 right.", "default": 0.5, "min": 0.2, "max": 0.9, "step": 0.05 },
+    { "id": "blur", "type": "number", "role": "motion", "label": "Blur", "description": "Starting defocus as a fraction of the zoomed font size.", "default": 0.04, "min": 0, "max": 0.3, "step": 0.01 },
+    { "id": "blur_frames", "type": "number", "role": "motion", "label": "Blur frames", "description": "Frames the defocus takes to sharpen (30 fps).", "default": 60, "min": 10, "max": 120, "step": 1, "unit": "frames" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Zoom Words</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #cfc2ff);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .zmw-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .zmw-world { position: absolute; inset: 0; }
+        .zmw-head { position: absolute; top: 50%; transform: translateY(-50%); white-space: pre; }
+        .zmw-line { display: inline-flex; align-items: baseline; letter-spacing: -0.02em; line-height: 1.15; white-space: pre; }
+        .zmw-word { display: inline-block; white-space: pre; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="zoom-words" data-duration="2.5" data-fps="30">
+        <div id="zmw-clip" class="zmw-stage clip" data-start="0" data-duration="2.5" data-track-index="0">
+          <div id="zmw-world" class="zmw-world">
+            <div id="zmw-head" class="zmw-head"><span id="zmw-line" class="zmw-line"></span></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("zmw-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "2.5");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["zoom-words"] = tl;
+            }
+            var text = str(vars.text, "Still piecing together tools");
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "400");
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            // interpolate() with clamping, easing given as a function of progress.
+            function ip(f, a, b, from, to, ease) {
+              var p = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+
+            var size = num(vars.font_size, 64, 12, 160);
+            var zoom = num(vars.zoom, 2.2, 1, 4);
+            var gap = num(vars.word_gap, 12, 4, 24);
+            var anchor = num(vars.anchor, 0.5, 0.2, 0.9);
+            var blur = num(vars.blur, 0.04, 0, 0.3);
+            var blurFrames = num(vars.blur_frames, 60, 10, 120);
+            var world = document.getElementById("zmw-world");
+            var head = document.getElementById("zmw-head");
+            var line = document.getElementById("zmw-line");
+            line.style.fontWeight = weight;
+            line.style.fontSize = size + "px";
+            head.style.left = anchor * 100 + "%";
+            world.style.transform = "scale(" + zoom + ")";
+            var words = text.trim().split(/\s+/).filter(Boolean);
+            var spans = words.map(function (w, i) {
+              var s = document.createElement("span");
+              s.id = "zmw-word-" + i;
+              s.className = "zmw-word";
+              s.textContent = w + (i < words.length - 1 ? " " : "");
+              line.appendChild(s);
+              return s;
+            });
+
+            function smooth(t) { var x = Math.min(Math.max(t, 0), 1); return x * x * (3 - 2 * x); }
+            function wEm(w) { return Array.from(w).length * 0.52 + 0.3; }
+            var phraseEase = bz("phrase", 0.5, 0, 0.7, 0.7);
+            var phraseFrames = words.length * gap;
+            var totalEm = words.reduce(function (s, w) { return s + wEm(w); }, 0);
+            var firstHalf = wEm(words[0]) / 2;
+            var lastHalf = wEm(words[words.length - 1]) / 2;
+            var travelMax = Math.max(totalEm - lastHalf - firstHalf, 0.001);
+            var P = { f: 0 };
+            function apply() {
+              var f = P.f;
+              var wp = words.length * ip(f, 0, phraseFrames, 0, 1, phraseEase);
+              var revealed = 0;
+              words.forEach(function (w, i) { revealed += wEm(w) * smooth((wp - i + 0.5) / 2); });
+              var raw = Math.min(Math.max(revealed, 0), travelMax);
+              var cam = firstHalf + travelMax * smooth(raw / travelMax);
+              line.style.transform = "translateX(-" + ((cam / totalEm) * 100).toFixed(3) + "%)";
+              var b = blur * size * zoom * ip(f, 0, blurFrames, 1, 0);
+              world.style.filter = b > 0.05 ? "blur(" + b + "px)" : "none";
+              spans.forEach(function (s, i) {
+                var p = smooth((wp - i + 0.5) / 2);
+                var wb = 0.05 * size * (1 - p);
+                var arrive = 1 - smooth(p * 1.6);
+                s.style.opacity = smooth(p * 1.2);
+                s.style.filter = wb > 0.05 ? "blur(" + wb + "px)" : "none";
+                s.style.transform = "translate(" + 0.16 * size * arrive + "px, " + 0.12 * size * arrive + "px)";
+              });
+            }
+            apply();
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: apply }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

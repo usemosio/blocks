@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "message-bubble",
+  "type": "hyperframes:component",
+  "title": "Message Bubble",
+  "description": "A speech bubble that pops in, with an optional reaction badge that springs onto its corner.",
+  "tags": [
+    "ui",
+    "message-bubble",
+    "chat",
+    "reaction",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 3,
+  "useWhen": [
+    "Hand-timing a single message landing on a beat you control.",
+    "A scene needs a themed speech bubble around text.",
+    "The conversation should carry your own theme tokens rather than a real messenger's palette."
+  ],
+  "avoidWhen": [
+    "You want a whole scripted conversation with a composer, typing beats and reactions: use chat-flow.",
+    "The bubble must read as a specific messenger with a tail or timestamp.",
+    "You need the bouncing dots themselves: use typing-indicator."
+  ],
+  "checkAt": [
+    0.2,
+    0.7,
+    1.6,
+    2.7
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/message-bubble/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "message-bubble.html",
+      "target": "compositions/components/message-bubble.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Message text.", "default": "Yep, pushing it live now"},
+    {"id": "variant", "type": "enum", "role": "style", "label": "Variant", "description": "Incoming sits left in the muted tone, outgoing sits right in the primary tone.", "default": "incoming", "options": [{"value": "incoming", "label": "Incoming"}, {"value": "outgoing", "label": "Outgoing"}]},
+    {"id": "reaction", "type": "string", "role": "content", "label": "Reaction", "description": "Emoji badge on the bubble. Leave empty for none.", "default": "🔥"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

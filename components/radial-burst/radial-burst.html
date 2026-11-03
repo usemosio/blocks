@@ -1,0 +1,532 @@
+<!doctype html>
+<!--
+  Radial Burst
+
+  A dot launches rounded ribbons that curl into a ring, spin shut and sweep out of frame in a bold geometric burst.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/radial-burst/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="radial-burst"
+  data-composition-duration="4"
+  data-composition-variables='[{"id":"segments","type":"number","role":"layout","label":"Segments","description":"Number of rounded segments.","default":8,"min":4,"max":16,"step":1},{"id":"radius","type":"number","role":"layout","label":"Burst radius","description":"Burst radius at a 720 px reference size.","default":210,"min":100,"max":280,"step":5,"unit":"px"},{"id":"thickness","type":"number","role":"layout","label":"Thickness","description":"Segment thickness at a 720 px reference size.","default":30,"min":8,"max":60,"step":1,"unit":"px"},{"id":"rotation","type":"number","role":"motion","label":"Rotation","description":"Rotation during assembly, in degrees; negative reverses it.","default":135,"min":-360,"max":360,"step":15,"unit":"deg"},{"id":"intensity","type":"number","role":"motion","label":"Intensity","description":"Sculptural stretch and tilt, from 0 (classic) to 1.5.","default":1,"min":0,"max":1.5,"step":0.1},{"id":"twist","type":"number","role":"motion","label":"Ribbon twist","description":"Curvature of the flying ribbons in degrees.","default":110,"min":-180,"max":180,"step":10,"unit":"deg"},{"id":"echoes","type":"number","role":"motion","label":"Contour echoes","description":"Number of fading outline echoes trailing the burst.","default":3,"min":0,"max":5,"step":1},{"id":"color","type":"color","role":"style","label":"Shape color","description":"Main shape color.","default":"#ffffff"},{"id":"accent_color","type":"color","role":"style","label":"Accent color","description":"Accent color mixed into every third ribbon.","default":"#f4e4a7"},{"id":"background_color","type":"color","role":"style","label":"Background","description":"Backdrop color.","default":"#a800b7"},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"},{"id":"loop","type":"boolean","role":"motion","label":"Loop","description":"Repeat the burst continuously.","default":false}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Radial Burst</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        .rbu-stage { position: absolute; inset: 0; }
+        .rbu-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="radial-burst" data-duration="4" data-fps="30">
+        <div id="rbu-clip" class="rbu-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <svg id="rbu-svg" class="rbu-svg" role="img" aria-label="Geometric radial burst"><g id="rbu-origin"><g id="rbu-echoes"></g><g id="rbu-main"></g></g></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                                   
+                                                  
+                    
+                                                
+                  
+                                                     
+                     
+                                                                    
+                    
+                                                              
+                     
+                                                    
+                 
+                                               
+                  
+                 
+                       
+                           
+                 
+                 
+                     
+ 
+
+/** The ring has completely left the composition by this frame at 30 fps. */
+const radialBurstLength = 114;
+const CYCLE = 120;
+const finite = (value        , fallback        ) =>
+  Number.isFinite(value) ? value : fallback;
+const clamp = (value        ) => Math.min(1, Math.max(0, value));
+const mix = (from        , to        , progress        ) =>
+  from + (to - from) * progress;
+const easeInOut = Easing.bezier(0.65, 0, 0.25, 1);
+const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
+const progress = (frame        , start        , end        ) =>
+  clamp((frame - start) / (end - start));
+
+/** Includes the clean tail, in frames at 30 fps. */
+function getRadialBurstDuration({
+  speed = 1,
+}                                  = {}) {
+  const rate = finite(speed, 1);
+  return rate <= 0 ? 1 : Math.max(1, Math.ceil(CYCLE / rate));
+}
+
+function getRadialBurstState(
+  frame        ,
+  {
+    segments = 8,
+    radius = 210,
+    thickness = 30,
+    rotation = 135,
+    intensity = 1,
+    loop = false,
+    width = 1280,
+    height = 720,
+  }       
+                     
+                                                                       
+       
+                   
+                    
+    = {},
+) {
+  const w = Math.max(1, finite(width, 1280));
+  const h = Math.max(1, finite(height, 720));
+  const unit = Math.min(w, h) / 720;
+  const time = Math.max(0, finite(frame, 0));
+  const local = loop ? time % CYCLE : time;
+  const count = Math.round(Math.min(16, Math.max(4, finite(segments, 8))));
+  const burstRadius = Math.min(280, Math.max(100, finite(radius, 210))) * unit;
+  const stroke = Math.min(60, Math.max(8, finite(thickness, 30))) * unit;
+  const ringRadius = burstRadius * 0.68;
+  const assemble = easeInOut(progress(local, 44, 76));
+  const curl = easeInOut(progress(local, 48, 78));
+  const close = easeInOut(progress(local, 72, 84));
+  const anticipate = easeInOut(progress(local, 86, 96));
+  const exit = progress(local, 96, radialBurstLength) ** 2.6;
+  const launch = spring({
+    frame: Math.max(0, local - 18),
+    fps: 30,
+    durationInFrames: 26,
+    config: { damping: 13, stiffness: 170, mass: 0.8 },
+  });
+  const pop = spring({
+    frame: Math.max(0, local - 2),
+    fps: 30,
+    durationInFrames: 16,
+    config: { damping: 11, stiffness: 180, mass: 0.65 },
+  });
+  const ringStroke = mix(stroke * 0.8, stroke * 1.1, anticipate);
+  const exitStroke = mix(ringStroke, stroke * 2.2, exit);
+  // The inner edge, not just the centerline, must pass every corner.
+  const clearRadius = Math.hypot(w, h) / 2 + stroke * 2.2 + 2;
+  const orbitRadius = mix(
+    mix(28 * unit, burstRadius, launch),
+    ringRadius,
+    assemble,
+  );
+  const finalRadius = mix(ringRadius, ringRadius * 0.84, anticipate);
+  const strength = Math.min(1.5, Math.max(0, finite(intensity, 1)));
+  const energy = Math.sin(Math.PI * progress(local, 18, 84));
+  const tilt =
+    easeOut(progress(local, 18, 48)) *
+    (1 - easeInOut(progress(local, 96, 114)));
+
+  return {
+    frame: local,
+    count,
+    unit,
+    strength,
+    energy: Math.max(0, energy) * strength,
+    planeScale: 1 - tilt * 0.46 * Math.min(1.5, strength),
+    planeAngle:
+      Math.sin(progress(local, 18, 114) * Math.PI * 1.6) * 32 * strength,
+    offsetX:
+      Math.sin(Math.PI * progress(local, 18, 114)) * 65 * unit * strength,
+    offsetY:
+      -Math.sin(Math.PI * progress(local, 18, 114)) * 32 * unit * strength,
+    dotRadius: 37 * unit * pop * (1 - easeOut(progress(local, 18, 26))),
+    dotSquash: 1 - Math.sin(Math.PI * progress(local, 2, 18)) * 0.16,
+    showSegments: local >= 18 && local < 84,
+    showRing: local >= 84 && local < radialBurstLength,
+    segmentOpacity: easeOut(progress(local, 18, 23)),
+    radius: local < 84 ? orbitRadius : mix(finalRadius, clearRadius, exit),
+    strokeWidth: local < 84 ? mix(stroke, stroke * 0.8, assemble) : exitStroke,
+    segmentLength: mix(
+      12 * unit,
+      Math.min(82 * unit, burstRadius * 0.42),
+      easeOut(progress(local, 18, 36)),
+    ),
+    curl,
+    // Gaps close with a tiny overlap to prevent raster seams at the weld.
+    arcAngle: ((Math.PI * 2) / count) * mix(0.62, 1.002, close),
+    rotation: finite(rotation, 135) * easeInOut(progress(local, 34, 84)),
+  };
+}
+
+/** A straight rounded spoke curls continuously into a circular arc. */
+function getSegmentPoints({
+  radius,
+  segmentLength,
+  arcAngle,
+  curl,
+}       
+                                         
+                                                  
+ ) {
+  const half = arcAngle / 2;
+  const x = radius * Math.cos(half);
+  const y = radius * Math.sin(half);
+  const tangent = (4 / 3) * Math.tan(arcAngle / 4) * radius;
+  const arc = [
+    [x, -y],
+    [x + tangent * Math.sin(half), -y + tangent * Math.cos(half)],
+    [x + tangent * Math.sin(half), y - tangent * Math.cos(half)],
+    [x, y],
+  ];
+  const angle = (curl * Math.PI) / 2;
+  return [-0.5, -1 / 6, 1 / 6, 0.5].map((offset, index) => {
+    const px = radius + segmentLength * offset * Math.cos(angle);
+    const py = segmentLength * offset * Math.sin(angle);
+    return [mix(px, arc[index][0], curl), mix(py, arc[index][1], curl)];
+  });
+}
+
+function getRadialBurstSegmentPath(
+  state                                        ,
+) {
+  const points = getSegmentPoints(state).map((point) =>
+    point.map((value) => value.toFixed(3)).join(" "),
+  );
+  return `M ${points[0]} C ${points[1]} ${points[2]} ${points[3]}`;
+}
+
+/** Sample a bent centerline and its normals to make a tapered, filled ribbon. */
+function getRadialBurstRibbonPath(
+  state                                        ,
+  index        ,
+  twist = 110,
+) {
+  const energy = state.energy;
+  const points = getSegmentPoints({
+    ...state,
+    radius: state.radius * (1 + Math.sin(index * 2.4) * energy * 0.15),
+    segmentLength: state.segmentLength * (1 + energy * 2.8),
+  });
+  const bend =
+    (Math.min(180, Math.max(-180, finite(twist, 110))) / 110) *
+    energy *
+    145 *
+    state.unit;
+  points[1][1] += bend * 0.55;
+  points[2][1] += bend;
+  // Carry the tip with the bend so the centerline does not double back into
+  // a hairpin while the ribbon transitions from a spoke to an arc.
+  points[3][1] += bend * 1.25;
+  points[2][0] += energy * 38 * state.unit;
+  const upper           = [];
+  const lower           = [];
+  const format = (x        , y        ) => `${x.toFixed(3)} ${y.toFixed(3)}`;
+  let firstWidth = 0;
+  let lastWidth = 0;
+  for (let sample = 0; sample <= 36; sample++) {
+    const t = sample / 36;
+    const q = 1 - t;
+    const x =
+      q ** 3 * points[0][0] +
+      3 * q * q * t * points[1][0] +
+      3 * q * t * t * points[2][0] +
+      t ** 3 * points[3][0];
+    const y =
+      q ** 3 * points[0][1] +
+      3 * q * q * t * points[1][1] +
+      3 * q * t * t * points[2][1] +
+      t ** 3 * points[3][1];
+    const dx =
+      3 * q * q * (points[1][0] - points[0][0]) +
+      6 * q * t * (points[2][0] - points[1][0]) +
+      3 * t * t * (points[3][0] - points[2][0]);
+    const dy =
+      3 * q * q * (points[1][1] - points[0][1]) +
+      6 * q * t * (points[2][1] - points[1][1]) +
+      3 * t * t * (points[3][1] - points[2][1]);
+    const length = Math.max(0.001, Math.hypot(dx, dy));
+    const ddx =
+      6 * q * (points[2][0] - 2 * points[1][0] + points[0][0]) +
+      6 * t * (points[3][0] - 2 * points[2][0] + points[1][0]);
+    const ddy =
+      6 * q * (points[2][1] - 2 * points[1][1] + points[0][1]) +
+      6 * t * (points[3][1] - 2 * points[2][1] + points[1][1]);
+    const curvature = Math.abs(dx * ddy - dy * ddx) / length ** 3;
+    const swell = Math.sin(Math.PI * t) ** 1.4;
+    // Offset curves fold back on themselves when their width exceeds the
+    // bend radius. Limit the width locally to keep tight curls smooth.
+    const halfWidth = Math.min(
+      (state.strokeWidth / 2) * (1 + energy * (2.4 * swell - 0.65 * t)),
+      0.72 / Math.max(curvature, 0.00001),
+    );
+    if (sample === 0) firstWidth = halfWidth;
+    if (sample === 36) lastWidth = halfWidth;
+    upper.push(
+      format(x - (dy / length) * halfWidth, y + (dx / length) * halfWidth),
+    );
+    lower.push(
+      format(x + (dy / length) * halfWidth, y - (dx / length) * halfWidth),
+    );
+  }
+  return `M ${upper.join(" L ")} A ${lastWidth} ${lastWidth} 0 0 0 ${lower[36]} L ${lower.slice(0, -1).reverse().join(" L ")} A ${firstWidth} ${firstWidth} 0 0 0 ${upper[0]} Z`;
+}
+
+
+            var P = {
+              segments: num(vars.segments, 8, 4, 16), radius: num(vars.radius, 210, 100, 280), thickness: num(vars.thickness, 30, 8, 60),
+              rotation: num(vars.rotation, 135, -360, 360), intensity: num(vars.intensity, 1, 0, 1.5), twist: num(vars.twist, 110, -180, 180),
+              echoes: num(vars.echoes, 3, 0, 5), color: str(vars.color, "#ffffff"), accent: str(vars.accent_color, "#f4e4a7"),
+              speed: num(vars.speed, 1, 0.25, 3), loop: bool(vars.loop, false)
+            };
+            var color = P.color, accentColor = P.accent, twist = P.twist;
+            root.style.background = str(vars.background_color, "#a800b7");
+            var width = root.clientWidth, height = root.clientHeight;
+            var svg = document.getElementById("rbu-svg");
+            svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+            document.getElementById("rbu-origin").setAttribute("transform", "translate(" + width / 2 + " " + height / 2 + ")");
+            var echoesG = document.getElementById("rbu-echoes"), mainG = document.getElementById("rbu-main");
+            var options = { segments: P.segments, radius: P.radius, thickness: P.thickness, rotation: P.rotation, intensity: P.intensity, loop: P.loop, width: width, height: height };
+            function plane(pose) {
+              return "translate(" + pose.offsetX + " " + pose.offsetY + ") rotate(" + pose.planeAngle + ") scale(1 " + pose.planeScale + ")";
+            }
+            function ribbons(pose, outline) {
+              var out = "";
+              for (var index = 0; index < pose.count; index++) {
+                var fill = outline ? "none" : index % 3 === 0 ? interpolateColors(clamp(pose.energy), [0, 1], [color, accentColor]) : color;
+                var rot = (index * 360) / pose.count + pose.rotation - 90 + Math.sin(index * 1.7) * pose.energy * 16;
+                out += '<path d="' + getRadialBurstRibbonPath(pose, index, twist) + '" transform="rotate(' + rot + ')" fill="' + fill + '" stroke="' + (outline ? color : "none") + '" stroke-width="' + 1.5 * pose.unit + '"/>';
+              }
+              return out;
+            }
+            function draw(frame) {
+              var time = frame * P.speed;
+              var state = getRadialBurstState(time, options);
+              var path = getRadialBurstSegmentPath(state);
+              var echoCount = Math.round(Math.min(5, Math.max(0, P.echoes)));
+              var html = "";
+              if (state.strength > 0 && state.frame >= 18 && state.frame < radialBurstLength) {
+                for (var index = 0; index < echoCount; index++) {
+                  var lag = (echoCount - index) * 2.2;
+                  var echo = getRadialBurstState(Math.max(18, state.frame - lag), Object.assign({}, options, { loop: false }));
+                  var opacity = 0.36 * (1 - index / (echoCount + 1)) * Math.min(1, state.strength) * (1 - easeOut(progress(state.frame, 107, 114)));
+                  html += '<g transform="' + plane(echo) + '" opacity="' + opacity + '">';
+                  if (echo.showSegments) html += ribbons(echo, true);
+                  else if (echo.showRing) html += '<circle r="' + echo.radius + '" fill="none" stroke="' + (index % 2 ? color : accentColor) + '" stroke-width="' + echo.strokeWidth * (0.22 + index * 0.07) + '"/>';
+                  html += "</g>";
+                }
+              }
+              echoesG.innerHTML = html;
+              var m = '<g transform="' + plane(state) + '">';
+              if (state.dotRadius > 0.001) m += '<circle r="' + state.dotRadius + '" fill="' + color + '" transform="scale(' + 1 / state.dotSquash + " " + state.dotSquash + ')"/>';
+              if (state.showSegments && state.strength > 0) m += '<g opacity="' + state.segmentOpacity + '">' + ribbons(state, false) + "</g>";
+              else if (state.showSegments) {
+                m += '<g fill="none" stroke="' + color + '" stroke-width="' + state.strokeWidth + '" stroke-linecap="round" opacity="' + state.segmentOpacity + '" transform="rotate(' + (state.rotation - 90) + ')">';
+                for (var k = 0; k < state.count; k++) m += '<path d="' + path + '" transform="rotate(' + (k * 360) / state.count + ')"/>';
+                m += "</g>";
+              }
+              if (state.showRing) m += '<circle r="' + state.radius + '" fill="none" stroke="' + color + '" stroke-width="' + state.strokeWidth + '"/>';
+              mainG.innerHTML = m + "</g>";
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 120, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "4");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["radial-burst"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

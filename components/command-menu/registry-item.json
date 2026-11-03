@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "command-menu",
+  "type": "hyperframes:component",
+  "title": "Command Menu",
+  "description": "A keyboard-driven command palette: the backdrop dims, a query types itself, the list filters, and the first row is picked.",
+  "tags": [
+    "ui",
+    "command-menu",
+    "palette",
+    "typing",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "useWhen": [
+    "Demoing a command-K palette opening with a typed query filtering icon-labelled commands.",
+    "Showing keyboard-first navigation in a developer or power-user product video.",
+    "Demonstrating row hover and press states with trailing keyboard shortcuts."
+  ],
+  "avoidWhen": [
+    "The list has no icons or shortcuts and is opened from a button: use dropdown-menu.",
+    "The overlay is a right-click menu: use context-menu.",
+    "You only need a filterable input without a modal overlay: use combobox."
+  ],
+  "checkAt": [
+    0.9,
+    1.7,
+    2.7,
+    3.3
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/command-menu/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "command-menu.html",
+      "target": "compositions/components/command-menu.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "query", "type": "string", "role": "content", "label": "Query", "description": "Text typed into the palette.", "default": "settings"},
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "JSON array of {\"icon\",\"label\",\"shortcut\"}. Icons: user, settings, file, search.", "default": "[{\"icon\": \"user\", \"label\": \"Profile\", \"shortcut\": \"⌘ P\"}, {\"icon\": \"settings\", \"label\": \"Settings\", \"shortcut\": \"⌘ S\"}, {\"icon\": \"file\", \"label\": \"New File\", \"shortcut\": \"⌘ N\"}, {\"icon\": \"search\", \"label\": \"Search docs\"}]"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

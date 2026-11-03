@@ -1,0 +1,294 @@
+<!doctype html>
+<!--
+  Simulated Cursor
+
+  A synthetic mouse cursor that travels between waypoints and fires a click ripple, for narrating a UI on screen.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/simulated-cursor/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="simulated-cursor"
+  data-composition-duration="5"
+  data-composition-variables='[{"id":"points","type":"string","role":"content","label":"Waypoints","description":"JSON array of {x, y, hold, click} in the reference frame (1280×720 by default): x and y are where the cursor rests, hold is frames to rest there, click fires a ripple on arrival.","default":"[{\"x\":200,\"y\":150,\"hold\":20},{\"x\":800,\"y\":360,\"hold\":25,\"click\":true},{\"x\":1050,\"y\":560,\"hold\":20}]"},{"id":"frame_width","type":"number","role":"layout","label":"Frame width","description":"Width of the reference frame the waypoints live in; it is scaled to fit.","default":1280,"min":200,"max":4000,"step":1,"unit":"px"},{"id":"frame_height","type":"number","role":"layout","label":"Frame height","description":"Height of the reference frame the waypoints live in.","default":720,"min":200,"max":4000,"step":1,"unit":"px"},{"id":"color","type":"color","role":"style","label":"Color","description":"Cursor fill color.","default":"#ffffff"},{"id":"size","type":"number","role":"style","label":"Size","description":"Cursor size in reference pixels.","default":32,"min":12,"max":96,"step":1,"unit":"px"},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simulated Cursor</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        .scu-stage { position: absolute; inset: 0; }
+        .scu-field { overflow: visible; }
+        .scu-cursor { position: absolute; transform-origin: top left; }
+        .scu-cursor svg { display: block; }
+        .scu-ripple { position: absolute; width: 160px; height: 160px; }
+      </style>
+
+      <div id="root" data-composition-id="simulated-cursor" data-duration="5" data-fps="30">
+        <div id="scu-clip" class="scu-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="scu-field" class="scu-field">
+            <svg id="scu-ripple" class="scu-ripple" viewBox="0 0 160 160"><circle id="scu-ring" cx="80" cy="80" r="4" fill="none" stroke-width="2" opacity="0"></circle></svg>
+            <div id="scu-cursor" class="scu-cursor">
+              <svg id="scu-svg" viewBox="0 0 24 24" fill="none"><path d="M5 3L5 19L9.5 14.5L12.5 21L15 20L12 13.5L18.5 13.5L5 3Z" stroke="#000000" stroke-width="1.2" stroke-linejoin="round" id="scu-path"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            var color = str(vars.color, "#ffffff");
+            var size = num(vars.size, 32, 12, 96);
+            var speed = num(vars.speed, 1, 0.25, 3);
+            var points = [{ x: 200, y: 150, hold: 20 }, { x: 800, y: 360, hold: 25, click: true }, { x: 1050, y: 560, hold: 20 }];
+            try {
+              var parsed = JSON.parse(str(vars.points, ""));
+              if (Array.isArray(parsed) && parsed.length > 0) points = parsed.map(function (p) { return { x: Number(p.x) || 0, y: Number(p.y) || 0, hold: p.hold == null ? undefined : Number(p.hold), click: !!p.click }; });
+            } catch (e) {}
+            var field = document.getElementById("scu-field");
+            fit(field, num(vars.frame_width, 1280, 200, 4000), num(vars.frame_height, 720, 200, 4000), 1);
+            var cursorEl = document.getElementById("scu-cursor");
+            var cursorSvg = document.getElementById("scu-svg");
+            var rippleSvg = document.getElementById("scu-ripple");
+            var ring = document.getElementById("scu-ring");
+            document.getElementById("scu-path").setAttribute("fill", color);
+            ring.setAttribute("stroke", color);
+            cursorSvg.setAttribute("width", size);
+            cursorSvg.setAttribute("height", size);
+            cursorEl.style.width = size + "px";
+            cursorEl.style.height = size + "px";
+
+            // Rest at the first point for its hold, then 24 frames of travel per leg, then each point's hold.
+            var segments = [], cursor = points[0].hold == null ? 0 : points[0].hold;
+            for (var i = 0; i < points.length - 1; i++) {
+              var to = points[i + 1];
+              var start = cursor, end = start + 24;
+              var holdEnd = end + (to.hold == null ? 15 : to.hold);
+              segments.push({ start: start, end: end, holdEnd: holdEnd, from: points[i], to: to });
+              cursor = holdEnd;
+            }
+            function draw(frame) {
+              var x = points[0].x, y = points[0].y, clickFrame = null;
+              for (var s = 0; s < segments.length; s++) {
+                var seg = segments[s];
+                if (frame >= seg.start && frame < seg.holdEnd) {
+                  if (frame < seg.end) {
+                    x = interpolate(frame, [seg.start, seg.end], [seg.from.x, seg.to.x], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                    y = interpolate(frame, [seg.start, seg.end], [seg.from.y, seg.to.y], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                  } else {
+                    x = seg.to.x; y = seg.to.y;
+                    if (seg.to.click) clickFrame = frame - seg.end;
+                  }
+                  break;
+                }
+                if (frame >= seg.holdEnd) { x = seg.to.x; y = seg.to.y; }
+              }
+              var scale = 1, radius = 0, opacity = 0;
+              if (clickFrame !== null) {
+                var dip = spring({ fps: 30, frame: clickFrame, config: { damping: 10, stiffness: 200, mass: 0.6 }, durationInFrames: 14 });
+                scale = 1 - dip * 0.18;
+                radius = interpolate(clickFrame, [0, 24], [4, 60], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                opacity = interpolate(clickFrame, [0, 24], [0.6, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+              }
+              ring.setAttribute("r", radius);
+              ring.setAttribute("opacity", opacity);
+              rippleSvg.style.left = x - 80 + "px";
+              rippleSvg.style.top = y - 80 + "px";
+              rippleSvg.style.display = opacity > 0 ? "block" : "none";
+              cursorEl.style.left = x + "px";
+              cursorEl.style.top = y + "px";
+              cursorEl.style.transform = "scale(" + scale + ")";
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 150, draw, speed);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["simulated-cursor"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

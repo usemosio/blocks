@@ -1,0 +1,445 @@
+<!doctype html>
+<!--
+  Input
+
+  A text field that plays its states: a pointer hovers and clicks it, it focuses with a ring, the value types in, then the field shows an invalid state.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-ui/input/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="input"
+  data-composition-duration="3.5"
+  data-composition-variables='[
+    {"id": "placeholder", "type": "string", "role": "content", "label": "Placeholder", "description": "Text shown while the field is empty.", "default": "you@example.com"},
+    {"id": "value", "type": "string", "role": "content", "label": "Value", "description": "Text that types into the field.", "default": "hello@example.com"},
+    {"id": "size", "type": "enum", "role": "style", "label": "Size", "description": "Field size.", "default": "default", "options": [{"value": "sm", "label": "Small"}, {"value": "default", "label": "Default"}, {"value": "lg", "label": "Large"}]},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark (shadcn neutral tokens).", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent background", "description": "Skip the theme background so the control sits on your own scene.", "default": false}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Input</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          background: var(--ui-background, #fff);
+          color: var(--ui-foreground, #0a0a0a);
+          font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        #inp-clip {
+          position: absolute;
+          inset: 0;
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="input" data-duration="3.5" data-fps="30">
+        <div id="inp-clip" class="clip" data-start="0" data-duration="3.5" data-track-index="0"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var clip = document.getElementById("inp-clip");
+            var UI = (function () {
+              "use strict";
+              var FPS = 30;
+              var FONT = '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+              var NS = "http://www.w3.org/2000/svg";
+
+              /* ---------- numbers ---------- */
+              function clamp01(t) { return t < 0 ? 0 : t > 1 ? 1 : t; }
+              function lerp(a, b, t) { return a + (b - a) * t; }
+              function num(v, d, min, max) {
+                var n = Number(v);
+                return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d;
+              }
+              function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+              function oneOf(v, list, d) { return list.indexOf(String(v)) >= 0 ? String(v) : d; }
+              function bool(v, d) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : d; }
+              function vars() {
+                return window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+              }
+
+              /* ---------- easings (remocn-ui core `easings`) ---------- */
+              var ease = {
+                linear: function (t) { return t; },
+                out: function (t) { return 1 - Math.pow(1 - t, 3); },
+                in: function (t) { return t * t * t; },
+                inOut: function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+              };
+
+              /* ---------- springs (remocn-ui core `springs`) ----------
+                 spring(frame, cfg) is a damped spring going 0 -> 1 from rest, evaluated in closed form
+                 (frame in 30 fps frames). Underdamped, critically damped and overdamped cases. */
+              var springs = {
+                snappy: { damping: 18, stiffness: 220, mass: 0.7 },
+                soft: { damping: 14, stiffness: 120, mass: 0.9 },
+                bouncy: { damping: 10, stiffness: 180, mass: 0.8 }
+              };
+              function spring(frame, cfg) {
+                cfg = cfg || springs.snappy;
+                var t = Math.max(0, frame) / FPS;
+                var w0 = Math.sqrt(cfg.stiffness / cfg.mass);
+                var z = cfg.damping / (2 * Math.sqrt(cfg.stiffness * cfg.mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+                }
+                if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+                var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+                return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+              }
+
+              /* ---------- colour (remocn-ui core `mixOklch`) ----------
+                 Colours are kept as OKLab + alpha and mixed there (identical to oklch mixing for the
+                 neutral greys the theme is made of). parse() reads oklch(L C h / a), #rgb, #rrggbb,
+                 rgb()/rgba(); css() turns any colour into an rgba() string. */
+              function lin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+              function gam(c) { c = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(Math.max(0, c), 1 / 2.4) - 0.055; return Math.round(255 * Math.min(1, Math.max(0, c))); }
+              function fromRgb(r, g, b, a) {
+                r = lin(r); g = lin(g); b = lin(b);
+                var l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+                var m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+                var s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+                return { L: 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, a: 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, b: 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s, alpha: a };
+              }
+              function parse(c) {
+                if (c && typeof c === "object") return c;
+                c = String(c || "").trim();
+                var m = c.match(/^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)(?:deg)?\s*(?:\/\s*([\d.]+)(%?))?\s*\)$/i);
+                if (m) {
+                  var L = parseFloat(m[1]) / (m[2] ? 100 : 1), C = parseFloat(m[3]), h = parseFloat(m[4]) * Math.PI / 180;
+                  var al = m[5] === undefined ? 1 : parseFloat(m[5]) / (m[6] ? 100 : 1);
+                  return { L: L, a: C * Math.cos(h), b: C * Math.sin(h), alpha: al };
+                }
+                m = c.match(/^#([0-9a-f]{3,8})$/i);
+                if (m) {
+                  var x = m[1];
+                  if (x.length === 3 || x.length === 4) x = x.replace(/./g, "$&$&");
+                  return fromRgb(parseInt(x.slice(0, 2), 16), parseInt(x.slice(2, 4), 16), parseInt(x.slice(4, 6), 16), x.length === 8 ? parseInt(x.slice(6, 8), 16) / 255 : 1);
+                }
+                m = c.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:[\s,/]+([\d.]+)(%?))?\s*\)$/i);
+                if (m) return fromRgb(+m[1], +m[2], +m[3], m[4] === undefined ? 1 : parseFloat(m[4]) / (m[5] ? 100 : 1));
+                return fromRgb(0, 0, 0, 1);
+              }
+              function css(c) {
+                var k = parse(c);
+                var l = Math.pow(k.L + 0.3963377774 * k.a + 0.2158037573 * k.b, 3);
+                var m = Math.pow(k.L - 0.1055613458 * k.a - 0.0638541728 * k.b, 3);
+                var s = Math.pow(k.L - 0.0894841775 * k.a - 1.291485548 * k.b, 3);
+                var r = gam(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
+                var g = gam(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
+                var b = gam(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s);
+                return "rgba(" + r + "," + g + "," + b + "," + Math.round(k.alpha * 1000) / 1000 + ")";
+              }
+              function mix(a, b, t) {
+                var p = parse(a), q = parse(b);
+                return css({ L: lerp(p.L, q.L, t), a: lerp(p.a, q.a, t), b: lerp(p.b, q.b, t), alpha: lerp(p.alpha, q.alpha, t) });
+              }
+              function isColor(v) { return typeof v === "string" && /^(oklch|rgb|rgba|#)/i.test(v.trim()); }
+
+              /* ---------- theme (remocn-ui core `defaultLightTheme` / `defaultDarkTheme`) ----------
+                 theme(mode, primary) returns the token object (stock shadcn neutral); primary, when given
+                 (the remocn `primary` prop), replaces `primary` (and the button hover colours follow). */
+              var LIGHT = {
+                background: "oklch(1 0 0)", foreground: "oklch(0.145 0 0)", card: "oklch(1 0 0)", cardForeground: "oklch(0.145 0 0)",
+                popover: "oklch(1 0 0)", popoverForeground: "oklch(0.145 0 0)", primary: "oklch(0.205 0 0)", primaryForeground: "oklch(0.985 0 0)",
+                secondary: "oklch(0.97 0 0)", secondaryForeground: "oklch(0.205 0 0)", muted: "oklch(0.97 0 0)", mutedForeground: "oklch(0.556 0 0)",
+                accent: "oklch(0.97 0 0)", accentForeground: "oklch(0.205 0 0)", destructive: "oklch(0.577 0.245 27.325)",
+                destructiveForeground: "oklch(0.985 0 0)", border: "oklch(0.922 0 0)", input: "oklch(0.922 0 0)", ring: "oklch(0.708 0 0)", radius: 10
+              };
+              var DARK = {
+                background: "oklch(0.145 0 0)", foreground: "oklch(0.985 0 0)", card: "oklch(0.205 0 0)", cardForeground: "oklch(0.985 0 0)",
+                popover: "oklch(0.205 0 0)", popoverForeground: "oklch(0.985 0 0)", primary: "oklch(0.922 0 0)", primaryForeground: "oklch(0.205 0 0)",
+                secondary: "oklch(0.269 0 0)", secondaryForeground: "oklch(0.985 0 0)", muted: "oklch(0.269 0 0)", mutedForeground: "oklch(0.708 0 0)",
+                accent: "oklch(0.269 0 0)", accentForeground: "oklch(0.985 0 0)", destructive: "oklch(0.704 0.191 22.216)",
+                destructiveForeground: "oklch(0.985 0 0)", border: "oklch(1 0 0 / 10%)", input: "oklch(1 0 0 / 15%)", ring: "oklch(0.556 0 0)", radius: 10
+              };
+              function theme(mode, primary) {
+                var t = {}, base = mode === "dark" ? DARK : LIGHT;
+                Object.keys(base).forEach(function (k) { t[k] = base[k]; });
+                if (primary && isColor(primary)) {
+                  t.primary = primary;
+                  // A light primary (dark mode) needs dark text on it, a dark one needs light text.
+                  t.primaryForeground = parse(primary).L > 0.6 ? LIGHT.primary : LIGHT.primaryForeground;
+                }
+                return t;
+              }
+              /* boot(root, vars): reads the shared variables `mode` (light | dark), `primary`, `transparent`,
+                 `speed`, paints the background, exposes the tokens as --ui-<name> on #root, returns {theme, speed, mode}. */
+              function boot(root, v) {
+                var mode = oneOf(v.mode, ["light", "dark"], "light");
+                var th = theme(mode, str(v.primary, ""));
+                Object.keys(th).forEach(function (k) {
+                  if (k === "radius") return;
+                  root.style.setProperty("--ui-" + k.replace(/[A-Z]/g, function (c) { return "-" + c.toLowerCase(); }), css(th[k]));
+                });
+                if (bool(v.transparent, false)) root.style.background = "transparent";
+                return { theme: th, mode: mode, speed: num(v.speed, 1, 0.1, 4) };
+              }
+
+              /* ---------- state timeline (remocn-ui core `useStateTransition`) ----------
+                 steps: [{at, state, duration?}] in 30 fps frames (authored, before `speed`).
+                 Returns {from, to, progress}: `to` is the latest started step (ties: the later entry),
+                 `from` the one before it (else the default state), progress ramps 0..1 over `duration`. */
+              function stateAt(steps, f, def, dd) {
+                var order = steps.map(function (s, i) { return { s: s, i: i }; }).sort(function (a, b) { return a.s.at - b.s.at || a.i - b.i; });
+                var idx = -1;
+                for (var i = 0; i < order.length; i++) if (order[i].s.at <= f) idx = i;
+                if (idx < 0) return { from: def, to: def, progress: 1 };
+                var to = order[idx].s, from = idx > 0 ? order[idx - 1].s.state : def;
+                var dur = to.duration === undefined ? dd : to.duration;
+                return { from: from, to: to.state, progress: dur <= 0 ? 1 : clamp01((f - to.at) / dur) };
+              }
+              /* tween(a, b, t): blends two style objects (the "<Name>Style" of remocn): numbers lerp,
+                 colour strings mix, everything else switches at the end. */
+              function tween(a, b, t) {
+                var o = {};
+                Object.keys(b).forEach(function (k) {
+                  var x = a[k], y = b[k];
+                  o[k] = typeof y === "number" && typeof x === "number" ? lerp(x, y, t) : isColor(y) && isColor(x) ? mix(x, y, t) : t >= 1 ? y : x;
+                });
+                return o;
+              }
+              /* styleAt(preset, steps, f, def, dd): the whole `use<Name>Transition` in one call.
+                 preset(state) must return the COMPLETE style of that state. Eased with easings.out like remocn. */
+              function styleAt(preset, steps, f, def, dd, easeFn) {
+                var r = stateAt(steps, f, def, dd);
+                return tween(preset(r.from), preset(r.to), (easeFn || ease.out)(r.progress));
+              }
+
+              /* ---------- DOM helpers ---------- */
+              function setCss(el, css) { if (css) Object.keys(css).forEach(function (k) { el.style[k] = css[k]; }); }
+              function h(tag, css, parent, attrs) {
+                var el = document.createElement(tag);
+                setCss(el, css);
+                if (attrs) Object.keys(attrs).forEach(function (k) { if (k === "text") el.textContent = attrs[k]; else el.setAttribute(k, attrs[k]); });
+                if (parent) parent.appendChild(el);
+                return el;
+              }
+              function svg(tag, attrs, parent) {
+                var el = document.createElementNS(NS, tag);
+                if (attrs) Object.keys(attrs).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+                if (parent) parent.appendChild(el);
+                return el;
+              }
+              /* Icons from remocn-ui (24 px viewBox). Each returns {svg, path}; drive them through style/attributes in draw(). */
+              function icon(kind, size, color, sw, parent) {
+                var d = { check: "M5 12.5l4.5 4.5L19 7", chevron: "M6 9l6 6 6-6", x: "M18 6 6 18 M6 6 18 18" }[kind];
+                var s = svg("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none" }, parent);
+                s.style.flexShrink = "0";
+                s.style.overflow = "visible";
+                var p = svg("path", { d: d, stroke: color, "stroke-width": sw, "stroke-linecap": "round", "stroke-linejoin": "round" }, s);
+                return { svg: s, path: p };
+              }
+              /* spinner(parent, size, color, strokeWidth): remocn-ui `Spinner`; call .draw(frame, speed). */
+              function spinner(parent, size, color, sw) {
+                var s = svg("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none" }, parent);
+                svg("circle", { cx: 12, cy: 12, r: 9, stroke: color, "stroke-width": sw, "stroke-linecap": "round", "stroke-dasharray": 44, "stroke-dashoffset": 33 }, s);
+                return { svg: s, draw: function (frame, speed) { s.style.transform = "rotate(" + frame * (speed || 1) * 6 + "deg)"; } };
+              }
+
+              /* ---------- stage: design-size boxes scaled to fit the frame ----------
+                 fitScale(root, W, H, pad, max): min(w/W, h/H) * pad, capped. layer(root, W, H) makes an absolutely
+                 positioned W x H box centred in #root and scaled by that factor; child coordinates are design pixels.
+                 The same scale applies to every layer made with the same W, H (overlay stacks: base, scrim, popup, cursor). */
+              function fitScale(root, W, H, pad, max) {
+                var w = root.clientWidth || 1080, hh = root.clientHeight || 1920;
+                return Math.min(max || 4, (pad || 0.9) * Math.min(w / W, hh / H));
+              }
+              function layer(root, W, H, o) {
+                o = o || {};
+                var k = o.scale || fitScale(root, W, H, o.pad, o.max);
+                var el = h("div", { position: "absolute", left: "50%", top: "50%", width: W + "px", height: H + "px", marginLeft: -W / 2 + "px", marginTop: -H / 2 + "px", transform: "scale(" + k + ")", transformOrigin: "50% 50%" }, o.parent || root);
+                el.k = k;
+                return el;
+              }
+              /* box(el, layer): design-pixel position and size of el inside a layer (layout only, transforms are ignored). */
+              function box(el, lay) {
+                var x = 0, y = 0, e = el;
+                while (e && e !== lay) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+                if (!el.offsetWidth && el.__box) return el.__box; // host hid the clip: reuse the last real layout
+                el.__box = { x: x, y: y, w: el.offsetWidth, h: el.offsetHeight, cx: x + el.offsetWidth / 2, cy: y + el.offsetHeight / 2 };
+                return el.__box;
+              }
+
+              /* ---------- cursor (remocn-ui `Cursor` + `useCursorPath`) ---------- */
+              var ARROW = "M1 1 L1 18.5 L5.6 14.4 L8.7 21.6 L11.6 20.4 L8.5 13.2 L14.5 13.2 Z";
+              var POINTER = "M8 2.2 C8 1.3 8.7 0.7 9.5 0.7 C10.3 0.7 11 1.3 11 2.2 L11 9 C11 9 11.3 8.4 12.2 8.4 C13 8.4 13.4 9 13.4 9.6 C13.4 9.6 13.9 9.1 14.7 9.1 C15.5 9.1 15.9 9.7 15.9 10.3 C15.9 10.3 16.4 9.9 17.1 9.9 C17.9 9.9 18.3 10.5 18.3 11.2 L18.3 16.8 C18.3 19.8 16.3 22.3 12.8 22.3 L11.4 22.3 C9 22.3 7.9 21.2 6.6 19.2 L4 15.2 C3.5 14.4 3.7 13.4 4.5 12.9 C5.1 12.5 5.9 12.6 6.4 13.2 L8 15 Z";
+              var CLICK_FRAMES = 16, PRESS_FRAMES = 8;
+              /* cursorAt(waypoints, f, opts): waypoints [{at, x, y, duration?, click?, press?, easing?}]; `at` is the ARRIVAL frame,
+                 the move starts `duration` (default 24) frames earlier. opts.fadeIn (frames, default 8) fades the pointer in
+                 from frame 0; opts.fadeOutAt / fadeOut fade it away. Returns {x, y, opacity, rippleOpacity, rippleScale, pressScale}. */
+              function cursorAt(wps, f, opts) {
+                opts = opts || {};
+                var dd = opts.defaultDuration === undefined ? 24 : opts.defaultDuration;
+                var fadeIn = opts.fadeIn === undefined ? 8 : opts.fadeIn;
+                var op = fadeIn > 0 ? clamp01(f / fadeIn) : 1;
+                if (opts.fadeOutAt !== undefined) op *= 1 - clamp01((f - opts.fadeOutAt) / (opts.fadeOut || 8));
+                var first = wps[0], last = wps[wps.length - 1], res = { x: first.x, y: first.y, opacity: op, rippleOpacity: 0, rippleScale: 0, pressScale: 1 };
+                if (f <= first.at) return res;
+                var toI = wps.length - 1;
+                for (var i = 1; i < wps.length; i++) if (wps[i].at > f) { toI = i; break; }
+                var past = f >= last.at;
+                var to = past ? last : wps[toI], from = past ? last : wps[toI - 1];
+                var dur = to.duration === undefined ? dd : to.duration;
+                var t = past || dur <= 0 ? 1 : ease[to.easing || "inOut"](clamp01((f - (to.at - dur)) / dur));
+                res.x = lerp(from.x, to.x, t);
+                res.y = lerp(from.y, to.y, t);
+                var lastClick = -Infinity;
+                wps.forEach(function (w) { if (w.click && w.at <= f && w.at > lastClick) lastClick = w.at; });
+                var since = lastClick === -Infinity ? -1 : f - lastClick;
+                if (since >= 0 && since < CLICK_FRAMES) {
+                  var p = clamp01(since / CLICK_FRAMES);
+                  res.rippleOpacity = 0.5 * (1 - p);
+                  res.rippleScale = 2.5 * ease.out(p);
+                }
+                var dip = 1;
+                if (since >= 0 && since < PRESS_FRAMES) {
+                  var half = PRESS_FRAMES / 2, q = since < half ? since / half : 1 - (since - half) / half;
+                  dip = 1 - clamp01(q);
+                }
+                res.pressScale = Math.min(dip, (past ? last : from).press ? 0 : 1);
+                return res;
+              }
+              /* cursor(parent, th, opts): builds the pointer (opts.variant arrow | pointer, opts.size 28, opts.rippleColor).
+                 Call .draw(cursorAt(...)). Put it in the topmost layer so it passes over overlays. */
+              function cursor(parent, th, opts) {
+                opts = opts || {};
+                var size = opts.size || 28, ring = css(opts.rippleColor || th.primary), rs = size * 1.8;
+                var wrap = h("div", { position: "absolute", left: "0px", top: "0px", pointerEvents: "none", opacity: "0" }, parent);
+                var rip = h("div", { position: "absolute", left: -rs / 2 + "px", top: -rs / 2 + "px", width: rs + "px", height: rs + "px", borderRadius: "50%", border: "2px solid " + ring, opacity: "0" }, wrap);
+                var s = svg("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none" }, wrap);
+                s.style.cssText = "position:absolute;left:0;top:0;transform-origin:0 0;overflow:visible;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3))";
+                svg("path", { d: opts.variant === "pointer" ? POINTER : ARROW, fill: css(th.foreground), stroke: css(th.background), "stroke-width": 1.4, "stroke-linejoin": "round" }, s);
+                return {
+                  el: wrap,
+                  draw: function (c) {
+                    wrap.style.transform = "translate(" + c.x + "px," + c.y + "px)";
+                    wrap.style.opacity = c.opacity;
+                    rip.style.opacity = c.rippleOpacity;
+                    rip.style.transform = "scale(" + c.rippleScale + ")";
+                    s.style.transform = "scale(" + (0.9 + 0.1 * c.pressScale) + ")";
+                  }
+                };
+              }
+
+              /* ---------- driver ----------
+                 drive(tl, seconds, speed, draw): puts one tween on the paused timeline that calls draw(frame)
+                 with frame = time * 30 * speed (remocn's `useCurrentFrame() * speed`), draws frame 0, and pads the
+                 timeline to `seconds`. Seeking anywhere redraws the same picture. */
+              function drive(tl, seconds, speed, draw) {
+                var clock = { f: 0 }, total = seconds * FPS * speed;
+                tl.to(clock, { f: total, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+                draw(0);
+                if (tl.duration() < seconds) tl.to({}, { duration: seconds - tl.duration() });
+              }
+
+              return {
+                FPS: FPS, FONT: FONT, clamp01: clamp01, lerp: lerp, num: num, str: str, oneOf: oneOf, bool: bool, vars: vars,
+                ease: ease, springs: springs, spring: spring, parse: parse, css: css, mix: mix, isColor: isColor,
+                theme: theme, boot: boot, stateAt: stateAt, tween: tween, styleAt: styleAt, h: h, svg: svg, icon: icon, spinner: spinner,
+                fitScale: fitScale, layer: layer, box: box, cursorAt: cursorAt, cursor: cursor, drive: drive
+              };
+            })();
+
+          /* ---- remocn-ui Input (state atom) ---- */
+          var IN_SZ = { sm: { h: 36, pad: 12, fs: 13 }, "default": { h: 40, pad: 14, fs: 15 }, lg: { h: 48, pad: 16, fs: 17 } };
+          function inputPreset(th) {
+            var idle = th.input, hov = UI.mix(th.input, th.foreground, 0.18), ring = UI.mix(th.background, th.ring, 0.5), invRing = UI.mix(th.background, th.destructive, 0.4), hovBg = UI.mix(th.background, th.muted, 0.4);
+            return function (state) {
+              if (state === "hover") return { bc: hov, rc: ring, rw: 0, bg: hovBg, caret: 0, reveal: 0, ph: 1 };
+              if (state === "active") return { bc: th.ring, rc: ring, rw: 3, bg: th.background, caret: 1, reveal: 0, ph: 1 };
+              if (state === "typing") return { bc: th.ring, rc: ring, rw: 3, bg: th.background, caret: 1, reveal: 1, ph: 0 };
+              if (state === "blur") return { bc: idle, rc: ring, rw: 0, bg: th.background, caret: 0, reveal: 1, ph: 0 };
+              if (state === "invalid") return { bc: th.destructive, rc: invRing, rw: 3, bg: th.background, caret: 0, reveal: 1, ph: 0 };
+              return { bc: idle, rc: ring, rw: 0, bg: th.background, caret: 0, reveal: 0, ph: 1 };
+            };
+          }
+          function buildInput(parent, o) {
+            var sz = IN_SZ[o.size || "default"];
+            var el = UI.h("div", { position: "relative", display: "flex", alignItems: "center", width: (o.width || 320) + "px", height: sz.h + "px", padding: "0 " + sz.pad + "px", fontSize: sz.fs + "px", letterSpacing: "-0.01em", border: "1px solid transparent", borderRadius: o.th.radius + "px" }, parent);
+            var ph = UI.h("span", { position: "absolute", left: sz.pad + "px", color: UI.css(o.th.mutedForeground), whiteSpace: "nowrap" }, el, { text: o.placeholder });
+            var line = UI.h("div", { display: "flex", alignItems: "center", minWidth: "0" }, el);
+            var val = UI.h("span", { whiteSpace: "nowrap", color: UI.css(o.th.foreground) }, line);
+            var caret = UI.h("span", { display: "inline-block", flexShrink: "0", width: "2px", height: Math.round(sz.fs * 1.1) + "px", borderRadius: "1px", background: UI.css(o.th.foreground) }, line);
+            return { el: el, draw: function (s) {
+              var n = Math.round(o.value.length * s.reveal), text = o.value.slice(0, n);
+              el.style.borderColor = s.bc; el.style.background = s.bg; el.style.boxShadow = "0 0 0 " + s.rw + "px " + s.rc;
+              ph.style.opacity = s.reveal > 0 ? 0 : s.ph;
+              val.textContent = text; caret.style.opacity = s.caret; caret.style.marginLeft = text.length > 0 ? "4px" : "0px";
+            } };
+          }
+
+            var v = UI.vars();
+            var boot = UI.boot(root, v), th = boot.theme;
+            var placeholder = UI.str(v.placeholder, "you@example.com");
+            var value = UI.str(v.value, "hello@example.com");
+            var size = UI.oneOf(v.size, ["sm", "default", "lg"], "default");
+            var W = 380, H = 130;
+            var stage = UI.layer(clip, W, H);
+            var holder = UI.h("div", { position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }, stage);
+            var field = buildInput(holder, { placeholder: placeholder, value: value, size: size, th: th, width: 320 });
+            var cur = UI.cursor(stage, th);
+            var preset = inputPreset(th);
+            // remocn input-example: hover 10 (8), active 24 (10), typing 40 (22), invalid 78 (12).
+            var steps = [{ at: 10, state: "hover", duration: 8 }, { at: 24, state: "active", duration: 10 }, { at: 40, state: "typing", duration: 22 }, { at: 78, state: "invalid", duration: 12 }];
+            var tl = gsap.timeline({ paused: true });
+            UI.drive(tl, 3.5, boot.speed, function (f) {
+              field.draw(UI.styleAt(preset, steps, f, "idle", 8));
+              var b = UI.box(field.el, stage), x = b.x + b.w * 0.62, y = b.cy + 4;
+              cur.draw(UI.cursorAt([
+                { at: 0, x: W - 24, y: H - 14 }, { at: 12, x: x, y: y, duration: 12 }, { at: 22, x: x, y: y, click: true, duration: 0 },
+                { at: 76, x: x + 20, y: y + 26, duration: 22 }
+              ], f, { fadeOutAt: 80, fadeOut: 12 }));
+            });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["input"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

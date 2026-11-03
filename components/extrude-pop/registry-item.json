@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "extrude-pop",
+  "type": "hyperframes:component",
+  "title": "Extrude Pop",
+  "description": "A flat word pops up out of the plane on a solid colored 3D body, no camera involved.",
+  "tags": [
+    "text-effects",
+    "3d",
+    "extrude",
+    "pop",
+    "poster",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A short punchy word (a score, a verdict, a CTA) should land with physical weight, like a stamp rising off the page.",
+    "A faux-3D pop with no cameras or 3D transforms: a 2D extrusion that renders identically everywhere."
+  ],
+  "avoidWhen": [
+    "The text is long or small: the extruded body doubles the ink, so keep it to one short word.",
+    "You need real perspective or a moving camera: the extrusion angle is fixed."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/extrude-pop/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "extrude-pop.html",
+      "target": "compositions/components/extrude-pop.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "letter", "type": "string", "role": "content", "label": "Text", "description": "One short, punchy word.", "default": "WIN" },
+    { "id": "body_color", "type": "color", "role": "style", "label": "Body color", "description": "Color of the extruded body.", "default": "#e8192b" },
+    { "id": "face_color", "type": "color", "role": "style", "label": "Face color", "description": "Color of the word's front face.", "default": "#ffffff" },
+    { "id": "minimax_radius", "type": "number", "role": "motion", "label": "Extrusion radius", "description": "Half the final depth of the extrusion, in px at 1920×1080.", "default": 80, "min": 0, "max": 200, "step": 1, "unit": "px" },
+    { "id": "extrude_angle_deg", "type": "number", "role": "style", "label": "Extrusion angle", "description": "Direction the body extends, in degrees.", "default": -58.6, "min": -180, "max": 180, "step": 0.1, "unit": "deg" },
+    { "id": "extrude_end_frame", "type": "number", "role": "motion", "label": "Extrude frames", "description": "Frame at which the extrusion is fully grown (30 fps).", "default": 48, "min": 10, "max": 90, "step": 1, "unit": "frames" }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "period-drop",
+  "type": "hyperframes:component",
+  "title": "Period Drop",
+  "description": "A word rises out of its line, then a colored dot falls from above the frame, bounces with squash and stretch, and settles as the period.",
+  "tags": [
+    "text-effects",
+    "period",
+    "bounce",
+    "end-card",
+    "wordmark",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.5,
+  "useWhen": [
+    "An end card or a logo lockup should land with one physical, memorable beat.",
+    "A brand word should finish with a colored period, as in a wordmark.",
+    "A statement needs a full stop that the viewer actually sees arrive."
+  ],
+  "avoidWhen": [
+    "The lockup is a row of brand marks rather than a word: use logo-enter.",
+    "The word should only rise out of its line, with no accent: use mask-reveal-up.",
+    "The ending should be quiet, without any bounce: use soft-blur-in."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/period-drop/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "period-drop.html",
+      "target": "compositions/components/period-drop.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word that rises, then gets its period.", "default": "studio"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the word.", "default": "#fafafa"},
+    {"id": "dot_color", "type": "color", "role": "style", "label": "Dot color", "description": "Color of the falling period.", "default": "#ff4d1a"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (720 high stage); long words shrink to fit.", "default": 160, "min": 60, "max": 280, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Weight", "description": "Font weight, 100 to 900.", "default": 800, "min": 100, "max": 900, "step": 100},
+    {"id": "dot_size", "type": "number", "role": "style", "label": "Dot size", "description": "Dot diameter in em.", "default": 0.2, "min": 0.08, "max": 0.5, "step": 0.01, "unit": "em"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "orbit-lock",
+  "type": "hyperframes:component",
+  "title": "Orbit Lock",
+  "description": "Moons ride tilted, shrinking orbits into a core that bursts into a ring flash, and the logo springs into place. The placeholder lockup is a stand-in: a host swaps in its own logo by editing the .ol-logo element.",
+  "tags": [
+    "logo-sting",
+    "orbit",
+    "impact",
+    "tech",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.6,
+  "useWhen": [
+    "A tech, AI or infrastructure product needs an opener or closer where the logo arrives out of a small physical event.",
+    "You want a sting with a clear impact beat to sync a sound hit to, at 1 s."
+  ],
+  "avoidWhen": [
+    "Several partner logos should arrive together as a group.",
+    "The reveal should feel cinematic and calm: use anamorphic-flare or spotlight."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/orbit-lock/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "orbit-lock.html",
+      "target": "compositions/components/orbit-lock.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Placeholder lockup text shown after the impact.", "default": "studio"},
+    {"id": "moons", "type": "number", "role": "motion", "label": "Moons", "description": "Number of moons orbiting the core.", "default": 3, "min": 1, "max": 8, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color.", "default": "#111111"},
+    {"id": "core_color", "type": "color", "role": "style", "label": "Core", "description": "Core and lockup mark color.", "default": "#E5322D"},
+    {"id": "moon_color", "type": "color", "role": "style", "label": "Moons", "description": "Moon, orbit and wordmark color.", "default": "#FFFFFF"},
+    {"id": "flash_color", "type": "color", "role": "style", "label": "Flash", "description": "Ring flash released on impact.", "default": "#FFFFFF"},
+    {"id": "tilt", "type": "number", "role": "motion", "label": "Tilt", "description": "Orbit tilt in degrees: 0 is a flat circle, 80 is nearly edge-on.", "default": 64, "min": 0, "max": 85, "step": 1, "unit": "deg"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

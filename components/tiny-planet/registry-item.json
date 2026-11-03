@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "tiny-planet",
+  "type": "hyperframes:component",
+  "title": "Tiny Planet",
+  "description": "A seeded flat skyline bends into a tiny planet through a polar remap, then keeps turning beside a red sun.",
+  "tags": [
+    "camera",
+    "planet",
+    "skyline",
+    "playful",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 3.333,
+  "useWhen": [
+    "A story about a city, a community or a global product needs a playful world-building beat.",
+    "An opener should turn an ordinary flat scene into something surprising in about a second."
+  ],
+  "avoidWhen": [
+    "The city should rise out of a grid tile by tile instead of bending: use isometric-build.",
+    "You want a calm cinematic landscape with depth, not a stylized planet: use parallax-depth."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/tiny-planet/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "tiny-planet.html",
+      "target": "compositions/components/tiny-planet.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "buildings", "type": "number", "role": "style", "label": "Buildings", "description": "Buildings in the front row; the back row gets a matching count.", "default": 26, "min": 4, "max": 60, "step": 1},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the skyline.", "default": 4, "min": 1, "max": 99, "step": 1},
+    {"id": "spin", "type": "number", "role": "motion", "label": "Spin", "description": "Planet spin once bent, in degrees per frame at 30 fps.", "default": 0.7, "min": -3, "max": 3, "step": 0.05},
+    {"id": "sky_color", "type": "color", "role": "style", "label": "Sky", "description": "Sky color.", "default": "#111111"},
+    {"id": "ground_color", "type": "color", "role": "style", "label": "Ground", "description": "Ground color.", "default": "#262626"},
+    {"id": "building_color", "type": "color", "role": "style", "label": "Buildings", "description": "Front-row building color.", "default": "#FFFFFF"},
+    {"id": "far_color", "type": "color", "role": "style", "label": "Far buildings", "description": "Back-row building color.", "default": "#6B6B6B"},
+    {"id": "window_color", "type": "color", "role": "style", "label": "Windows", "description": "Window color.", "default": "#111111"},
+    {"id": "sun_color", "type": "color", "role": "style", "label": "Sun", "description": "Sun color.", "default": "#E5322D"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

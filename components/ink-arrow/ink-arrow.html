@@ -1,0 +1,586 @@
+<!doctype html>
+<!--
+  Ink Arrow
+
+  A hand-drawn arrow that draws itself from one point to another in stop-motion poses.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/ink-arrow/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="ink-arrow"
+  data-composition-duration="5"
+  data-composition-variables='[{"id":"label","type":"string","role":"content","label":"Label","description":"Text the arrow starts from.","default":"Start here"},{"id":"card_title","type":"string","role":"content","label":"Card title","description":"Large line on the card the arrow points at.","default":"The thing it points at"},{"id":"card_subtitle","type":"string","role":"content","label":"Card subtitle","description":"Small line on the card.","default":"Positioned by you, drawn by the pen"},{"id":"curvature","type":"number","role":"motion","label":"Curvature","description":"How much the shaft bows; negative bends the other way.","default":0.35,"min":-1,"max":1,"step":0.05},{"id":"stroke_width","type":"number","role":"style","label":"Brush width","description":"Width of the pen stroke.","default":8,"min":2,"max":24,"step":1,"unit":"px"},{"id":"pressure","type":"number","role":"motion","label":"Opening pressure","description":"Stroke width at the start, as a fraction of the brush width.","default":0.2,"min":0.05,"max":1,"step":0.05},{"id":"release","type":"number","role":"motion","label":"Closing pressure","description":"Stroke width at the end, as a fraction of the brush width.","default":1,"min":0.05,"max":1,"step":0.05},{"id":"grain","type":"number","role":"style","label":"Grain","description":"How rough the ink edge is.","default":1,"min":0,"max":2,"step":0.1},{"id":"head_size","type":"number","role":"style","label":"Head size","description":"Length of the arrow head strokes.","default":24,"min":8,"max":48,"step":1,"unit":"px"},{"id":"draw_dur","type":"number","role":"motion","label":"Draw frames","description":"Frames (30 fps) the shaft takes to draw.","default":36,"min":12,"max":90,"step":1,"unit":"frames"},{"id":"head_dur","type":"number","role":"motion","label":"Head frames","description":"Frames (30 fps) the arrow head takes to draw.","default":12,"min":4,"max":48,"step":1,"unit":"frames"},{"id":"color","type":"color","role":"style","label":"Ink color","description":"Ink and text color.","default":"#26242c"},{"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the hand-drawn wobble.","default":"arrow"},{"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each drawing pose is held.","default":3,"min":1,"max":6,"step":1,"unit":"frames"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ink Arrow</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        #root { font-family: Geist, system-ui, sans-serif; }
+        .ika-stage { position: absolute; inset: 0; }
+        .ika-label { position: absolute; left: 0; top: 0; width: 220px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 600; white-space: nowrap; }
+        .ika-card { position: absolute; left: 392px; top: 134px; width: 420px; height: 112px; display: flex; flex-direction: column; justify-content: center; padding: 0 32px; background: #fdfcf8; border: 1px solid rgba(38,36,44,0.12); border-radius: 4px; box-shadow: 0 8px 20px rgba(38,36,44,0.12); }
+        .ika-card-title { font-size: 28px; font-weight: 600; }
+        .ika-card-sub { font-size: 18px; margin-top: 6px; opacity: 0.55; }
+        .ika-svg { position: absolute; left: 0; top: 0; overflow: visible; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="ink-arrow" data-duration="5" data-fps="30">
+        <div id="ika-clip" class="ika-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="ika-group" class="ika-group" style="color: #26242c">
+            <div id="ika-label" class="ika-label"></div>
+            <svg id="ika-svg" class="ika-svg"><defs id="ika-defs"></defs><path id="ika-shaft" opacity="0.85"></path><path id="ika-left" opacity="0.85"></path><path id="ika-right" opacity="0.85"></path></svg>
+            <div class="ika-card"><div id="ika-ct" class="ika-card-title"></div><div id="ika-cs" class="ika-card-sub"></div></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+const DEFAULT_STEP = 3;
+
+const qf = (frame        , step = DEFAULT_STEP)         =>
+  Math.floor(frame / step) * step;
+
+const qstep = (frame        , step = DEFAULT_STEP)         =>
+  Math.floor(frame / step);
+
+const hash01 = (seed        )         => {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h = Math.imul(h ^ (h >>> 13), 2246822519);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+
+const hashRange = (seed        , lo        , hi        )         =>
+  lo + hash01(seed) * (hi - lo);
+
+                                                           
+
+const paperJitter = (
+  frame        ,
+  seed        ,
+  options                                                   ,
+)         => {
+  const amp = options?.amp ?? 1.4;
+  const rotAmp = options?.rotAmp ?? 0.35;
+  const s = qstep(frame, options?.step ?? DEFAULT_STEP);
+  return {
+    x: hashRange(`${seed}:x:${s}`, -amp, amp),
+    y: hashRange(`${seed}:y:${s}`, -amp, amp),
+    rot: hashRange(`${seed}:r:${s}`, -rotAmp, rotAmp),
+  };
+};
+
+const steppedSpring = (args   
+                
+              
+                 
+                
+                                                                   
+ )         =>
+  spring({
+    frame: qf(
+      Math.max(0, args.frame - (args.delay ?? 0)),
+      args.step ?? DEFAULT_STEP,
+    ),
+    fps: args.fps,
+    config: args.config,
+  });
+
+const steppedRamp = (
+  frame        ,
+  from        ,
+  to        ,
+  options                                                  ,
+)         => {
+  const f = qf(frame, options?.step ?? DEFAULT_STEP);
+  if (f <= from) return 0;
+  if (f >= to) return 1;
+  const ease = options?.ease ?? ((t        ) => t);
+  return ease((f - from) / (to - from));
+};
+
+            
+
+const GRAIN_RATIO = 0.5;
+const GRAIN_FREQUENCY = 0.7;
+const GRAIN_OCTAVES = 3;
+
+                                                  
+
+                          
+                      
+                    
+                   
+  
+
+function brushHalfWidth(taper            , t        )         {
+  const pressure = taper.pressure ?? 0.2;
+  const release = taper.release ?? 1;
+  return (taper.strokeWidth / 2) * (pressure + (release - pressure) * t);
+}
+
+function brushGrainScale(strokeWidth        , grain        )         {
+  return strokeWidth * GRAIN_RATIO * grain;
+}
+
+function brushReach(strokeWidth        , grain        )         {
+  return strokeWidth / 2 + brushGrainScale(strokeWidth, grain) / 2;
+}
+
+function brushFilterId(
+  seed        ,
+  strokeWidth        ,
+  grain        ,
+)         {
+  return `remocn-brush-${Math.floor(hash01(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
+}
+
+function sampleCubic(
+  from            ,
+  c1            ,
+  c2            ,
+  to            ,
+  points = 32,
+)               {
+  const count = Math.max(2, points);
+  return Array.from({ length: count }, (_, i) => {
+    const t = i / (count - 1);
+    const u = 1 - t;
+    const a = u * u * u;
+    const b = 3 * u * u * t;
+    const c = 3 * u * t * t;
+    const d = t * t * t;
+    return {
+      x: a * from.x + b * c1.x + c * c2.x + d * to.x,
+      y: a * from.y + b * c1.y + c * c2.y + d * to.y,
+    };
+  });
+}
+
+function sampleLine(
+  from            ,
+  to            ,
+  points = 8,
+)               {
+  const count = Math.max(2, points);
+  return Array.from({ length: count }, (_, i) => {
+    const t = i / (count - 1);
+    return {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t,
+    };
+  });
+}
+
+const normalAt = (points              , i        )             => {
+  const before = points[i - 1] ?? points[i];
+  const after = points[i + 1] ?? points[i];
+  const tx = after.x - before.x;
+  const ty = after.y - before.y;
+  const length = Math.hypot(tx, ty) || 1;
+  return { x: -ty / length, y: tx / length };
+};
+
+const curveSegments = (points              )         =>
+  points
+    .slice(0, -1)
+    .map((p1, i) => {
+      const p0 = points[i - 1] ?? p1;
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] ?? p2;
+      return `C ${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6}, ${p2.x - (p3.x - p1.x) / 6} ${p2.y - (p3.y - p1.y) / 6}, ${p2.x} ${p2.y}`;
+    })
+    .join(" ");
+
+function brushRibbon(
+  spine              ,
+  options                                    ,
+)         {
+  const progress = options.progress ?? 1;
+  const drawn = Math.max(2, Math.round(progress * (spine.length - 1)) + 1);
+
+  const left               = [];
+  const right               = [];
+  for (let i = 0; i < drawn; i++) {
+    const half = brushHalfWidth(options, i / (spine.length - 1));
+    const normal = normalAt(spine, i);
+    left.push({
+      x: spine[i].x + normal.x * half,
+      y: spine[i].y + normal.y * half,
+    });
+    right.push({
+      x: spine[i].x - normal.x * half,
+      y: spine[i].y - normal.y * half,
+    });
+  }
+  const back = right.slice().reverse();
+
+  return `M ${left[0].x} ${left[0].y} ${curveSegments(left)} L ${back[0].x} ${back[0].y} ${curveSegments(back)} Z`;
+}
+
+
+            
+
+const HEAD_ANGLE = 0.72;
+const SHAFT_SAMPLES = 40;
+const ARM_SAMPLES = 10;
+const ARM_TAPER = 0.6;
+const ARM_OVERSHOOT = 0.16;
+const HEAD_MIN_RATIO = 2.6;
+
+                                       
+
+function inkArrowControls(
+  from               ,
+  to               ,
+  curvature        ,
+  seed        ,
+)                                           {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.hypot(dx, dy) || 1;
+  const normalX = -dy / distance;
+  const normalY = dx / distance;
+  const bow = curvature * distance;
+  const wobble = distance * 0.06;
+
+  const at = (t        , key        )                => ({
+    x:
+      from.x +
+      dx * t +
+      normalX * bow +
+      hashRange(`${seed}:${key}:x`, -wobble, wobble),
+    y:
+      from.y +
+      dy * t +
+      normalY * bow +
+      hashRange(`${seed}:${key}:y`, -wobble, wobble),
+  });
+
+  return { c1: at(0.3, "c1"), c2: at(0.7, "c2") };
+}
+
+function inkArrowHead(
+  c2               ,
+  to               ,
+  headSize        ,
+)                                                {
+  const dx = to.x - c2.x;
+  const dy = to.y - c2.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const backX = -dx / length;
+  const backY = -dy / length;
+
+  const arm = (angle        )                => ({
+    x: to.x + headSize * (backX * Math.cos(angle) - backY * Math.sin(angle)),
+    y: to.y + headSize * (backX * Math.sin(angle) + backY * Math.cos(angle)),
+  });
+
+  return { left: arm(HEAD_ANGLE), right: arm(-HEAD_ANGLE) };
+}
+
+function inkArrowArmWidth(strokeWidth        , release        )         {
+  return strokeWidth * release;
+}
+
+function inkArrowApex(
+  c2               ,
+  to               ,
+  reach        ,
+)                {
+  const dx = to.x - c2.x;
+  const dy = to.y - c2.y;
+  const length = Math.hypot(dx, dy) || 1;
+  return {
+    x: to.x + (dx / length) * reach * ARM_OVERSHOOT,
+    y: to.y + (dy / length) * reach * ARM_OVERSHOOT,
+  };
+}
+
+function inkArrowHeadReach(
+  headSize        ,
+  strokeWidth        ,
+)         {
+  return Math.max(headSize, strokeWidth * HEAD_MIN_RATIO);
+}
+
+function inkArrowViewport(
+  from               ,
+  to               ,
+  curvature        ,
+  headSize        ,
+  strokeWidth        ,
+  grain = 1,
+)                                    {
+  const distance = Math.hypot(to.x - from.x, to.y - from.y);
+  const margin =
+    inkArrowHeadReach(headSize, strokeWidth) +
+    Math.abs(curvature) * distance +
+    brushReach(strokeWidth, grain);
+  return {
+    width: Math.max(margin, Math.max(from.x, to.x) + margin),
+    height: Math.max(margin, Math.max(from.y, to.y) + margin),
+  };
+}
+
+                                
+                      
+                    
+                     
+                 
+                       
+                    
+                   
+                 
+                 
+                   
+                    
+                   
+                
+                
+ 
+
+
+            var color = str(vars.color, "#26242c");
+            var seed = str(vars.seed, "arrow");
+            var step = Math.round(num(vars.step, 3, 1, 6));
+            var curvature = num(vars.curvature, 0.35, -1, 1), strokeWidth = num(vars.stroke_width, 8, 2, 24);
+            var pressure = num(vars.pressure, 0.2, 0.05, 1), release = num(vars.release, 1, 0.05, 1), grain = num(vars.grain, 1, 0, 2);
+            var headSize = num(vars.head_size, 24, 8, 48), drawDur = num(vars.draw_dur, 36, 12, 90), headDur = num(vars.head_dur, 12, 4, 48);
+            var group = document.getElementById("ika-group");
+            group.style.color = color;
+            document.getElementById("ika-label").textContent = str(vars.label, "Start here");
+            document.getElementById("ika-ct").textContent = str(vars.card_title, "The thing it points at");
+            document.getElementById("ika-cs").textContent = str(vars.card_subtitle, "Positioned by you, drawn by the pen");
+            fit(group, 812, 380, 0.92);
+
+            var FROM = { x: 110, y: 76 }, TO = { x: 328, y: 190 };
+            var ctl = inkArrowControls(FROM, TO, curvature, seed);
+            var headReach = inkArrowHeadReach(headSize, strokeWidth);
+            var head = inkArrowHead(ctl.c2, TO, headReach);
+            var apex = inkArrowApex(ctl.c2, TO, headReach);
+            var vp = inkArrowViewport(FROM, TO, curvature, headSize, strokeWidth, grain);
+            var svg = document.getElementById("ika-svg");
+            svg.setAttribute("width", vp.width); svg.setAttribute("height", vp.height);
+            svg.setAttribute("viewBox", "0 0 " + vp.width + " " + vp.height);
+            var fid = brushFilterId(seed, strokeWidth, grain);
+            if (grain > 0) {
+              document.getElementById("ika-defs").innerHTML = '<filter id="' + fid + '" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency="' + GRAIN_FREQUENCY + '" numOctaves="' + GRAIN_OCTAVES + '" seed="' + Math.floor(hash01(seed + ":grain") * 1000) + '" result="brushGrain"/><feDisplacementMap in="SourceGraphic" in2="brushGrain" scale="' + brushGrainScale(strokeWidth, grain) + '" xChannelSelector="R" yChannelSelector="G"/></filter>';
+            }
+            var shaft = document.getElementById("ika-shaft"), leftP = document.getElementById("ika-left"), rightP = document.getElementById("ika-right");
+            [shaft, leftP, rightP].forEach(function (p) { p.setAttribute("fill", color); if (grain > 0) p.setAttribute("filter", "url(#" + fid + ")"); });
+            var spine = sampleCubic(FROM, ctl.c1, ctl.c2, TO, SHAFT_SAMPLES);
+            function armRibbon(tip, p) {
+              return brushRibbon(sampleLine(apex, tip, ARM_SAMPLES), { strokeWidth: inkArrowArmWidth(strokeWidth, release), pressure: 1, release: ARM_TAPER, progress: p });
+            }
+            function draw(frame) {
+              var progress = steppedRamp(frame, 0, drawDur, { step: step });
+              var headStart = drawDur, headMid = headStart + headDur / 2;
+              var leftArm = steppedRamp(frame, headStart, headMid, { step: step });
+              var rightArm = steppedRamp(frame, headMid, headStart + headDur, { step: step });
+              svg.style.opacity = progress > 0 ? 1 : 0;
+              shaft.setAttribute("d", progress > 0 ? brushRibbon(spine, { strokeWidth: strokeWidth, pressure: pressure, release: release, progress: progress }) : "");
+              leftP.setAttribute("d", leftArm > 0 ? armRibbon(head.left, leftArm) : "");
+              rightP.setAttribute("d", rightArm > 0 ? armRibbon(head.right, rightArm) : "");
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 150, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["ink-arrow"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

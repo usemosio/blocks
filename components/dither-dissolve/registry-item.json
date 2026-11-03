@@ -1,0 +1,106 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dither-dissolve",
+  "type": "hyperframes:component",
+  "title": "Dither Dissolve",
+  "description": "A two-color ordered-dither pattern rises over the outgoing scene, holds, and falls away to reveal the next one. Rebuilt with a deterministic Canvas 2D Bayer dither instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .dtd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "dither",
+    "shader",
+    "retro",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.3333,
+  "useWhen": [
+    "Retro, pixel or print-inspired content that wants a gritty, graphic scene change.",
+    "A short cover transition where a patterned texture hides the swap."
+  ],
+  "avoidWhen": [
+    "Clean corporate pieces: the dither texture reads as noise.",
+    "Photographic scenes where the pattern fights fine detail."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/dither-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "dither-dissolve.html",
+      "target": "compositions/components/dither-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Shape",
+      "description": "Pattern the dither follows.",
+      "default": "simplex",
+      "options": [
+        {
+          "value": "simplex",
+          "label": "Simplex"
+        },
+        {
+          "value": "warp",
+          "label": "Warp"
+        },
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "wave",
+          "label": "Wave"
+        },
+        {
+          "value": "ripple",
+          "label": "Ripple"
+        },
+        {
+          "value": "swirl",
+          "label": "Swirl"
+        },
+        {
+          "value": "sphere",
+          "label": "Sphere"
+        }
+      ]
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Dark dither color.",
+      "default": "#141318"
+    },
+    {
+      "id": "color_front",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Light dither color.",
+      "default": "#8f88ae"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the pattern\u2019s own motion.",
+      "default": 1.5,
+      "min": 0,
+      "max": 5,
+      "step": 0.1
+    }
+  ]
+}

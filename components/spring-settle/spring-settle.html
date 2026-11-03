@@ -1,0 +1,315 @@
+<!doctype html>
+<!--
+  Spring Settle
+
+  Scenes leave as one group, shrinking and fading, then the stage changes color on an empty beat and the next scene's items spring in staggered from slightly oversized. Plays three scenes (A, B, C).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/spring-settle/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="spring-settle"
+  data-composition-duration="7.1"
+  data-composition-variables='[
+  {
+    "id": "enter_scale",
+    "type": "number",
+    "role": "motion",
+    "label": "Enter scale",
+    "description": "Starting scale of each item as it settles in.",
+    "default": 1.24,
+    "min": 1,
+    "max": 2,
+    "step": 0.01
+  },
+  {
+    "id": "enter_stagger",
+    "type": "number",
+    "role": "motion",
+    "label": "Enter stagger",
+    "description": "Frames between items settling in (at 30 fps).",
+    "default": 3,
+    "min": 0,
+    "max": 10,
+    "step": 0.5
+  },
+  {
+    "id": "exit_scale",
+    "type": "number",
+    "role": "motion",
+    "label": "Exit scale",
+    "description": "Scale the scene shrinks to as it leaves.",
+    "default": 0.84,
+    "min": 0.3,
+    "max": 1,
+    "step": 0.01
+  },
+  {
+    "id": "exit_frames",
+    "type": "number",
+    "role": "motion",
+    "label": "Exit frames",
+    "description": "Frames the exit lasts (at 30 fps).",
+    "default": 6,
+    "min": 2,
+    "max": 20,
+    "step": 1
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spring Settle</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+
+        #root { background: #141318; }
+        .ssl-stage { position: absolute; inset: 0; }
+        .ssl-panel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .ssl-in { display: flex; flex-direction: column; align-items: center; gap: 2.4cqmin; }
+        .ssl-in span { font-size: 9cqmin; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #f2f2f2; white-space: nowrap; }
+        .ssl-bar { display: block; width: 14cqmin; height: 0.8cqmin; border-radius: 1cqmin; background: rgba(242, 242, 242, 0.55); }
+        .ssl-pa { background: #141318; }
+        .ssl-pb { background: linear-gradient(135deg, #3b3699 0%, #1e2a6b 55%, #0f4c75 100%); }
+        .ssl-pc { background: linear-gradient(135deg, #7a2f5f 0%, #3a2250 55%, #1c1b3f 100%); }
+
+        .ssl-panel { display: none; }
+        .ssl-scene { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; }
+        .ssl-in { display: flex; flex-direction: column; align-items: center; gap: 2.4cqmin; }
+        .ssl-in .ssl-t { font-size: 9cqmin; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #f2f2f2; white-space: nowrap; }
+        .ssl-in .ssl-n { font-size: 2.8cqmin; font-weight: 400; color: rgba(242, 242, 242, 0.5); white-space: nowrap; }
+        .ssl-bar { display: block; width: 14cqmin; height: 0.5cqmin; margin-top: 1cqmin; }
+        .ssl-item { display: block; }
+
+      </style>
+
+      <div id="root" data-composition-id="spring-settle" data-duration="7.1" data-fps="30">
+        <div id="ssl-clip" class="ssl-stage clip" data-start="0" data-duration="7.1" data-track-index="0">
+          <div id="ssl-a" class="ssl-scene"><div class="ssl-in"><span class="ssl-item ssl-t">Scene A</span><span class="ssl-item ssl-n">the scene leaves as one group</span><i class="ssl-item ssl-bar" style="background:#6c6ae8"></i></div></div>
+          <div id="ssl-b" class="ssl-scene"><div class="ssl-in"><span class="ssl-item ssl-t">Scene B</span><span class="ssl-item ssl-n">one empty beat, the stage changes color</span><i class="ssl-item ssl-bar" style="background:#e8776c"></i></div></div>
+          <div id="ssl-c" class="ssl-scene"><div class="ssl-in"><span class="ssl-item ssl-t">Scene C</span><span class="ssl-item ssl-n">items settle in, staggered</span><i class="ssl-item ssl-bar" style="background:#6ce8b0"></i></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        
+        <script>
+          (function () {
+            "use strict";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v.trim() : f; }
+function pick(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smooth(a, b, x) { var t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); }
+// cubic-bezier easing, solved by bisection (pure function of x)
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    var lo = 0, hi = 1, t = x;
+    for (var i = 0; i < 28; i++) {
+      var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+      if (cx < x) lo = t; else hi = t;
+      t = (lo + hi) / 2;
+    }
+    return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+  };
+}
+var inOutEase = bez(0.42, 0, 0.58, 1);
+function inCubic(x) { return x * x * x; }
+function outCubic(x) { return 1 - Math.pow(1 - x, 3); }
+function inQuad(x) { return x * x; }
+function outQuad(x) { return 1 - (1 - x) * (1 - x); }
+function outBack(s) { return function (x) { return 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2); }; }
+// interpolate(p, inputs, outputs, ease): clamped, eased per segment (like Remotion's interpolate)
+function interp(p, xs, ys, ease) {
+  var n = xs.length;
+  if (p <= xs[0]) return ys[0];
+  if (p >= xs[n - 1]) return ys[n - 1];
+  for (var i = 1; i < n; i++) {
+    if (p <= xs[i]) {
+      var t = (p - xs[i - 1]) / (xs[i] - xs[i - 1]);
+      if (ease) t = ease(t);
+      return lerp(ys[i - 1], ys[i], t);
+    }
+  }
+  return ys[n - 1];
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// damped spring from 0 to 1 (zero initial velocity), t in seconds
+function spring(t, damping, stiffness, mass) {
+  if (t <= 0) return 0;
+  var w0 = Math.sqrt(stiffness / mass), z = damping / (2 * Math.sqrt(stiffness * mass));
+  if (Math.abs(z - 1) < 1e-4) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+  }
+  var s = Math.sqrt(z * z - 1), r1 = -w0 * (z - s), r2 = -w0 * (z + s);
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+function stripIds(node) {
+  var all = node.querySelectorAll("[id]");
+  for (var i = 0; i < all.length; i++) all[i].removeAttribute("id");
+  node.removeAttribute("id");
+  return node;
+}
+function drive(name, duration, frame) {
+  var st = { p: 0 };
+  frame(0);
+  var tl = gsap.timeline({ paused: true });
+  tl.to(st, { p: 1, duration: duration, ease: "none", onUpdate: function () { frame(st.p); } }, 0);
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[name] = tl;
+}
+
+function hex(c, f) {
+  c = String(c || "").trim().replace("#", "");
+  if (c.length === 3) c = c.split("").map(function (x) { return x + x; }).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(c)) c = f || "000000";
+  var n = parseInt(c, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function palette(v, fallback) {
+  var list = String(v || fallback).split(",").map(function (s) { return hex(s, "808080"); });
+  return list.length ? list : [hex(fallback)];
+}
+function hash2(x, y, s) {
+  var h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function vnoise(x, y, s) {
+  var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  var u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  var a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
+  return lerp(lerp(a, b, u), lerp(c, d, u), v);
+}
+function fbm(x, y, s, oct) {
+  var sum = 0, amp = 0.5, tot = 0;
+  for (var i = 0; i < oct; i++) {
+    sum += amp * vnoise(x, y, s + i * 17);
+    tot += amp; x = x * 2.03 + 11.3; y = y * 2.03 - 7.1; amp *= 0.5;
+  }
+  return sum / tot;
+}
+function mixc(o, a, b, t) {
+  o[0] = a[0] + (b[0] - a[0]) * t; o[1] = a[1] + (b[1] - a[1]) * t; o[2] = a[2] + (b[2] - a[2]) * t;
+}
+// ramp through a list of colours with t in 0..1
+function ramp(o, list, t) {
+  t = clamp01(t) * (list.length - 1);
+  var i = Math.min(list.length - 2, Math.floor(t));
+  if (list.length === 1) { o[0] = list[0][0]; o[1] = list[0][1]; o[2] = list[0][2]; return; }
+  var f = t - i; f = f * f * (3 - 2 * f);
+  mixc(o, list[i], list[i + 1], f);
+}
+// Low-resolution 2D canvas filled per pixel; fn(u, v, out) gets centred coordinates (v spans -0.5..0.5).
+function makeField(canvas, cell) {
+  var W = Math.max(8, Math.round(root.clientWidth / cell)), H = Math.max(8, Math.round(root.clientHeight / cell));
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext("2d");
+  var img = ctx.createImageData(W, H);
+  var out = [0, 0, 0];
+  return {
+    W: W, H: H,
+    paint: function (fn) {
+      var d = img.data, i = 0;
+      for (var y = 0; y < H; y++) {
+        for (var x = 0; x < W; x++) {
+          fn((x + 0.5 - W / 2) / H, (y + 0.5 - H / 2) / H, out, x, y);
+          d[i++] = out[0]; d[i++] = out[1]; d[i++] = out[2]; d[i++] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+  };
+}
+
+            var D = 7.1;
+
+var enterScale = num(vars.enter_scale, 1.24, 1, 2), enterStagger = num(vars.enter_stagger, 3, 0, 10);
+var exitScale = num(vars.exit_scale, 0.84, 0.3, 1), exitFrames = Math.round(num(vars.exit_frames, 6, 2, 20));
+var SCENES = ["#141318", "#1a1922", "#12171a"], DWELL = 70, GAP = 1, SLOT = DWELL + GAP, TOTAL = SLOT * 3, BG_FADE = 4;
+var scenes = ["a", "b", "c"].map(function (l) {
+  var el = document.getElementById("ssl-" + l);
+  return { el: el, items: Array.prototype.slice.call(el.querySelectorAll(".ssl-item")), inner: el.querySelector(".ssl-in") };
+});
+var offs = scenes.map(function (s, si) {
+  var rnd = mulberry32(900 + si);
+  return s.items.map(function (it, i) { return Math.max(0, Math.pow(i, 0.8) * enterStagger + (rnd() - 0.5) * 2); });
+});
+var bgs = SCENES.map(function (c) { return hex(c, "141318"); });
+var tmp = [0, 0, 0], stage = document.getElementById("ssl-clip");
+function frame(p) {
+  var f = Math.min(Math.floor(p * TOTAL), TOTAL - 1), idx = Math.min(2, Math.floor(f / SLOT)), local = f - idx * SLOT;
+  var start = idx * SLOT, half = BG_FADE / 2, bg = bgs[idx];
+  if (idx > 0) { var d = f - (start - GAP / 2); if (Math.abs(d) <= half) { mixc(tmp, bgs[idx - 1], bgs[idx], (d + half) / (2 * half)); bg = tmp; } }
+  if (idx < 2) { var d2 = f - (start + DWELL + GAP / 2); if (Math.abs(d2) <= half) { mixc(tmp, bgs[idx], bgs[idx + 1], (d2 + half) / (2 * half)); bg = tmp; } }
+  stage.style.background = "rgb(" + Math.round(bg[0]) + "," + Math.round(bg[1]) + "," + Math.round(bg[2]) + ")";
+  for (var s = 0; s < 3; s++) scenes[s].el.style.display = s === idx && local < DWELL ? "flex" : "none";
+  var sc = scenes[idx];
+  if (local >= DWELL) return;
+  var tExit = interp(local, [DWELL - exitFrames, DWELL], [0, 1]), eExit = Math.pow(tExit, 5);
+  sc.inner.style.scale = tExit > 0 ? 1 - (1 - exitScale) * eExit : 1;
+  sc.inner.style.opacity = tExit > 0 ? 1 - eExit : 1;
+  for (var i = 0; i < sc.items.length; i++) {
+    var te = local - offs[idx][i], sp = spring(te / 30, 30, 320, 1);
+    sc.items[i].style.scale = lerp(enterScale, 1, sp);
+    sc.items[i].style.opacity = interp(te, [0, 5], [0, 1], outQuad);
+  }
+}
+
+            drive("spring-settle", D, frame);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

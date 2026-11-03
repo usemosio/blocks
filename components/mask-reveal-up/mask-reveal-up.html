@@ -1,0 +1,178 @@
+<!doctype html>
+<!--
+  Mask Reveal Up
+
+  Lines reveal upward with a soft masked feel and compact stagger.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/mask-reveal-up/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="mask-reveal-up"
+  data-composition-duration="3"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Headline lines, one per line break.", "default": "Designed to move.\nBuilt to focus." },
+    { "id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far below its place each line starts.", "default": 30, "min": 0, "max": 120, "step": 1, "unit": "px" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mask Reveal Up</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .mru-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .mru-block { text-align: center; letter-spacing: -0.03em; line-height: 1.1; }
+        .mru-line { display: block; white-space: pre; transform-origin: 50% 50%; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="mask-reveal-up" data-duration="3" data-fps="30">
+        <div id="mru-clip" class="mru-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <span id="mru-block" class="mru-block" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("mru-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "3");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["mask-reveal-up"] = tl;
+            }
+            var text = str(vars.text, "Designed to move.\nBuilt to focus.");
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "600");
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            // interpolate() with clamping, easing given as a function of progress.
+            function ip(f, a, b, from, to, ease) {
+              var p = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+
+            var distance = num(vars.distance, 30, 0, 120);
+            var block = document.getElementById("mru-block");
+            block.style.fontWeight = weight;
+            var lines = text.split(/\\n|\n/).map(function (l, i) {
+              var s = document.createElement("span");
+              s.id = "mru-line-" + i;
+              s.className = "mru-line";
+              s.textContent = l || " ";
+              block.appendChild(s);
+              return s;
+            });
+            block.setAttribute("aria-label", lines.map(function (l) { return l.textContent; }).join(" "));
+            fit(block, num(vars.font_size, 72, 12, 160), 0.9);
+
+            var ENTER = 23, TRAVEL = 11, EXIT = 16, EXIT_FROM = 8, EST = 3, XST = 2;
+            var inE = bz("in", 0.22, 1, 0.36, 1);
+            var outE = bz("out", 0.64, 0, 0.78, 0);
+            var enterEnd = ENTER + (lines.length - 1) * EST;
+            var exitStart = Math.max(enterEnd, TOTAL * 30 - EXIT - (lines.length - 1) * XST);
+            var P = { f: 0 };
+            function apply() {
+              var f = P.f;
+              lines.forEach(function (el, i) {
+                var le = f - i * EST;
+                var lx = f - exitStart - i * XST;
+                var enterP = ip(le, 0, ENTER, 0, 1, inE);
+                var exitP = ip(lx, 0, EXIT, 0, 1, outE);
+                var y = ip(le, 0, TRAVEL, distance, 0, inE) + ip(lx, EXIT_FROM, EXIT, 0, -22, outE);
+                var b = ip(le, 0, ENTER, 6, 0, inE) + ip(lx, 0, EXIT, 0, 6, outE);
+                el.style.opacity = enterP * (1 - exitP);
+                el.style.transform = "translate(0, " + y + "px)";
+                el.style.filter = b > 0.05 ? "blur(" + b + "px)" : "none";
+              });
+            }
+            apply();
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: apply }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

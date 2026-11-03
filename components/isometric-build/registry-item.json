@@ -1,0 +1,143 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "isometric-build",
+  "type": "hyperframes:component",
+  "title": "Isometric Build",
+  "description": "An isometric tile grid springs up row by row into a stepped block sculpture with one accent tower, then holds.",
+  "tags": [
+    "isometric",
+    "build",
+    "blocks",
+    "tech",
+    "3d-look",
+    "remocn-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 3,
+  "useWhen": [
+    "An opener or section break should build something in about a second, a small city or stack that reads as infrastructure, platform or growth.",
+    "A product story about building, scaling or assembling needs a flat, monochrome isometric visual with one highlighted piece.",
+    "A beat should end on a still, composed object that can hold under a title or a caption."
+  ],
+  "avoidWhen": [
+    "The stack should come apart to explain layers, with labels: use exploded-view.",
+    "The blocks should rebuild a logo or pixel art: use brick-mosaic.",
+    "The build should be flat 2D shapes rather than isometric volume: use bauhaus-build."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/isometric-build/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "isometric-build.html",
+      "target": "compositions/components/isometric-build.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "grid",
+      "type": "number",
+      "role": "style",
+      "label": "Tiles per side",
+      "description": "Tiles along each side of the square grid.",
+      "default": 5,
+      "min": 2,
+      "max": 9,
+      "step": 1
+    },
+    {
+      "id": "max_height",
+      "type": "number",
+      "role": "style",
+      "label": "Max height",
+      "description": "Tallest regular block, in tile widths. The accent tower rises above it.",
+      "default": 2.2,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "stagger",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Frames between consecutive diagonals rising.",
+      "default": 2,
+      "min": 0,
+      "max": 6,
+      "step": 0.5,
+      "unit": "frames"
+    },
+    {
+      "id": "gap",
+      "type": "number",
+      "role": "style",
+      "label": "Gap",
+      "description": "Gap between neighbouring blocks, as a share of a tile.",
+      "default": 0.04,
+      "min": 0,
+      "max": 0.3,
+      "step": 0.01
+    },
+    {
+      "id": "floors",
+      "type": "boolean",
+      "role": "style",
+      "label": "Floor lines",
+      "description": "Draw floor lines on the block faces.",
+      "default": true
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Changes the block heights and which tower is the accent.",
+      "default": 4,
+      "min": 1,
+      "max": 50,
+      "step": 1
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the build.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background color.",
+      "default": "#111111"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Blocks",
+      "description": "Block color; side faces are this color shaded toward the background.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent tower",
+      "description": "Color of the single accent tower.",
+      "default": "#E5322D"
+    }
+  ]
+}

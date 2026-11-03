@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "turntable",
+  "type": "hyperframes:component",
+  "title": "Turntable",
+  "description": "A product card with real thickness spins on an invisible turntable through front, edge and back, with face shading, a moving sheen and a floor shadow. The faces are placeholders; a host puts its own content in the .tt-front and .tt-back markup in the script.",
+  "tags": [
+    "camera",
+    "3d",
+    "product",
+    "spin",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 3,
+  "useWhen": [
+    "A physical-looking object, such as a credit card, a membership pass or a ticket, should be shown from every side.",
+    "A product launch needs a hero beat where the object turns once and settles facing the camera."
+  ],
+  "avoidWhen": [
+    "The content is a long page or recording the camera should travel across: use stage.",
+    "A flat word should pop out of the plane into 3D: use extrude-pop."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/turntable/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "turntable.html",
+      "target": "compositions/components/turntable.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "thickness", "type": "number", "role": "style", "label": "Thickness", "description": "Card thickness in px at 720p.", "default": 22, "min": 4, "max": 80, "step": 1, "unit": "px"},
+    {"id": "turns", "type": "number", "role": "motion", "label": "Turns", "description": "Full rotations per spin.", "default": 1, "min": 0.25, "max": 4, "step": 0.25},
+    {"id": "tilt", "type": "number", "role": "motion", "label": "Tilt", "description": "Camera tilt in degrees; positive looks down on the card.", "default": 8, "min": -30, "max": 30, "step": 1, "unit": "deg"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage background.", "default": "#111111"},
+    {"id": "front_color", "type": "color", "role": "style", "label": "Front", "description": "Default front face color.", "default": "#E5322D"},
+    {"id": "back_color", "type": "color", "role": "style", "label": "Back", "description": "Default back face color.", "default": "#F2F2F2"},
+    {"id": "edge_color", "type": "color", "role": "style", "label": "Edge", "description": "Card edge color.", "default": "#A3201C"},
+    {"id": "mark_color", "type": "color", "role": "style", "label": "Mark", "description": "Color of the marks on the default front.", "default": "#FFFFFF"},
+    {"id": "shadow_color", "type": "color", "role": "style", "label": "Shadow", "description": "Floor shadow color.", "default": "#000000"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "drift",
+  "type": "hyperframes:component",
+  "title": "Drift",
+  "description": "A slow constant camera push-in, so no scene is ever frozen. Plays on a built-in placeholder scene.",
+  "tags": [
+    "camera",
+    "wrapper",
+    "push-in",
+    "ambient",
+    "remocn-port"
+  ],
+  "category": "layout",
+  "duration": 3,
+  "useWhen": [
+    "Any static scene should feel alive: hero cards, feature panels, dashboards sitting between transitions.",
+    "You want an anti-static wrapper: a constant, barely noticeable creep."
+  ],
+  "avoidWhen": [
+    "The content already has strong motion: drift on top doubles the movement and muddies the read.",
+    "You need a dramatic zoom: this is a creep, not a statement; use a real scale animation or zoom-blur."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/drift/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "drift.html",
+      "target": "compositions/components/drift.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "grow",
+      "type": "number",
+      "role": "motion",
+      "label": "Grow",
+      "description": "Final scale is 1 + grow. Negative values pull back instead. 0.03 to 0.05 reads as ambient motion.",
+      "default": 0.035,
+      "min": -0.1,
+      "max": 0.15,
+      "step": 0.005
+    },
+    {
+      "id": "scene",
+      "type": "boolean",
+      "role": "content",
+      "label": "Placeholder scene",
+      "description": "Show the built-in placeholder scene. Turn off to leave the frame empty.",
+      "default": true
+    },
+    {
+      "id": "duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Duration",
+      "description": "Seconds the push-in takes (the block length).",
+      "default": 3,
+      "min": 1,
+      "max": 10,
+      "step": 0.5,
+      "unit": "s"
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hyperspace",
+  "type": "hyperframes:component",
+  "title": "Hyperspace",
+  "description": "A jump to lightspeed: stars stretch into streaks around the outgoing scene, which is pushed toward the camera, then a white flash cuts to the incoming scene while the last streaks fade. Built-in placeholder scenes A and B (the two .hsp-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "hyperspace",
+    "stars",
+    "sci-fi",
+    "flash",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.8667,
+  "useWhen": [
+    "Sci-fi, space, gaming or tech launches that want an epic jump.",
+    "A hard, high-energy cut between two acts."
+  ],
+  "avoidWhen": [
+    "Realistic or documentary pieces.",
+    "Videos that already carry other flash or glitch transitions."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/hyperspace/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "hyperspace.html",
+      "target": "compositions/components/hyperspace.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "stars",
+      "type": "number",
+      "role": "style",
+      "label": "Stars",
+      "description": "Number of stars in the field.",
+      "default": 260,
+      "min": 40,
+      "max": 600,
+      "step": 10
+    },
+    {
+      "id": "streak_color",
+      "type": "color",
+      "role": "style",
+      "label": "Streak color",
+      "description": "Main streak color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent color",
+      "description": "Color of the occasional tinted streak.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "accent_ratio",
+      "type": "number",
+      "role": "style",
+      "label": "Accent ratio",
+      "description": "Share of stars drawn in the accent color, 0 to 1.",
+      "default": 0.14,
+      "min": 0,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "flash",
+      "type": "boolean",
+      "role": "style",
+      "label": "Flash",
+      "description": "White flash at the cut. Off gives a hard cut through the streaks.",
+      "default": true
+    },
+    {
+      "id": "flash_color",
+      "type": "color",
+      "role": "style",
+      "label": "Flash color",
+      "description": "Color of the flash.",
+      "default": "#FFFFFF"
+    }
+  ]
+}

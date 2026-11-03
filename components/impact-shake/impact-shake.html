@@ -1,0 +1,277 @@
+<!doctype html>
+<!--
+  Impact Shake
+
+  Heavy content slams down from above with a squash, a damped camera jolt, a two-frame RGB split and dust puffs kicking out sideways. The built-in subject is a big word; a host puts its own content in by replacing the .is-word elements.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/impact-shake/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="impact-shake"
+  data-composition-duration="1.667"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word that slams down. Shrinks to fit the frame width.", "default": "LAUNCH"},
+    {"id": "intensity", "type": "number", "role": "motion", "label": "Intensity", "description": "Shake, split and dust strength, 0 to 2.", "default": 1, "min": 0, "max": 2, "step": 0.05},
+    {"id": "impact", "type": "number", "role": "motion", "label": "Impact frame", "description": "Frame (at 30 fps) when the subject hits.", "default": 7, "min": 1, "max": 20, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "foreground_color", "type": "color", "role": "style", "label": "Foreground", "description": "Word and flash color.", "default": "#FFFFFF"},
+    {"id": "split_a_color", "type": "color", "role": "style", "label": "Split A", "description": "First RGB-split ghost color.", "default": "#FF2A2A"},
+    {"id": "split_b_color", "type": "color", "role": "style", "label": "Split B", "description": "Second RGB-split ghost color.", "default": "#2A6BFF"},
+    {"id": "dust_color", "type": "color", "role": "style", "label": "Dust", "description": "Dust puff and debris color.", "default": "#D9D9D9"},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the shake phase and dust.", "default": 1, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Impact Shake</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--background); }
+        .is-stage { position: absolute; inset: 0; overflow: hidden; }
+        .is-shake { position: absolute; inset: 0; }
+        .is-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .is-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .is-layer.split { mix-blend-mode: screen; display: none; }
+        .is-word { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 900; letter-spacing: -0.05em; line-height: 1; color: var(--fg); white-space: pre; }
+        .is-flash { position: absolute; inset: 0; background: var(--fg); opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="impact-shake" data-duration="1.667" data-fps="30">
+        <div id="is-clip" class="is-stage clip" data-start="0" data-duration="1.667" data-track-index="0">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+            <filter id="is-fa" color-interpolation-filters="sRGB"><feColorMatrix id="is-ma" type="matrix" values="0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0"></feColorMatrix></filter>
+            <filter id="is-fb" color-interpolation-filters="sRGB"><feColorMatrix id="is-mb" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0"></feColorMatrix></filter>
+          </svg>
+          <div class="is-shake" id="is-shake">
+            <svg class="is-svg" id="is-dust"></svg>
+            <!-- The heavy subject is the word in each layer. A host swaps in its own content by replacing the .is-word elements (keep the three layers). -->
+            <div class="is-layer split" id="is-la" style="filter:url(#is-fa)"><span class="is-word"></span></div>
+            <div class="is-layer split" id="is-lb" style="filter:url(#is-fb)"><span class="is-word"></span></div>
+            <div class="is-layer" id="is-lm"><span class="is-word"></span></div>
+          </div>
+          <div class="is-flash" id="is-flash"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "impact-shake";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var shake = document.getElementById("is-shake"), dustSvg = document.getElementById("is-dust"), flashEl = document.getElementById("is-flash");
+var la = document.getElementById("is-la"), lb = document.getElementById("is-lb"), lm = document.getElementById("is-lm");
+var text = str(vars.text, "LAUNCH");
+var k = Math.max(0, num(vars.intensity, 1, 0, 2)), impact = num(vars.impact, 7, 1, 20), seed = Math.round(num(vars.seed, 1, 1, 99)), speed = num(vars.speed, 1, 0, 4);
+var bg = col(vars.background_color, "#111111"), fg = col(vars.foreground_color, "#FFFFFF"), splitA = col(vars.split_a_color, "#FF2A2A"), splitB = col(vars.split_b_color, "#2A6BFF"), dustC = col(vars.dust_color, "#D9D9D9");
+root.style.setProperty("--background", bg); root.style.setProperty("--fg", fg);
+function tint(hex) { var c = rgb(hex); return "0 0 0 0 " + c[0] / 255 + " 0 0 0 0 " + c[1] / 255 + " 0 0 0 0 " + c[2] / 255 + " 0 0 0 1 0"; }
+document.getElementById("is-ma").setAttribute("values", tint(splitA)); document.getElementById("is-mb").setAttribute("values", tint(splitB));
+var W = root.clientWidth, H = root.clientHeight;
+dustSvg.setAttribute("viewBox", "0 0 " + W + " " + H);
+var words = root.querySelectorAll(".is-word");
+words.forEach(function (w) { w.textContent = text; w.style.fontSize = H * 0.24 + "px"; });
+// Shrink the word to 90 % of the frame width when it is wider.
+var ww = words[2].scrollWidth;
+if (ww > W * 0.9) { var fs = H * 0.24 * ((W * 0.9) / ww); words.forEach(function (w) { w.style.fontSize = fs + "px"; }); }
+var unit = H / 720, floorY = H * 0.62, DUST = 36;
+var phase = rnd("impact-shake-" + seed) * Math.PI * 2;
+var defs = svgEl("defs", {}, dustSvg);
+var pf = svgEl("filter", { id: "is-puff", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+svgEl("feGaussianBlur", { stdDeviation: H * 0.007 }, pf);
+var dust = [];
+for (var i = 0; i < DUST; i++) {
+  var key = "impact-shake-" + seed + "-dust-" + i, side = i % 2 === 0 ? -1 : 1, chip = i % 3 === 0;
+  var d = { chip: chip, x0: (0.04 + rnd(key + "-x") * 0.24) * side, vx: side * (0.4 + rnd(key + "-v") * 1), vy: 0.3 + rnd(key + "-u") * 0.9, size: 0.5 + rnd(key + "-s") * 0.9, life: 11 + rnd(key + "-l") * 9 };
+  d.el = chip ? svgEl("rect", { fill: dustC, opacity: 0 }, dustSvg) : svgEl("circle", { fill: dustC, opacity: 0, filter: "url(#is-puff)" }, dustSvg);
+  dust.push(d);
+}
+function draw(frame) {
+  var t = frame * speed, since = t - impact;
+  var fall = interp(t, [0, impact], [-H * 0.85, 0], inQuad);
+  var falling = since < 0;
+  var stretch = falling ? interp(t, [0, impact], [1, 1.18]) : 1;
+  var squash = falling ? 0 : 1 - spring(since, { damping: 9, stiffness: 260 });
+  var sx = falling ? 1 / Math.sqrt(stretch) : 1 + 0.16 * squash * Math.min(1, k);
+  var sy = falling ? stretch : 1 - 0.2 * squash * Math.min(1, k);
+  var decay = since >= 0 ? Math.exp(-since / 3.2) : 0;
+  var shakeX = decay * Math.sin(since * 2.9 + phase) * 26 * unit * k;
+  var shakeY = decay * Math.cos(since * 3.7 + phase) * 34 * unit * k;
+  var shakeR = decay * Math.sin(since * 2.3 + phase * 2) * 1.6 * k;
+  var split = since >= 0 && since < 2 ? (1 - since / 2) * 18 * unit * k + 6 * unit : 0;
+  var flash = interp(since, [0, 0.5, 2.5], [0, 0.12, 0]);
+  shake.style.transform = "translate(" + shakeX + "px," + shakeY + "px) rotate(" + shakeR + "deg) scale(" + (1 + decay * 0.04 * k) + ")";
+  function place(el, dx) {
+    el.style.transform = "translate(" + dx + "px," + fall + "px) scale(" + sx + "," + sy + ")";
+    el.style.transformOrigin = "50% " + (floorY / H) * 100 + "%";
+  }
+  place(lm, 0); place(la, -split); place(lb, split);
+  la.style.display = lb.style.display = split > 0 ? "flex" : "none";
+  flashEl.style.opacity = flash * k;
+  var spread = Math.max(0.4, k);
+  dust.forEach(function (p) {
+    var age = since;
+    if (since < 0 || age > p.life) { p.el.setAttribute("opacity", 0); return; }
+    var life = age / p.life;
+    if (p.chip) {
+      var x = W / 2 + p.x0 * W + p.vx * age * 10 * unit * spread;
+      var y = floorY - p.vy * age * 16 * unit + age * age * 1.6 * unit;
+      var size = p.size * 6 * unit;
+      setA(p.el, { x: x - size / 2, y: y - size / 2, width: size, height: size, opacity: (1 - life) * 0.9, transform: "rotate(" + age * 40 * p.vx + " " + x + " " + y + ")" });
+    } else {
+      var travel = 1 - Math.exp(-age / 3.5);
+      var cx = W / 2 + p.x0 * W + p.vx * travel * W * 0.16 * spread;
+      var cy = floorY - p.vy * travel * H * 0.07;
+      var r = H * p.size * (0.015 + 0.05 * travel + 0.02 * life);
+      setA(p.el, { cx: cx, cy: cy, r: r, opacity: Math.pow(1 - life, 1.4) * 0.38 });
+    }
+  });
+}
+finish(drive(draw, TOTAL));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,437 @@
+<!doctype html>
+<!--
+  Cursor Gravity
+
+  A rounded triangular cursor tugs a button out of the screen edge with pulsed elastic resistance.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/cursor-gravity/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="cursor-gravity"
+  data-composition-duration="6"
+  data-composition-variables='[{"id":"label","type":"string","role":"content","label":"Label","description":"Button text.","default":"Create something"},{"id":"tension","type":"number","role":"motion","label":"Tension","description":"Strength of the elastic neck and recoil, 0 to 1.5.","default":1,"min":0,"max":1.5,"step":0.05},{"id":"cursor_color","type":"color","role":"style","label":"Cursor","description":"Cursor and tether color.","default":"#fffaf0"},{"id":"color","type":"color","role":"style","label":"Button","description":"Button fill color.","default":"#fffaf0"},{"id":"text_color","type":"color","role":"style","label":"Text","description":"Button text color.","default":"#32153c"},{"id":"background_color","type":"color","role":"style","label":"Background","description":"Backdrop color.","default":"#a800b7"},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cursor Gravity</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        #root { font-family: Arial, Helvetica, sans-serif; }
+        .cgr-stage { position: absolute; inset: 0; }
+        .cgr-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .cgr-content { position: absolute; left: 0; top: 0; width: 300px; height: 88px; transform-origin: top left; display: flex; align-items: center; justify-content: center; gap: 20px; font-weight: 600; font-size: 23px; }
+        .cgr-label { max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .cgr-cursor { position: absolute; left: 0; top: 0; }
+      </style>
+
+      <div id="root" data-composition-id="cursor-gravity" data-duration="6" data-fps="30">
+        <div id="cgr-clip" class="cgr-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <svg id="cgr-svg" class="cgr-svg" aria-hidden="true"><path id="cgr-button"></path><path id="cgr-tether" fill="none" stroke-linecap="round"></path></svg>
+          <div id="cgr-content" class="cgr-content"><span id="cgr-label" class="cgr-label"></span><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12H19M13 6L19 12L13 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <svg id="cgr-cursor" class="cgr-cursor" viewBox="-180 -35 190 70" role="img" aria-label="Rounded triangular cursor"><path id="cgr-cpath"></path></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                                     
+                                                           
+                       
+                 
+                                                        
+                   
+                       
+                 
+                     
+                           
+                 
+                     
+ 
+
+const cursorGravityLength = 151;
+const DURATION = 180;
+const finite = (value        , fallback        ) =>
+  Number.isFinite(value) ? value : fallback;
+const clamp = (value        ) => Math.max(0, Math.min(1, value));
+const mix = (a        , b        , p        ) => a + (b - a) * p;
+const progress = (frame        , start        , end        ) =>
+  clamp((frame - start) / (end - start));
+const ease = Easing.bezier(0.65, 0, 0.35, 1);
+const pullEase = Easing.bezier(0.12, 0.8, 0.22, 1);
+
+/** Complete transition plus a one-second hold, in frames at 30 fps. */
+function getCursorGravityDuration({
+  speed = 1,
+}                                    = {}) {
+  const rate = Math.max(0, finite(speed, 1));
+  return rate === 0 ? 1 : Math.max(1, Math.ceil(DURATION / rate));
+}
+
+/** A pull advances sharply, pauses under load, then recoils before the next tug. */
+function pullDistance(t        , strength        ) {
+  const keys = [
+    [48, 0],
+    [59, 116],
+    [64, 116],
+    [70, 116 - 30 * strength],
+    [83, 292],
+    [87, 292],
+    [94, 292 - 42 * strength],
+    [112, 772],
+  ];
+  if (t <= keys[0][0]) return 0;
+  for (let i = 1; i < keys.length; i++) {
+    const [start, a] = keys[i - 1];
+    const [end, b] = keys[i];
+    if (t <= end)
+      return mix(a, b, (b > a ? pullEase : ease)(progress(t, start, end)));
+  }
+  return 772;
+}
+
+/** Pure, resolution-aware pose. The right edge is the real composition boundary. */
+function getCursorGravityState(
+  frame        ,
+  {
+    width = 1280,
+    height = 720,
+    tension = 1,
+  }                                                        = {},
+) {
+  const w = Math.max(1, finite(width, 1280));
+  const h = Math.max(1, finite(height, 720));
+  const unit = Math.min(w / 1280, h / 720);
+  const t = Math.max(0, finite(frame, 0));
+  const strength = Math.max(0, Math.min(1.5, finite(tension, 1)));
+  const centerY = h * 0.5;
+  const finalLeft = w / 2 - 150 * unit;
+  const finalRight = w / 2 + 150 * unit;
+  const edgeTip = w - 24 * unit;
+  const distance = pullDistance(t, strength) / 772;
+  const extraction = distance * (edgeTip - (finalLeft - 14 * unit));
+  // The back of the button resists the first two tugs beyond the frame edge.
+  const releaseTime = progress(t, 94, 132);
+  // Closed-form damped spring stays continuous at fractional frames too.
+  const springRelease =
+    1 -
+    Math.exp(-7 * releaseTime) *
+      (Math.cos(10 * releaseTime) + 0.7 * Math.sin(10 * releaseTime));
+  const release = mix(springRelease, 1, ease(progress(t, 122, 132)));
+  const front = mix(w + 12 * unit, finalLeft, distance);
+  const right = mix(w + 312 * unit - distance * 70 * unit, finalRight, release);
+  const buttonWidth = Math.max(220 * unit, right - front);
+  const strain = clamp((buttonWidth / (300 * unit) - 1) / 1.3) * strength;
+  const wobble =
+    t < 112
+      ? 0
+      : Math.sin((t - 112) * 0.48) *
+        Math.exp(-(t - 112) * 0.14) *
+        5 *
+        unit *
+        strength *
+        (1 - progress(t, 132, 140));
+  const y = centerY + wobble;
+  const entry = ease(progress(t, 10, 39));
+  const approach = ease(progress(t, 39, 48));
+  const leave = ease(progress(t, 127, 151));
+  const holdTip = mix(w * 0.28, edgeTip - 80 * unit, entry);
+  const pullTip = edgeTip - extraction;
+  const cursorX =
+    t < 48 ? mix(holdTip, edgeTip, approach) : mix(pullTip, w * 0.25, leave);
+  const cursorY =
+    t < 39
+      ? mix(h + 110 * unit, centerY + 70 * unit, entry)
+      : t < 48
+        ? mix(centerY + 70 * unit, centerY, approach)
+        : mix(centerY, h + 110 * unit, leave);
+  // Triangle points toward the edge while pulling; turns toward its exit afterward.
+  const cursorAngle = t < 48 ? mix(-32, 0, approach) : mix(0, 115, leave);
+  const effortPulse = (
+    start        ,
+    peak        ,
+    hold        ,
+    end        ,
+  ) => ease(progress(t, start, peak)) * (1 - ease(progress(t, hold, end)));
+  const cursorEffort =
+    strength *
+    (0.8 * effortPulse(48, 58, 64, 70) +
+      effortPulse(70, 81, 87, 94) +
+      1.15 * effortPulse(94, 100, 104, 118));
+  return {
+    frame: t,
+    unit,
+    front,
+    right: front + buttonWidth,
+    buttonWidth,
+    centerY: y,
+    strain,
+    neckHeight: 88 * unit * (1 - 0.58 * strain),
+    bodyHeight: 88 * unit * (1 - 0.17 * strain),
+    cursorX,
+    cursorY,
+    cursorAngle,
+    cursorEffort,
+    attached: t >= 48 && t <= 121,
+    tetherOpacity: progress(t, 46, 49) * (1 - progress(t, 115, 122)),
+  };
+}
+
+/** The tip stays fixed; the rear bows backward as each tug builds effort. */
+function getGravityCursorPath(effort        ) {
+  const load = Math.max(0, Math.min(1.725, finite(effort, 0)));
+  const shoulder = -62 - 30 * load;
+  const rear = -70 - 40 * load;
+  const halfHeight = 26 - 4 * load;
+  return `M -5 -4 Q 3 0 -5 4
+    C -24 ${11.333 - load * 3} ${shoulder + 19} ${halfHeight - 7.333} ${shoulder} ${halfHeight}
+    Q ${rear} ${halfHeight + 4} ${rear} ${halfHeight - 6}
+    C ${rear} 4 ${rear - 18 * load} 8 ${rear - 18 * load} 0
+    C ${rear - 18 * load} -8 ${rear} -4 ${rear} ${-halfHeight + 6}
+    Q ${rear} ${-halfHeight - 4} ${shoulder} ${-halfHeight}
+    C ${shoulder + 19} ${-halfHeight + 7.333} -24 ${-11.333 + load * 3} -5 -4 Z`;
+}
+
+/** Rounded rectangle with a narrow leading edge: the pull deforms the surface. */
+function getGravityButtonPath(
+  state                                          ,
+) {
+  const { buttonWidth: w, neckHeight, bodyHeight, unit } = state;
+  const a = neckHeight / 2;
+  const b = bodyHeight / 2;
+  const r = Math.min(25 * unit, a * 0.9);
+  const backRadius = 25 * unit;
+  return `M ${r} ${-a}
+    C ${w * 0.35} ${-a} ${w * 0.35} ${-b} ${w - backRadius} ${-b}
+    Q ${w} ${-b} ${w} ${-b + backRadius}
+    L ${w} ${b - backRadius} Q ${w} ${b} ${w - backRadius} ${b}
+    C ${w * 0.35} ${b} ${w * 0.35} ${a} ${r} ${a}
+    Q 0 ${a} 0 ${a - r} L 0 ${-a + r} Q 0 ${-a} ${r} ${-a} Z`;
+}
+
+
+            var tension = num(vars.tension, 1, 0, 1.5), speed = num(vars.speed, 1, 0.25, 3);
+            var cursorColor = str(vars.cursor_color, "#fffaf0"), color = str(vars.color, "#fffaf0"), textColor = str(vars.text_color, "#32153c");
+            root.style.background = str(vars.background_color, "#a800b7");
+            var width = root.clientWidth, height = root.clientHeight;
+            var svg = document.getElementById("cgr-svg");
+            svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+            var buttonEl = document.getElementById("cgr-button"), tether = document.getElementById("cgr-tether");
+            var content = document.getElementById("cgr-content"), cursor = document.getElementById("cgr-cursor"), cpath = document.getElementById("cgr-cpath");
+            document.getElementById("cgr-label").textContent = str(vars.label, "Create something");
+            buttonEl.setAttribute("fill", color);
+            tether.setAttribute("stroke", cursorColor);
+            cpath.setAttribute("fill", cursorColor);
+            content.style.color = textColor;
+            function draw(frame) {
+              var t = frame * speed;
+              var state = getCursorGravityState(t, { width: width, height: height, tension: tension });
+              var unit = state.unit;
+              var contentUnit = unit * Math.min(1, state.buttonWidth / (300 * unit));
+              var contentX = state.front + state.buttonWidth - 150 * contentUnit;
+              buttonEl.setAttribute("d", getGravityButtonPath(state));
+              buttonEl.setAttribute("transform", "translate(" + state.front + " " + state.centerY + ")");
+              tether.setAttribute("d", "M " + (state.cursorX + 2 * unit) + " " + state.cursorY + " Q " + mix(state.cursorX, state.front, 0.5) + " " + state.centerY + " " + (state.front + 2 * unit) + " " + state.centerY);
+              tether.setAttribute("stroke-width", 2 * unit);
+              tether.setAttribute("opacity", state.tetherOpacity);
+              content.style.transform = "translate(" + (contentX - 150 * contentUnit) + "px, " + (state.centerY - 44 * contentUnit) + "px) scale(" + contentUnit + ")";
+              cursor.setAttribute("width", 190 * unit); cursor.setAttribute("height", 70 * unit);
+              cursor.style.transformOrigin = 180 * unit + "px " + 35 * unit + "px";
+              cursor.style.transform = "translate(" + (state.cursorX - 180 * unit) + "px, " + (state.cursorY - 35 * unit) + "px) rotate(" + state.cursorAngle + "deg)";
+              cpath.setAttribute("d", getGravityCursorPath(state.cursorEffort));
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 180, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["cursor-gravity"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

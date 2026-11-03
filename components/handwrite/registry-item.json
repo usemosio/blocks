@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "handwrite",
+  "type": "hyperframes:component",
+  "title": "Handwrite",
+  "description": "Handwritten text laid down letter by letter on a quantized stop-motion clock.",
+  "tags": [
+    "text-effects",
+    "handwriting",
+    "stop-motion",
+    "paper",
+    "reveal",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "Captions, labels, and headlines should read as pen-written on paper, the text voice of stop-motion scrapbook scenes.",
+    "The scene already ticks on the stop-motion clock and the text must share its tempo.",
+    "You need the writing time up front: it is about ceil(letters / letters per pose) × frames per pose."
+  ],
+  "avoidWhen": [
+    "You are simulating a terminal or an input being typed into: use typewriter.",
+    "The reveal should be smooth on the real 30 fps clock: use soft-blur-in or per-character-rise.",
+    "The whole sheet should wobble too: that is paper-wobble around this."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/handwrite/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "handwrite.html",
+      "target": "compositions/components/handwrite.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text that is written out.", "default": "Made by hand"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit.", "default": 72, "min": 24, "max": 200, "step": 1, "unit": "px"},
+    {"id": "per_step", "type": "number", "role": "motion", "label": "Letters per pose", "description": "Letters added at each stop-motion pose.", "default": 1.6, "min": 0.5, "max": 4, "step": 0.1},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frames per pose", "description": "Stop-motion clock, in frames at 30 fps.", "default": 3, "min": 1, "max": 6, "step": 1, "unit": "frames"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Frames before writing starts (30 fps).", "default": 0, "min": 0, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the handwriting.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Ink color.", "default": "#26242c"},
+    {"id": "align", "type": "enum", "role": "style", "label": "Align", "description": "Where the text sits.", "default": "center", "options": [{"value": "center", "label": "Center"}, {"value": "left", "label": "Left"}]}
+  ]
+}

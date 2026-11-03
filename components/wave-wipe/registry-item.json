@@ -1,0 +1,112 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "wave-wipe",
+  "type": "hyperframes:component",
+  "title": "Wave Wipe",
+  "description": "A grainy gradient of waves drifts up the frame while the outgoing scene lifts away and the incoming scene rises from the bottom. Rebuilt with a deterministic Canvas 2D gradient instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .wvw-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "wave",
+    "grain",
+    "wipe",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 2.0,
+  "useWhen": [
+    "A smooth upward wipe with texture, for decks and chapter changes.",
+    "The brand has a gradient or grain look the waves can borrow."
+  ],
+  "avoidWhen": [
+    "Clean flat-design pieces with no texture.",
+    "A fast cut: the waves need about two seconds."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/wave-wipe/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "wave-wipe.html",
+      "target": "compositions/components/wave-wipe.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "How strongly the waves bend.",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "Softness of the color bands.",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "noise",
+      "type": "number",
+      "role": "style",
+      "label": "Grain",
+      "description": "Amount of grain in the field.",
+      "default": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "zoom",
+      "type": "number",
+      "role": "style",
+      "label": "Zoom",
+      "description": "Scale of the wave pattern.",
+      "default": 1.16,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.02
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Backdrop color of the field.",
+      "default": "#141318"
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Comma-separated hex colors the waves move through.",
+      "default": "#3a3a52,#4a4a68,#8f88ae"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the waves\u2019 own drift.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

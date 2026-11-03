@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ring-text",
+  "type": "hyperframes:component",
+  "title": "Ring Text",
+  "description": "Text runs around a tilted 3D band that spins, reading on the near side and mirrored on the far side.",
+  "tags": [
+    "text-effects",
+    "3d",
+    "ring",
+    "badge",
+    "loop",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A headline needs a dimensional object next to it, and the object itself should carry a short phrase.",
+    "A tagline, a feature name or a slogan should loop continuously in a compact spot.",
+    "You want a badge-like accent that reads as 3D without any 3D library or assets."
+  ],
+  "avoidWhen": [
+    "The phrase should scroll flat across the frame: use infinite-marquee.",
+    "The text should pop out of the plane as a solid extruded word: use extrude-pop.",
+    "The motion should be ribbons bursting outward rather than a steady ring: use radial-burst."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/ring-text/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ring-text.html",
+      "target": "compositions/components/ring-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Phrase that runs around the ring.", "default": "Type in motion"},
+    {"id": "separator", "type": "string", "role": "content", "label": "Separator", "description": "Mark between laps of the phrase.", "default": "•"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the letters.", "default": "#d4ff1f"},
+    {"id": "band", "type": "color", "role": "style", "label": "Band color", "description": "Color of the band.", "default": "#0a0a0a"},
+    {"id": "radius", "type": "number", "role": "style", "label": "Radius", "description": "Ring radius in reference pixels (1280×720 stage); a long phrase grows it.", "default": 210, "min": 80, "max": 340, "step": 1, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Letter size in reference pixels.", "default": 40, "min": 16, "max": 90, "step": 1, "unit": "px"},
+    {"id": "tilt", "type": "number", "role": "motion", "label": "Tilt", "description": "How far the ring leans toward the viewer, in degrees.", "default": 38, "min": 0, "max": 80, "step": 1, "unit": "deg"},
+    {"id": "roll", "type": "number", "role": "motion", "label": "Roll", "description": "In-plane rotation of the ring, in degrees.", "default": -16, "min": -60, "max": 60, "step": 1, "unit": "deg"},
+    {"id": "period", "type": "number", "role": "motion", "label": "Frames per turn", "description": "Frames for one full spin (30 fps).", "default": 240, "min": 60, "max": 900, "step": 1, "unit": "frames"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

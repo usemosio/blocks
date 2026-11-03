@@ -1,0 +1,207 @@
+<!doctype html>
+<!--
+  Period Drop
+
+  A word rises out of its line, then a colored dot falls from above the frame, bounces with squash and stretch, and settles as the period.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/period-drop/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="period-drop"
+  data-composition-duration="2.5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word that rises, then gets its period.", "default": "studio"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the word.", "default": "#fafafa"},
+    {"id": "dot_color", "type": "color", "role": "style", "label": "Dot color", "description": "Color of the falling period.", "default": "#ff4d1a"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (720 high stage); long words shrink to fit.", "default": 160, "min": 60, "max": 280, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Weight", "description": "Font weight, 100 to 900.", "default": 800, "min": 100, "max": 900, "step": 100},
+    {"id": "dot_size", "type": "number", "role": "style", "label": "Dot size", "description": "Dot diameter in em.", "default": 0.2, "min": 0.08, "max": 0.5, "step": 0.01, "unit": "em"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Period Drop</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .pd-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+        .pd-line { line-height: 1; white-space: pre; }
+        .pd-cell { display: inline-block; overflow: hidden; padding-bottom: 0.15em; margin-bottom: -0.15em; vertical-align: top; }
+        .pd-char { display: inline-block; }
+        .pd-dot { display: inline-block; margin-left: 0.04em; border-radius: 50%; transform-origin: 50% 100%; visibility: hidden; }
+      </style>
+
+      <div id="root" data-composition-id="period-drop" data-duration="2.5" data-fps="30">
+        <div id="pd-clip" class="pd-stage clip" data-start="0" data-duration="2.5" data-track-index="0">
+          <div id="pd-line" class="pd-line"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "2.5");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var line = document.getElementById("pd-line");
+            var text = str(vars.text, "studio"), speed = num(vars.speed, 1, 0.25, 4);
+            var weight = num(vars.font_weight, 800, 100, 900), dotSize = num(vars.dot_size, 0.2, 0.08, 0.5);
+            var unit = Math.min(root.clientWidth / 1280, root.clientHeight / 720);
+            line.style.color = col(vars.color, "#fafafa");
+            line.style.fontWeight = weight; line.style.fontVariationSettings = '"wght" ' + weight;
+            var chars = Array.from(text).map(function (ch) {
+              var cell = document.createElement("span"); cell.className = "pd-cell";
+              var inner = document.createElement("span"); inner.className = "pd-char"; inner.textContent = ch;
+              cell.appendChild(inner); line.appendChild(cell); return inner;
+            });
+            var dotEl = document.createElement("span");
+            dotEl.className = "pd-dot"; dotEl.style.width = dotSize + "em"; dotEl.style.height = dotSize + "em";
+            dotEl.style.background = col(vars.dot_color, "#ff4d1a");
+            line.appendChild(dotEl);
+            fit(line, 0, num(vars.font_size, 160, 60, 280) * unit, 0.9);
+            var drop = 0.62 * root.clientHeight;
+            var DROP = 20, FALL = 12, REST = 0.35, BOUNCES = 2, STRETCH = 0.3, SQUASH = 0.22, RECOVER = 1.1;
+            var outQuart = function (p) { return 1 - Math.pow(1 - p, 4); };
+            var impacts = [DROP + FALL];
+            for (var n = 1; n <= BOUNCES; n++) impacts.push(impacts[n - 1] + 2 * Math.pow(REST, n) * FALL);
+            // Gravity comes from the fall: g = 2 / fall^2, so the landing speed is 2 / fall.
+            function dotAt(t) {
+              if (t < DROP) return { visible: false, y: -1, sx: 1, sy: 1 };
+              var g = 2 / (FALL * FALL), landing = g * FALL, y = 0, sp = 0, deform = 0;
+              if (t < impacts[0]) {
+                var u = t - DROP; y = -1 + 0.5 * g * u * u; sp = g * u; deform = sp / landing;
+              } else {
+                var k = impacts.length - 1;
+                while (k > 0 && t < impacts[k]) k--;
+                var tau = t - impacts[k], bounce = k + 1;
+                var launch = bounce < impacts.length ? Math.pow(REST, bounce) * landing : 0;
+                var flight = launch > 0 ? (2 * launch) / g : 0;
+                if (tau < flight) { y = -(launch * tau - 0.5 * g * tau * tau); sp = Math.abs(launch - g * tau); }
+                var decay = Math.exp(-tau / RECOVER);
+                deform = -Math.pow(REST, k) * decay + (1 - decay) * (sp / landing);
+              }
+              if (Math.abs(deform) < 0.005) deform = 0;
+              var sy = deform >= 0 ? 1 + STRETCH * deform : 1 + SQUASH * Math.max(-1, deform);
+              return { visible: true, y: Math.min(0, y), sx: 1 / sy, sy: sy };
+            }
+            tick(function (tt) {
+              var t = tt * 30 * speed;
+              chars.forEach(function (el, i) {
+                el.style.transform = "translateY(" + ip(t, 2 * i, 2 * i + 12, 1, 0, outQuart) * 115 + "%)";
+              });
+              var d = dotAt(t);
+              dotEl.style.visibility = d.visible ? "visible" : "hidden";
+              dotEl.style.transform = "translateY(" + d.y * drop + "px) scale(" + d.sx + "," + d.sy + ")";
+            });
+            var total = parseFloat(root.dataset.duration || "2.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["period-drop"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

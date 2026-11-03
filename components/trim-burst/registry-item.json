@@ -1,0 +1,58 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "trim-burst",
+  "type": "hyperframes:component",
+  "title": "Trim Burst",
+  "description": "Short strokes shoot outward from a point and shrink to nothing: a quick spark, pop or impact accent.",
+  "tags": [
+    "burst",
+    "spark",
+    "accent",
+    "lines",
+    "impact",
+    "remocn-port"
+  ],
+  "category": "shapes",
+  "duration": 1.5,
+  "useWhen": [
+    "A click, hit, pop or reveal needs a quick burst of lines as a punctuation accent.",
+    "A UI action or number landing should feel celebratory without a full particle system."
+  ],
+  "avoidWhen": [
+    "You need a large, sustained celebration: use confetti or particles.",
+    "The burst should sit on a moving target: the origin is a fixed point."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/trim-burst/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "trim-burst.html",
+      "target": "compositions/components/trim-burst.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"x","type":"number","role":"layout","label":"X","description":"Burst origin across the frame, 0 (left) to 1 (right).","default":0.5,"min":0,"max":1,"step":0.01},
+    {"id":"y","type":"number","role":"layout","label":"Y","description":"Burst origin down the frame, 0 (top) to 1 (bottom).","default":0.5,"min":0,"max":1,"step":0.01},
+    {"id":"count","type":"number","role":"layout","label":"Strokes","description":"Number of strokes.","default":8,"min":1,"max":24,"step":1},
+    {"id":"inner_radius","type":"number","role":"layout","label":"Inner radius","description":"Gap between the origin and where strokes start, at a 720 px frame height.","default":16,"min":0,"max":160,"step":1,"unit":"px"},
+    {"id":"reach","type":"number","role":"motion","label":"Reach","description":"How far each stroke travels.","default":64,"min":8,"max":240,"step":1,"unit":"px"},
+    {"id":"stroke_length","type":"number","role":"layout","label":"Stroke length","description":"Length of each visible stroke.","default":56,"min":4,"max":200,"step":1,"unit":"px"},
+    {"id":"weight","type":"number","role":"style","label":"Weight","description":"Line thickness.","default":2,"min":0.5,"max":8,"step":0.25,"unit":"px"},
+    {"id":"rotation","type":"number","role":"layout","label":"Rotation","description":"Rotation of the whole burst in degrees.","default":0,"min":-180,"max":180,"step":1,"unit":"deg"},
+    {"id":"spread","type":"number","role":"layout","label":"Spread","description":"Angle covered by the strokes; below 360 they fan out around the rotation.","default":360,"min":15,"max":360,"step":1,"unit":"deg"},
+    {"id":"jitter","type":"number","role":"motion","label":"Jitter","description":"Random variety in angle, length and launch time.","default":0.5,"min":0,"max":1,"step":0.05},
+    {"id":"dots","type":"boolean","role":"style","label":"Tip dots","description":"Pop a small dot at the tip of each stroke.","default":false},
+    {"id":"cap","type":"enum","role":"style","label":"Cap","description":"Stroke ends.","default":"round","options":[{"value":"round","label":"Round"},{"value":"butt","label":"Butt"}]},
+    {"id":"color","type":"color","role":"style","label":"Line color","description":"Stroke color.","default":"#ffffff"},
+    {"id":"seed","type":"number","role":"motion","label":"Seed","description":"Seed for the random variation.","default":1,"min":1,"max":99,"step":1},
+    {"id":"delay","type":"number","role":"motion","label":"Delay","description":"Frames (30 fps) before the burst starts.","default":0,"min":0,"max":30,"step":1,"unit":"frames"},
+    {"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}
+  ]
+}

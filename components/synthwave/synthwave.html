@@ -1,0 +1,265 @@
+<!doctype html>
+<!--
+  Synthwave
+
+  A retro neon horizon with a scrolling perspective grid, a rising striped sun and mountain ranges that slide in. The grid keeps scrolling for as long as the clip lasts.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/synthwave/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="synthwave"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "sky_top", "type": "color", "role": "style", "label": "Sky top", "description": "Top of the sky gradient.", "default": "#08080B"},
+    {"id": "sky_horizon", "type": "color", "role": "style", "label": "Sky horizon", "description": "Sky glow at the horizon.", "default": "#3B0C10"},
+    {"id": "sun_top", "type": "color", "role": "style", "label": "Sun top", "description": "Top of the sun gradient.", "default": "#FFC46B"},
+    {"id": "sun_bottom", "type": "color", "role": "style", "label": "Sun bottom", "description": "Bottom of the sun gradient.", "default": "#E5322D"},
+    {"id": "grid_color", "type": "color", "role": "style", "label": "Grid", "description": "Grid line color.", "default": "#E5322D"},
+    {"id": "floor_color", "type": "color", "role": "style", "label": "Floor", "description": "Floor color.", "default": "#0A0A0C"},
+    {"id": "mountains_back", "type": "color", "role": "style", "label": "Back mountains", "description": "Back mountain range color.", "default": "#2A0A0E"},
+    {"id": "mountains_front", "type": "color", "role": "style", "label": "Front mountains", "description": "Front mountain range color.", "default": "#111111"},
+    {"id": "grid_speed", "type": "number", "role": "motion", "label": "Grid speed", "description": "Grid rows that pass the viewer per second.", "default": 2, "min": 0, "max": 8, "step": 0.1},
+    {"id": "horizon", "type": "number", "role": "style", "label": "Horizon", "description": "Horizon height as a fraction of the frame.", "default": 0.6, "min": 0.3, "max": 0.8, "step": 0.01},
+    {"id": "sun_stripes", "type": "boolean", "role": "style", "label": "Sun stripes", "description": "Scroll the sun stripes downward.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Synthwave</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--floor); }
+        .sw-stage { position: absolute; inset: 0; overflow: hidden; }
+        .sw-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="synthwave" data-duration="4" data-fps="30">
+        <div id="sw-clip" class="sw-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <svg class="sw-svg" id="sw-svg"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "synthwave";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var svg = document.getElementById("sw-svg");
+var gridSpeed = num(vars.grid_speed, 2, 0, 8), horizon = num(vars.horizon, 0.6, 0.3, 0.8), stripesOn = bool(vars.sun_stripes, true), speed = num(vars.speed, 1, 0, 4);
+var c = { skyTop: col(vars.sky_top, "#08080B"), skyHorizon: col(vars.sky_horizon, "#3B0C10"), sunTop: col(vars.sun_top, "#FFC46B"), sunBottom: col(vars.sun_bottom, "#E5322D"), grid: col(vars.grid_color, "#E5322D"), floor: col(vars.floor_color, "#0A0A0C"), back: col(vars.mountains_back, "#2A0A0E"), front: col(vars.mountains_front, "#111111") };
+root.style.setProperty("--floor", c.floor);
+var W = root.clientWidth, H = root.clientHeight;
+svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+var u = Math.min(W, H) / 720, cx = W / 2, yh = horizon * H, floorDepth = H - yh;
+var R = 0.27 * H, rowGap = 0.5, colSpread = W * 0.16, nearZ = 0.35;
+function ridge(seed, base, peak, count) {
+  var pts = [-0.4 * W + "," + base];
+  for (var i = 0; i <= count; i++) {
+    var x = -0.4 * W + (i / count) * 1.8 * W, center = Math.min(1, Math.abs(x - W / 2) / (0.45 * W));
+    var valley = 0.18 + 0.82 * center * center, jag = 0.45 + 0.55 * rnd(seed + "-" + i);
+    pts.push(x + "," + (base - peak * valley * (i % 2 === 0 ? jag : jag * 0.45)));
+  }
+  pts.push(1.4 * W + "," + base);
+  return pts.join(" ");
+}
+function grad(defs, id, stops) {
+  var g = svgEl("linearGradient", { id: id, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+  stops.forEach(function (s) { svgEl("stop", { offset: s[0], "stop-color": s[1] }, g); });
+}
+var defs = svgEl("defs", {}, svg);
+grad(defs, "sw-sky", [[0, c.skyTop], [0.55, c.skyTop], [1, c.skyHorizon]]);
+grad(defs, "sw-sun", [[0.1, c.sunTop], [0.85, c.sunBottom]]);
+grad(defs, "sw-floorg", [[0, c.skyHorizon], [0.25, c.floor]]);
+var mask = svgEl("mask", { id: "sw-stripes" }, defs);
+svgEl("rect", { width: W, height: H, fill: "#fff" }, mask);
+var stripeEls = []; for (var i = 0; i < 7; i++) stripeEls.push(svgEl("rect", { x: 0, width: W, fill: "#000" }, mask));
+var cp = svgEl("clipPath", { id: "sw-above" }, defs); svgEl("rect", { width: W, height: yh }, cp);
+var glow = svgEl("filter", { id: "sw-glow", x: "-20%", y: "-20%", width: "140%", height: "140%" }, defs);
+svgEl("feGaussianBlur", { stdDeviation: 4 * u, result: "blur" }, glow);
+var fm = svgEl("feMerge", {}, glow);
+["blur", "blur", "SourceGraphic"].forEach(function (n) { svgEl("feMergeNode", { in: n }, fm); });
+var haze = svgEl("filter", { id: "sw-haze", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+svgEl("feGaussianBlur", { stdDeviation: 30 * u }, haze);
+svgEl("rect", { width: W, height: yh, fill: "url(#sw-sky)" }, svg);
+var starG = svgEl("g", { fill: "#FFFFFF" }, svg), stars = [];
+for (i = 0; i < 70; i++) stars.push({ ph: rnd("synthwave-sp-" + i) * 9, el: svgEl("circle", { cx: rnd("synthwave-sx-" + i) * W, cy: rnd("synthwave-sy-" + i) * yh * 0.8, r: (0.6 + rnd("synthwave-sr-" + i) * 1.4) * u }, starG) });
+var above = svgEl("g", { "clip-path": "url(#sw-above)" }, svg);
+var haloEl = svgEl("circle", { cx: cx, r: R * 1.15, fill: c.sunBottom, opacity: 0.45, filter: "url(#sw-haze)" }, above);
+var sunEl = svgEl("circle", { cx: cx, r: R, fill: "url(#sw-sun)", mask: "url(#sw-stripes)" }, above);
+var backEl = svgEl("polygon", { points: ridge("synthwave-back", yh, 0.26 * H, 27), fill: c.back }, above);
+var frontG = svgEl("g", {}, above);
+var fpts = ridge("synthwave-front", yh, 0.15 * H, 39);
+svgEl("polygon", { points: fpts, fill: c.front }, frontG);
+svgEl("polyline", { points: fpts, fill: "none", stroke: c.grid, "stroke-width": 1.5 * u, "stroke-opacity": 0.55, "stroke-linejoin": "round" }, frontG);
+svgEl("rect", { y: yh, width: W, height: H - yh, fill: "url(#sw-floorg)" }, svg);
+var gridG = svgEl("g", { stroke: c.grid, "stroke-width": 2.2 * u, filter: "url(#sw-glow)", fill: "none" }, svg);
+for (var j = -11; j <= 11; j++) svgEl("line", { x1: cx, y1: yh, x2: cx + (j * colSpread) / nearZ, y2: yh + floorDepth / nearZ }, gridG);
+var rowEls = []; for (i = 0; i < 70; i++) rowEls.push(svgEl("line", { x1: 0, x2: W }, gridG));
+svgEl("line", { x1: 0, y1: yh, x2: W, y2: yh, "stroke-width": 3 * u }, gridG);
+svgEl("rect", { y: yh - 6 * u, width: W, height: 0.12 * H, fill: c.skyHorizon, opacity: 0.5, filter: "url(#sw-haze)" }, svg);
+function draw(frame) {
+  var t = frame * speed;
+  var phase = ((((t / 30) * gridSpeed) % 1) + 1) % 1;
+  rowEls.forEach(function (ln, k) {
+    var z = 0.7 + (k + 1 - phase) * rowGap, y = yh + floorDepth / z;
+    if (y > H + 4 * u) { ln.setAttribute("opacity", 0); return; }
+    setA(ln, { y1: y, y2: y, opacity: 1, "stroke-opacity": interp(z, [1, 14, 30], [1, 0.35, 0]) });
+  });
+  var rise = interp(t, [0, 40], [0, 1], outCubic);
+  var sunY = lerp(yh + R * 1.05, yh - R * 0.42, rise);
+  var stripePhase = stripesOn ? (((t / 36) % 1) + 1) % 1 : 0;
+  stripeEls.forEach(function (s, i) {
+    var p = (i + stripePhase) / 7, y = sunY + R * (-0.05 + p * 1.05), h = R * (0.012 + 0.09 * p);
+    setA(s, { y: y - h / 2, height: stripesOn ? h : 0 });
+  });
+  setA(haloEl, { cy: sunY }); setA(sunEl, { cy: sunY });
+  var slideBack = interp(t, [4, 34], [1, 0], outCubic), slideFront = interp(t, [8, 38], [1, 0], outCubic);
+  backEl.setAttribute("transform", "translate(" + -0.25 * W * slideBack + " " + 0.3 * H * slideBack + ")");
+  frontG.setAttribute("transform", "translate(" + 0.25 * W * slideFront + " " + 0.2 * H * slideFront + ")");
+  stars.forEach(function (s) { s.el.setAttribute("opacity", 0.25 + 0.5 * (0.5 + 0.5 * Math.sin(t * 0.15 + s.ph))); });
+}
+finish(drive(draw, TOTAL));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

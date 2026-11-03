@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shadow-sweep-text",
+  "type": "hyperframes:component",
+  "title": "Shadow Sweep Text",
+  "description": "A rising line is uncovered and removed by two dense dark shadow sweeps.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "shadow",
+    "exit",
+    "dark",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 1.234,
+  "useWhen": [
+    "A short statement should emerge through a dense shadow instead of fading or clipping into view.",
+    "The text rises on a subtle diagonal while the reveal travels across the line, then the shadow takes it away."
+  ],
+  "avoidWhen": [
+    "The text should stay visible after entering: use mask-reveal-up for a one-way reveal.",
+    "Each word needs its own entrance timing: use per-word-crossfade or centered-word-build."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shadow-sweep-text/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shadow-sweep-text.html",
+      "target": "compositions/components/shadow-sweep-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short statement revealed and removed by the shadow.", "default": "are abandoned" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 96, "min": 12, "max": 180, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#aaa6b5" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}] },
+    { "id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Color of the field behind the text.", "default": "#030012" },
+    { "id": "shadow_color", "type": "color", "role": "style", "label": "Shadow color", "description": "Color of the sweeping shadow. Match it to the background.", "default": "#030012" },
+    { "id": "shadow_softness", "type": "number", "role": "style", "label": "Shadow softness", "description": "Width of the soft edge in pixels.", "default": 130, "min": 0, "max": 280, "step": 1, "unit": "px" },
+    { "id": "rise", "type": "number", "role": "motion", "label": "Rise", "description": "How far below its place the text starts.", "default": 96, "min": 0, "max": 300, "step": 1, "unit": "px" },
+    { "id": "drift_left", "type": "number", "role": "motion", "label": "Drift left", "description": "How far right of its place the text starts.", "default": 16, "min": 0, "max": 120, "step": 1, "unit": "px" }
+  ]
+}

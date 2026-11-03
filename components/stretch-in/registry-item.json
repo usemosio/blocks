@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stretch-in",
+  "type": "hyperframes:component",
+  "title": "Stretch In",
+  "description": "Letters fly in from off-canvas and smear horizontally on the way: a vertex-lag deformation, not a scale.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "smear",
+    "deformation",
+    "display",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A heavy display word needs a fast, physical entrance where the letterforms visibly deform: bars stretch long while stems keep their width.",
+    "Each letter enters on its own beat and snaps to rest crisp."
+  ],
+  "avoidWhen": [
+    "The type is small or body-size: the smear reads at display sizes. Use per-character-rise.",
+    "You want a plain slide-in: use short-slide-right."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/stretch-in/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "stretch-in.html",
+      "target": "compositions/components/stretch-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Heavy display word.", "default": "STUDIO" },
+    { "id": "fill", "type": "color", "role": "style", "label": "Fill", "description": "Color of the letters.", "default": "#ffffff" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in px at a 1920×1080 frame.", "default": 510, "min": 100, "max": 700, "step": 1, "unit": "px" },
+    { "id": "entry_stagger", "type": "number", "role": "motion", "label": "Entry stagger", "description": "Frames between letters (30 fps).", "default": 3, "min": 0, "max": 12, "step": 1, "unit": "frames" },
+    { "id": "travel_frames", "type": "number", "role": "motion", "label": "Travel frames", "description": "Frames each letter takes to arrive.", "default": 33, "min": 4, "max": 40, "step": 1, "unit": "frames" },
+    { "id": "vertex_lag_frames", "type": "number", "role": "motion", "label": "Vertex lag", "description": "Frames the right edge of a letter lags its left edge. More lag, longer smear.", "default": 3.5, "min": 0, "max": 8, "step": 0.1, "unit": "frames" }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "toggle-group",
+  "type": "hyperframes:component",
+  "title": "Toggle Group",
+  "description": "A segmented control whose thumb slides between segments as the cursor clicks Yearly, then Monthly.",
+  "tags": [
+    "ui",
+    "toggle-group",
+    "segmented",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "useWhen": [
+    "Showing a segmented control switching between view modes, time ranges or mutually exclusive options.",
+    "Demonstrating a smooth continuous thumb slide between compact segments.",
+    "Replacing a radio group where a sliding-thumb metaphor reads better."
+  ],
+  "avoidWhen": [
+    "You need content panels that crossfade below the control: use tabs.",
+    "Options are sequential numbered steps: use stepper.",
+    "You need a full dropdown with a reveal panel: use select."
+  ],
+  "checkAt": [
+    0.5,
+    1.5,
+    2.5,
+    3.6
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/toggle-group/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "toggle-group.html",
+      "target": "compositions/components/toggle-group.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "JSON array of {\"value\",\"label\"}.", "default": "[{\"value\": \"Monthly\", \"label\": \"Monthly\"}, {\"value\": \"Yearly\", \"label\": \"Yearly\"}]"},
+    {"id": "size", "type": "enum", "role": "style", "label": "Size", "description": "Control size.", "default": "default", "options": [{"value": "default", "label": "Default"}, {"value": "sm", "label": "Small"}]},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

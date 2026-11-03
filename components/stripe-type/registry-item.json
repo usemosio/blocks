@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stripe-type",
+  "type": "hyperframes:component",
+  "title": "Stripe Type",
+  "description": "A word cut into horizontal bands, as in the IBM logo, slides together from alternating sides and locks, then can pass on through.",
+  "tags": [
+    "text-effects",
+    "stripes",
+    "bands",
+    "title",
+    "transition",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.3333,
+  "useWhen": [
+    "A bold word needs a graphic, engineered entrance on a flat field, such as a product name or a section title.",
+    "You want the striped-logo look as the resting state, or as a transition into solid type with Settle set to solid.",
+    "A word should enter and leave in one move: the bands arrive from alternating sides and exit through the other."
+  ],
+  "avoidWhen": [
+    "The word should split along its letters rather than in horizontal bands: use typed-split-wipe.",
+    "The whole frame should fill with moving rows of type: use type-wall.",
+    "A soft, quiet entrance fits better: use mask-reveal-up."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/stripe-type/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "stripe-type.html",
+      "target": "compositions/components/stripe-type.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "One bold word.", "default": "Launch"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the bands.", "default": "#fafafa"},
+    {"id": "settle", "type": "enum", "role": "style", "label": "Settle", "description": "Resting look once the bands lock.", "default": "striped", "options": [{"value": "striped", "label": "Striped"}, {"value": "solid", "label": "Solid"}]},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (720 high stage); long words shrink to fit.", "default": 180, "min": 60, "max": 320, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Weight", "description": "Font weight, 100 to 900.", "default": 800, "min": 100, "max": 900, "step": 100},
+    {"id": "stripes", "type": "number", "role": "style", "label": "Stripes", "description": "Number of horizontal bands.", "default": 8, "min": 2, "max": 16, "step": 1},
+    {"id": "gap", "type": "number", "role": "style", "label": "Gap", "description": "Share of each pitch left empty between bands.", "default": 0.35, "min": 0, "max": 0.8, "step": 0.01},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Hold", "description": "Frames the word rests before leaving (30 fps). The clip is sized for 30.", "default": 30, "min": 0, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "exit", "type": "boolean", "role": "motion", "label": "Exit", "description": "Bands leave through the opposite side.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

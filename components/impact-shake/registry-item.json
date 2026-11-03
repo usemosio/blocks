@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "impact-shake",
+  "type": "hyperframes:component",
+  "title": "Impact Shake",
+  "description": "Heavy content slams down from above with a squash, a damped camera jolt, a two-frame RGB split and dust puffs kicking out sideways. The built-in subject is a big word; a host puts its own content in by replacing the .is-word elements.",
+  "tags": [
+    "camera",
+    "impact",
+    "shake",
+    "hype",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 1.667,
+  "useWhen": [
+    "A launch word, a price or a logo should land like it weighs a ton.",
+    "A hype edit or a social teaser needs one hard-hitting beat on the drop."
+  ],
+  "avoidWhen": [
+    "The landing only needs a light accent around a small element: use trim-burst.",
+    "The element should fly in sideways with motion streaks: use speed-lines."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/impact-shake/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "impact-shake.html",
+      "target": "compositions/components/impact-shake.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word that slams down. Shrinks to fit the frame width.", "default": "LAUNCH"},
+    {"id": "intensity", "type": "number", "role": "motion", "label": "Intensity", "description": "Shake, split and dust strength, 0 to 2.", "default": 1, "min": 0, "max": 2, "step": 0.05},
+    {"id": "impact", "type": "number", "role": "motion", "label": "Impact frame", "description": "Frame (at 30 fps) when the subject hits.", "default": 7, "min": 1, "max": 20, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "foreground_color", "type": "color", "role": "style", "label": "Foreground", "description": "Word and flash color.", "default": "#FFFFFF"},
+    {"id": "split_a_color", "type": "color", "role": "style", "label": "Split A", "description": "First RGB-split ghost color.", "default": "#FF2A2A"},
+    {"id": "split_b_color", "type": "color", "role": "style", "label": "Split B", "description": "Second RGB-split ghost color.", "default": "#2A6BFF"},
+    {"id": "dust_color", "type": "color", "role": "style", "label": "Dust", "description": "Dust puff and debris color.", "default": "#D9D9D9"},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the shake phase and dust.", "default": 1, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "crumple-toss",
+  "type": "hyperframes:component",
+  "title": "Crumple Toss",
+  "description": "A card crumples into a paper wad in stop-motion poses and is tossed into a bin: the old way, thrown away.",
+  "tags": [
+    "paper",
+    "crumple",
+    "toss",
+    "stop-motion",
+    "transition",
+    "remocn-port"
+  ],
+  "category": "paper",
+  "duration": 3,
+  "useWhen": [
+    "An outdated process, old way or rejected idea should visibly be crumpled up and thrown away before the new one appears.",
+    "A paper, stop-motion look is wanted."
+  ],
+  "avoidWhen": [
+    "The card must stay legible while it leaves: this destroys it.",
+    "You want a smooth, digital exit rather than discrete stop-motion poses."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/crumple-toss/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "crumple-toss.html",
+      "target": "compositions/components/crumple-toss.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"card_title","type":"string","role":"content","label":"Card title","description":"Small line on the card.","default":"How it used to work"},
+    {"id":"card_body","type":"string","role":"content","label":"Card text","description":"Large line on the card.","default":"Six steps and a wiki page"},
+    {"id":"at","type":"number","role":"motion","label":"Start frame","description":"Frame (30 fps) where the crumple begins.","default":6,"min":0,"max":60,"step":1,"unit":"frames"},
+    {"id":"crumple_steps","type":"number","role":"motion","label":"Crumple poses","description":"Number of poses the crumple takes.","default":4,"min":1,"max":10,"step":1},
+    {"id":"toss_steps","type":"number","role":"motion","label":"Toss poses","description":"Number of poses the toss takes.","default":5,"min":1,"max":12,"step":1},
+    {"id":"direction","type":"number","role":"motion","label":"Direction","description":"Launch angle of the toss in degrees (negative is up and to the right).","default":-35,"min":-180,"max":180,"step":1,"unit":"deg"},
+    {"id":"distance","type":"number","role":"motion","label":"Distance","description":"How far the wad is thrown, at design size.","default":440,"min":100,"max":900,"step":5,"unit":"px"},
+    {"id":"spin","type":"number","role":"motion","label":"Spin","description":"Degrees the wad turns in flight.","default":220,"min":-720,"max":720,"step":5,"unit":"deg"},
+    {"id":"segments","type":"number","role":"layout","label":"Segments","description":"Number of folded wedges.","default":9,"min":3,"max":16,"step":1},
+    {"id":"layers","type":"number","role":"layout","label":"Layers","description":"Rings of wedges from the middle outwards.","default":2,"min":1,"max":4,"step":1},
+    {"id":"randomness","type":"number","role":"motion","label":"Randomness","description":"How irregular the folds are.","default":0.6,"min":0,"max":1,"step":0.05},
+    {"id":"crush_to","type":"number","role":"motion","label":"Crush to","description":"Size of the wad relative to the card.","default":0.34,"min":0.15,"max":0.8,"step":0.01},
+    {"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the folds.","default":"toss"},
+    {"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each pose is held.","default":3,"min":1,"max":6,"step":1,"unit":"frames"}
+  ]
+}

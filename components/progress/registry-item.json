@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "progress",
+  "type": "hyperframes:component",
+  "title": "Progress",
+  "description": "A progress bar that fills along a scripted value: a fast start, a stall, then a finish.",
+  "tags": [
+    "ui",
+    "progress",
+    "loading",
+    "bar",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 5.5,
+  "useWhen": [
+    "Showing a loading, upload or completion bar animating to a target value.",
+    "Visualizing progression through a flow as a single continuous bar.",
+    "You need a labelled percentage readout next to the fill."
+  ],
+  "avoidWhen": [
+    "The state is binary (done or not): use switch.",
+    "You need numbered step-by-step progress: use stepper.",
+    "You need a range input the user drags: use slider."
+  ],
+  "checkAt": [
+    0.8,
+    1.6,
+    3.2,
+    5.3
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/progress/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "progress.html",
+      "target": "compositions/components/progress.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "show_label", "type": "boolean", "role": "style", "label": "Show label", "description": "Show the percentage next to the bar.", "default": true},
+    {"id": "width", "type": "number", "role": "style", "label": "Width", "description": "Bar width in design pixels.", "default": 320, "min": 120, "max": 640, "step": 10, "unit": "px"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

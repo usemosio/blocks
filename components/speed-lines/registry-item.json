@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "speed-lines",
+  "type": "hyperframes:component",
+  "title": "Speed Lines",
+  "description": "Comic-style motion streaks: a squashing ball leaves a trail as it lands, or rays rush out from a focus point.",
+  "tags": [
+    "speed-lines",
+    "comic",
+    "motion",
+    "impact",
+    "streaks",
+    "remocn-port"
+  ],
+  "category": "shapes",
+  "duration": 2,
+  "useWhen": [
+    "Something lands, zips in or snaps into focus and needs comic-style motion lines to sell the speed.",
+    "A hook, reveal or punchline needs radiating focus lines."
+  ],
+  "avoidWhen": [
+    "A calm, polished product tone is needed: speed lines read as playful and loud.",
+    "The moving object is complex content: the trail mode draws a plain ball."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/speed-lines/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "speed-lines.html",
+      "target": "compositions/components/speed-lines.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"mode","type":"enum","role":"motion","label":"Mode","description":"trail: a ball travels from one point to another leaving streaks. focus: rays rush out of a point.","default":"trail","options":[{"value":"trail","label":"Trail"},{"value":"focus","label":"Focus"}]},
+    {"id":"from_x","type":"number","role":"layout","label":"From X","description":"Trail start across the frame (0 to 1; may sit outside the frame).","default":-0.25,"min":-1,"max":2,"step":0.01},
+    {"id":"from_y","type":"number","role":"layout","label":"From Y","description":"Trail start down the frame (0 to 1).","default":0.5,"min":-1,"max":2,"step":0.01},
+    {"id":"x","type":"number","role":"layout","label":"X","description":"Landing or focus point across the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},
+    {"id":"y","type":"number","role":"layout","label":"Y","description":"Landing or focus point down the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},
+    {"id":"count","type":"number","role":"layout","label":"Lines","description":"Number of streaks or rays.","default":12,"min":3,"max":32,"step":1},
+    {"id":"weight","type":"number","role":"style","label":"Weight","description":"Line thickness at a 720 px frame height.","default":2,"min":1,"max":8,"step":0.5,"unit":"px"},
+    {"id":"spread","type":"number","role":"layout","label":"Spread","description":"Size of the ball and the spread of the streaks.","default":96,"min":16,"max":320,"step":1,"unit":"px"},
+    {"id":"duration","type":"number","role":"motion","label":"Travel frames","description":"Frames (30 fps) the ball takes to arrive.","default":14,"min":6,"max":40,"step":1,"unit":"frames"},
+    {"id":"bounce","type":"number","role":"motion","label":"Bounce","description":"How much the ball rebounds on landing.","default":0.5,"min":0,"max":1,"step":0.05},
+    {"id":"squash","type":"number","role":"motion","label":"Squash","description":"How much the ball stretches and squashes.","default":0.5,"min":0,"max":1,"step":0.05},
+    {"id":"color","type":"color","role":"style","label":"Line color","description":"Color of the lines and ball.","default":"#ffffff"},
+    {"id":"seed","type":"number","role":"motion","label":"Seed","description":"Seed for the random variation.","default":1,"min":1,"max":99,"step":1},
+    {"id":"delay","type":"number","role":"motion","label":"Delay","description":"Frames (30 fps) before the motion starts.","default":0,"min":0,"max":60,"step":1,"unit":"frames"}
+  ]
+}

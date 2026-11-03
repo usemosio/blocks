@@ -1,0 +1,272 @@
+<!doctype html>
+<!--
+  Orbit Lock
+
+  Moons ride tilted, shrinking orbits into a core that bursts into a ring flash, and the logo springs into place.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/orbit-lock/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="orbit-lock"
+  data-composition-duration="2.6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Placeholder lockup text shown after the impact.", "default": "studio"},
+    {"id": "moons", "type": "number", "role": "motion", "label": "Moons", "description": "Number of moons orbiting the core.", "default": 3, "min": 1, "max": 8, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color.", "default": "#111111"},
+    {"id": "core_color", "type": "color", "role": "style", "label": "Core", "description": "Core and lockup mark color.", "default": "#E5322D"},
+    {"id": "moon_color", "type": "color", "role": "style", "label": "Moons", "description": "Moon, orbit and wordmark color.", "default": "#FFFFFF"},
+    {"id": "flash_color", "type": "color", "role": "style", "label": "Flash", "description": "Ring flash released on impact.", "default": "#FFFFFF"},
+    {"id": "tilt", "type": "number", "role": "motion", "label": "Tilt", "description": "Orbit tilt in degrees: 0 is a flat circle, 80 is nearly edge-on.", "default": 64, "min": 0, "max": 85, "step": 1, "unit": "deg"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Orbit Lock</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        .ol-lockup { display: flex; align-items: center; gap: 28px; }
+        .ol-mark { width: 120px; height: 120px; border-radius: 32px; display: flex; align-items: center; justify-content: center; background: var(--mark); }
+        .ol-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--dot); }
+        .ol-word { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif; font-size: 104px; font-weight: 800; letter-spacing: -0.04em; color: var(--text); white-space: nowrap; }
+        #root { background: var(--bg); --mark: #E5322D; --dot: #111111; --text: #ffffff; }
+        .ol-stage { position: absolute; inset: 0; }
+        .ol-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .ol-logo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="orbit-lock" data-duration="2.6" data-fps="30">
+        <div id="ol-clip" class="ol-stage clip" data-start="0" data-duration="2.6" data-track-index="0">
+          <svg class="ol-svg" id="ol-svg"></svg>
+          <div class="ol-logo" id="ol-logo"><div class="ol-lockup" id="ol-lockup"><div class="ol-mark"><div class="ol-dot"></div></div><span class="ol-word" id="ol-word">studio</span></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "orbit-lock";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var svg = document.getElementById("ol-svg"), logo = document.getElementById("ol-logo");
+var moonsN = Math.round(num(vars.moons, 3, 1, 8));
+var bg = col(vars.background_color, "#111111"), coreC = col(vars.core_color, "#E5322D"), moonC = col(vars.moon_color, "#FFFFFF"), flashC = col(vars.flash_color, "#FFFFFF");
+var tilt = num(vars.tilt, 64, 0, 85), speed = num(vars.speed, 1, 0, 4);
+root.style.setProperty("--bg", bg); root.style.setProperty("--mark", coreC); root.style.setProperty("--dot", bg); root.style.setProperty("--text", moonC);
+document.getElementById("ol-word").textContent = str(vars.text, "studio");
+var W = root.clientWidth, H = root.clientHeight;
+svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+var IMPACT = 30, TURNS = 1.9, TRAIL = 10, TRAIL_STEP = 0.4;
+var s = Math.min(W, H), cx = W / 2, cy = H / 2, tiltRad = (tilt * Math.PI) / 180;
+var core = s * 0.055, outer = s * 0.36, moonR = s * 0.02;
+function moonAt(t, index, count) {
+  var p = cl(t / IMPACT, 0, 1);
+  var r = core + (outer - core) * (1 - inCubic(p));
+  var theta = (index / count) * Math.PI * 2 + Math.PI * 2 * TURNS * inQuad(p);
+  var plane = (index / count) * Math.PI + Math.PI / 9;
+  var lx = r * Math.cos(theta), ly = r * Math.sin(theta) * Math.cos(tiltRad);
+  return { x: lx * Math.cos(plane) - ly * Math.sin(plane), y: lx * Math.sin(plane) + ly * Math.cos(plane), z: r * Math.sin(theta) * Math.sin(tiltRad) };
+}
+var defs = svgEl("defs", {}, svg);
+var orbits = [];
+for (var i = 0; i < moonsN; i++) orbits.push(svgEl("ellipse", { cx: cx, cy: cy, fill: "none", stroke: moonC, "stroke-width": 1.5, transform: "rotate(" + ((i / moonsN) * 180 + 20) + " " + cx + " " + cy + ")" }, svg));
+var back = svgEl("g", {}, svg);
+var coreEl = svgEl("circle", { cx: cx, cy: cy }, svg);
+var front = svgEl("g", {}, svg);
+var ringEl = svgEl("circle", { cx: cx, cy: cy, fill: "none", stroke: flashC }, svg);
+var bodies = [];
+for (var m = 0; m < moonsN; m++) {
+  var g = svgEl("g", {});
+  var grad = svgEl("linearGradient", { id: "ol-trail-" + m, gradientUnits: "userSpaceOnUse" }, defs);
+  svgEl("stop", { offset: 0, "stop-color": moonC, "stop-opacity": 0.6 }, grad);
+  svgEl("stop", { offset: 1, "stop-color": moonC, "stop-opacity": 0 }, grad);
+  var poly = svgEl("polygon", { fill: "url(#ol-trail-" + m + ")" }, g);
+  var dot = svgEl("circle", { fill: moonC }, g);
+  bodies.push({ g: g, grad: grad, poly: poly, dot: dot, parent: null });
+}
+function draw(frame) {
+  var t = frame * speed;
+  var p = cl(t / IMPACT, 0, 1);
+  var corePulse = 1 + 0.3 * Math.pow(p, 4);
+  var burst = interp(t, [IMPACT, IMPACT + 2, IMPACT + 6], [1, 1.6, 0], outCubic);
+  var coreScale = t < IMPACT ? corePulse : corePulse * burst;
+  var coreFill = t < IMPACT - 2 ? coreC : t > IMPACT + 1 ? flashC : mixc(coreC, flashC, (t - (IMPACT - 2)) / 3);
+  var ring = interp(t, [IMPACT, IMPACT + 16], [0, 1], outCubic);
+  var ringVisible = t >= IMPACT && ring < 1;
+  var orbitOpacity = interp(t, [0, 6, IMPACT - 4, IMPACT], [0, 0.16, 0.1, 0]);
+  var orbitR = core + (outer - core) * (1 - inCubic(p));
+  var pop = spring(t - IMPACT - 3, { damping: 11, stiffness: 170, mass: 0.7 });
+  var showMoons = t < IMPACT && t >= 0;
+  var appear = interp(t, [0, 5], [0, 1]);
+  orbits.forEach(function (o) { setA(o, { rx: orbitR, ry: Math.max(0.01, orbitR * Math.cos(tiltRad)), "stroke-opacity": orbitOpacity }); });
+  bodies.forEach(function (b, i) {
+    if (!showMoons) { if (b.parent) { b.parent.removeChild(b.g); b.parent = null; } return; }
+    var head = moonAt(t, i, moonsN);
+    var pts = [head];
+    for (var k = 0; k < TRAIL; k++) pts.push(moonAt(t - (k + 1) * TRAIL_STEP, i, moonsN));
+    var depth = 1 + (0.18 * head.z) / outer;
+    var left = [], right = [];
+    pts.forEach(function (pt, k) {
+      var pv = pts[Math.max(0, k - 1)], nx = pts[Math.min(pts.length - 1, k + 1)];
+      var dx = pv.x - nx.x, dy = pv.y - nx.y, len = Math.hypot(dx, dy) || 1;
+      var half = moonR * depth * 0.9 * (1 - k / pts.length);
+      var ox = (-dy / len) * half, oy = (dx / len) * half;
+      left.push((cx + pt.x + ox).toFixed(2) + "," + (cy + pt.y + oy).toFixed(2));
+      right.unshift((cx + pt.x - ox).toFixed(2) + "," + (cy + pt.y - oy).toFixed(2));
+    });
+    var tail = pts[pts.length - 1];
+    setA(b.grad, { x1: cx + head.x, y1: cy + head.y, x2: cx + tail.x, y2: cy + tail.y });
+    b.poly.setAttribute("points", left.concat(right).join(" "));
+    setA(b.dot, { cx: cx + head.x, cy: cy + head.y, r: Math.max(0.1, moonR * depth) });
+    b.g.setAttribute("opacity", appear);
+    var want = head.z < 0 ? back : front;
+    if (b.parent !== want) { want.appendChild(b.g); b.parent = want; }
+  });
+  setA(coreEl, { r: Math.max(0, core * coreScale * appear), fill: coreFill, opacity: coreScale > 0 ? 1 : 0 });
+  setA(ringEl, { r: core + ring * s * 0.62, "stroke-width": Math.max(1, s * 0.03 * (1 - ring)), opacity: ringVisible ? 1 - ring : 0 });
+  logo.style.opacity = interp(t, [IMPACT + 3, IMPACT + 6], [0, 1]);
+  logo.style.transform = "scale(" + (0.55 + 0.45 * pop) + ")";
+}
+finish(drive(draw, TOTAL));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

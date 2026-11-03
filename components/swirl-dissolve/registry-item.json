@@ -1,0 +1,90 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "swirl-dissolve",
+  "type": "hyperframes:component",
+  "title": "Swirl Dissolve",
+  "description": "A rotating swirl of color bands unwinds to open and winds shut again, and the incoming scene grows out of its center. Rebuilt with a deterministic Canvas 2D field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .swd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "swirl",
+    "shader",
+    "dissolve",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 3.4667,
+  "useWhen": [
+    "A dramatic chapter break where the frame should visibly transform: reveals, act changes.",
+    "The brand can carry hypnotic, rotational motion; band colors take brand palettes well."
+  ],
+  "avoidWhen": [
+    "Fast cuts: under about 80 frames the twist arc collapses into noise.",
+    "Repeated use within one video: the vortex is a statement move, one per video."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/swirl-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "swirl-dissolve.html",
+      "target": "compositions/components/swirl-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "band_count",
+      "type": "number",
+      "role": "style",
+      "label": "Bands",
+      "description": "Number of color arms in the swirl.",
+      "default": 10,
+      "min": 1,
+      "max": 12,
+      "step": 1
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How soft the edges between bands are.",
+      "default": 0.35,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color of the swirl backdrop.",
+      "default": "#141318"
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Band colors",
+      "description": "Comma-separated hex colors the bands move through.",
+      "default": "#1f1d29,#413d56,#8f88ae"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the swirl\u2019s own rotation.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

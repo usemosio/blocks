@@ -1,0 +1,117 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "input",
+  "type": "hyperframes:component",
+  "title": "Input",
+  "description": "A text field that plays its states: a pointer hovers and clicks it, it focuses with a ring, the value types in, then the field shows an invalid state.",
+  "tags": [
+    "input",
+    "form",
+    "text-field",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 3.5,
+  "useWhen": [
+    "A sign-up or login demo needs a field focusing and filling in.",
+    "Showing validation: focus ring, typed value, error state."
+  ],
+  "avoidWhen": [
+    "Only a blinking insertion point is needed: use caret.",
+    "A labelled form row with helper text: use field."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/input/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "input.html",
+      "target": "compositions/components/input.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "placeholder",
+      "type": "string",
+      "role": "content",
+      "label": "Placeholder",
+      "description": "Text shown while the field is empty.",
+      "default": "you@example.com"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "Text that types into the field.",
+      "default": "hello@example.com"
+    },
+    {
+      "id": "size",
+      "type": "enum",
+      "role": "style",
+      "label": "Size",
+      "description": "Field size.",
+      "default": "default",
+      "options": [
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

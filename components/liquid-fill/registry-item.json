@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "liquid-fill",
+  "type": "hyperframes:component",
+  "title": "Liquid Fill",
+  "description": "A drop falls into an outlined mark and liquid rises with a sloshing surface and bubbles until the mark is solid. Give it any closed shape as the shape path variable.",
+  "tags": [
+    "logo-sting",
+    "liquid",
+    "fill",
+    "bubbles",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.6,
+  "useWhen": [
+    "A beverage, fintech or utility brand wants a reveal about filling up, loading or topping off.",
+    "Your mark is a simple closed shape you can express as one SVG path, and the sting should fill it."
+  ],
+  "avoidWhen": [
+    "Your logo is a detailed image rather than a single closed shape: wrap it with spotlight or orbit-lock.",
+    "The mark should feel bouncy and soft rather than fluid: use inflate."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/liquid-fill/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "liquid-fill.html",
+      "target": "compositions/components/liquid-fill.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Wordmark that slides out beside the mark once it is full. Leave empty for the mark alone.", "default": "studio"},
+    {"id": "shape", "type": "string", "role": "content", "label": "Shape path", "description": "Mark outline as SVG path data inside a 100 by 100 box. Defaults to a rounded square.", "default": "M 27 2 H 73 A 25 25 0 0 1 98 27 V 73 A 25 25 0 0 1 73 98 H 27 A 25 25 0 0 1 2 73 V 27 A 25 25 0 0 1 27 2 Z"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color.", "default": "#111111"},
+    {"id": "liquid_color", "type": "color", "role": "style", "label": "Liquid", "description": "Liquid and filled mark color.", "default": "#E5322D"},
+    {"id": "outline_color", "type": "color", "role": "style", "label": "Outline", "description": "Mark outline and wordmark color.", "default": "#FFFFFF"},
+    {"id": "bubble_color", "type": "color", "role": "style", "label": "Bubbles", "description": "Bubble outline color.", "default": "#FFFFFF"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

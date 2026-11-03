@@ -1,0 +1,65 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "push-through",
+  "type": "hyperframes:component",
+  "title": "Push Through",
+  "description": "The outgoing scene is pushed toward the camera and blurs away while the next scene arrives from behind it. Built-in placeholder scenes A and B (the two .pth-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "zoom",
+    "blur",
+    "push",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.3333,
+  "useWhen": [
+    "A scene change that should feel like moving forward through the frame.",
+    "Product or feature reveals: the camera pushes past one idea into the next."
+  ],
+  "avoidWhen": [
+    "You want a flat wipe or slide with no depth: use a wipe or slide block.",
+    "The scenes carry small text that must stay readable through the change."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/push-through/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "push-through.html",
+      "target": "compositions/components/push-through.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "zoom",
+      "type": "number",
+      "role": "motion",
+      "label": "Zoom",
+      "description": "How far the outgoing scene scales toward the camera.",
+      "default": 2.4,
+      "min": 1,
+      "max": 5,
+      "step": 0.1,
+      "unit": "x"
+    },
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Peak blur of the outgoing scene.",
+      "default": 14,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}

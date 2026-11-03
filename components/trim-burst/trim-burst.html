@@ -1,0 +1,556 @@
+<!doctype html>
+<!--
+  Trim Burst
+
+  Short strokes shoot outward from a point and shrink to nothing: a quick spark, pop or impact accent.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/trim-burst/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="trim-burst"
+  data-composition-duration="1.5"
+  data-composition-variables='[{"id":"x","type":"number","role":"layout","label":"X","description":"Burst origin across the frame, 0 (left) to 1 (right).","default":0.5,"min":0,"max":1,"step":0.01},{"id":"y","type":"number","role":"layout","label":"Y","description":"Burst origin down the frame, 0 (top) to 1 (bottom).","default":0.5,"min":0,"max":1,"step":0.01},{"id":"count","type":"number","role":"layout","label":"Strokes","description":"Number of strokes.","default":8,"min":1,"max":24,"step":1},{"id":"inner_radius","type":"number","role":"layout","label":"Inner radius","description":"Gap between the origin and where strokes start, at a 720 px frame height.","default":16,"min":0,"max":160,"step":1,"unit":"px"},{"id":"reach","type":"number","role":"motion","label":"Reach","description":"How far each stroke travels.","default":64,"min":8,"max":240,"step":1,"unit":"px"},{"id":"stroke_length","type":"number","role":"layout","label":"Stroke length","description":"Length of each visible stroke.","default":56,"min":4,"max":200,"step":1,"unit":"px"},{"id":"weight","type":"number","role":"style","label":"Weight","description":"Line thickness.","default":2,"min":0.5,"max":8,"step":0.25,"unit":"px"},{"id":"rotation","type":"number","role":"layout","label":"Rotation","description":"Rotation of the whole burst in degrees.","default":0,"min":-180,"max":180,"step":1,"unit":"deg"},{"id":"spread","type":"number","role":"layout","label":"Spread","description":"Angle covered by the strokes; below 360 they fan out around the rotation.","default":360,"min":15,"max":360,"step":1,"unit":"deg"},{"id":"jitter","type":"number","role":"motion","label":"Jitter","description":"Random variety in angle, length and launch time.","default":0.5,"min":0,"max":1,"step":0.05},{"id":"dots","type":"boolean","role":"style","label":"Tip dots","description":"Pop a small dot at the tip of each stroke.","default":false},{"id":"cap","type":"enum","role":"style","label":"Cap","description":"Stroke ends.","default":"round","options":[{"value":"round","label":"Round"},{"value":"butt","label":"Butt"}]},{"id":"color","type":"color","role":"style","label":"Line color","description":"Stroke color.","default":"#ffffff"},{"id":"seed","type":"number","role":"motion","label":"Seed","description":"Seed for the random variation.","default":1,"min":1,"max":99,"step":1},{"id":"delay","type":"number","role":"motion","label":"Delay","description":"Frames (30 fps) before the burst starts.","default":0,"min":0,"max":30,"step":1,"unit":"frames"},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Trim Burst</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        .tbu-stage { position: absolute; inset: 0; }
+        .tbu-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+      </style>
+
+      <div id="root" data-composition-id="trim-burst" data-duration="1.5" data-fps="30">
+        <div id="tbu-clip" class="tbu-stage clip" data-start="0" data-duration="1.5" data-track-index="0">
+          <svg id="tbu-svg" class="tbu-svg" role="img" aria-label="Trim burst"><g id="tbu-lines" fill="none"></g><g id="tbu-dots"></g></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                                            
+
+                                 
+             
+             
+                 
+                       
+                 
+                        
+                  
+                    
+                  
+                  
+                 
+                     
+                 
+                
+                 
+                 
+                     
+ 
+
+                                   
+
+                                                                       
+                 
+                  
+               
+ 
+
+                                  
+                
+                
+                
+                 
+ 
+
+                                
+                
+              
+                 
+ 
+
+                                
+                
+             
+             
+             
+             
+                
+ 
+
+                               
+                
+             
+             
+            
+ 
+
+const trimBurstDefaults                                              = {
+  x: 0.5,
+  y: 0.5,
+  count: 8,
+  innerRadius: 16,
+  reach: 64,
+  strokeLength: 56,
+  weight: 2,
+  rotation: 0,
+  spread: 360,
+  jitter: 0.5,
+  dots: false,
+  cap: "round",
+  color: "#ffffff",
+  seed: 1,
+  delay: 0,
+  speed: 1,
+};
+
+const LIFE = 15;
+const LAG = 3;
+const STAGGER = 6;
+const HOLD = 24;
+const LEASH = 6;
+const WOBBLE = 0.25;
+const MAX_STEP = 45;
+const SHRINK = 0.45;
+const DOT_START = 4;
+const DOT_POP = 4;
+const DOT_BACK = 1.4;
+const DOT_RADIUS = 1.25;
+const DOT_GAP = 2;
+const MAX_COUNT = 32;
+const MAX_SIZE = 2000;
+const MIN_STROKE = 1;
+const MIN_WEIGHT = 0.25;
+const MAX_WEIGHT = 24;
+const VISIBLE = 0.001;
+const END_EASE = Easing.bezier(0.16, 1, 0.3, 1);
+const START_EASE = Easing.bezier(0.45, 0, 0.55, 1);
+
+const finite = (value                    , fallback        ) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+const clamp = (value        , min        , max        ) =>
+  Math.min(max, Math.max(min, value));
+const within = (
+  value                    ,
+  fallback        ,
+  min        ,
+  max        ,
+) => clamp(finite(value, fallback), min, max);
+const round = (value        ) => Math.round(value * 1000) / 1000;
+const rateOf = (speed                    ) =>
+  Math.max(0, finite(speed, trimBurstDefaults.speed));
+const delayOf = (delay                    ) =>
+  Math.max(0, finite(delay, trimBurstDefaults.delay));
+const countOf = (count                    ) =>
+  Math.round(within(count, trimBurstDefaults.count, 1, MAX_COUNT));
+const jitterOf = (jitter                    ) =>
+  within(jitter, trimBurstDefaults.jitter, 0, 1);
+const capOf = (cap                    )               =>
+  cap === "butt" ? cap : "round";
+
+function getTrimBurstTimeline(
+  options                                             = {},
+) {
+  const count = countOf(options.count);
+  const stagger = count > 1 ? STAGGER * jitterOf(options.jitter) : 0;
+  return { life: LIFE, lag: LAG, stagger, length: LIFE + stagger };
+}
+
+                                                                        
+
+const trimBurstLength = getTrimBurstTimeline().length;
+
+function getTrimBurstDuration(
+  options                                                                 = {},
+) {
+  const rate = rateOf(options.speed);
+  const { length } = getTrimBurstTimeline(options);
+  const motion = rate === 0 ? 0 : length / rate;
+  return Math.ceil(round(delayOf(options.delay) + motion)) + HOLD;
+}
+
+function getTrimBurstTime(
+  frame        ,
+  options                                                    = {},
+) {
+  const fps = Math.max(1, finite(options.fps, 30));
+  const elapsed = Math.max(0, finite(frame, 0) - delayOf(options.delay));
+  return elapsed * (30 / fps) * rateOf(options.speed);
+}
+
+function getTrimBurstEndProgress(time        ) {
+  if (Number.isNaN(time) || time <= 0) return 0;
+  if (time >= LIFE) return 1;
+  return END_EASE(time / LIFE);
+}
+
+function getTrimBurstStartProgress(time        ) {
+  if (Number.isNaN(time) || time <= LAG) return 0;
+  if (time >= LIFE) return 1;
+  return START_EASE((time - LAG) / (LIFE - LAG));
+}
+
+function getTrimBurstLeash(gap        , strokeLength        ) {
+  if (!(gap > 0 && strokeLength > 0)) return 0;
+  return gap / (1 + (gap / strokeLength) ** LEASH) ** (1 / LEASH);
+}
+
+function getTrimBurstTrim(
+  time        ,
+  reach        ,
+  strokeLength        ,
+)                {
+  const distance = Math.max(0, finite(reach, 0));
+  const end = distance * getTrimBurstEndProgress(time);
+  const own = distance * getTrimBurstStartProgress(time);
+  const length = getTrimBurstLeash(end - own, strokeLength);
+  return { start: end - length, end, length };
+}
+
+function getTrimBurstDotScale(time        ) {
+  if (Number.isNaN(time) || time <= DOT_START || time >= LIFE) return 0;
+  const pop = Math.min(1, (time - DOT_START) / DOT_POP) - 1;
+  const grow = 1 + (DOT_BACK + 1) * pop ** 3 + DOT_BACK * pop ** 2;
+  const settle = DOT_START + DOT_POP;
+  const shrink = clamp((time - settle) / (LIFE - settle), 0, 1);
+  return grow * (1 - shrink ** 3);
+}
+
+function getTrimBurstStrokes(
+  options       
+                     
+                                                       
+    = {},
+)                    {
+  const count = countOf(options.count);
+  const rotation = finite(options.rotation, trimBurstDefaults.rotation);
+  const spread = within(options.spread, trimBurstDefaults.spread, 0, 360);
+  const jitter = jitterOf(options.jitter);
+  const seed = finite(options.seed, trimBurstDefaults.seed);
+  const fan = spread < 360 && count > 1;
+  const step = fan ? spread / (count - 1) : 360 / count;
+  const first = fan ? rotation - spread / 2 : rotation;
+  const wobble = WOBBLE * jitter * Math.min(step, MAX_STEP);
+  const { stagger } = getTrimBurstTimeline({ count, jitter });
+  const keys = Array.from({ length: count }, (_, index) =>
+    random(`trim-burst-${seed}-order-${index}`),
+  );
+  const order = keys.map((_, index) => index);
+  order.sort((a, b) => keys[a] - keys[b]);
+  const ranks           = [];
+  for (const [position, index] of order.entries()) ranks[index] = position;
+  return keys.map((_, index) => {
+    const turn = random(`trim-burst-${seed}-angle-${index}`) * 2 - 1;
+    const shrink = random(`trim-burst-${seed}-scale-${index}`);
+    return {
+      index,
+      angle: first + index * step + turn * wobble,
+      scale: 1 - SHRINK * jitter * shrink,
+      launch: count > 1 ? (stagger * ranks[index]) / (count - 1) : 0,
+    };
+  });
+}
+
+function getTrimBurstState(
+  frame        ,
+  options                   = {},
+  strokes                    = getTrimBurstStrokes(options),
+) {
+  const fallback = trimBurstDefaults;
+  const width = Math.max(1, finite(options.width, 1280));
+  const height = Math.max(1, finite(options.height, 720));
+  const unit = height / 720;
+  const time = getTrimBurstTime(frame, options);
+  const originX = finite(options.x, fallback.x) * width;
+  const originY = finite(options.y, fallback.y) * height;
+  const inner = within(options.innerRadius, fallback.innerRadius, 0, MAX_SIZE);
+  const reach = within(options.reach, fallback.reach, 0, MAX_SIZE);
+  const strokeLength = within(
+    options.strokeLength,
+    fallback.strokeLength,
+    MIN_STROKE,
+    MAX_SIZE,
+  );
+  const size = within(options.weight, fallback.weight, MIN_WEIGHT, MAX_WEIGHT);
+  const offset = inner * unit;
+  const weight = size * unit;
+  const gap = DOT_GAP * weight;
+  const radius = DOT_RADIUS * weight;
+  const lines                  = [];
+  const dots                 = [];
+  for (const stroke of strokes) {
+    const local = time - stroke.launch;
+    const trim = getTrimBurstTrim(
+      local,
+      reach * unit * stroke.scale,
+      strokeLength * unit * stroke.scale,
+    );
+    const angle = (stroke.angle * Math.PI) / 180;
+    const dx = Math.sin(angle);
+    const dy = -Math.cos(angle);
+    const along = (distance        ) => ({
+      x: round(originX + dx * (offset + distance)),
+      y: round(originY + dy * (offset + distance)),
+    });
+    if (trim.length > VISIBLE) {
+      const from = along(trim.start);
+      const to = along(trim.end);
+      lines.push({
+        index: stroke.index,
+        x1: from.x,
+        y1: from.y,
+        x2: to.x,
+        y2: to.y,
+        width: round(Math.min(weight, trim.length)),
+      });
+    }
+    const pop = options.dots === true ? getTrimBurstDotScale(local) : 0;
+    if (pop > 0) {
+      const center = along(trim.end + gap + radius);
+      dots.push({
+        index: stroke.index,
+        cx: center.x,
+        cy: center.y,
+        r: round(radius * pop),
+      });
+    }
+  }
+  return {
+    width,
+    height,
+    unit,
+    time,
+    originX,
+    originY,
+    weight,
+    cap: capOf(options.cap),
+    lines,
+    dots,
+  };
+}
+
+                                                                  
+
+
+            var opt = {
+              x: num(vars.x, 0.5, 0, 1), y: num(vars.y, 0.5, 0, 1), count: Math.round(num(vars.count, 8, 1, 24)),
+              innerRadius: num(vars.inner_radius, 16, 0, 160), reach: num(vars.reach, 64, 8, 240), strokeLength: num(vars.stroke_length, 56, 4, 200),
+              weight: num(vars.weight, 2, 0.5, 8), rotation: num(vars.rotation, 0, -180, 180), spread: num(vars.spread, 360, 15, 360),
+              jitter: num(vars.jitter, 0.5, 0, 1), dots: bool(vars.dots, false), cap: pick(vars.cap, ["round", "butt"], "round"),
+              seed: Math.round(num(vars.seed, 1, 1, 99)), delay: num(vars.delay, 0, 0, 30), speed: num(vars.speed, 1, 0.25, 3),
+              width: root.clientWidth, height: root.clientHeight, fps: 30
+            };
+            var color = str(vars.color, "#ffffff");
+            var svg = document.getElementById("tbu-svg");
+            svg.setAttribute("viewBox", "0 0 " + opt.width + " " + opt.height);
+            var linesG = document.getElementById("tbu-lines"), dotsG = document.getElementById("tbu-dots");
+            linesG.setAttribute("stroke", color);
+            linesG.setAttribute("stroke-linecap", opt.cap);
+            dotsG.setAttribute("fill", color);
+            var strokes = getTrimBurstStrokes(opt);
+            function draw(frame) {
+              var s = getTrimBurstState(frame, opt, strokes);
+              var l = "", d = "";
+              s.lines.forEach(function (ln) { l += '<line x1="' + ln.x1 + '" y1="' + ln.y1 + '" x2="' + ln.x2 + '" y2="' + ln.y2 + '" stroke-width="' + ln.width + '"/>'; });
+              s.dots.forEach(function (dt) { d += '<circle cx="' + dt.cx + '" cy="' + dt.cy + '" r="' + dt.r + '"/>'; });
+              linesG.innerHTML = l;
+              dotsG.innerHTML = d;
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 45, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "1.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["trim-burst"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

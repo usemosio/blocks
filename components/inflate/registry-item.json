@@ -1,0 +1,47 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "inflate",
+  "type": "hyperframes:component",
+  "title": "Inflate",
+  "description": "A flat sliver puffs up like a balloon toy, squashes and settles into a glossy mark, then the wordmark slides out. The mark is a fixed rounded square with a dot; the wordmark is the text variable.",
+  "tags": [
+    "logo-sting",
+    "playful",
+    "balloon",
+    "squash",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.2,
+  "useWhen": [
+    "A consumer, kids or casual app wants a soft, bouncy brand moment with a toy-like feel.",
+    "You have a wordmark and want the sting to supply a simple rounded mark beside it."
+  ],
+  "avoidWhen": [
+    "Your real logo must appear exactly as designed: the mark here is a fixed rounded square with a dot, so wrap your logo with spotlight or orbit-lock.",
+    "The brand is serious or premium and the bounce reads as too playful: use anamorphic-flare."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/inflate/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "inflate.html",
+      "target": "compositions/components/inflate.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Wordmark that slides out beside the mark. Leave empty for the mark alone.", "default": "studio"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color.", "default": "#111111"},
+    {"id": "color", "type": "color", "role": "style", "label": "Body", "description": "Body color of the mark.", "default": "#E5322D"},
+    {"id": "highlight", "type": "color", "role": "style", "label": "Highlight", "description": "Specular highlight color.", "default": "#FFFFFF"},
+    {"id": "dot_color", "type": "color", "role": "style", "label": "Dot", "description": "Dot inside the mark.", "default": "#111111"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

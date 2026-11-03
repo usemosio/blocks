@@ -1,0 +1,278 @@
+<!doctype html>
+<!--
+  Check List
+
+  A handwritten checklist that writes itself out, then ticks and strikes through every done item. The clip is as long as the schedule of the default list (3.7 s); a longer list needs a longer data-duration.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/check-list/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="check-list"
+  data-composition-duration="4.1"
+  data-composition-variables='[
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "JSON array of list items: a string (ticked) or an object with text and checked. One line per label.", "default": "[\"Render on your own machine\",\"No watermark, ever\",\"Every component MIT\",{\"text\":\"Ships as source\",\"checked\":false}]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Label size in px on a 1280 by 720 layout; the whole list scales to fit the frame.", "default": 40, "min": 24, "max": 120, "step": 2, "unit": "px"},
+    {"id": "list_width", "type": "number", "role": "style", "label": "List width", "description": "Row width in px on the 1280 by 720 layout.", "default": 820, "min": 300, "max": 1600, "step": 10, "unit": "px"},
+    {"id": "item_gap", "type": "number", "role": "motion", "label": "Item gap", "description": "Frames between items starting to write.", "default": 18, "min": 6, "max": 48, "step": 3},
+    {"id": "close_gap", "type": "number", "role": "motion", "label": "Close gap", "description": "Frames between ticks when the done items are crossed off.", "default": 9, "min": 3, "max": 24, "step": 3},
+    {"id": "per_step", "type": "number", "role": "motion", "label": "Letters per step", "description": "Letters written per stepped frame.", "default": 1.6, "min": 0.5, "max": 6, "step": 0.1},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frame step", "description": "Stop-motion step: motion updates every this many frames.", "default": 3, "min": 1, "max": 6, "step": 1},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Stroke width", "description": "Pen stroke width.", "default": 3, "min": 1, "max": 8, "step": 0.5},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the handwriting.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Text", "description": "Handwriting color.", "default": "#26242c"},
+    {"id": "box_color", "type": "color", "role": "style", "label": "Box", "description": "Checkbox outline color.", "default": "#26242c"},
+    {"id": "tick_color", "type": "color", "role": "style", "label": "Tick", "description": "Tick and strike-through color.", "default": "#6f7f35"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Paper color.", "default": "#f1eee7"},
+    {"id": "seed", "type": "string", "role": "motion", "label": "Seed", "description": "Seed for the hand-drawn wobble.", "default": "checklist"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Check List</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--bg); }
+        .cl-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .cl-list { display: flex; flex-direction: column; flex-shrink: 0; transform-origin: 50% 50%; }
+        .cl-row { display: flex; align-items: center; }
+        .cl-box { display: block; overflow: visible; flex-shrink: 0; }
+        .cl-label { position: relative; flex-shrink: 0; }
+        .cl-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-start; font-family: Caveat, cursive; line-height: 1.15; color: var(--ink); }
+        .cl-text > span { display: inline-block; white-space: pre; }
+        .cl-char { display: inline-block; white-space: pre; opacity: 0; }
+        .cl-strike { position: absolute; inset: 0; display: block; overflow: visible; }
+      </style>
+
+      <div id="root" data-composition-id="check-list" data-duration="4.1" data-fps="30">
+        <div id="cl-clip" class="cl-stage clip" data-start="0" data-duration="4.1" data-track-index="0">
+          <div class="cl-list" id="cl-list"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "check-list";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var list = document.getElementById("cl-list");
+var DEFAULT_ITEMS = [{ text: "Render on your own machine", checked: true }, { text: "No watermark, ever", checked: true }, { text: "Every component MIT", checked: true }, { text: "Ships as source", checked: false }];
+var items = DEFAULT_ITEMS;
+try {
+  var parsed = typeof vars.items === "string" ? JSON.parse(vars.items) : Array.isArray(vars.items) ? vars.items : null;
+  if (Array.isArray(parsed) && parsed.length) items = parsed.map(function (it) { return typeof it === "string" ? { text: it, checked: true } : { text: String(it.text), checked: it.checked !== false }; });
+} catch (e) {}
+var fontSize = num(vars.font_size, 40, 24, 120), listWidth = num(vars.list_width, 820, 300, 1600), step = Math.round(num(vars.step, 3, 1, 6));
+var itemGap = num(vars.item_gap, 18, 6, 48), closeGap = num(vars.close_gap, 9, 3, 24), strokeW = num(vars.stroke_width, 3, 1, 8), perStep = num(vars.per_step, 1.6, 0.5, 6);
+var weight = ["400", "500", "600", "700"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "600";
+var seed = str(vars.seed, "checklist");
+var ink = col(vars.color, "#26242c"), boxC = col(vars.box_color, "#26242c"), tickC = col(vars.tick_color, "#6f7f35"), bg = col(vars.background_color, "#f1eee7");
+var LIST_FROM = 0;
+root.style.setProperty("--bg", bg); root.style.setProperty("--ink", ink);
+var W = root.clientWidth, H = root.clientHeight;
+// The list is laid out for a 1280 by 720 frame and scaled to fit the real one.
+var scale = Math.min(W / 1280, H / 720);
+function hash01(sd) { var h = 2166136261; for (var i = 0; i < sd.length; i++) { h ^= sd.charCodeAt(i); h = Math.imul(h, 16777619); } h = Math.imul(h ^ (h >>> 13), 2246822519); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function hashRange(sd, lo, hi) { return lo + hash01(sd) * (hi - lo); }
+function qf(f) { return Math.floor(f / step) * step; }
+function qstep(f) { return Math.floor(f / step); }
+function ramp(frame, from, to) { var f = qf(frame); if (f <= from) return 0; if (f >= to) return 1; return outCubic((f - from) / (to - from)); }
+function hwDuration(text) { return Math.ceil(Array.from(text).length / perStep) * step + step; }
+var boxSize = Math.round(fontSize * 0.62), boxGap = Math.round(fontSize * 0.4), rowHeight = Math.round(fontSize * 1.15), labelWidth = Math.max(fontSize * 2, listWidth - boxSize - boxGap);
+list.style.width = boxSize + boxGap + labelWidth + "px"; list.style.gap = fontSize * 0.55 + "px"; list.style.transform = "scale(" + scale + ")";
+// Schedule: each box draws, its label is written, then the ticked rows are closed in order.
+var enterEnd = 0;
+items.forEach(function (it, i) { enterEnd = Math.max(enterEnd, i * itemGap + step * 2 + hwDuration(it.text)); });
+var closeIdx = 0, end = 0;
+var rows = items.map(function (it, i) {
+  var b = { boxFrom: i * itemGap }; b.boxTo = b.boxFrom + step * 2; b.labelAt = b.boxTo; b.labelEnd = b.boxTo + hwDuration(it.text);
+  end = Math.max(end, b.labelEnd);
+  if (it.checked) { b.tickFrom = enterEnd + closeIdx++ * closeGap; b.tickTo = b.tickFrom + step * 2; b.strikeFrom = b.tickTo; b.strikeTo = b.tickTo + step * 2; end = Math.max(end, b.strikeTo); }
+  var row = document.createElement("div"); row.className = "cl-row"; row.style.gap = boxGap + "px"; row.style.height = rowHeight + "px";
+  var bs = svgEl("svg", { width: boxSize, height: boxSize, viewBox: "0 0 " + boxSize + " " + boxSize }, row); bs.setAttribute("class", "cl-box");
+  var nudge = function (n) { return hashRange(seed + ":" + i + ":c" + n, -1.5, 1.5); };
+  var lo = boxSize * 0.08, hi = boxSize - lo;
+  var cs = [[lo + nudge(0), lo + nudge(1)], [hi + nudge(2), lo + nudge(3)], [hi + nudge(4), hi + nudge(5)], [lo + nudge(6), hi + nudge(7)]];
+  b.box = svgEl("path", { d: "M " + cs[0][0] + " " + cs[0][1] + " " + cs.slice(1).map(function (c) { return "L " + c[0] + " " + c[1]; }).join(" ") + " Z", stroke: boxC, "stroke-width": strokeW, "stroke-linecap": "round", "stroke-linejoin": "round", fill: "none", pathLength: 1, "stroke-dasharray": 1 }, bs);
+  if (it.checked) b.tick = svgEl("path", { d: "M " + boxSize * 0.2 + " " + boxSize * 0.52 + " L " + boxSize * 0.42 + " " + boxSize * 0.78 + " L " + boxSize * 0.88 + " " + boxSize * 0.14, stroke: tickC, "stroke-width": strokeW + 1, "stroke-linecap": "round", "stroke-linejoin": "round", fill: "none", pathLength: 1, "stroke-dasharray": 1 }, bs);
+  var label = document.createElement("div"); label.className = "cl-label"; label.style.width = labelWidth + "px"; label.style.height = rowHeight + "px";
+  var tx = document.createElement("div"); tx.className = "cl-text"; tx.style.fontSize = fontSize + "px"; tx.style.fontWeight = weight;
+  var sp = document.createElement("span"); tx.appendChild(sp);
+  var chars = Array.from(it.text);
+  b.chars = chars.map(function (ch, k) {
+    var c = document.createElement("span"); c.className = "cl-char"; c.textContent = ch; sp.appendChild(c);
+    return { el: c, rot: hashRange("hw:" + it.text + ":" + k + ":r", -3.2, 3.2), dy: hashRange("hw:" + it.text + ":" + k + ":y", -1.8, 1.8) };
+  });
+  label.appendChild(tx);
+  if (it.checked) {
+    var ss = svgEl("svg", { width: labelWidth, height: rowHeight, viewBox: "0 0 " + labelWidth + " " + rowHeight }, label); ss.setAttribute("class", "cl-strike");
+    var reach = Math.min(labelWidth, chars.length * fontSize * 0.36), ov = fontSize * 0.07, mid = rowHeight / 2;
+    var lift = function (n) { return hashRange(seed + ":" + i + ":s" + n, -1.6, 1.6); };
+    b.strike = svgEl("path", { d: "M " + -ov + " " + (mid + lift(0)) + " C " + reach * 0.35 + " " + (mid + lift(1)) + ", " + reach * 0.7 + " " + (mid + lift(2)) + ", " + (reach + ov) + " " + (mid + lift(3)), stroke: tickC, "stroke-width": strokeW, "stroke-linecap": "round", fill: "none", pathLength: 1, "stroke-dasharray": 1 }, ss);
+  }
+  row.appendChild(label); list.appendChild(row);
+  return b;
+});
+var total = Math.ceil(LIST_FROM + end);
+function draw(frame) {
+  var local = Math.max(0, frame - LIST_FROM);
+  rows.forEach(function (b) {
+    var bp = ramp(local, b.boxFrom, b.boxTo);
+    setA(b.box, { "stroke-dashoffset": 1 - bp, opacity: bp > 0 ? 0.9 : 0 });
+    if (b.tick) { var tp = ramp(local, b.tickFrom, b.tickTo); setA(b.tick, { "stroke-dashoffset": 1 - tp, opacity: tp > 0 ? 1 : 0 }); }
+    if (b.strike) { var sp2 = ramp(local, b.strikeFrom, b.strikeTo); setA(b.strike, { "stroke-dashoffset": 1 - sp2, opacity: sp2 > 0 ? 0.85 : 0 }); }
+    var steps = Math.max(0, qstep(Math.max(0, qf(local) - b.labelAt))), shown = Math.floor(steps * perStep), fresh0 = shown - Math.ceil(perStep);
+    b.chars.forEach(function (c, k) {
+      var vis = k < shown;
+      c.el.style.opacity = vis ? 1 : 0;
+      c.el.style.transform = vis ? "translateY(" + c.dy + "px) rotate(" + c.rot + "deg) scale(" + (k >= fresh0 ? 1.06 : 1) + ")" : "none";
+    });
+  });
+}
+finish(drive(draw, Math.max(TOTAL, total)));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

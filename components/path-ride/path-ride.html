@@ -1,0 +1,236 @@
+<!doctype html>
+<!--
+  Path Ride
+
+  A line draws itself along a curve with the text riding behind its head, then the curve pulls taut and the text settles on a straight, centered baseline.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/path-ride/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="path-ride"
+  data-composition-duration="3.2"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short phrase that rides the line.", "default": "Follow the line"},
+    {"id": "path", "type": "string", "role": "style", "label": "Path (1280×720)", "description": "SVG path data in a 1280×720 space, drawn left to right works best.", "default": "M 120 560 C 360 120 560 120 640 360 S 920 600 1160 160"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the letters.", "default": "#111111"},
+    {"id": "line_color", "type": "color", "role": "style", "label": "Line color", "description": "Color of the line and its head.", "default": "#fafafa"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (1280×720 space).", "default": 44, "min": 16, "max": 120, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Weight", "description": "Font weight, 100 to 900.", "default": 700, "min": 100, "max": 900, "step": 100},
+    {"id": "line_width", "type": "number", "role": "style", "label": "Line width", "description": "Line thickness in reference pixels.", "default": 3, "min": 1, "max": 12, "step": 0.5, "unit": "px"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Path Ride</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .pr-stage { position: absolute; inset: 0; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+        .pr-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .pr-letter { position: absolute; left: 0; top: 0; line-height: 1; white-space: pre; transform-origin: 0 0; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="path-ride" data-duration="3.2" data-fps="30">
+        <div id="pr-clip" class="pr-stage clip" data-start="0" data-duration="3.2" data-track-index="0">
+          <svg id="pr-svg" class="pr-svg">
+            <g id="pr-g" fill="none"><path id="pr-line" stroke-linecap="round" stroke-linejoin="round" d="" /><circle id="pr-tip" opacity="0" /></g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "3.2");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var NS = "http://www.w3.org/2000/svg";
+            var stage = document.getElementById("pr-clip"), svg = document.getElementById("pr-svg");
+            var text = str(vars.text, "Follow the line"), speed = num(vars.speed, 1, 0.25, 4);
+            var pathData = str(vars.path, "M 120 560 C 360 120 560 120 640 360 S 920 600 1160 160");
+            if (/[^MmLlHhVvCcSsQqTtAaZz0-9eE.,\s+-]/.test(pathData)) pathData = "M 120 560 C 360 120 560 120 640 360 S 920 600 1160 160";
+            var fs = num(vars.font_size, 44, 16, 120), weight = num(vars.font_weight, 700, 100, 900), lw = num(vars.line_width, 3, 1, 12);
+            var color = col(vars.color, "#111111"), lineColor = col(vars.line_color, "#fafafa");
+            var W = root.clientWidth, H = root.clientHeight, unit = Math.min(W / 1280, H / 720);
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var g = document.getElementById("pr-g"), lineEl = document.getElementById("pr-line"), tipEl = document.getElementById("pr-tip");
+            g.setAttribute("transform", "translate(" + (W / 2 - 640 * unit) + " " + (H / 2 - 360 * unit) + ") scale(" + unit + ")");
+            lineEl.setAttribute("stroke", lineColor); lineEl.setAttribute("stroke-width", lw);
+            tipEl.setAttribute("fill", lineColor); tipEl.setAttribute("r", lw * 1.6);
+            // Sample the path at 400 evenly spaced arc lengths: points and unit tangents.
+            var probe = document.createElementNS(NS, "path"); probe.setAttribute("d", pathData); svg.appendChild(probe);
+            var length = probe.getTotalLength(), NS_ = 400, pts = [], tans = [];
+            for (var i = 0; i < NS_; i++) {
+              var at = (length * i) / (NS_ - 1), p = probe.getPointAtLength(at);
+              var a = probe.getPointAtLength(Math.max(0, at - 0.5)), b = probe.getPointAtLength(Math.min(length, at + 0.5));
+              var tx = b.x - a.x, ty = b.y - a.y, nn = Math.hypot(tx, ty) || 1;
+              pts.push({ x: p.x, y: p.y }); tans.push({ x: tx / nn, y: ty / nn });
+            }
+            svg.removeChild(probe);
+            function sampleAt(s) {
+              var u = length > 0 ? (s / length) * (NS_ - 1) : 0, i = Math.min(NS_ - 2, Math.max(0, Math.floor(u))), f = Math.min(1, Math.max(0, u - i));
+              var a = pts[i], b = pts[i + 1], ta = tans[i], tb = tans[i + 1];
+              var tx = ta.x + (tb.x - ta.x) * f, ty = ta.y + (tb.y - ta.y) * f, nn = Math.hypot(tx, ty) || 1;
+              return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, tx: tx / nn, ty: ty / nn };
+            }
+            // Pull the curve k of the way to a straight baseline; arc length maps to x one to one.
+            function pose(s, k, st, lift) {
+              var p = sampleAt(s);
+              var x = p.x + (st.left + (s - st.start) - p.x) * k, y = p.y + (st.baseline - p.y) * k;
+              var tx = p.tx + (1 - p.tx) * k, ty = p.ty * (1 - k), nn = Math.hypot(tx, ty) || 1;
+              return { x: x + (ty / nn) * (lift || 0), y: y - (tx / nn) * (lift || 0), angle: Math.atan2(ty, tx) };
+            }
+            var chars = Array.from(text), spans = chars.map(function (ch) {
+              var s = document.createElement("span"); s.className = "pr-letter"; s.textContent = ch;
+              s.style.fontSize = fs * unit + "px"; s.style.fontWeight = weight; s.style.fontVariationSettings = '"wght" ' + weight; s.style.color = color;
+              stage.appendChild(s); return s;
+            });
+            var fontSpec = weight + " 100px Inter", ctx = document.createElement("canvas").getContext("2d");
+            var met = { adv: chars.map(function () { return 0.55; }), baseline: 0.8637, cap: 0.7275 }, real = false;
+            function measure() {
+              ctx.font = fontSpec;
+              var m = ctx.measureText("H"), asc = m.fontBoundingBoxAscent / 100, desc = m.fontBoundingBoxDescent / 100;
+              met = { adv: chars.map(function (c) { return ctx.measureText(c).width / 100; }),
+                baseline: asc > 0 ? (1 - (asc + desc)) / 2 + asc : 0.8637, cap: m.actualBoundingBoxAscent > 0 ? m.actualBoundingBoxAscent / 100 : 0.7275 };
+            }
+            var inOut = cubInOut;
+            function polyline(from, to, k, st) {
+              if (to <= from) return "";
+              var step = length / (NS_ - 1), stops = [from];
+              for (var s = Math.ceil(from / step) * step; s < to; s += step) if (s > from) stops.push(s);
+              stops.push(to);
+              return stops.map(function (s, i) { var p = pose(s, k, st, 0); return (i === 0 ? "M" : "L") + p.x.toFixed(2) + " " + p.y.toFixed(2); }).join("");
+            }
+            tick(function (tt) {
+              var t = tt * 30 * speed;
+              if (!real) { var ok = !document.fonts || document.fonts.check(fontSpec); measure(); real = ok; }
+              var adv = met.adv.map(function (a) { return a * fs; }), x = 0, centers = adv.map(function (a) { var c = x + a / 2; x += a; return c; }), tw = x;
+              var head = ip(t, 0, 40, 0, length, inOut), tail = ip(t, 52, 70, 0, length, inOut), k = ip(t, 50, 68, 0, 1, inOut);
+              var lift = lw / 2 + 0.08 * fs;
+              var st = { start: length - 0.3 * fs - tw, left: 640 - tw / 2, baseline: 360 + (met.cap * fs) / 2 + lift };
+              var tip = pose(head, k, st, 0);
+              lineEl.setAttribute("d", polyline(tail, head, k, st));
+              tipEl.setAttribute("cx", tip.x); tipEl.setAttribute("cy", tip.y);
+              tipEl.setAttribute("opacity", ip(head, 0, length * 0.02, 0, 1) * ip(head, length * 0.98, length, 1, 0));
+              var size = fs * unit;
+              spans.forEach(function (sp, j) {
+                var arc = head - 0.3 * fs - (tw - centers[j]), fade = Math.min(1, Math.max(0, arc / (0.5 * fs)));
+                sp.style.opacity = fade;
+                if (fade <= 0) return;
+                var ps = pose(arc, k, st, lift);
+                var px = W / 2 + (ps.x - 640) * unit, py = H / 2 + (ps.y - 360) * unit;
+                sp.style.transform = "translate(" + px + "px," + py + "px) rotate(" + ps.angle + "rad) translate(-50%," + -met.baseline * size + "px)";
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "3.2");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["path-ride"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

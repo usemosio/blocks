@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- Squiggle demo: a vertical 1080×1920 frame mounting the component full-frame. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Squiggle Demo</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #002fa7; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #002fa7; }
+      .demo-mount { position: absolute; inset: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="squiggle-demo" data-start="0" data-width="1080" data-height="1920" data-duration="2.7" data-fps="30">
+      <div
+        id="demo-mount"
+        class="demo-mount clip"
+        data-composition-id="squiggle"
+        data-composition-src="./squiggle.html"
+        data-variable-values='{"length":240,"amplitude":18,"wavelength":56,"weight":4,"x":0.15}'
+        data-start="0"
+        data-duration="2.7"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+      <div style="position:absolute;left:0;right:0;top:36%;text-align:center;color:#fff;font:700 120px system-ui,sans-serif;letter-spacing:-0.04em">Squiggle</div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["squiggle-demo"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

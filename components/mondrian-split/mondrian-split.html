@@ -1,0 +1,1018 @@
+<!doctype html>
+<!--
+  Mondrian Split
+
+  A De Stijl grid draws itself line by line, fills with primary colors, and one cell expands to take over the frame.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/mondrian-split/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="mondrian-split"
+  data-composition-duration="4.85"
+  data-composition-variables='[{"id":"text","type":"string","role":"content","label":"Text","description":"Optional text shown inside the expanding cell; leave empty for a plain color field.","default":""},{"id":"seed","type":"number","role":"layout","label":"Seed","description":"Seed for the grid layout.","default":7,"min":1,"max":99,"step":1},{"id":"splits","type":"number","role":"layout","label":"Splits","description":"Number of lines in the grid.","default":7,"min":3,"max":12,"step":1},{"id":"line_weight","type":"number","role":"style","label":"Line weight","description":"Thickness of the black lines at a 720 px frame height.","default":14,"min":4,"max":32,"step":1,"unit":"px"},{"id":"expand_cell","type":"number","role":"layout","label":"Expanding cell","description":"Which cell expands to fill the frame; 0 is the largest.","default":0,"min":0,"max":12,"step":1},{"id":"line_color","type":"color","role":"style","label":"Lines","description":"Grid line color.","default":"#121212"},{"id":"red_color","type":"color","role":"style","label":"Red","description":"Red fill.","default":"#d62d20"},{"id":"yellow_color","type":"color","role":"style","label":"Yellow","description":"Yellow fill.","default":"#f4c20d"},{"id":"blue_color","type":"color","role":"style","label":"Blue","description":"Blue fill.","default":"#1f4e9e"},{"id":"field_color","type":"color","role":"style","label":"Expanding cell color","description":"Color the expanding cell fills the frame with.","default":"#d62d20"},{"id":"text_color","type":"color","role":"style","label":"Text color","description":"Color of the text in the expanding cell.","default":"#ffffff"},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mondrian Split</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        .mds-stage { position: absolute; inset: 0; }
+        .mds-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .mds-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 8%; font: 700 12cqmin system-ui, sans-serif; letter-spacing: -0.03em; }
+      </style>
+
+      <div id="root" data-composition-id="mondrian-split" data-duration="4.85" data-fps="30">
+        <div id="mds-clip" class="mds-stage clip" data-start="0" data-duration="4.85" data-track-index="0">
+          <svg id="mds-fills" class="mds-layer" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div id="mds-text" class="mds-text"></div>
+          <svg id="mds-lines" class="mds-layer" preserveAspectRatio="none" role="img" aria-label="De Stijl grid"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                                          
+                                                          
+                                                                    
+
+                                     
+                       
+                
+                  
+                      
+                      
+                     
+                    
+                       
+                     
+                      
+                 
+                     
+ 
+
+                                        
+                     
+                                                 
+     
+                 
+                  
+  
+
+                                   
+             
+             
+             
+             
+ 
+
+                                    
+            
+            
+                
+                 
+ 
+
+                    
+                        
+                                            
+               
+ 
+
+                   
+                          
+                   
+               
+ 
+
+                    
+                
+               
+             
+                
+ 
+
+                    
+                          
+                   
+ 
+
+const mondrianSplitDefaults = {
+  seed: 7,
+  splits: 7,
+  lineWeight: 14,
+  expandCell: 0,
+  lineColor: "#121212",
+  redColor: "#d62d20",
+  yellowColor: "#f4c20d",
+  blueColor: "#1f4e9e",
+  fieldColor: "#d62d20",
+};
+
+const LINE_START = 3;
+const LINE_GAP = 5;
+const LINE_DRAW = 10;
+const FILL_LAG = 7;
+const FILL_GAP = 4;
+const FILL_WIPE = 9;
+const FIELD_LAG = 6;
+const FIELD_WIPE = 12;
+const HOLD = 14;
+const TRACK_COUNT = 3;
+const TRACK_GAP = 5;
+const TRACK_SLIDE = 20;
+const EXPAND_LEAD = 4;
+const SIDE_GAP = 3;
+const SIDE_PUSH = 22;
+const TAIL = 12;
+const SLIDE_PEAK = 0.72;
+const SLIDE_OVER = 0.035;
+const RESERVE = 0.045;
+const WIND = 0.22;
+const DIP = 0.035;
+const DIP_SHARE = 0.2;
+const SIDES                      = ["left", "top", "right", "bottom"];
+const SLOTS                      = ["blue", "yellow", "red", "blue", "yellow"];
+const FALLBACK_CUTS = [0.38, 0.62, 0.3, 0.7, 0.5];
+
+const drawEase = Easing.bezier(0.16, 1, 0.3, 1);
+const wipeEase = Easing.bezier(0.7, 0, 0.2, 1);
+const riseEase = Easing.bezier(0.65, 0, 0.3, 1);
+const settleEase = Easing.bezier(0.4, 0, 0.6, 1);
+const windEase = Easing.bezier(0.45, 0, 0.55, 1);
+const pushEase = Easing.poly(2.5);
+const layer                = { position: "absolute", inset: 0 };
+
+const finite = (value        , fallback        ) =>
+  Number.isFinite(value) ? value : fallback;
+const clamp = (value        , min        , max        ) =>
+  Math.min(max, Math.max(min, value));
+const mix = (from        , to        , amount        ) =>
+  from + (to - from) * amount;
+const progress = (time        , start        , duration        ) =>
+  clamp((time - start) / duration, 0, 1);
+const other = (axis                   )                    =>
+  axis === "x" ? "y" : "x";
+const lowEdge = (box                  , axis                   ) =>
+  axis === "x" ? box.x0 : box.y0;
+const extent = (box                  , axis                   ) =>
+  axis === "x" ? box.x1 - box.x0 : box.y1 - box.y0;
+const area = (box                  ) => extent(box, "x") * extent(box, "y");
+const splitCount = (splits        ) =>
+  Math.round(clamp(finite(splits, mondrianSplitDefaults.splits), 3, 12));
+const coloredCount = (count        ) => clamp(Math.round(count * 0.3), 1, 5);
+
+const touches = (a                  , b                  ) => {
+  const overlapX = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+  const overlapY = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+  const beside = Math.abs(a.x1 - b.x0) < 0.5 || Math.abs(b.x1 - a.x0) < 0.5;
+  const stacked = Math.abs(a.y1 - b.y0) < 0.5 || Math.abs(b.y1 - a.y0) < 0.5;
+  return (beside && overlapY > 0.5) || (stacked && overlapX > 0.5);
+};
+
+const choose = (weights                   , roll        ) => {
+  let remaining = roll * weights.reduce((sum, value) => sum + value, 0);
+  for (let index = 0; index < weights.length; index++) {
+    remaining -= weights[index];
+    if (remaining <= 0) return index;
+  }
+  return weights.length - 1;
+};
+
+const slide = (amount        ) => {
+  if (amount >= 1) return 1;
+  if (amount <= SLIDE_PEAK) {
+    return (1 + SLIDE_OVER) * riseEase(amount / SLIDE_PEAK);
+  }
+  const settle = settleEase((amount - SLIDE_PEAK) / (1 - SLIDE_PEAK));
+  return mix(1 + SLIDE_OVER, 1, settle);
+};
+
+const push = (amount        , dip        ) => {
+  if (amount >= 1) return 1;
+  if (amount <= 0) return 0;
+  if (amount < WIND) return -dip * windEase(amount / WIND);
+  return mix(-dip, 1, pushEase((amount - WIND) / (1 - WIND)));
+};
+
+const stretch = (
+  from0        ,
+  from1        ,
+  to0        ,
+  to1        ,
+  min        ,
+  max        ,
+) => {
+  if (from0 === to0 && from1 === to1) return (value        ) => value;
+  return (value        ) => {
+    if (value <= from0) {
+      return min + (value - min) * ((to0 - min) / (from0 - min));
+    }
+    if (value >= from1) {
+      return max - (max - value) * ((max - to1) / (max - from1));
+    }
+    return to0 + (value - from0) * ((to1 - to0) / (from1 - from0));
+  };
+};
+
+const wipe = (
+  box                  ,
+  { axis, fromEnd }          ,
+  amount        ,
+)                    => {
+  const width = box.x1 - box.x0;
+  const height = box.y1 - box.y0;
+  if (axis === "x") {
+    const span = width * amount;
+    return {
+      x: fromEnd ? box.x1 - span : box.x0,
+      y: box.y0,
+      width: span,
+      height,
+    };
+  }
+  const span = height * amount;
+  return {
+    x: box.x0,
+    y: fromEnd ? box.y1 - span : box.y0,
+    width,
+    height: span,
+  };
+};
+
+const inFrame = (rect                   , width        , height        ) =>
+  rect.width > 0.01 &&
+  rect.height > 0.01 &&
+  rect.x < width &&
+  rect.y < height &&
+  rect.x + rect.width > 0 &&
+  rect.y + rect.height > 0;
+
+const placeBoxes = (
+  cuts                                           ,
+  positions                   ,
+  width        ,
+  height        ,
+) => {
+  const boxes                     = [{ x0: 0, y0: 0, x1: width, y1: height }];
+  for (let id = 0; id < cuts.length; id++) {
+    const { axis, node } = cuts[id];
+    const box = boxes[node];
+    const at = positions[id];
+    boxes.push(
+      axis === "x" ? { ...box, x1: at } : { ...box, y1: at },
+      axis === "x" ? { ...box, x0: at } : { ...box, y0: at },
+    );
+  }
+  return boxes;
+};
+
+const percent = (value        , size        ) =>
+  `${(clamp(value / size, 0, 1) * 100).toFixed(4)}%`;
+
+function getMondrianSplitTimeline({
+  splits = mondrianSplitDefaults.splits,
+}                                     = {}) {
+  const count = splitCount(splits);
+  const fill = LINE_START + (count - 1) * LINE_GAP + FILL_LAG;
+  const field = fill + (coloredCount(count) - 1) * FILL_GAP + FIELD_LAG;
+  const reflow = field + FIELD_WIPE + HOLD;
+  const settled = reflow + (TRACK_COUNT - 1) * TRACK_GAP + TRACK_SLIDE;
+  const expand = settled - EXPAND_LEAD;
+  const end = expand + (SIDES.length - 1) * SIDE_GAP + SIDE_PUSH;
+  return { lines: LINE_START, fill, field, reflow, expand, end };
+}
+
+const mondrianSplitLength = getMondrianSplitTimeline().end;
+
+function getMondrianSplitDuration({
+  speed = 1,
+  splits = mondrianSplitDefaults.splits,
+}                                               = {}) {
+  const rate = Math.max(0, finite(speed, 1));
+  const frames = getMondrianSplitTimeline({ splits }).end + TAIL;
+  return rate === 0 ? 1 : Math.max(1, Math.ceil(frames / rate));
+}
+
+function getMondrianSplitLayout({
+  seed = mondrianSplitDefaults.seed,
+  splits = mondrianSplitDefaults.splits,
+  lineWeight = mondrianSplitDefaults.lineWeight,
+  expandCell = mondrianSplitDefaults.expandCell,
+  width = 1280,
+  height = 720,
+}                       = {}) {
+  const w = Math.max(1, finite(width, 1280));
+  const h = Math.max(1, finite(height, 720));
+  const short = Math.min(w, h);
+  const weight = clamp(finite(lineWeight, 14), 2, 48) * (short / 720);
+  const count = splitCount(splits);
+  const timeline = getMondrianSplitTimeline({ splits: count });
+  const salt = Math.round(finite(seed, mondrianSplitDefaults.seed));
+  const roll = (name        ) => random(`mondrian-split-${salt}-${name}`);
+  const minSide = Math.max(short * 0.1, weight * 3);
+  const snap = short * 0.045;
+  const align = short * 0.075;
+  const gap = Math.max(short * 0.07, weight * 2.5);
+  const minMove = short * 0.06;
+  const overscan = weight + short * 0.04;
+  const nodes             = [
+    {
+      box: { x0: 0, y0: 0, x1: w, y1: h },
+      bounds: { left: -1, top: -1, right: -1, bottom: -1 },
+      line: -1,
+    },
+  ];
+  const cuts            = [];
+
+  const lean = (
+    box                  ,
+    ratio        ,
+    name        ,
+  )                    => {
+    const wide = extent(box, "x");
+    const tall = extent(box, "y");
+    if (wide > tall * ratio) return "x";
+    if (tall > wide * ratio) return "y";
+    return roll(name) < 0.5 ? "x" : "y";
+  };
+
+  const cut = (node        , axis                   , position        ) => {
+    const id = cuts.length;
+    const { box, bounds: edges } = nodes[node];
+    const vertical = axis === "x";
+    nodes[node].line = id;
+    cuts.push({ axis, position, node });
+    nodes.push(
+      {
+        box: vertical ? { ...box, x1: position } : { ...box, y1: position },
+        bounds: vertical ? { ...edges, right: id } : { ...edges, bottom: id },
+        line: -1,
+      },
+      {
+        box: vertical ? { ...box, x0: position } : { ...box, y0: position },
+        bounds: vertical ? { ...edges, left: id } : { ...edges, top: id },
+        line: -1,
+      },
+    );
+  };
+
+  const snapTo = (axis                   , position        ) => {
+    let best = position;
+    let distance = snap;
+    for (const line of cuts) {
+      const offset = Math.abs(line.position - position);
+      if (line.axis === axis && offset < distance) {
+        best = line.position;
+        distance = offset;
+      }
+    }
+    return best;
+  };
+
+  const nearMiss = (axis                   , position        ) =>
+    cuts.some(
+      (line) =>
+        line.axis === axis &&
+        line.position !== position &&
+        Math.abs(line.position - position) < snap,
+    );
+
+  const tryCut = (
+    node        ,
+    axis                   ,
+    fraction        ,
+    strict         ,
+  ) => {
+    const { box } = nodes[node];
+    const low = lowEdge(box, axis);
+    const length = extent(box, axis);
+    if (length < minSide * 2) return false;
+    const position = clamp(
+      snapTo(axis, low + length * fraction),
+      low + minSide,
+      low + length - minSide,
+    );
+    if (strict && nearMiss(axis, position)) return false;
+    cut(node, axis, position);
+    return true;
+  };
+
+  let anchor = -1;
+  const longAxis = lean(nodes[0].box, 1.05, "square");
+  const rootAxis = roll("root-axis") < 0.75 ? longAxis : other(longAxis);
+  const rootFraction =
+    roll("root-side") < 0.5
+      ? mix(0.3, 0.4, roll("root-at"))
+      : mix(0.6, 0.7, roll("root-at"));
+  if (tryCut(0, rootAxis, rootFraction, false)) {
+    const share = mix(0.6, 0.76, roll("anchor-at"));
+    const anchorLow = roll("anchor-side") < 0.5;
+    const big = rootFraction < 0.5 ? 2 : 1;
+    if (tryCut(big, other(rootAxis), anchorLow ? share : 1 - share, false)) {
+      anchor = anchorLow ? nodes.length - 2 : nodes.length - 1;
+    }
+  }
+
+  const splittable = (index        ) => {
+    const { box, line } = nodes[index];
+    return (
+      line === -1 &&
+      index !== anchor &&
+      Math.max(extent(box, "x"), extent(box, "y")) >= minSide * 2
+    );
+  };
+
+  const budget = count * 24;
+  for (let attempt = 0; cuts.length < count && attempt < budget; attempt++) {
+    const tag = `${cuts.length}-${attempt}`;
+    const pool = nodes.flatMap((_, index) =>
+      splittable(index) ? [index] : [],
+    );
+    if (pool.length === 0) break;
+    const weights = pool.map((index) => area(nodes[index].box) ** 1.2);
+    const node = pool[choose(weights, roll(`${tag}-cell`))];
+    const { box } = nodes[node];
+    const preferred = lean(box, 1.25, `${tag}-axis`);
+    const fits = extent(box, preferred) >= minSide * 2;
+    const at = roll(`${tag}-at`);
+    const fraction = at < 0.5 ? 0.28 + at * 0.34 : 0.55 + (at - 0.5) * 0.34;
+    tryCut(node, fits ? preferred : other(preferred), fraction, true);
+  }
+
+  const byPriority = (a        , b        ) =>
+    Number(a === anchor) - Number(b === anchor) ||
+    area(nodes[b].box) - area(nodes[a].box);
+  const fallback = () => {
+    const pool = nodes.flatMap((node, index) =>
+      node.line === -1 ? [index] : [],
+    );
+    pool.sort(byPriority);
+    for (const strict of [true, false]) {
+      for (const node of pool) {
+        const { box } = nodes[node];
+        const first                    =
+          extent(box, "x") >= extent(box, "y") ? "x" : "y";
+        for (const axis of [first, other(first)]) {
+          for (const fraction of FALLBACK_CUTS) {
+            if (tryCut(node, axis, fraction, strict)) return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+  while (cuts.length < count) {
+    if (!fallback()) break;
+  }
+
+  const trackKeys           = [];
+  const lines = cuts.map((draft, id) => {
+    const key = `${draft.axis}:${draft.position}`;
+    if (!trackKeys.includes(key)) trackKeys.push(key);
+    const { bounds } = nodes[draft.node];
+    const vertical = draft.axis === "x";
+    const near = vertical ? bounds.top : bounds.left;
+    const far = vertical ? bounds.bottom : bounds.right;
+    return {
+      id,
+      axis: draft.axis,
+      position: draft.position,
+      node: draft.node,
+      track: trackKeys.indexOf(key),
+      lowBound: vertical ? bounds.left : bounds.top,
+      highBound: vertical ? bounds.right : bounds.bottom,
+      fromEnd: near === far ? roll(`draw-${id}`) < 0.5 : far < near,
+      start: LINE_START + id * LINE_GAP,
+    };
+  });
+
+  const leaves = nodes.flatMap((node, index) =>
+    node.line === -1 ? [index] : [],
+  );
+  const ranked = [...leaves].sort(
+    (a, b) => area(nodes[b].box) - area(nodes[a].box) || a - b,
+  );
+  const pick = clamp(Math.round(finite(expandCell, 0)), 0, ranked.length - 1);
+  const target = ranked[pick];
+  const targetBox = nodes[target].box;
+
+  const others = leaves.filter((index) => index !== target);
+  const largest = Math.max(1, ...others.map((index) => area(nodes[index].box)));
+  const candidates = others
+    .map((index) => ({
+      index,
+      score:
+        roll(`fill-${index}`) +
+        (touches(nodes[index].box, targetBox) ? 0.45 : 0) +
+        (0.3 * area(nodes[index].box)) / largest,
+    }))
+    .sort((a, b) => a.score - b.score);
+  const painted                                               = [];
+  const quota = Math.min(coloredCount(count), candidates.length);
+  for (let order = 0; order < quota; order++) {
+    const slot = SLOTS[order];
+    const free = candidates.filter(
+      ({ index }) => !painted.some((cell) => cell.index === index),
+    );
+    const clean = free.find(
+      ({ index }) =>
+        !painted.some(
+          (cell) =>
+            cell.slot === slot &&
+            touches(nodes[cell.index].box, nodes[index].box),
+        ) && !(slot === "red" && touches(nodes[index].box, targetBox)),
+    );
+    const choice = clean ?? free[0];
+    if (choice) painted.push({ index: choice.index, slot });
+  }
+
+  const wipeOf = (index        )           => {
+    const { box } = nodes[index];
+    const axis = extent(box, "x") >= extent(box, "y") ? "x" : "y";
+    const middle = axis === "x" ? box.x0 + box.x1 : box.y0 + box.y1;
+    return { axis, fromEnd: middle < (axis === "x" ? w : h) };
+  };
+  const diagonal = (index        ) => {
+    const { box } = nodes[index];
+    return (box.x0 + box.x1) / w + (box.y0 + box.y1) / h;
+  };
+  const fills = [...painted]
+    .sort((a, b) => diagonal(a.index) - diagonal(b.index))
+    .map((cell, order) => ({
+      node: cell.index,
+      slot: cell.slot,
+      ...wipeOf(cell.index),
+      start: timeline.fill + order * FILL_GAP,
+    }));
+  const field = { node: target, ...wipeOf(target), start: timeline.field };
+
+  const tracks = trackKeys.map((_, track) => {
+    const members = lines.filter((line) => line.track === track);
+    return {
+      track,
+      axis: members[0].axis,
+      position: members[0].position,
+      length: members.reduce(
+        (sum, line) => sum + extent(nodes[line.node].box, other(line.axis)),
+        0,
+      ),
+    };
+  });
+  const reserveLow = lines.map((line) => line.position);
+  const reserveHigh = lines.map((line) => line.position);
+  const limits = (track        ) => {
+    let low = Number.NEGATIVE_INFINITY;
+    let high = Number.POSITIVE_INFINITY;
+    for (const line of lines) {
+      if (line.track === track) {
+        const size = line.axis === "x" ? w : h;
+        const floor = line.lowBound === -1 ? 0 : reserveHigh[line.lowBound];
+        const ceiling =
+          line.highBound === -1 ? size : reserveLow[line.highBound];
+        low = Math.max(low, floor + gap);
+        high = Math.min(high, ceiling - gap);
+      } else {
+        if (line.lowBound !== -1 && lines[line.lowBound].track === track) {
+          high = Math.min(high, reserveLow[line.id] - gap);
+        }
+        if (line.highBound !== -1 && lines[line.highBound].track === track) {
+          low = Math.max(low, reserveHigh[line.id] + gap);
+        }
+      }
+    }
+    return { low, high };
+  };
+  const moves             = [];
+  const settledAt = (track        , position        ) =>
+    moves.find((move) => move.track === track)?.to ?? position;
+  const borders = (side                   , track        ) => {
+    const id = nodes[target].bounds[side];
+    return id !== -1 && lines[id].track === track;
+  };
+  const inward = (track        ) => {
+    if (borders("left", track) || borders("top", track)) return 1;
+    if (borders("right", track) || borders("bottom", track)) return -1;
+    return 0;
+  };
+  const heading = (track        , down        , up        ) => {
+    const squeeze = inward(track);
+    if (squeeze !== 0) {
+      return (squeeze > 0 ? up : down) >= minMove ? squeeze : 0;
+    }
+    if (down < minMove) return up >= minMove ? 1 : 0;
+    if (up < minMove) return -1;
+    return roll(`track-way-${track}`) < up / (up + down) ? 1 : -1;
+  };
+  const order = tracks
+    .map((track) => ({
+      ...track,
+      weight: track.length * (0.6 + 0.8 * roll(`track-${track.track}`)),
+    }))
+    .sort((a, b) => b.weight - a.weight);
+  for (const track of order) {
+    if (moves.length >= TRACK_COUNT) break;
+    const { low, high } = limits(track.track);
+    const down = (track.position - low) / (1 + RESERVE);
+    const up = (high - track.position) / (1 + RESERVE);
+    const direction = heading(track.track, down, up);
+    if (direction === 0) continue;
+    const span = track.axis === "x" ? w : h;
+    const room = Math.min(direction > 0 ? up : down, span * 0.2);
+    const stride = mix(0.6, 0.95, roll(`track-far-${track.track}`));
+    const reach = track.position + direction * Math.max(minMove, room * stride);
+    const nearest = tracks
+      .filter((rival) => rival.axis === track.axis)
+      .filter((rival) => rival.track !== track.track)
+      .map((rival) => settledAt(rival.track, rival.position))
+      .reduce(
+        (best, position) =>
+          Math.abs(position - reach) < Math.abs(best - reach) ? position : best,
+        Number.POSITIVE_INFINITY,
+      );
+    const to = Math.abs(nearest - reach) < align ? nearest : reach;
+    const margin = Math.abs(to - track.position) * RESERVE;
+    if (
+      Math.abs(to - track.position) < minMove ||
+      to - margin < low ||
+      to + margin > high
+    ) {
+      continue;
+    }
+    for (const line of lines) {
+      if (line.track === track.track) {
+        reserveLow[line.id] = Math.min(track.position, to) - margin;
+        reserveHigh[line.id] = Math.max(track.position, to) + margin;
+      }
+    }
+    moves.push({
+      track: track.track,
+      from: track.position,
+      to,
+      start: timeline.reflow + moves.length * TRACK_GAP,
+    });
+  }
+
+  const settled = lines.map((line) => settledAt(line.track, line.position));
+  const home = placeBoxes(lines, settled, w, h)[target];
+  const travel                                    = {
+    left: home.x0 + overscan,
+    top: home.y0 + overscan,
+    right: w + overscan - home.x1,
+    bottom: h + overscan - home.y1,
+  };
+  const ranking = [...SIDES].sort((a, b) => travel[a] - travel[b]);
+  const side = (name                   ) => {
+    const across = name === "left" || name === "right" ? "x" : "y";
+    const share = (extent(home, across) * DIP_SHARE) / travel[name];
+    return {
+      start: timeline.expand + ranking.indexOf(name) * SIDE_GAP,
+      dip: nodes[target].bounds[name] === -1 ? 0 : Math.min(DIP, share),
+    };
+  };
+
+  return {
+    width: w,
+    height: h,
+    weight,
+    minSide,
+    gap,
+    minMove,
+    align,
+    overscan,
+    timeline,
+    nodes,
+    lines,
+    leaves,
+    target,
+    fills,
+    field,
+    moves,
+    sides: {
+      left: side("left"),
+      top: side("top"),
+      right: side("right"),
+      bottom: side("bottom"),
+    },
+  };
+}
+
+                                                                            
+
+function getMondrianSplitState(
+  frame        ,
+  layout                      = getMondrianSplitLayout(),
+) {
+  const time = Math.max(0, finite(frame, 0));
+  const { width, height, weight, overscan } = layout;
+  const positions = layout.lines.map((line) => {
+    const move = layout.moves.find((item) => item.track === line.track);
+    if (!move) return line.position;
+    const amount = slide(progress(time, move.start, TRACK_SLIDE));
+    return line.position + (move.to - move.from) * amount;
+  });
+  const boxes = placeBoxes(layout.lines, positions, width, height);
+  const home = boxes[layout.target];
+  const reach = (name                   ) => {
+    const { start, dip } = layout.sides[name];
+    return push(progress(time, start, SIDE_PUSH), dip);
+  };
+  const mapX = stretch(
+    home.x0,
+    home.x1,
+    mix(home.x0, -overscan, reach("left")),
+    mix(home.x1, width + overscan, reach("right")),
+    -overscan,
+    width + overscan,
+  );
+  const mapY = stretch(
+    home.y0,
+    home.y1,
+    mix(home.y0, -overscan, reach("top")),
+    mix(home.y1, height + overscan, reach("bottom")),
+    -overscan,
+    height + overscan,
+  );
+  const project = (box                  )                   => ({
+    x0: mapX(box.x0),
+    y0: mapY(box.y0),
+    x1: mapX(box.x1),
+    y1: mapY(box.y1),
+  });
+
+  const lines = layout.lines.flatMap((line) => {
+    const drawn = drawEase(progress(time, line.start, LINE_DRAW));
+    if (drawn <= 0) return [];
+    const box = boxes[line.node];
+    const vertical = line.axis === "x";
+    const low = vertical ? box.y0 : box.x0;
+    const high = vertical ? box.y1 : box.x1;
+    const along = vertical ? mapY : mapX;
+    const start = along(line.fromEnd ? high - (high - low) * drawn : low);
+    const end = along(line.fromEnd ? high : low + (high - low) * drawn);
+    const position = (vertical ? mapX : mapY)(positions[line.id]);
+    const half = weight / 2;
+    const length = end - start;
+    const rect                    = vertical
+      ? { x: position - half, y: start, width: weight, height: length }
+      : { x: start, y: position - half, width: length, height: weight };
+    return inFrame(rect, width, height)
+      ? [{ id: line.id, axis: line.axis, position, drawn, ...rect }]
+      : [];
+  });
+
+  const fills = layout.fills.flatMap((fill) => {
+    const amount = wipeEase(progress(time, fill.start, FILL_WIPE));
+    if (amount <= 0) return [];
+    const rect = wipe(project(boxes[fill.node]), fill, amount);
+    return inFrame(rect, width, height)
+      ? [{ id: fill.node, slot: fill.slot, ...rect }]
+      : [];
+  });
+
+  const reveal = wipeEase(progress(time, layout.field.start, FIELD_WIPE));
+  const field = reveal > 0 ? wipe(project(home), layout.field, reveal) : null;
+
+  return {
+    time,
+    lines,
+    fills,
+    field: field && inFrame(field, width, height) ? field : null,
+    cells: layout.leaves.map((id) => ({ id, ...project(boxes[id]) })),
+  };
+}
+
+                                                                          
+
+function getMondrianSplitClip(
+  field                          ,
+  width        ,
+  height        ,
+) {
+  if (!field) return "inset(50%)";
+  const top = percent(field.y, height);
+  const right = percent(width - field.x - field.width, width);
+  const bottom = percent(height - field.y - field.height, height);
+  const left = percent(field.x, width);
+  return `inset(${top} ${right} ${bottom} ${left})`;
+}
+
+
+            var width = root.clientWidth, height = root.clientHeight;
+            var layout = getMondrianSplitLayout({ seed: Math.round(num(vars.seed, 7, 1, 99)), splits: Math.round(num(vars.splits, 7, 3, 12)), lineWeight: num(vars.line_weight, 14, 4, 32), expandCell: Math.round(num(vars.expand_cell, 0, 0, 12)), width: width, height: height });
+            var speed = num(vars.speed, 1, 0.25, 3);
+            var palette = { red: str(vars.red_color, "#d62d20"), yellow: str(vars.yellow_color, "#f4c20d"), blue: str(vars.blue_color, "#1f4e9e") };
+            var lineColor = str(vars.line_color, "#121212"), fieldColor = str(vars.field_color, "#d62d20");
+            var fills = document.getElementById("mds-fills"), lines = document.getElementById("mds-lines"), textEl = document.getElementById("mds-text");
+            var vb = "0 0 " + width + " " + height;
+            fills.setAttribute("viewBox", vb); lines.setAttribute("viewBox", vb);
+            var text = str(vars.text, "");
+            textEl.textContent = text;
+            textEl.style.color = str(vars.text_color, "#ffffff");
+            textEl.style.display = text ? "flex" : "none";
+            function draw(frame) {
+              var state = getMondrianSplitState(frame * speed, layout);
+              var f = "";
+              state.fills.forEach(function (r) { f += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.width + '" height="' + r.height + '" fill="' + palette[r.slot] + '"/>'; });
+              if (state.field) f += '<rect x="' + state.field.x + '" y="' + state.field.y + '" width="' + state.field.width + '" height="' + state.field.height + '" fill="' + fieldColor + '"/>';
+              fills.innerHTML = f;
+              textEl.style.clipPath = getMondrianSplitClip(state.field, width, height);
+              var l = "";
+              state.lines.forEach(function (r) { l += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.width + '" height="' + r.height + '" fill="' + lineColor + '"/>'; });
+              lines.innerHTML = l;
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 145, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "4.85");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["mondrian-split"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

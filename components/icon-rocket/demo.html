@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- Rocket Icon demo: a vertical 1080×1920 frame mounting the component full-frame. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Rocket Icon Demo</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #ffffff; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #ffffff; }
+      .demo-mount { position: absolute; inset: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="icon-rocket-demo" data-start="0" data-width="1080" data-height="1920" data-duration="3" data-fps="30">
+      <div
+        id="demo-mount"
+        class="demo-mount clip"
+        data-composition-id="icon-rocket"
+        data-composition-src="./icon-rocket.html"
+        data-variable-values='{"size":360,"color":"#171717"}'
+        data-start="0"
+        data-duration="3"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["icon-rocket-demo"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-stream",
+  "type": "hyperframes:component",
+  "title": "Word Stream",
+  "description": "Voiceover-paced phrases building word by word while the line drifts left.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "words",
+    "voiceover",
+    "sequence",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.4,
+  "useWhen": [
+    "An intro or narration follows a voiceover and each phrase should build word by word at speaking pace.",
+    "Several short phrases play in sequence with fast cut-like swaps, the line drifting left as new words land."
+  ],
+  "avoidWhen": [
+    "There is only one static phrase to reveal: use per-word-crossfade.",
+    "The words follow a real voiceover transcript: use caption-karaoke or another caption block."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/word-stream/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "word-stream.html",
+      "target": "compositions/components/word-stream.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Phrases separated by |. Words within a phrase are split on spaces.", "default": "introducing | one-tap checkout | for your store" },
+    { "id": "word_gap", "type": "number", "role": "motion", "label": "Word gap", "description": "Frames between words of a phrase (30 fps).", "default": 6, "min": 2, "max": 30, "step": 1, "unit": "frames" },
+    { "id": "hold", "type": "number", "role": "motion", "label": "Hold", "description": "Frames a finished phrase stays before the next one cuts in.", "default": 18, "min": 6, "max": 90, "step": 1, "unit": "frames" },
+    { "id": "drift", "type": "number", "role": "motion", "label": "Drift", "description": "How fast the whole line crawls left, in px per frame at 72 px type.", "default": 2, "min": 0, "max": 6, "step": 0.1 },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

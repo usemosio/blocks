@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "glyph-anatomy",
+  "type": "hyperframes:component",
+  "title": "Glyph Anatomy",
+  "description": "A word builds as in a font editor, with metric guides, anchors along each contour and Bézier handles that pull straight segments into curves before the glyphs fill.",
+  "tags": [
+    "text-effects",
+    "font-editor",
+    "bezier",
+    "construction",
+    "title",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.2,
+  "useWhen": [
+    "A product for designers, a type or a design tool should show its craft: the letters are built from points and curves on screen.",
+    "A title should feel constructed and precise, with the scaffolding visible for a moment before the clean word.",
+    "You want to show how a letter is made, for a talk, a course or a type specimen."
+  ],
+  "avoidWhen": [
+    "The outline should simply draw itself without points or handles: use outline-trace.",
+    "The design-tool feel should come from a selection box around the word: use selection-snap.",
+    "The word only needs a quiet reveal: use soft-blur-in."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/glyph-anatomy/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "glyph-anatomy.html",
+      "target": "compositions/components/glyph-anatomy.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase. Letters, digits and . , ! ? ' - : & @ # $ % + / ( ) are built from Inter ExtraBold outlines; other characters become spaces.", "default": "Glyph"},
+    {"id": "color", "type": "color", "role": "style", "label": "Glyph color", "description": "Color of the letters and their outlines.", "default": "#fafafa"},
+    {"id": "guide_color", "type": "color", "role": "style", "label": "Points", "description": "Color of guides, anchors and handles.", "default": "#0d99ff"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (1280×720 stage); long text shrinks to fit.", "default": 200, "min": 80, "max": 320, "step": 1, "unit": "px"},
+    {"id": "guides", "type": "boolean", "role": "style", "label": "Guides", "description": "Show the cap height, x-height, baseline and descender lines.", "default": true},
+    {"id": "keep_points", "type": "boolean", "role": "style", "label": "Keep points", "description": "Leave the anchors and handles on screen after the fill.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

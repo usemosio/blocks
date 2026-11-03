@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "skeleton",
+  "type": "hyperframes:component",
+  "title": "Skeleton",
+  "description": "A shimmer placeholder that crossfades to the real content once it has loaded.",
+  "tags": [
+    "ui",
+    "skeleton",
+    "loading",
+    "crossfade",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 7,
+  "useWhen": [
+    "Showing a loading state resolving to real content: the skeleton fades out as the real UI fades in.",
+    "Demonstrating content that loads in as a crossfade moment.",
+    "You need a full skeleton layout (lines or card) wrapping real content."
+  ],
+  "avoidWhen": [
+    "You only need a single shimmer rectangle: use skeleton-block.",
+    "Content has no loading state: render it directly.",
+    "You need a spinner-style loading indicator: use spinner."
+  ],
+  "checkAt": [
+    0.5,
+    3.0,
+    6.2,
+    6.8
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/skeleton/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "skeleton.html",
+      "target": "compositions/components/skeleton.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "layout", "type": "enum", "role": "style", "label": "Layout", "description": "Placeholder shape: a profile card, or three lines of text.", "default": "card", "options": [{"value": "card", "label": "Card"}, {"value": "lines", "label": "Lines"}]},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

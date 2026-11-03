@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "agent-run",
+  "type": "hyperframes:component",
+  "title": "Agent Run",
+  "description": "A brand-neutral AI agent run that thinks, calls tools against a real-seconds timer and streams a markdown answer in bursts.",
+  "tags": [
+    "ai",
+    "agent",
+    "chat",
+    "product-demo",
+    "remocn-port"
+  ],
+  "category": "ai",
+  "duration": 10.433,
+  "useWhen": [
+    "A product demo needs the beat after the prompt, where an AI agent plans, calls tools and lands on a specific answer.",
+    "The AI feature is your own, so the interface must stay brand-neutral with one accent color.",
+    "The reply is a short markdown answer with a heading, bullets, a small code block or citations that must read clearly on the final frame."
+  ],
+  "avoidWhen": [
+    "The scene is a prompt being typed into a recognizable chat product: use claude-chat or chat-gpt.",
+    "The agent is a coding CLI in a terminal: use claude-code or terminal-simulator.",
+    "A single line should type itself out with no interface around it: use typewriter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/agent-run/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "agent-run.html",
+      "target": "compositions/components/agent-run.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "run", "type": "string", "role": "content", "label": "Run script", "description": "JSON of the agent run: title, prompt, plan (list of strings), steps (name, detail, duration in seconds, icon of chart, database, search, book, globe, terminal or file, optional sources list) and answer (short markdown: heading, bullets, code fence, bold, inline code, citations like [1]).", "default": "{\"title\": \"Checkout conversion drop\", \"prompt\": \"Why did checkout conversion drop last week?\", \"plan\": [\"Compare the checkout funnel with the week before\", \"Break the drop down by browser and step\", \"Check what shipped and what the error logs say\"], \"steps\": [{\"icon\": \"chart\", \"name\": \"Query analytics\", \"detail\": \"checkout funnel, last 7 days vs prior 7\", \"duration\": 1.4}, {\"icon\": \"database\", \"name\": \"Run SQL\", \"detail\": \"conversion by browser and step\", \"duration\": 2.3}, {\"icon\": \"search\", \"name\": \"Search logs\", \"detail\": \"Wallet payment errors on Safari\", \"duration\": 1.1}, {\"icon\": \"book\", \"name\": \"Read 12 sources\", \"duration\": 3.2, \"sources\": [\"Checkout funnel\", \"Browser report\", \"Release 4.12\", \"PR #2186\", \"webkit.org\", \"developer.mozilla.org\", \"Payments runbook\", \"Error log\", \"Incident notes\", \"Wallet payments guide\", \"Support tickets\", \"Status page\"]}], \"answer\": \"## Wallet payments broke on Safari in release 4.12\\n\\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on Safari, 41% of checkouts [2].\\n\\n- Safari conversion halved, from 3.5% to 1.8%\\n- Chrome and Firefox held steady at 3.3%\\n- 4.12 moved the card form into an iframe without `allow=\\\"payment\\\"` [3]\\n\\n```tsx\\n<iframe\\n  src={cardFormUrl}\\n  allow=\\\"payment\\\"\\n/>\\n```\\n\\n**Fix:** add the attribute and ship 4.12.1 today.\"}"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark panel.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "The one accent color.", "default": "#2563eb"},
+    {"id": "compression", "type": "number", "role": "motion", "label": "Compression", "description": "How many real seconds one second of video stands for; sets the timer and the tool durations.", "default": 3, "min": 1, "max": 8, "step": 0.5},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the streaming bursts.", "default": 1, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]
+}

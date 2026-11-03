@@ -1,0 +1,189 @@
+<!doctype html>
+<!--
+  Handwrite
+
+  Handwritten text laid down letter by letter on a quantized stop-motion clock.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/handwrite/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="handwrite"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text that is written out.", "default": "Made by hand"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit.", "default": 72, "min": 24, "max": 200, "step": 1, "unit": "px"},
+    {"id": "per_step", "type": "number", "role": "motion", "label": "Letters per pose", "description": "Letters added at each stop-motion pose.", "default": 1.6, "min": 0.5, "max": 4, "step": 0.1},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frames per pose", "description": "Stop-motion clock, in frames at 30 fps.", "default": 3, "min": 1, "max": 6, "step": 1, "unit": "frames"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Frames before writing starts (30 fps).", "default": 0, "min": 0, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the handwriting.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Ink color.", "default": "#26242c"},
+    {"id": "align", "type": "enum", "role": "style", "label": "Align", "description": "Where the text sits.", "default": "center", "options": [{"value": "center", "label": "Center"}, {"value": "left", "label": "Left"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Handwrite</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .hw-stage { position: absolute; inset: 0; display: flex; align-items: center; }
+        .hw-line { display: inline-block; font-family: Caveat, cursive; line-height: 1.15; white-space: pre-wrap; max-width: 92%; }
+        .hw-char { display: inline-block; white-space: pre; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="handwrite" data-duration="4" data-fps="30">
+        <div id="hw-clip" class="hw-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <span id="hw-line" class="hw-line"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "4");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var stage = document.getElementById("hw-clip");
+            var line = document.getElementById("hw-line");
+            var text = str(vars.text, "Made by hand");
+            var perStep = num(vars.per_step, 1.6, 0.5, 4);
+            var step = num(vars.step, 3, 1, 6);
+            var delay = num(vars.delay, 0, 0, 120);
+            var align = pick(vars.align, ["center", "left"], "center");
+            stage.style.justifyContent = align === "center" ? "center" : "flex-start";
+            if (align === "left") stage.style.paddingLeft = "4%";
+            line.style.color = col(vars.color, "#26242c");
+            line.style.fontWeight = pick(vars.weight, ["400", "500", "600", "700"], "600");
+            line.style.textAlign = align;
+            var chars = Array.from(text).map(function (ch, i) {
+              var s = document.createElement("span");
+              s.id = "hw-char-" + i; s.className = "hw-char"; s.textContent = ch;
+              line.appendChild(s);
+              return s;
+            });
+            fit(line, 0, num(vars.font_size, 72, 24, 200), 0.9);
+            var jit = chars.map(function (_, i) {
+              return { slant: hashRange("hw:" + text + ":" + i + ":r", -3.2, 3.2), dy: hashRange("hw:" + text + ":" + i + ":y", -1.8, 1.8) };
+            });
+            tick(function (t) {
+              var f = Math.floor(t * 30 + 1e-6);
+              var steps = Math.max(0, Math.floor(Math.max(0, qf(f, step) - delay) / step + 1e-6));
+              var shown = Math.floor(steps * perStep);
+              var freshFrom = shown - Math.ceil(perStep);
+              chars.forEach(function (el, i) {
+                var visible = i < shown;
+                el.style.opacity = visible ? 1 : 0;
+                el.style.transform = visible ? "translateY(" + jit[i].dy + "px) rotate(" + jit[i].slant + "deg) scale(" + (i >= freshFrom ? 1.06 : 1) + ")" : "none";
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "4");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["handwrite"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

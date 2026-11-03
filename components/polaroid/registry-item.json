@@ -1,0 +1,114 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "polaroid",
+  "type": "hyperframes:component",
+  "title": "Polaroid",
+  "description": "An instant-photo frame with a handwritten caption. The photo is a built-in live placeholder (a drifting sunrise gradient); layer your own video or image over the photo window to use it.",
+  "tags": [
+    "paper",
+    "stop-motion",
+    "photo",
+    "caption",
+    "handmade",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 5,
+  "useWhen": [
+    "Media belongs in a hand-placed instant-photo frame with a handwritten caption.",
+    "A live scene should keep playing inside a stop-motion paper scene."
+  ],
+  "avoidWhen": [
+    "You just need a plain rounded frame with no paper story: use backdrop with padding.",
+    "The card needs to wobble or sit at an angle: wrap it with paper-wobble and place it yourself."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/polaroid/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "polaroid.html",
+      "target": "compositions/components/polaroid.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "caption",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Handwritten caption under the photo.",
+      "default": "first light"
+    },
+    {
+      "id": "caption_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Caption starts",
+      "description": "Frame (30 fps) where the handwriting begins.",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "width",
+      "type": "number",
+      "role": "style",
+      "label": "Card width",
+      "description": "Card width in pixels on a 1280x720 frame (scaled to the actual frame).",
+      "default": 652,
+      "min": 320,
+      "max": 900,
+      "step": 4,
+      "unit": "px"
+    },
+    {
+      "id": "caption_size",
+      "type": "number",
+      "role": "style",
+      "label": "Caption size",
+      "description": "Caption size in pixels at 652 px card width.",
+      "default": 36,
+      "min": 20,
+      "max": 56,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "frame_color",
+      "type": "color",
+      "role": "style",
+      "label": "Frame",
+      "description": "Paper colour of the card.",
+      "default": "#fdfcf8"
+    },
+    {
+      "id": "caption_color",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Caption colour.",
+      "default": "#26242c"
+    },
+    {
+      "id": "step",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per pose",
+      "description": "How many frames each handwriting pose is held (30 fps).",
+      "default": 3,
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "unit": "frames"
+    }
+  ]
+}

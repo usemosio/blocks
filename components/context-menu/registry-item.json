@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "context-menu",
+  "type": "hyperframes:component",
+  "title": "Context Menu",
+  "description": "A right-click menu that opens at the cursor over a file card, then an item is hovered, pressed and the menu closes.",
+  "tags": [
+    "ui",
+    "context-menu",
+    "right-click",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "Showing a right-click menu appearing at a cursor position over content in a product demo.",
+    "Demonstrating browser-like or OS-like contextual actions (Back, Reload, Inspect).",
+    "A cursor scene needs a pop-up menu that originates from a click point, not a button."
+  ],
+  "avoidWhen": [
+    "The menu is opened from a button in the UI: use dropdown-menu.",
+    "The overlay is a searchable command palette: use command-menu.",
+    "The overlay is a modal that blocks the scene: use dialog or alert-dialog."
+  ],
+  "checkAt": [
+    0.6,
+    1.6,
+    2.4,
+    4.0
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/context-menu/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "context-menu.html",
+      "target": "compositions/components/context-menu.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "JSON array of menu labels.", "default": "[\"Back\", \"Reload\", \"Save As…\", \"Inspect\"]"},
+    {"id": "file_name", "type": "string", "role": "content", "label": "File name", "description": "Label on the card that gets right-clicked.", "default": "report.pdf"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

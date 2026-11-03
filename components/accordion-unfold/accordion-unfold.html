@@ -1,0 +1,244 @@
+<!doctype html>
+<!--
+  Accordion Unfold
+
+  A tight paper zigzag unfolds sideways into a flat card with the logo printed across it. The placeholder lockup is a stand-in: a host prints its own logo by replacing the .au-print contents in the script.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/accordion-unfold/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="accordion-unfold"
+  data-composition-duration="2.2"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Placeholder lockup text printed across the card.", "default": "studio"},
+    {"id": "panels", "type": "number", "role": "style", "label": "Panels", "description": "Number of vertical pleats.", "default": 6, "min": 2, "max": 12, "step": 1},
+    {"id": "color", "type": "color", "role": "style", "label": "Paper", "description": "Paper color of the card.", "default": "#FFFFFF"},
+    {"id": "shade", "type": "number", "role": "style", "label": "Shade", "description": "Darkness of the panels facing away from the light, 0 to 1.", "default": 0.55, "min": 0, "max": 1, "step": 0.01},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color, also the lockup color printed on the paper.", "default": "#111111"},
+    {"id": "fold_angle", "type": "number", "role": "motion", "label": "Fold angle", "description": "Fold angle of each pleat at the start, in degrees.", "default": 82, "min": 0, "max": 89, "step": 1, "unit": "deg"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Accordion Unfold</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        .au-lockup { display: flex; align-items: center; gap: 28px; }
+        .au-mark { width: 120px; height: 120px; border-radius: 32px; display: flex; align-items: center; justify-content: center; background: var(--mark); }
+        .au-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--dot); }
+        .au-word { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif; font-size: 104px; font-weight: 800; letter-spacing: -0.04em; color: var(--text); white-space: nowrap; }
+        #root { background: var(--bg); }
+        .au-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; perspective: 1000px; }
+        .au-card { position: relative; transform-style: preserve-3d; }
+        .au-panel { position: absolute; top: 0; transform-origin: 0% 50%; transform-style: preserve-3d; }
+        .au-face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; background: var(--paper); }
+        .au-print { position: absolute; top: 0; display: flex; align-items: center; justify-content: center; }
+        .au-print .au-lockup { transform: scale(0.8); }
+        .au-shade { position: absolute; inset: 0; }
+        .au-flat { position: absolute; inset: 0; overflow: hidden; background: var(--paper); }
+      </style>
+
+      <div id="root" data-composition-id="accordion-unfold" data-duration="2.2" data-fps="30">
+        <div id="au-clip" class="au-stage clip" data-start="0" data-duration="2.2" data-track-index="0">
+          <div class="au-card" id="au-card"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "accordion-unfold";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var card = document.getElementById("au-card");
+var n = Math.round(num(vars.panels, 6, 2, 12)), paper = col(vars.color, "#FFFFFF"), shade = num(vars.shade, 0.55, 0, 1), bg = col(vars.background_color, "#111111"), foldAngle = num(vars.fold_angle, 82, 0, 89), speed = num(vars.speed, 1, 0, 4);
+var wordText = str(vars.text, "studio");
+root.style.setProperty("--bg", bg); root.style.setProperty("--paper", paper); root.style.setProperty("--mark", bg); root.style.setProperty("--dot", paper); root.style.setProperty("--text", bg);
+var W = root.clientWidth, H = root.clientHeight;
+var cardW = Math.round(Math.min(W * 0.66, H * 1.3)), cardH = Math.round(Math.min(H * 0.4, cardW * 0.4)), pw = cardW / n;
+root.querySelector(".au-stage").style.perspective = cardW * 1.8 + "px";
+card.style.width = cardW + "px"; card.style.height = cardH + "px";
+var START = 4;
+function printEl(offset) {
+  var d = document.createElement("div"); d.className = "au-print";
+  d.style.left = -offset + "px"; d.style.width = cardW + "px"; d.style.height = cardH + "px";
+  d.innerHTML = '<div class="au-lockup"><div class="au-mark"><div class="au-dot"></div></div><span class="au-word"></span></div>';
+  d.querySelector(".au-word").textContent = wordText;
+  return d;
+}
+var flat = document.createElement("div"); flat.className = "au-flat"; flat.appendChild(printEl(0));
+var panels = [], parent = card;
+for (var i = 0; i < n; i++) {
+  var pn = document.createElement("div"); pn.className = "au-panel";
+  pn.style.left = (i === 0 ? 0 : pw) + "px"; pn.style.width = pw + "px"; pn.style.height = cardH + "px";
+  var face = document.createElement("div"); face.className = "au-face"; face.style.width = pw + 1 + "px";
+  face.appendChild(printEl(i * pw));
+  var sh = document.createElement("div"); sh.className = "au-shade"; face.appendChild(sh);
+  pn.appendChild(face);
+  parent.appendChild(pn);
+  panels.push({ el: pn, shade: sh }); parent = pn;
+}
+var first = panels[0].el;
+function draw(frame) {
+  var t = frame * speed;
+  var open = spring(t - START, { damping: 15, stiffness: 70, mass: 0.9 });
+  var theta = foldAngle * (1 - open), rad = (theta * Math.PI) / 180;
+  var shift = (cardW - cardW * Math.cos(rad)) / 2;
+  var lift = interp(t, [0, START + 2], [0.92, 1]);
+  card.style.opacity = interp(t, [0, 3], [0, 1]);
+  card.style.transform = "translateX(" + shift + "px) scale(" + lift + ")";
+  var isFlat = Math.abs(theta) < 0.3;
+  if (isFlat) { if (!flat.parentNode) card.appendChild(flat); first.style.display = "none"; }
+  else { if (flat.parentNode) card.removeChild(flat); first.style.display = ""; }
+  panels.forEach(function (pn, i) {
+    var angle = i === 0 ? theta : (i % 2 === 1 ? -2 : 2) * theta;
+    var facing = i % 2 === 0 ? 1 : -1, tilt = Math.abs(Math.sin(rad));
+    var dark = facing > 0 ? shade * tilt : shade * 0.25 * tilt;
+    pn.el.style.transform = "rotateY(" + angle + "deg)";
+    pn.shade.style.background = facing > 0 ? "linear-gradient(90deg, rgba(0,0,0," + dark * 0.6 + "), rgba(0,0,0," + dark + "))" : "linear-gradient(90deg, rgba(255,255,255," + 0.12 * tilt + "), rgba(0,0,0," + dark + "))";
+  });
+}
+finish(drive(draw, TOTAL));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

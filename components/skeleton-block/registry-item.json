@@ -1,0 +1,57 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "skeleton-block",
+  "type": "hyperframes:component",
+  "title": "Skeleton Block",
+  "description": "A single shimmer placeholder rectangle whose highlight sweeps across it on a 2 second loop.",
+  "tags": [
+    "ui",
+    "skeleton",
+    "loading",
+    "shimmer",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "useWhen": [
+    "Building a custom skeleton layout from individual shimmer rectangles at precise sizes.",
+    "Adding one loading placeholder inside another composition.",
+    "You need control over size, radius and colors per rectangle."
+  ],
+  "avoidWhen": [
+    "You want shimmer and real content to crossfade automatically: use skeleton.",
+    "You need a spinning arc loader: use spinner.",
+    "The placeholder is a whole card, avatar and lines layout: use skeleton with its layout variable."
+  ],
+  "checkAt": [
+    0.2,
+    0.9,
+    1.6,
+    2.4
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/skeleton-block/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "skeleton-block.html",
+      "target": "compositions/components/skeleton-block.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "width", "type": "number", "role": "style", "label": "Width", "description": "Block width in design pixels.", "default": 120, "min": 16, "max": 640, "step": 1, "unit": "px"},
+    {"id": "height", "type": "number", "role": "style", "label": "Height", "description": "Block height in design pixels.", "default": 16, "min": 4, "max": 240, "step": 1, "unit": "px"},
+    {"id": "radius", "type": "number", "role": "style", "label": "Radius", "description": "Corner radius in design pixels.", "default": 6, "min": 0, "max": 120, "step": 1, "unit": "px"},
+    {"id": "base_color", "type": "string", "role": "style", "label": "Base color", "description": "Optional CSS color for the block. Empty uses the theme muted color.", "default": ""},
+    {"id": "highlight_color", "type": "string", "role": "style", "label": "Highlight color", "description": "Optional CSS color of the sweeping highlight. Empty mixes the base toward the text color.", "default": ""},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

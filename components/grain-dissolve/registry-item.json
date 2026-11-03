@@ -1,0 +1,128 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "grain-dissolve",
+  "type": "hyperframes:component",
+  "title": "Grain Dissolve",
+  "description": "A grainy gradient field blurs the outgoing scene away, fills the frame, and then clears to reveal the incoming scene. Rebuilt with a deterministic Canvas 2D gradient instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .grd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "grain",
+    "gradient",
+    "dissolve",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 2.5333,
+  "useWhen": [
+    "A textured, filmic dissolve between sections.",
+    "A brand with gradient and grain styling."
+  ],
+  "avoidWhen": [
+    "Flat, clean motion graphics.",
+    "Very short cuts: the field needs time to fill and clear."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/grain-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "grain-dissolve.html",
+      "target": "compositions/components/grain-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Shape",
+      "description": "Pattern of the gradient field.",
+      "default": "blob",
+      "options": [
+        {
+          "value": "blob",
+          "label": "Blob"
+        },
+        {
+          "value": "wave",
+          "label": "Wave"
+        },
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "truchet",
+          "label": "Truchet"
+        },
+        {
+          "value": "corners",
+          "label": "Corners"
+        },
+        {
+          "value": "ripple",
+          "label": "Ripple"
+        },
+        {
+          "value": "sphere",
+          "label": "Sphere"
+        }
+      ]
+    },
+    {
+      "id": "noise",
+      "type": "number",
+      "role": "style",
+      "label": "Grain",
+      "description": "Amount of grain in the field.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "zoom",
+      "type": "number",
+      "role": "style",
+      "label": "Zoom",
+      "description": "Scale of the gradient pattern.",
+      "default": 2,
+      "min": 0.5,
+      "max": 5,
+      "step": 0.1
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Backdrop color of the field.",
+      "default": "#141318"
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Comma-separated hex colors the gradient moves through.",
+      "default": "#3a3a52,#4a4a68,#8f88ae"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the field\u2019s own drift.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

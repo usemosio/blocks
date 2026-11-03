@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "typed-split-wipe",
+  "type": "hyperframes:component",
+  "title": "Typed Split Wipe",
+  "description": "A centered cursorless type build exits through opposing fixed-layout glyph wipes.",
+  "tags": [
+    "text-effects",
+    "typing",
+    "wipe",
+    "exit",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.5,
+  "useWhen": [
+    "A product or feature introduction should type itself cleanly before breaking into controlled directional fragments.",
+    "One short anchor must stay visible while the surrounding words are erased independently."
+  ],
+  "avoidWhen": [
+    "You need a conventional typewriter with a blinking caret and no exit: use typewriter.",
+    "Every character should rise or move independently: use per-character-rise."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/typed-split-wipe/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "typed-split-wipe.html",
+      "target": "compositions/components/typed-split-wipe.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Words typed before the anchor. It wipes out to the left.", "default": "Introducing" },
+    { "id": "anchor", "type": "string", "role": "content", "label": "Anchor", "description": "Short word that stays visible while the rest is erased.", "default": "Nova" },
+    { "id": "suffix", "type": "string", "role": "content", "label": "Suffix", "description": "Words typed after the anchor. They wipe out one by one.", "default": "Smart Notes" },
+    { "id": "type_frames", "type": "number", "role": "motion", "label": "Type frames", "description": "Frames the typing takes (30 fps).", "default": 30, "min": 6, "max": 60, "step": 1, "unit": "frames" },
+    { "id": "exit_at", "type": "number", "role": "motion", "label": "Exit at", "description": "Frame where the wipes start.", "default": 50, "min": 20, "max": 90, "step": 1, "unit": "frames" },
+    { "id": "exit_frames", "type": "number", "role": "motion", "label": "Exit frames", "description": "Frames the exit takes.", "default": 20, "min": 6, "max": 40, "step": 1, "unit": "frames" },
+    { "id": "word_stagger", "type": "number", "role": "motion", "label": "Word stagger", "description": "Frames between each suffix word wiping out.", "default": 4, "min": 0, "max": 12, "step": 1, "unit": "frames" },
+    { "id": "anchor_shift", "type": "number", "role": "motion", "label": "Anchor shift", "description": "Pixels the anchor slides left at 42 px type, as the prefix wipes away.", "default": -72, "min": -200, "max": 0, "step": 1, "unit": "px" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in pixels. Longer text shrinks to fit the frame.", "default": 42, "min": 12, "max": 120, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#e8e8e8" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

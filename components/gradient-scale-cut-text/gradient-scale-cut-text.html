@@ -1,0 +1,215 @@
+<!doctype html>
+<!--
+  Gradient Scale Cut Text
+
+  An oversized gradient reveal snaps to a compact blurred line that settles into focus.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/gradient-scale-cut-text/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="gradient-scale-cut-text"
+  data-composition-duration="1.2"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Title that is revealed at giant scale, then cut to compact.", "default": "Introducing" },
+    { "id": "giant_font_size", "type": "number", "role": "style", "label": "Giant font size", "description": "Type size of the first, oversized framing, in px at a 1920 px wide frame.", "default": 520, "min": 160, "max": 720, "step": 1, "unit": "px" },
+    { "id": "compact_font_size", "type": "number", "role": "style", "label": "Compact font size", "description": "Type size after the cut, in px at a 1920 px wide frame.", "default": 132, "min": 40, "max": 240, "step": 1, "unit": "px" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}] },
+    { "id": "gradient_start", "type": "color", "role": "style", "label": "Gradient start", "description": "Color at the leading edge of the gradient.", "default": "#f04a14" },
+    { "id": "gradient_end", "type": "color", "role": "style", "label": "Gradient end", "description": "Color the gradient settles into.", "default": "#f3f1f1" },
+    { "id": "ghost_color", "type": "color", "role": "style", "label": "Ghost color", "description": "Color of the unrevealed text.", "default": "#170b0a" },
+    { "id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Color of the field behind the text.", "default": "#000000" },
+    { "id": "anchor_offset_x", "type": "number", "role": "motion", "label": "Anchor offset", "description": "Horizontal offset of the text from the center.", "default": -16, "min": -400, "max": 400, "step": 1, "unit": "px" },
+    { "id": "giant_travel", "type": "number", "role": "motion", "label": "Giant travel", "description": "How far the giant framing drifts left before the cut.", "default": 400, "min": 0, "max": 800, "step": 1, "unit": "px" },
+    { "id": "settle_travel", "type": "number", "role": "motion", "label": "Settle travel", "description": "How far right of its place the compact line starts.", "default": 160, "min": 0, "max": 400, "step": 1, "unit": "px" },
+    { "id": "cut_frame", "type": "number", "role": "motion", "label": "Cut frame", "description": "Frame of the cut from giant to compact (30 fps).", "default": 13, "min": 4, "max": 24, "step": 1, "unit": "frames" },
+    { "id": "reveal_softness", "type": "number", "role": "style", "label": "Reveal softness", "description": "Softness of the reveal edge, in percent of the line.", "default": 14, "min": 0, "max": 40, "step": 1, "unit": "%" },
+    { "id": "compact_blur", "type": "number", "role": "motion", "label": "Compact blur", "description": "Blur in pixels the compact line starts with.", "default": 12, "min": 0, "max": 40, "step": 1, "unit": "px" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gradient Scale Cut Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #f3f1f1);
+          background: var(--bg, #000000);
+          font-family: Arial, Helvetica, sans-serif;
+          pointer-events: none;
+        }
+        .gsc-layer { position: absolute; }
+        .gsc-box { position: relative; }
+        .gsc-text { display: block; line-height: 1.12; white-space: nowrap; }
+        .gsc-grad {
+          position: absolute; inset: 0; color: transparent;
+          -webkit-background-clip: text; background-clip: text;
+          -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+        }
+      </style>
+
+      <div id="root" data-composition-id="gradient-scale-cut-text" data-duration="1.2" data-fps="30">
+        <div id="gsc-clip" class="gsc-stage clip" data-start="0" data-duration="1.2" data-track-index="0">
+          <div id="gsc-giant" class="gsc-layer"></div>
+          <div id="gsc-compact" class="gsc-layer"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("gsc-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "1.2");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["gradient-scale-cut-text"] = tl;
+            }
+            // interpolate() with clamping, easing given as a function of progress.
+            function ip(f, a, b, from, to, ease) {
+              var p = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            var text = str(vars.text, "Introducing");
+            var weight = pick(vars.font_weight, ["400", "600", "700", "900"], "700");
+            root.style.setProperty("--bg", str(vars.background_color, "#000000"));
+            var gStart = str(vars.gradient_start, "#f04a14");
+            var gEnd = str(vars.gradient_end, "#f3f1f1");
+            var ghost = str(vars.ghost_color, "#170b0a");
+            var u = root.clientWidth / 1920;
+            var giantSize = num(vars.giant_font_size, 520, 160, 720) * u;
+            var compactSize = num(vars.compact_font_size, 132, 40, 240) * u;
+            var anchorX = num(vars.anchor_offset_x, -16, -400, 400) * u;
+            var giantTravel = num(vars.giant_travel, 400, 0, 800) * u;
+            var settleTravel = num(vars.settle_travel, 160, 0, 400) * u;
+            var cutFrame = Math.max(num(vars.cut_frame, 13, 4, 24), 1);
+            var soft = Math.max(num(vars.reveal_softness, 14, 0, 40), 0);
+            var blurPx = Math.max(num(vars.compact_blur, 12, 0, 40), 0) * u;
+            var gradient = "linear-gradient(90deg, " + gStart + " 0%, " + gStart + " 4%, " + gEnd + " 26%, " + gEnd + " 100%)";
+            function layer(host, size) {
+              var box = document.createElement("div");
+              box.className = "gsc-box";
+              var base = document.createElement("span");
+              base.className = "gsc-text";
+              base.style.color = ghost;
+              var grad = document.createElement("span");
+              grad.className = "gsc-text gsc-grad";
+              grad.style.backgroundImage = gradient;
+              [base, grad].forEach(function (el) { el.textContent = text; el.style.fontSize = size + "px"; el.style.fontWeight = weight; });
+              box.appendChild(base);
+              box.appendChild(grad);
+              host.appendChild(box);
+              return grad;
+            }
+            var giant = document.getElementById("gsc-giant");
+            var compact = document.getElementById("gsc-compact");
+            var gradA = layer(giant, giantSize), gradB = layer(compact, compactSize);
+
+            var REVEAL_END = 33, SETTLE = 8;
+            var revealEase = bz("reveal", 0.22, 0.74, 0.24, 1);
+            var out3 = bz("out", 0.215, 0.61, 0.355, 1);
+            var P = { f: 0 };
+            function apply() {
+              var f = P.f;
+              var rp = ip(f, 0, REVEAL_END, 0.02, 1, revealEase);
+              var edge = rp * (100 + soft / 2);
+              var solid = Math.max(0, edge - soft / 2), fade = edge + soft / 2;
+              var mask = "linear-gradient(90deg, #000 0%, #000 " + solid + "%, transparent " + fade + "%, transparent " + fade + "%)";
+              gradA.style.webkitMaskImage = gradA.style.maskImage = mask;
+              gradB.style.webkitMaskImage = gradB.style.maskImage = mask;
+              var showGiant = f < cutFrame;
+              giant.style.display = showGiant ? "block" : "none";
+              compact.style.display = showGiant ? "none" : "block";
+              if (showGiant) {
+                var gp = ip(f, 0, Math.max(cutFrame - 1, 1), 0, 1, out3);
+                giant.style.top = "calc(50% + " + -28 * u + "px)";
+                giant.style.left = "calc(50% + " + (anchorX + -48 * u - giantTravel * gp) + "px)";
+                giant.style.transform = "translate3d(0, -50%, 0)";
+              } else {
+                var sp = ip(f, cutFrame, cutFrame + SETTLE, 0, 1, out3);
+                var mp = f < cutFrame + 1 ? 0 : f < cutFrame + 2 ? 0.58 * (f - cutFrame - 1) : f < cutFrame + 4 ? 0.58 + (0.875 - 0.58) * (f - cutFrame - 2) / 2 : ip(f, cutFrame + 4, cutFrame + SETTLE, 0.875, 1);
+                var cx = settleTravel * (1 - mp) + 28 * u * (1 - mp);
+                compact.style.top = "calc(50% + " + 5 * u + "px)";
+                compact.style.left = "calc(50% + " + (anchorX + cx) + "px)";
+                compact.style.filter = "blur(" + blurPx * (1 - sp) + "px)";
+                compact.style.transform = "translate3d(-50%, -50%, 0) scaleX(0.87)";
+              }
+            }
+            apply();
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: apply }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

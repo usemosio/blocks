@@ -1,0 +1,88 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "lens-zoom",
+  "type": "hyperframes:component",
+  "title": "Lens Zoom",
+  "description": "A fast fisheye lens push: the outgoing scene bulges and zooms into the lens with motion blur, a camera shake and a slight color fringe, then the incoming scene unwinds out of the same lens. Built-in placeholder scenes A and B (the two .lz-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "lens",
+    "fisheye",
+    "zoom",
+    "shake",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 0.9333,
+  "useWhen": [
+    "A punchy, energetic cut between two high-energy scenes.",
+    "Sports, tech or music pieces that want a camera-whip feel."
+  ],
+  "avoidWhen": [
+    "Calm, minimal pieces.",
+    "Text-heavy scenes: the fisheye distorts type."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/lens-zoom/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "lens-zoom.html",
+      "target": "compositions/components/lens-zoom.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "lens_steps",
+      "type": "number",
+      "role": "style",
+      "label": "Lens steps",
+      "description": "Rings used to approximate the fisheye bulge. More is smoother but heavier.",
+      "default": 9,
+      "min": 4,
+      "max": 32,
+      "step": 1
+    },
+    {
+      "id": "blur_samples",
+      "type": "number",
+      "role": "style",
+      "label": "Blur samples",
+      "description": "Copies blended for the motion blur at full strength.",
+      "default": 7,
+      "min": 2,
+      "max": 32,
+      "step": 1
+    },
+    {
+      "id": "shake_amount",
+      "type": "number",
+      "role": "motion",
+      "label": "Shake amount",
+      "description": "Strength of the camera shake, in percent.",
+      "default": 50,
+      "min": 0,
+      "max": 300,
+      "step": 5,
+      "unit": "%"
+    },
+    {
+      "id": "shake_translate_px",
+      "type": "number",
+      "role": "motion",
+      "label": "Shake travel",
+      "description": "Largest shake offset in pixels.",
+      "default": 73,
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}

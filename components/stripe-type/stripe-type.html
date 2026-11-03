@@ -1,0 +1,210 @@
+<!doctype html>
+<!--
+  Stripe Type
+
+  A word cut into horizontal bands, as in the IBM logo, slides together from alternating sides and locks, then can pass on through.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/stripe-type/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="stripe-type"
+  data-composition-duration="3.3333"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "One bold word.", "default": "Launch"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the bands.", "default": "#fafafa"},
+    {"id": "settle", "type": "enum", "role": "style", "label": "Settle", "description": "Resting look once the bands lock.", "default": "striped", "options": [{"value": "striped", "label": "Striped"}, {"value": "solid", "label": "Solid"}]},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (720 high stage); long words shrink to fit.", "default": 180, "min": 60, "max": 320, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Weight", "description": "Font weight, 100 to 900.", "default": 800, "min": 100, "max": 900, "step": 100},
+    {"id": "stripes", "type": "number", "role": "style", "label": "Stripes", "description": "Number of horizontal bands.", "default": 8, "min": 2, "max": 16, "step": 1},
+    {"id": "gap", "type": "number", "role": "style", "label": "Gap", "description": "Share of each pitch left empty between bands.", "default": 0.35, "min": 0, "max": 0.8, "step": 0.01},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Hold", "description": "Frames the word rests before leaving (30 fps). The clip is sized for 30.", "default": 30, "min": 0, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "exit", "type": "boolean", "role": "motion", "label": "Exit", "description": "Bands leave through the opposite side.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stripe Type</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .st-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+        .st-wrap { position: relative; }
+        .st-line { line-height: 1; white-space: pre; }
+        .st-size { visibility: hidden; }
+        .st-band { position: absolute; inset: 0; }
+      </style>
+
+      <div id="root" data-composition-id="stripe-type" data-duration="3.3333" data-fps="30">
+        <div id="st-clip" class="st-stage clip" data-start="0" data-duration="3.3333" data-track-index="0">
+          <div id="st-wrap" class="st-wrap"><div id="st-size" class="st-line st-size"></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "3.3333");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var wrap = document.getElementById("st-wrap"), sizer = document.getElementById("st-size");
+            var text = str(vars.text, "Launch"), color = col(vars.color, "#fafafa");
+            var solid = pick(vars.settle, ["striped", "solid"], "striped") === "solid";
+            var weight = num(vars.font_weight, 800, 100, 900), n = Math.max(1, Math.round(num(vars.stripes, 8, 2, 16)));
+            var gap0 = num(vars.gap, 0.35, 0, 0.8), hold = num(vars.hold, 30, 0, 120), doExit = bool(vars.exit, true), speed = num(vars.speed, 1, 0.25, 4);
+            var unit = Math.min(root.clientWidth / 1280, root.clientHeight / 720), W = root.clientWidth;
+            var baseSize = num(vars.font_size, 180, 60, 320) * unit;
+            var fontSpec = weight + " 100px Inter";
+            var bands = [];
+            for (var k = 0; k < n; k++) {
+              var b = document.createElement("div");
+              b.className = "st-band st-line"; b.textContent = text; b.style.color = color;
+              b.style.fontWeight = weight; b.style.fontVariationSettings = '"wght" ' + weight;
+              if (k > 0) b.setAttribute("aria-hidden", "true");
+              wrap.appendChild(b); bands.push(b);
+            }
+            sizer.textContent = text; sizer.style.fontWeight = weight; sizer.style.fontVariationSettings = '"wght" ' + weight;
+            var ctx = document.createElement("canvas").getContext("2d");
+            var ink = { top: 0.136, bottom: 0.864 + 0.24, width: 0.6 * Array.from(text).length }, inkReal = false;
+            function measure() {
+              ctx.font = fontSpec;
+              var m = ctx.measureText(text), asc = m.fontBoundingBoxAscent / 100, desc = m.fontBoundingBoxDescent / 100;
+              var base = (1 - (asc + desc)) / 2 + asc;
+              if (asc > 0) { ink = { top: base - m.actualBoundingBoxAscent / 100, bottom: base + m.actualBoundingBoxDescent / 100, width: m.width / 100 }; }
+            }
+            var expoOut = ease("st-out", 0.16, 1, 0.3, 1), expoIn = ease("st-in", 0.7, 0, 0.84, 0);
+            var STAG = 2, TRAV = 16, CLOSE = 10;
+            var entered = STAG * (n - 1) + TRAV, settled = solid ? entered + CLOSE : entered;
+            var exitStart = settled + hold;
+            var curSize = 0;
+            tick(function (tt) {
+              var t = tt * 30 * speed;
+              if (!inkReal) { var ok = !document.fonts || document.fonts.check(fontSpec); measure(); inkReal = ok; }
+              var size = Math.min(baseSize, (W * 0.9) / Math.max(0.1, ink.width));
+              if (size !== curSize) { wrap.style.fontSize = size + "px"; sizer.style.fontSize = size + "px"; bands.forEach(function (b) { b.style.fontSize = size + "px"; }); curSize = size; }
+              var gap = solid ? ip(t, entered, settled, gap0, 0, cubInOut) : gap0;
+              var pitch = 1 / (n - Math.min(0.95, gap)), g = Math.min(0.95, gap), inkH = ink.bottom - ink.top;
+              var travel = (W + ink.width * size) / 2 + 0.2 * size;
+              bands.forEach(function (b, k) {
+                var top = (ink.top + k * pitch * inkH) * 100;
+                var bleed = k < n - 1 ? Math.max(1, unit) / size : 0;
+                var bottom = (1 - (ink.top + (k * pitch + pitch * (1 - g)) * inkH) - bleed) * 100;
+                var side = k % 2 === 0 ? -1 : 1;
+                var inS = STAG * k, enter = ip(t, inS, inS + TRAV, 1, 0, expoOut), off;
+                if (!doExit) off = side * enter;
+                else { var oS = exitStart + STAG * k; off = side * enter - side * ip(t, oS, oS + TRAV, 0, 1, expoIn); }
+                b.style.clipPath = "inset(" + top + "% -1% " + bottom + "% -1%)";
+                b.style.transform = "translateX(" + (off || 0) * travel + "px)";
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "3.3333");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["stripe-type"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

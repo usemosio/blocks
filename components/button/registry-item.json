@@ -1,0 +1,148 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "button",
+  "type": "hyperframes:component",
+  "title": "Button",
+  "description": "A button that plays its whole lifecycle: a pointer arrives, the button hovers, presses, shows a spinner, then a check.",
+  "tags": [
+    "button",
+    "cta",
+    "click",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "Showing the full interactive lifecycle of a CTA: hover, press, loading, success.",
+    "A trigger visual for a modal-layer primitive (dialog, alert-dialog, sheet, drawer).",
+    "Demonstrating a loading or submit state with a spinner inline inside the button."
+  ],
+  "avoidWhen": [
+    "You need a selectable row inside a menu: use dropdown-menu-item.",
+    "You only need a static label with no interactive state: use plain text."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/button/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "button.html",
+      "target": "compositions/components/button.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Button text.",
+      "default": "Continue"
+    },
+    {
+      "id": "variant",
+      "type": "enum",
+      "role": "style",
+      "label": "Variant",
+      "description": "Visual style.",
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "destructive",
+          "label": "Destructive"
+        },
+        {
+          "value": "outline",
+          "label": "Outline"
+        },
+        {
+          "value": "ghost",
+          "label": "Ghost"
+        }
+      ]
+    },
+    {
+      "id": "size",
+      "type": "enum",
+      "role": "style",
+      "label": "Size",
+      "description": "Button size.",
+      "default": "default",
+      "options": [
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "id": "show_cursor",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Show cursor",
+      "description": "Show the pointer that hovers and clicks the button.",
+      "default": true
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

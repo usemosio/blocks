@@ -1,0 +1,102 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "icon-scatter",
+  "type": "hyperframes:component",
+  "title": "Icon Scatter",
+  "description": "A field of line icons draws itself over the outgoing scene, covers the swap, then scatters outward to reveal the incoming scene. Built-in placeholder scenes A and B (the two .isc-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "icons",
+    "scatter",
+    "line-art",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.3333,
+  "useWhen": [
+    "Playful or app-style pieces where icons are part of the brand.",
+    "A short cover transition that hides the swap behind a graphic field."
+  ],
+  "avoidWhen": [
+    "Serious or cinematic content.",
+    "When the icon set would clash with the brand's own iconography."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/icon-scatter/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "icon-scatter.html",
+      "target": "compositions/components/icon-scatter.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "count",
+      "type": "number",
+      "role": "style",
+      "label": "Icon count",
+      "description": "How many icons populate the field.",
+      "default": 15,
+      "min": 4,
+      "max": 60,
+      "step": 1
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Icon color",
+      "description": "Stroke color of the icons.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "cover_color",
+      "type": "color",
+      "role": "style",
+      "label": "Cover color",
+      "description": "Fill that hides the swap at the field\u2019s peak.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "cover_opacity",
+      "type": "number",
+      "role": "style",
+      "label": "Cover opacity",
+      "description": "Peak opacity of the cover fill.",
+      "default": 0.92,
+      "min": 0,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Stroke width",
+      "description": "Icon stroke width in 24px icon units.",
+      "default": 2,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "fly_distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Fly distance",
+      "description": "How far icons fly when they scatter, in pixels.",
+      "default": 260,
+      "min": 0,
+      "max": 800,
+      "step": 10,
+      "unit": "px"
+    }
+  ]
+}

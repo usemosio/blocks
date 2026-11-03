@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "puzzle-snap",
+  "type": "hyperframes:component",
+  "title": "Puzzle Snap",
+  "description": "Geometric pieces spin in from scattered positions and snap into a mark with sparks, then the wordmark slides out beside it. The mark is a fixed set of shapes; the wordmark is the text variable.",
+  "tags": [
+    "logo-sting",
+    "geometric",
+    "playful",
+    "sparks",
+    "remocn-port"
+  ],
+  "category": "logo-stings",
+  "duration": 2.2,
+  "useWhen": [
+    "You have a wordmark but no animated mark, and the sting should build a simple geometric mark for you.",
+    "The brand is friendly or modular, and pieces clicking together tell that story."
+  ],
+  "avoidWhen": [
+    "Your real logo must appear exactly as designed: the mark here is a fixed set of shapes, so use orbit-lock or spotlight around your own logo.",
+    "The brand is calm or luxurious and the snapping reads as too toy-like."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/puzzle-snap/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "puzzle-snap.html",
+      "target": "compositions/components/puzzle-snap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Wordmark", "description": "Wordmark that slides out beside the mark. Leave empty for the mark alone.", "default": "studio"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Stage color.", "default": "#111111"},
+    {"id": "primary_color", "type": "color", "role": "style", "label": "Primary", "description": "Fill of the quarter circle and the small square.", "default": "#E5322D"},
+    {"id": "secondary_color", "type": "color", "role": "style", "label": "Secondary", "description": "Fill of the dot and the wedge, and the wordmark.", "default": "#FFFFFF"},
+    {"id": "spark_color", "type": "color", "role": "style", "label": "Sparks", "description": "Spark burst color.", "default": "#FFFFFF"},
+    {"id": "square", "type": "boolean", "role": "style", "label": "Square piece", "description": "Include the small square piece.", "default": true},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the scattered start positions.", "default": 3, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

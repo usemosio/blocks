@@ -1,0 +1,105 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "x-ray-scan",
+  "type": "hyperframes:component",
+  "title": "X-Ray Scan",
+  "description": "A glowing scanner bar sweeps across a device and reveals its white-line internals, with one part marked in red. A built-in phone stands in for the product; a host replaces the .xr-outside and .xr-inside layers with its own exterior and interior pictures.",
+  "tags": [
+    "scan",
+    "x-ray",
+    "device",
+    "tech",
+    "reveal",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 2.17,
+  "useWhen": [
+    "A hardware launch should show what is inside the device: the board, the battery, the chip that matters.",
+    "One internal part is the story, like a new chip or a bigger battery, and should be singled out in the brand color.",
+    "The reveal should read as a single clean scanner pass, left to right or top to bottom."
+  ],
+  "avoidWhen": [
+    "The product should come apart into labelled layers: use exploded-view.",
+    "The product should be measured and annotated from the outside: use blueprint.",
+    "The subject should read as a printed poster rather than a device scan: use riso-print."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/x-ray-scan/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "x-ray-scan.html",
+      "target": "compositions/components/x-ray-scan.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Horizontal sweeps left to right, vertical sweeps top to bottom.",
+      "default": "horizontal",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "Vertical"
+        }
+      ]
+    },
+    {
+      "id": "shell",
+      "type": "color",
+      "role": "style",
+      "label": "Shell",
+      "description": "Color of the built-in phone shell.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent part",
+      "description": "Color of the highlighted internal part.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "line",
+      "type": "color",
+      "role": "style",
+      "label": "Scan line",
+      "description": "Scan bar and interior line art color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background color.",
+      "default": "#111111"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+<!doctype html>
+<!--
+  Topo Lines
+
+  Topographic contour lines around a few seeded peaks breathe and drift, with index contours and one line picked out in the accent, as a seamless loop.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/topo-lines/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="topo-lines"
+  data-composition-duration="10"
+  data-composition-variables='[
+    {"id": "levels", "type": "number", "role": "style", "label": "Contours", "description": "Number of contour levels.", "default": 16, "min": 4, "max": 32, "step": 1},
+    {"id": "peaks", "type": "number", "role": "style", "label": "Peaks", "description": "Number of peaks in the height field.", "default": 3, "min": 1, "max": 5, "step": 1},
+    {"id": "highlight", "type": "number", "role": "style", "label": "Accent contour", "description": "Contour drawn in the accent, counted from the lowest; -1 turns it off.", "default": 9, "min": -1, "max": 31, "step": 1},
+    {"id": "index_every", "type": "number", "role": "style", "label": "Index line every", "description": "Every n-th contour is a heavier index line; 0 turns it off.", "default": 4, "min": 0, "max": 8, "step": 1},
+    {"id": "resolution", "type": "number", "role": "style", "label": "Resolution", "description": "Sampling cells across the short side; higher is smoother and slower.", "default": 90, "min": 40, "max": 140, "step": 5},
+    {"id": "loop_frames", "type": "number", "role": "motion", "label": "Loop frames", "description": "Frames per seamless loop of the breathing field. The component lasts 10 s, so 300 loops once.", "default": 300, "min": 90, "max": 900, "step": 30, "unit": "frames"},
+    {"id": "seed", "type": "number", "role": "style", "label": "Seed", "description": "Changes the terrain.", "default": 2, "min": 1, "max": 50, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "color", "type": "color", "role": "style", "label": "Contours", "description": "Contour line color.", "default": "#FFFFFF"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Accent contour color.", "default": "#E5322D"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Topo Lines</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #111111; }
+        .tl-stage { position: absolute; inset: 0; }
+        .tl-stage svg { display: block; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="topo-lines" data-duration="10" data-fps="30">
+        <div id="tl-clip" class="tl-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <svg id="tl-svg" role="img" aria-label="Topographic contour lines">
+            <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path id="tl-plain" />
+              <path id="tl-index" />
+              <path id="tl-accent" />
+            </g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Seeded random in [0, 1): a string hash, so the same key always gives the same value.
+            function rnd(key) {
+              var h = 1779033703 ^ key.length;
+              for (var i = 0; i < key.length; i++) {
+                h = Math.imul(h ^ key.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+              }
+              h = Math.imul(h ^ (h >>> 16), 2246822507);
+              h = Math.imul(h ^ (h >>> 13), 3266489909);
+              h ^= h >>> 16;
+              return (h >>> 0) / 4294967296;
+            }
+
+            function fmt(n) { return Math.round(n * 10) / 10; }
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var levels = Math.round(num(vars.levels, 16, 4, 32));
+            var peaks = Math.round(num(vars.peaks, 3, 1, 5));
+            var highlight = Math.round(num(vars.highlight, 9, -1, 31));
+            var indexEvery = Math.round(num(vars.index_every, 4, 0, 8));
+            var resolution = num(vars.resolution, 90, 40, 140);
+            var loop = Math.max(1, Math.round(num(vars.loop_frames, 300, 90, 900)));
+            var seed = Math.round(num(vars.seed, 2, 1, 50));
+            var speed = num(vars.speed, 1, 0.1, 4);
+            root.style.background = str(vars.background, "#111111");
+            var color = str(vars.color, "#FFFFFF");
+            var accent = str(vars.accent, "#E5322D");
+
+            var TAU = Math.PI * 2;
+            var REACH = 0.95; // a cone falls from 1 to 0 over this distance (short side = 1)
+            var SOFT = 0.045; // smooth-max softness: peaks merge into shared outer rings
+            var unit = Math.min(W, H), w = W / unit, h = H / unit;
+            function r(k) { return rnd("topo-lines-" + seed + "-" + k); }
+            var turn = r("turn") * TAU, list = [], ripples = [];
+            for (var k = 0; k < peaks; k++) {
+              var a = turn + (k * TAU) / peaks + (r("j" + k) - 0.5) * 0.8;
+              var spread = peaks === 1 ? 0.06 : 0.24 + r("d" + k) * 0.06;
+              list.push({
+                x: w / 2 + Math.cos(a) * spread * w, y: h / 2 + Math.sin(a) * spread * h * 1.1,
+                amp: k === 0 ? 1 : 0.7 + r("a" + k) * 0.22, phase: r("p" + k) * TAU,
+                orbit: 0.025 + r("o" + k) * 0.025, l0: r("l2" + k) * TAU, l1: r("l3" + k) * TAU
+              });
+            }
+            for (var q = 0; q < 3; q++) ripples.push({ fx: (r("rx" + q) * 2 - 1) * (3 + q * 2), fy: (r("ry" + q) * 2 - 1) * (3 + q * 2), phase: r("rp" + q) * TAU });
+            // Height at (x, y); tau goes once around a circle per loop, so the last frame matches the first.
+            function terrain(x, y, tau) {
+              var sum = 0;
+              for (var i = 0; i < list.length; i++) {
+                var p = list[i];
+                var px = p.x + Math.cos(tau + p.phase) * p.orbit, py = p.y + Math.sin(tau + p.phase) * p.orbit;
+                var dx = x - px, dy = y - py, theta = Math.atan2(dy, dx);
+                var warp = 1 + 0.14 * Math.sin(2 * theta + p.l0 + tau) + 0.08 * Math.sin(3 * theta + p.l1 - tau);
+                var amp = p.amp * (1 + 0.05 * Math.sin(tau + p.phase));
+                sum += Math.exp((amp - (Math.hypot(dx, dy) * warp) / REACH) / SOFT);
+              }
+              var v = SOFT * Math.log(sum);
+              for (var j = 0; j < ripples.length; j++) {
+                var rp = ripples[j];
+                v += 0.03 * Math.sin(rp.fx * x + rp.fy * y + rp.phase + Math.sin(tau + rp.phase) * 1.4);
+              }
+              return v;
+            }
+
+            var step = 1 / resolution, nx = Math.ceil(w / step) + 1, ny = Math.ceil(h / step) + 1;
+            var field = new Float32Array(nx * ny);
+            var thresholds = [];
+            for (var l = 0; l < levels; l++) thresholds.push(0.04 + (l * 0.9) / levels);
+            var px = unit / 720, s = step * unit;
+            function X(i) { return fmt(i * s); }
+            function Y(j) { return fmt(j * s); }
+            var svg = document.getElementById("tl-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var pPlain = document.getElementById("tl-plain"), pIndex = document.getElementById("tl-index"), pAccent = document.getElementById("tl-accent");
+            pPlain.setAttribute("stroke", color); pPlain.setAttribute("stroke-opacity", 0.38); pPlain.setAttribute("stroke-width", 1.1 * px);
+            pIndex.setAttribute("stroke", color); pIndex.setAttribute("stroke-opacity", 0.85); pIndex.setAttribute("stroke-width", 1.8 * px);
+            pAccent.setAttribute("stroke", accent); pAccent.setAttribute("stroke-width", 2.6 * px);
+
+            function draw(frame) {
+              var tau = (TAU * frame * speed) / loop;
+              for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) field[j * nx + i] = terrain(i * step, j * step, tau);
+              var plain = "", index = "", acc = "";
+              // Marching squares; segments that share a cell edge land on the same point, so round caps read as one curve.
+              for (var jj = 0; jj < ny - 1; jj++) {
+                for (var ii = 0; ii < nx - 1; ii++) {
+                  var a = field[jj * nx + ii], b = field[jj * nx + ii + 1], c = field[(jj + 1) * nx + ii + 1], d = field[(jj + 1) * nx + ii];
+                  var lo = Math.min(a, b, c, d), hi = Math.max(a, b, c, d);
+                  for (var lv = 0; lv < levels; lv++) {
+                    var t = thresholds[lv];
+                    if (t < lo || t >= hi) continue;
+                    var code = (a > t ? 8 : 0) | (b > t ? 4 : 0) | (c > t ? 2 : 0) | (d > t ? 1 : 0);
+                    var top = X(ii + (t - a) / (b - a)) + " " + Y(jj);
+                    var right = X(ii + 1) + " " + Y(jj + (t - b) / (c - b));
+                    var bottom = X(ii + (t - d) / (c - d)) + " " + Y(jj + 1);
+                    var left = X(ii) + " " + Y(jj + (t - a) / (d - a));
+                    var seg = "";
+                    switch (code) {
+                      case 1: case 14: seg = "M " + left + " L " + bottom + " "; break;
+                      case 2: case 13: seg = "M " + bottom + " L " + right + " "; break;
+                      case 3: case 12: seg = "M " + left + " L " + right + " "; break;
+                      case 4: case 11: seg = "M " + top + " L " + right + " "; break;
+                      case 6: case 9: seg = "M " + top + " L " + bottom + " "; break;
+                      case 7: case 8: seg = "M " + left + " L " + top + " "; break;
+                      case 5: seg = "M " + left + " L " + top + " M " + bottom + " L " + right + " "; break;
+                      case 10: seg = "M " + top + " L " + right + " M " + left + " L " + bottom + " "; break;
+                    }
+                    if (lv === highlight) acc += seg;
+                    else if (indexEvery > 0 && (lv + 1) % indexEvery === 0) index += seg;
+                    else plain += seg;
+                  }
+                }
+              }
+              pPlain.setAttribute("d", plain); pIndex.setAttribute("d", index); pAccent.setAttribute("d", acc);
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "10") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "10");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["topo-lines"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

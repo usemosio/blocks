@@ -1,0 +1,279 @@
+<!doctype html>
+<!--
+  Kinetic Morph Text
+
+  Letters lift, rotate, and reshape into the next phrase with delicate outline trails.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/kinetic-morph-text/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="kinetic-morph-text"
+  data-composition-duration="9.6"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "One phrase per line, or separate phrases with |.", "default": "Hello | Make it move | Shape what's next" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum type size in pixels. Long phrases shrink to fit 82 % of the width.", "default": 100, "min": 24, "max": 180, "step": 1, "unit": "px" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}] },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#b4f4d9" },
+    { "id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Color of the field behind the letters.", "default": "#a800b7" },
+    { "id": "spread", "type": "number", "role": "motion", "label": "Spread", "description": "Flight radius of the letters in pixels.", "default": 180, "min": 0, "max": 230, "step": 1, "unit": "px" },
+    { "id": "rotation", "type": "number", "role": "motion", "label": "Rotation", "description": "Maximum letter rotation in degrees.", "default": 110, "min": 0, "max": 240, "step": 1, "unit": "deg" },
+    { "id": "morph", "type": "number", "role": "motion", "label": "Morph", "description": "Strength of the soft silhouette blend, 0 to 1.", "default": 0.75, "min": 0, "max": 1, "step": 0.05 },
+    { "id": "trails", "type": "number", "role": "style", "label": "Trails", "description": "Opacity of the outline echoes, 0 to 1.", "default": 0.45, "min": 0, "max": 1, "step": 0.05 },
+    { "id": "transition_frames", "type": "number", "role": "motion", "label": "Transition frames", "description": "Frames each phrase change takes (30 fps).", "default": 54, "min": 18, "max": 90, "step": 1, "unit": "frames" },
+    { "id": "hold_frames", "type": "number", "role": "motion", "label": "Hold frames", "description": "Frames each phrase rests before the next change.", "default": 42, "min": 0, "max": 90, "step": 1, "unit": "frames" },
+    { "id": "loop", "type": "boolean", "role": "motion", "label": "Loop", "description": "Return to the first phrase at the end instead of resting on the last.", "default": false }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kinetic Morph Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--bg, #a800b7);
+          color: var(--color, #b4f4d9);
+          font-family: Arial, Helvetica, sans-serif;
+          pointer-events: none;
+        }
+        .kmt-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="kinetic-morph-text" data-duration="9.6" data-fps="30">
+        <div id="kmt-clip" class="clip" data-start="0" data-duration="9.6" data-track-index="0" style="position:absolute;inset:0">
+          <svg id="kmt-svg" class="kmt-svg" xmlns="http://www.w3.org/2000/svg" role="img"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("kmt-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "9.6");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["kinetic-morph-text"] = tl;
+            }
+            var text = str(vars.text, "Hello | Make it move | Shape what's next");
+            var color = str(vars.color, "#b4f4d9");
+            root.style.setProperty("--bg", str(vars.background_color, "#a800b7"));
+            var weight = pick(vars.font_weight, ["400", "600", "700", "900"], "600");
+            var W = root.clientWidth, H = root.clientHeight;
+            var transition = Math.max(1, num(vars.transition_frames, 54, 18, 90));
+            var hold = Math.max(0, num(vars.hold_frames, 42, 0, 90));
+            var loop = vars.loop === true || vars.loop === "true";
+            var spread = Math.min(W * 0.24, H * 0.32, num(vars.spread, 180, 0, 230));
+            var rotation = num(vars.rotation, 110, 0, 240);
+            var morph = num(vars.morph, 0.75, 0, 1);
+            var trails = num(vars.trails, 0.45, 0, 1);
+            var FONT = "Arial, Helvetica, sans-serif";
+
+            function clamp(v) { return Math.min(1, Math.max(0, v)); }
+            function smooth(v) { var p = clamp(v); return p * p * (3 - 2 * p); }
+            function mix(a, b, p) { return a + (b - a) * p; }
+            function noise(i) { var v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }
+            function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+            // Lay out every phrase on a shared baseline, centered, one glyph per grapheme.
+            var size0 = Math.min(H * 0.28, num(vars.font_size, 100, 24, 180));
+            var ctx = document.createElement("canvas").getContext("2d");
+            ctx.font = weight + " " + size0 + "px " + FONT;
+            ctx.fontKerning = "none";
+            var seg = new Intl.Segmenter("en", { granularity: "grapheme" });
+            var phrases = text.split(/[|\n\r]+/).map(function (p) { return p.trim().replace(/\s+/g, " "); }).filter(Boolean);
+            if (!phrases.length) phrases = ["Hello"];
+            var parts = phrases.map(function (p) { return Array.from(seg.segment(p), function (s) { return s.segment; }); });
+            var adv = parts.map(function (row) { return row.map(function (ch) { return ctx.measureText(ch).width; }); });
+            var widths = adv.map(function (row) { return row.reduce(function (a, b) { return a + b; }, 0); });
+            var fitK = Math.min(1, (W * 0.82) / Math.max.apply(null, [1].concat(widths)));
+            var size = size0 * fitK;
+            var mt = ctx.measureText("Hg");
+            var baseline = ((mt.actualBoundingBoxAscent - mt.actualBoundingBoxDescent) / 2) * fitK;
+            var layout = parts.map(function (row, r) {
+              var cursor = (-widths[r] * fitK) / 2, out = [];
+              row.forEach(function (ch, c) {
+                var a = adv[r][c] * fitK;
+                if (ch.trim()) out.push({ character: ch, x: cursor + a / 2 });
+                cursor += a;
+              });
+              return out;
+            });
+
+            // Pair identical glyphs first (closest), then the leftovers in order.
+            function match(from, to) {
+              var unused = {}; from.forEach(function (_, i) { unused[i] = true; });
+              var picks = to.map(function (target) {
+                var best = -1, dist = Infinity;
+                Object.keys(unused).forEach(function (k) {
+                  var s = from[k];
+                  if (s.character !== target.character) return;
+                  var d = Math.abs(s.x - target.x);
+                  if (d < dist) { best = Number(k); dist = d; }
+                });
+                if (best !== -1) delete unused[best];
+                return best;
+              });
+              var rest = Object.keys(unused).map(Number);
+              var pairs = to.map(function (target, i) {
+                var src = picks[i] === -1 ? rest.shift() : picks[i];
+                return { from: src === undefined ? undefined : from[src], to: target };
+              });
+              rest.forEach(function (i) { pairs.push({ from: from[i] }); });
+              return pairs;
+            }
+            var ease = bz("morph", 0.65, 0, 0.25, 1);
+            function pose(pair, index, count, progress) {
+              var delay = noise(index + 3) * 0.12;
+              var p = clamp((progress - delay) / (1 - delay));
+              var travel = ease(p);
+              var motion = Math.sin(Math.PI * travel);
+              var angle = (index / Math.max(count, 1)) * Math.PI * 2 - Math.PI / 2;
+              var orbitX = Math.cos(angle) * spread * (0.7 + noise(index) * 0.4);
+              var orbitY = Math.sin(angle) * spread * 0.72 - spread * 0.25;
+              var fromX = pair.from ? pair.from.x : orbitX * 1.2;
+              var toX = pair.to ? pair.to.x : orbitX * 1.2;
+              var fromY = pair.from ? 0 : orbitY + spread * 0.65;
+              var toY = pair.to ? 0 : orbitY - spread * 0.6;
+              var turn = (noise(index + 9) * 2 - 1) * rotation;
+              var rot = pair.from ? (pair.to ? turn * motion : turn * travel) : turn * (1 - travel);
+              var repl = !!(pair.from && pair.to && pair.from.character !== pair.to.character);
+              var blend = repl ? smooth((p - 0.36) / 0.28) : 0;
+              var melt = repl ? Math.sin(Math.PI * blend) * morph : 0;
+              var opacity = pair.from ? (pair.to ? 1 : 1 - smooth((p - 0.35) / 0.5)) : smooth(p / 0.36);
+              return {
+                x: mix(fromX, toX, travel) + orbitX * motion, y: mix(fromY, toY, travel) + orbitY * motion,
+                rotate: rot, scaleX: 1 - melt * 0.52 + motion * 0.08, scaleY: 1 + melt * 0.42 - motion * 0.06,
+                blend: blend, melt: melt, opacity: opacity, motion: motion
+              };
+            }
+            function timeline(frame) {
+              var count = layout.length, time = Math.max(0, frame);
+              if (!loop && time < transition) return { from: -1, to: 0, progress: time / transition };
+              var cursor = loop ? time : time - transition;
+              var cycle = transition + hold;
+              var index = Math.floor(cursor / cycle);
+              if ((!loop && index >= count - 1) || (loop && count === 1)) return { from: count - 1, to: count - 1, progress: 1 };
+              return { from: index % count, to: (index + 1) % count, progress: clamp(((cursor % cycle) - hold) / transition) };
+            }
+            function tf(v) { return "translate(" + v.x + " " + v.y + ") rotate(" + v.rotate + ") scale(" + v.scaleX + " " + v.scaleY + ")"; }
+
+            var svg = document.getElementById("kmt-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            svg.setAttribute("aria-label", phrases.join(". "));
+            svg.style.fontFamily = FONT;
+            svg.style.fontSize = size + "px";
+            svg.style.fontWeight = weight;
+            svg.style.fontKerning = "none";
+            var cache = { key: "", pairs: [] };
+            var P = { f: 0 };
+            function apply() {
+              var tlm = timeline(P.f);
+              var key = tlm.from + ":" + tlm.to;
+              if (cache.key !== key) {
+                cache = { key: key, pairs: match(layout[tlm.from] || [], layout[tlm.to] || []) };
+              }
+              var pairs = cache.pairs, html = "", defs = "";
+              pairs.forEach(function (pair, i) {
+                var ps = pose(pair, i, pairs.length, tlm.progress);
+                var repl = !!(pair.from && pair.to && pair.from.character !== pair.to.character);
+                var ch = pair.from ? pair.from.character : pair.to.character;
+                var g = "";
+                if (trails > 0 && ps.motion > 0.001) {
+                  [3, 2, 1].forEach(function (sample) {
+                    var echo = pose(pair, i, pairs.length, Math.max(0, tlm.progress - (sample * 1.5) / transition));
+                    g += '<text transform="' + tf(echo) + '" y="' + baseline + '" fill="none" stroke="' + color + '" stroke-width="' + Math.max(0.7, size * 0.009) +
+                      '" opacity="' + echo.opacity * ps.motion * trails * (1 - sample / 4) + '">' + esc(repl && echo.blend > 0.5 ? pair.to.character : ch) + "</text>";
+                  });
+                }
+                var filtered = repl && ps.melt > 0.001;
+                if (filtered) {
+                  defs += '<filter id="kmt-f' + i + '" x="-70%" y="-70%" width="240%" height="240%" color-interpolation-filters="sRGB">' +
+                    '<feGaussianBlur stdDeviation="' + ps.melt * size * 0.045 + '"/>' +
+                    '<feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4"/></filter>';
+                }
+                g += '<g transform="' + tf(ps) + '" opacity="' + ps.opacity + '"><g' + (filtered ? ' filter="url(#kmt-f' + i + ')"' : "") + ' fill="' + color + '">' +
+                  '<text y="' + baseline + '" opacity="' + (repl ? 1 - ps.blend : 1) + '">' + esc(ch) + "</text>" +
+                  (repl ? '<text y="' + baseline + '" opacity="' + ps.blend + '">' + esc(pair.to.character) + "</text>" : "") + "</g></g>";
+                html += "<g>" + g + "</g>";
+              });
+              svg.innerHTML = "<defs>" + defs + '</defs><g transform="translate(' + W / 2 + " " + H / 2 + ')" text-anchor="middle">' + html + "</g>";
+            }
+            apply();
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: apply }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

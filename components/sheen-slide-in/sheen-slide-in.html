@@ -1,0 +1,179 @@
+<!doctype html>
+<!--
+  Sheen Slide In
+
+  A title glides in from the right with a long settle while a gradient sheen sweeps through the glyphs.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/sheen-slide-in/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="sheen-slide-in"
+  data-composition-duration="2.134"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Title that glides in.", "default": "Introducing" },
+    { "id": "exit_at", "type": "number", "role": "motion", "label": "Exit at", "description": "Frame where the title shrinks away (30 fps).", "default": 60, "min": 30, "max": 150, "step": 1, "unit": "frames" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "base_color", "type": "color", "role": "style", "label": "Base color", "description": "Text color once the sheen has passed.", "default": "#18181b" },
+    { "id": "sheen_color", "type": "color", "role": "style", "label": "Sheen color", "description": "Color of the gradient that sweeps through the letters.", "default": "#4f8ef7" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sheen Slide In</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #18181b);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .ssl-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ssl-box { position: relative; display: inline-block; white-space: nowrap; opacity: 0; line-height: 1.1; }
+        .ssl-text { font-size: inherit; letter-spacing: -0.02em; line-height: 1.1; margin: 0; white-space: nowrap; }
+        .ssl-base { color: var(--base, #18181b); }
+        .ssl-sheen {
+          position: absolute; inset: 0; color: transparent; opacity: 0;
+          -webkit-background-clip: text; background-clip: text;
+          background-size: 250% 100%; background-position: 160% 50%;
+        }
+      </style>
+
+      <div id="root" data-composition-id="sheen-slide-in" data-duration="2.134" data-fps="30">
+        <div id="ssl-clip" class="ssl-stage clip" data-start="0" data-duration="2.134" data-track-index="0">
+          <div id="ssl-box" class="ssl-box">
+            <span id="ssl-base" class="ssl-text ssl-base"></span>
+            <span id="ssl-sheen" class="ssl-text ssl-sheen" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("ssl-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "2.134");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["sheen-slide-in"] = tl;
+            }
+            var text = str(vars.text, "Introducing");
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "400");
+            var exitAt = num(vars.exit_at, 60, 30, 150);
+            var base = str(vars.base_color, "#18181b");
+            var sheenColor = str(vars.sheen_color, "#4f8ef7");
+            root.style.setProperty("--base", base);
+            var box = document.getElementById("ssl-box");
+            var baseEl = document.getElementById("ssl-base");
+            var sheen = document.getElementById("ssl-sheen");
+            box.style.fontWeight = weight;
+            baseEl.textContent = text;
+            sheen.textContent = text;
+            sheen.style.backgroundImage = "linear-gradient(100deg, transparent 25%, " + sheenColor + " 50%, transparent 75%)";
+            var size = fit(box, num(vars.font_size, 72, 12, 160), 0.8);
+            // Leave room for the 1.8 em the title travels in from.
+            if (size * 2.1 + box.scrollWidth > root.clientWidth) {
+              size = Math.max(12, size * (root.clientWidth - 0) / (size * 2.1 + box.scrollWidth));
+              box.style.fontSize = size + "px";
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Exponential settle plus a slow creep, as a function of the frame.
+            var P = { f: 0 };
+            function apply() {
+              var f = P.f;
+              var em = 1.8 * Math.exp(-f / 2.5) + 0.28 * Math.exp(-f / 12);
+              box.style.transform = "translate(" + size * em + "px, 0)";
+            }
+            apply();
+            tl.to(P, { f: exitAt + 4, duration: (exitAt + 4) / 30, ease: "none", onUpdate: apply }, 0);
+            tw(tl, box, { opacity: 0 }, { opacity: 1 }, 0, 4);
+            var sheenEase = bz("sheen", 0.42, 0, 0.58, 1);
+            tw(tl, sheen, { backgroundPosition: "160% 50%" }, { backgroundPosition: "-60% 50%" }, 0, 48, sheenEase);
+            tw(tl, sheen, { opacity: 0 }, { opacity: 1 }, 0, 4);
+            tw(tl, sheen, { opacity: 1 }, { opacity: 0 }, 48, 58, null, true);
+            tw(tl, box, { scale: 1 }, { scale: 0.9 }, exitAt, exitAt + 4, bz("exit", 0.5, 1, 0.89, 1), true);
+            tl.set(box, { visibility: "hidden" }, (exitAt + 4) / 30);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

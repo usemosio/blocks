@@ -1,0 +1,234 @@
+<!doctype html>
+<!--
+  Kinetic Warp
+
+  A coarse mesh warp bends a whole word in staccato beats, one axis moving per keyframe.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/kinetic-warp/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="kinetic-warp"
+  data-composition-duration="4"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short, heavy display word. Use a line break to stack two lines.", "default": "STU\nDIO" },
+    { "id": "text_color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the word.", "default": "#FFFFFF" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size at a 100 % layer scale, in px at 1080 high.", "default": 107.1, "min": 40, "max": 200, "step": 0.1, "unit": "px" },
+    { "id": "layer_scale", "type": "number", "role": "style", "label": "Layer scale", "description": "Scale of the text layer in percent.", "default": 480, "min": 100, "max": 800, "step": 1, "unit": "%" },
+    { "id": "keyframe_stride", "type": "number", "role": "motion", "label": "Keyframe stride", "description": "Frames between warp poses (30 fps). Tune it to the beat.", "default": 20, "min": 5, "max": 40, "step": 1, "unit": "frames" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kinetic Warp</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: "Passion One", Impact, sans-serif;
+          pointer-events: none;
+        }
+        .kwp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .kwp-font { position: absolute; left: 0; top: 0; opacity: 0; font-weight: 700; font-size: 20px; }
+      </style>
+
+      <div id="root" data-composition-id="kinetic-warp" data-duration="4" data-fps="30">
+        <div id="kwp-clip" class="clip" data-start="0" data-duration="4" data-track-index="0" style="position:absolute;inset:0">
+          <canvas id="kwp-canvas" class="kwp-canvas"></canvas>
+          <span class="kwp-font" aria-hidden="true">STUDIO</span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("kwp-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "4");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["kinetic-warp"] = tl;
+            }
+            var text = str(vars.text, "STU\nDIO");
+            var textColor = str(vars.text_color, "#FFFFFF");
+            var W = root.clientWidth, H = root.clientHeight;
+            var sx = W / 1920, sy = H / 1080;
+            // Type scales with the frame height, but never wider than 1.8 x the width of a 1920 frame.
+            var u = Math.min(H / 1080, (W / 1920) * 1.8);
+            var scale = num(vars.layer_scale, 480, 100, 800) / 100;
+            var pxSize = num(vars.font_size, 107.1, 40, 200) * scale * u;
+            var pxLeading = 70 * scale * u;
+            var pxTracking = (-21 / 1000) * pxSize;
+            var stride = num(vars.keyframe_stride, 20, 5, 40);
+            var COLS = 4, ROWS = 2, STEP = 4;
+            var colRest = 960 * sx, colRight = 1255 * sx, colLeft = 678 * sx;
+            var rowRest = 540 * sy, rowDown = 850 * sy, rowUp = 387 * sy;
+            var FAMILY = '"Passion One", Impact, sans-serif';
+
+            var canvas = document.getElementById("kwp-canvas");
+            canvas.width = W;
+            canvas.height = H;
+            var out = canvas.getContext("2d");
+            var source = document.createElement("canvas");
+            source.width = W; source.height = H;
+            var mid = document.createElement("canvas");
+            mid.width = W; mid.height = H;
+            var midCtx = mid.getContext("2d");
+
+            function drawSource() {
+              var c = source.getContext("2d");
+              c.clearRect(0, 0, W, H);
+              c.font = "700 " + pxSize + "px " + FAMILY;
+              c.letterSpacing = pxTracking + "px";
+              c.fillStyle = textColor;
+              c.textAlign = "left";
+              c.textBaseline = "alphabetic";
+              var lines = text.split(/\\n|\n/);
+              var m = lines.map(function (l) { return c.measureText(l); });
+              var ascent = m[0].actualBoundingBoxAscent;
+              var descent = m[m.length - 1].actualBoundingBoxDescent;
+              var span = (lines.length - 1) * pxLeading;
+              var first = H / 2 - (span - ascent + descent) / 2;
+              lines.forEach(function (l, i) {
+                var x = W / 2 - (m[i].actualBoundingBoxRight - m[i].actualBoundingBoxLeft) / 2;
+                c.fillText(l, x, first + i * pxLeading);
+              });
+            }
+
+            // Monotone cubic interpolation through (xs, ys): the mesh bends smoothly without overshoot.
+            function monotone(xs, ys) {
+              var n = xs.length, h = [], d = [], m = [];
+              for (var i = 0; i < n - 1; i++) { h[i] = xs[i + 1] - xs[i]; d[i] = (ys[i + 1] - ys[i]) / h[i]; }
+              m[0] = d[0]; m[n - 1] = d[n - 2];
+              for (i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+              for (i = 0; i < n - 1; i++) {
+                if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+                var a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b;
+                if (s > 9) { var k = 3 / Math.sqrt(s); m[i] = k * a * d[i]; m[i + 1] = k * b * d[i]; }
+              }
+              return function (x) {
+                if (x <= xs[0]) return ys[0] + m[0] * (x - xs[0]);
+                if (x >= xs[n - 1]) return ys[n - 1] + m[n - 1] * (x - xs[n - 1]);
+                var j = n - 2;
+                while (j > 0 && x < xs[j]) j--;
+                var t = (x - xs[j]) / h[j], t2 = t * t, t3 = t2 * t;
+                return (2 * t3 - 3 * t2 + 1) * ys[j] + (t3 - 2 * t2 + t) * h[j] * m[j] + (-2 * t3 + 3 * t2) * ys[j + 1] + (t3 - t2) * h[j] * m[j + 1];
+              };
+            }
+            var ease = bz("beat", 0.3, 0.74, 0.09, 1);
+            // Six poses, one every `stride` frames; every segment eases on its own.
+            function pose(f, values) {
+              var seg = Math.min(4, Math.max(0, Math.floor(f / stride)));
+              var p = Math.min(1, Math.max(0, (f - seg * stride) / stride));
+              return values[seg] + (values[seg + 1] - values[seg]) * ease(p);
+            }
+            var P = { f: 0 };
+            function draw() {
+              var colX = pose(P.f, [colRest, colRight, colRight, colLeft, colLeft, colRest]);
+              var rowY = pose(P.f, [rowRest, rowRest, rowDown, rowDown, rowUp, rowRest]);
+              var xs = [], ys = [];
+              for (var i = 0; i <= COLS; i++) xs.push((i * W) / COLS);
+              for (i = 0; i <= ROWS; i++) ys.push((i * H) / ROWS);
+              var xd = xs.slice(), yd = ys.slice();
+              xd[Math.round(COLS / 2)] = colX;
+              yd[Math.round(ROWS / 2)] = rowY;
+              var gx = monotone(xd, xs), gy = monotone(yd, ys);
+              midCtx.clearRect(0, 0, W, H);
+              out.clearRect(0, 0, W, H);
+              for (var d0 = 0; d0 < W; d0 += STEP) {
+                var d1 = Math.min(d0 + STEP, W), s0 = gx(d0), sw = gx(d1) - s0;
+                if (sw <= 0) continue;
+                midCtx.drawImage(source, s0, 0, sw, H, d0, 0, d1 - d0, H);
+              }
+              for (d0 = 0; d0 < H; d0 += STEP) {
+                d1 = Math.min(d0 + STEP, H);
+                s0 = gy(d0);
+                var sh = gy(d1) - s0;
+                if (sh <= 0) continue;
+                out.drawImage(mid, 0, s0, W, sh, 0, d0, W, d1 - d0);
+              }
+            }
+            drawSource();
+            draw();
+            // Redraw the source once the web font is in.
+            function refresh() { drawSource(); draw(); }
+            if (document.fonts) {
+              document.fonts.load("700 " + pxSize + 'px "Passion One"').then(refresh, function () {});
+              document.fonts.ready.then(refresh, function () {});
+            }
+            var tl = gsap.timeline({ paused: true });
+            tl.to(P, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: draw }, 0);
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

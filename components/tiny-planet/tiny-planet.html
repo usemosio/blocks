@@ -1,0 +1,262 @@
+<!doctype html>
+<!--
+  Tiny Planet
+
+  A seeded flat skyline bends into a tiny planet through a polar remap, then keeps turning beside a red sun.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/tiny-planet/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="tiny-planet"
+  data-composition-duration="3.333"
+  data-composition-variables='[
+    {"id": "buildings", "type": "number", "role": "style", "label": "Buildings", "description": "Buildings in the front row; the back row gets a matching count.", "default": 26, "min": 4, "max": 60, "step": 1},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the skyline.", "default": 4, "min": 1, "max": 99, "step": 1},
+    {"id": "spin", "type": "number", "role": "motion", "label": "Spin", "description": "Planet spin once bent, in degrees per frame at 30 fps.", "default": 0.7, "min": -3, "max": 3, "step": 0.05},
+    {"id": "sky_color", "type": "color", "role": "style", "label": "Sky", "description": "Sky color.", "default": "#111111"},
+    {"id": "ground_color", "type": "color", "role": "style", "label": "Ground", "description": "Ground color.", "default": "#262626"},
+    {"id": "building_color", "type": "color", "role": "style", "label": "Buildings", "description": "Front-row building color.", "default": "#FFFFFF"},
+    {"id": "far_color", "type": "color", "role": "style", "label": "Far buildings", "description": "Back-row building color.", "default": "#6B6B6B"},
+    {"id": "window_color", "type": "color", "role": "style", "label": "Windows", "description": "Window color.", "default": "#111111"},
+    {"id": "sun_color", "type": "color", "role": "style", "label": "Sun", "description": "Sun color.", "default": "#E5322D"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tiny Planet</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--sky); }
+        .tp-stage { position: absolute; inset: 0; overflow: hidden; }
+        .tp-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="tiny-planet" data-duration="3.333" data-fps="30">
+        <div id="tp-clip" class="tp-stage clip" data-start="0" data-duration="3.333" data-track-index="0">
+          <svg class="tp-svg" id="tp-svg"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "tiny-planet";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var svg = document.getElementById("tp-svg");
+var buildings = Math.max(4, Math.round(num(vars.buildings, 26, 4, 60))), seed = Math.round(num(vars.seed, 4, 1, 99)), spin = num(vars.spin, 0.7, -3, 3), speed = num(vars.speed, 1, 0, 4);
+var C = { sky: col(vars.sky_color, "#111111"), ground: col(vars.ground_color, "#262626"), near: col(vars.building_color, "#FFFFFF"), far: col(vars.far_color, "#6B6B6B"), win: col(vars.window_color, "#111111"), sun: col(vars.sun_color, "#E5322D") };
+root.style.setProperty("--sky", C.sky);
+var W = root.clientWidth, H = root.clientHeight;
+// Sizes use a unit that stays inside tall frames; positions use the frame height.
+var U = Math.min(H, W * 0.5625);
+svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+var BEND_START = 8, BEND_END = 40, SPIN_RAMP = 14;
+var length = W, radius = length / (2 * Math.PI);
+// Seeded skyline: a back row and a front row of blocks along the strip.
+var city = [];
+[1, 0].forEach(function (row) {
+  var n = row === 1 ? Math.round(buildings * 0.8) : buildings, slot = length / n;
+  for (var i = 0; i < n; i++) {
+    var key = "tiny-planet-" + seed + "-" + row + "-" + i;
+    var w = slot * (0.55 + rnd(key + "-w") * 0.4);
+    var start = i * slot + rnd(key + "-x") * (slot - w) + (row ? slot * 0.5 : 0);
+    var tall = rnd(key + "-h");
+    var h = row ? U * (0.13 + tall * 0.16) : U * (0.05 + tall * tall * 0.15);
+    var spire = rnd(key + "-s") < 0.18 ? U * 0.04 : 0;
+    city.push({ s0: start - length / 2, s1: start + w - length / 2, h: h, row: row, spire: spire, idx: i });
+  }
+});
+var sunEl = svgEl("circle", { fill: C.sun }, svg);
+city.forEach(function (b) {
+  b.el = svgEl("path", { fill: b.row ? C.far : C.near, stroke: b.row ? C.far : C.near }, svg);
+  b.cells = [];
+  if (!b.row && b.h >= U * 0.09) {
+    var cols = Math.max(1, Math.floor((b.s1 - b.s0) / (U * 0.03))), rows = Math.floor(b.h / (U * 0.04));
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      if (rnd("tiny-planet-" + seed + "-win-" + b.idx + "-" + r + "-" + c) < 0.55) continue;
+      b.cells.push([b.s0 + ((b.s1 - b.s0) * (c + 0.5)) / cols, b.h - U * 0.03 - r * U * 0.04]);
+    }
+    b.win = svgEl("path", { fill: C.win }, svg);
+  }
+});
+var groundEl = svgEl("path", { fill: C.ground }, svg);
+var tallest = U * 0.33, finalScale = (U * 0.43) / (radius + tallest);
+var bendEase = inOutCubic;
+function draw(frame) {
+  var t = frame * speed;
+  var bend = interp(t, [BEND_START, BEND_END], [0, 1], bendEase);
+  var spinT = Math.max(0, t - (BEND_END - SPIN_RAMP));
+  var turn = spinT < SPIN_RAMP ? (spin * spinT * spinT) / (2 * SPIN_RAMP) : spin * (spinT - SPIN_RAMP / 2);
+  var rot = (turn * Math.PI) / 180;
+  var kappa = Math.max(1e-5, bend / radius);
+  var horizon = H * 0.7;
+  var scale = 1 + (finalScale - 1) * bend;
+  var anchorY = horizon + (H / 2 - finalScale * radius - horizon) * bend;
+  // Bend: arc length s and height h onto a circle of curvature kappa whose top sits at the pivot.
+  function P(s, h) {
+    var a = kappa * s + rot * bend, rr = 1 / kappa + h;
+    return (W / 2 + Math.sin(a) * rr * scale).toFixed(1) + "," + (anchorY + (1 / kappa - Math.cos(a) * rr) * scale).toFixed(1);
+  }
+  var steps = 160, depth = Math.min(1 / kappa, U * 3), g = "";
+  for (var i = 0; i <= steps; i++) g += (i ? "L" : "M") + P(-length / 2 + (length * i) / steps, 0);
+  for (i = steps; i >= 0; i--) g += "L" + P(-length / 2 + (length * i) / steps, -depth);
+  groundEl.setAttribute("d", g);
+  setA(sunEl, { cx: lerp(W * 0.7, W * 0.8, bend), cy: lerp(H * 0.36, H * 0.2, bend), r: U * lerp(0.12, 0.075, bend) });
+  city.forEach(function (b) {
+    var top = [];
+    for (var k = 0; k <= 4; k++) top.push(P(b.s0 + ((b.s1 - b.s0) * k) / 4, b.h));
+    var mid = (b.s0 + b.s1) / 2;
+    var spire = b.spire ? " M" + P(mid - 1.5, b.h) + " L" + P(mid, b.h + b.spire) + " L" + P(mid + 1.5, b.h) : "";
+    b.el.setAttribute("d", "M" + P(b.s0, -2) + " L" + top.join(" L") + " L" + P(b.s1, -2) + " Z" + spire);
+    b.el.setAttribute("stroke-width", b.spire ? 2 * scale : 0);
+    if (b.win) {
+      var ws = U * 0.006;
+      b.win.setAttribute("d", b.cells.map(function (c) { return "M" + P(c[0] - ws, c[1]) + " L" + P(c[0] + ws, c[1]) + " L" + P(c[0] + ws, c[1] - ws * 2.2) + " L" + P(c[0] - ws, c[1] - ws * 2.2) + " Z"; }).join(" "));
+    }
+  });
+}
+finish(drive(draw, TOTAL));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

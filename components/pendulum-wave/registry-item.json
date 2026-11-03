@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "pendulum-wave",
+  "type": "hyperframes:component",
+  "title": "Pendulum Wave",
+  "description": "A row of pendulums drifts out of phase into waves, then snaps back into a straight line.",
+  "tags": [
+    "background",
+    "loop",
+    "waves",
+    "rhythm",
+    "generative",
+    "remocn-port"
+  ],
+  "category": "backgrounds",
+  "duration": 15,
+  "useWhen": [
+    "A scene needs a calm, hypnotic background loop that is clearly rule-based, with order dissolving into waves and snapping back into a line.",
+    "A section about timing, rhythm, sync or periodic systems needs a visual that shows phases drifting apart and realigning."
+  ],
+  "avoidWhen": [
+    "The loop should be a dense, organic texture rather than a row of distinct objects.",
+    "The scene needs a one-shot accent that fires and clears rather than a running loop: use trim-burst."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/pendulum-wave/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "pendulum-wave.html",
+      "target": "compositions/components/pendulum-wave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"count","type":"number","role":"layout","label":"Pendulums","description":"Number of pendulums in the row.","default":15,"min":2,"max":40,"step":1},
+    {"id":"cycles","type":"number","role":"motion","label":"Cycles","description":"Swings the slowest pendulum makes per loop; pendulum i makes cycles + i.","default":10,"min":1,"max":30,"step":1},
+    {"id":"loop_frames","type":"number","role":"motion","label":"Loop length","description":"Frames (at 30 fps) until every pendulum realigns.","default":450,"min":90,"max":900,"step":1,"unit":"frames"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Backdrop color.","default":"#111111"},
+    {"id":"color","type":"color","role":"style","label":"Bobs","description":"Color of the bobs and guides.","default":"#FFFFFF"},
+    {"id":"accent","type":"color","role":"style","label":"Wave line","description":"Color of the line threaded through the bobs.","default":"#E5322D"},
+    {"id":"show_guides","type":"boolean","role":"style","label":"Guides","description":"Draw the faint per-pendulum tracks and centre line.","default":true}
+  ]
+}

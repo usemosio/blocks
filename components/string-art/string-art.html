@@ -1,0 +1,258 @@
+<!doctype html>
+<!--
+  String Art
+
+  Threads are strung around a ring of pins as a times table, then the multiplier morphs the figure from a cardioid through a nephroid and beyond.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/string-art/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="string-art"
+  data-composition-duration="11.34"
+  data-composition-variables='[
+    {"id": "pins", "type": "number", "role": "style", "label": "Pins", "description": "Pins around the ring.", "default": 200, "min": 40, "max": 400, "step": 10},
+    {"id": "from", "type": "number", "role": "motion", "label": "From multiplier", "description": "Multiplier at the start (2 draws a cardioid).", "default": 2, "min": 1, "max": 12, "step": 0.5},
+    {"id": "to", "type": "number", "role": "motion", "label": "To multiplier", "description": "Multiplier at the end (3 is a nephroid, 4 a three-cusp epicycloid).", "default": 4, "min": 1, "max": 12, "step": 0.5},
+    {"id": "string_frames", "type": "number", "role": "motion", "label": "String frames", "description": "Frames for the threads to be strung, one pin after another.", "default": 60, "min": 15, "max": 150, "step": 5, "unit": "frames"},
+    {"id": "morph_frames", "type": "number", "role": "motion", "label": "Morph frames", "description": "Frames for the multiplier to drift from the start to the end. The component lasts 11.3 s, which fits the default.", "default": 240, "min": 30, "max": 600, "step": 10, "unit": "frames"},
+    {"id": "sweep", "type": "number", "role": "style", "label": "Accent sweep", "description": "Length of the accent sweep, as a share of all threads; 0 turns it off.", "default": 0.08, "min": 0, "max": 0.3, "step": 0.01},
+    {"id": "thread_opacity", "type": "number", "role": "style", "label": "Thread opacity", "description": "Opacity of the threads.", "default": 0.42, "min": 0.1, "max": 1, "step": 0.02},
+    {"id": "show_label", "type": "boolean", "role": "style", "label": "Label", "description": "Show the running multiplier in the corner.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "color", "type": "color", "role": "style", "label": "Threads", "description": "Thread and pin color.", "default": "#FFFFFF"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Accent sweep color.", "default": "#E5322D"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>String Art</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #111111; }
+        .sa-stage { position: absolute; inset: 0; }
+        .sa-stage svg { display: block; width: 100%; height: 100%; }
+        .sa-label { position: absolute; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; white-space: pre; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="string-art" data-duration="11.34" data-fps="30">
+        <div id="sa-clip" class="sa-stage clip" data-start="0" data-duration="11.34" data-track-index="0">
+          <svg id="sa-svg" role="img" aria-label="String art times table">
+            <path id="sa-pins" />
+            <path id="sa-threads" fill="none" stroke-linecap="round" />
+            <g id="sa-sweep" fill="none" stroke-linecap="round"></g>
+          </svg>
+          <div id="sa-label" class="sa-label"><span id="sa-i">i → </span><span id="sa-k"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Piecewise-linear map of x from inR to outR, optionally eased per segment and clamped.
+            function interp(x, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var i = 0;
+              if (x >= inR[n - 1]) i = n - 2;
+              else if (x > inR[0]) { while (x > inR[i + 1]) i++; }
+              var t = (x - inR[i]) / (inR[i + 1] - inR[i]);
+              if (o.clamp !== false) t = Math.min(1, Math.max(0, t));
+              if (o.easing) t = o.easing(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+
+            // Easings with Remotion's names; every one maps 0..1 to 0..1.
+            var E = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              back: function (s) { return function (t) { return t * t * ((s + 1) * t - s); }; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; },
+              bezier: function (x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var k = 0; k < 24; k++) {
+                    var mt = 1 - t;
+                    var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                    if (bx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var m = 1 - t;
+                  return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+                };
+              }
+            };
+
+            function fmt(n) { return Math.round(n * 10) / 10; }
+
+            function dot(x, y, r) {
+              return "M " + fmt(x - r) + " " + fmt(y) + " a " + fmt(r) + " " + fmt(r) + " 0 1 0 " + fmt(r * 2) + " 0 a " + fmt(r) + " " + fmt(r) + " 0 1 0 " + fmt(-r * 2) + " 0 ";
+            }
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var pins = Math.max(8, Math.round(num(vars.pins, 200, 40, 400)));
+            var from = num(vars.from, 2, 1, 12), to = num(vars.to, 4, 1, 12);
+            var stringFrames = Math.max(1, num(vars.string_frames, 60, 15, 150));
+            var morphFrames = Math.max(1, num(vars.morph_frames, 240, 30, 600));
+            var sweep = num(vars.sweep, 0.08, 0, 0.3);
+            var threadOpacity = num(vars.thread_opacity, 0.42, 0.1, 1);
+            var showLabel = bool(vars.show_label, true);
+            var speed = num(vars.speed, 1, 0.1, 4);
+            root.style.background = str(vars.background, "#111111");
+            var color = str(vars.color, "#FFFFFF");
+            var accent = str(vars.accent, "#E5322D");
+
+            var TAU = Math.PI * 2, MORPH_DELAY = 24, HOLD = 0.3, SWEEP_BUCKETS = 4, SWEEP_SPEED = 0.9;
+            var unit = Math.min(W, H) / 720;
+            var radius = Math.min(W, H) * 0.42, cx = W / 2, cy = H / 2;
+            var svg = document.getElementById("sa-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var pPins = document.getElementById("sa-pins"), pThreads = document.getElementById("sa-threads");
+            pPins.setAttribute("fill", color);
+            pThreads.setAttribute("stroke", color);
+            pThreads.setAttribute("stroke-opacity", threadOpacity);
+            pThreads.setAttribute("stroke-width", unit);
+            var sweepG = document.getElementById("sa-sweep"), sweepPaths = [];
+            for (var b = 0; b < SWEEP_BUCKETS; b++) sweepPaths.push(el("path", { stroke: accent, "stroke-opacity": 1 - b / SWEEP_BUCKETS, "stroke-width": unit * (1.6 - b * 0.15) }, sweepG));
+
+            function point(index) {
+              // Pin 0 sits on the left so the cardioid cusp points left.
+              var a = Math.PI + (TAU * index) / pins;
+              return [cx + Math.cos(a) * radius, cy + Math.sin(a) * radius];
+            }
+            var pinDots = "", pr = 1.6 * unit;
+            for (var p = 0; p < pins; p++) { var pt = point(p); pinDots += dot(pt[0], pt[1], pr); }
+            pPins.setAttribute("d", pinDots);
+
+            var label = document.getElementById("sa-label"), labelK = document.getElementById("sa-k");
+            label.style.left = W * 0.06 + "px";
+            label.style.bottom = H * 0.08 + "px";
+            label.style.fontSize = 22 * unit + "px";
+            label.style.color = color;
+            document.getElementById("sa-i").style.color = accent;
+            if (!showLabel) label.style.display = "none";
+
+            var span = to - from;
+            var steps = Math.max(1, Math.ceil(Math.abs(span) - 1e-6));
+            var inOutCubic = E.inOut(E.cubic), inOutQuad = E.inOut(E.quad);
+            function xy(q) { return fmt(q[0]) + " " + fmt(q[1]); }
+
+            function draw(frame) {
+              var time = frame * speed;
+              var strung = interp(time, [0, stringFrames], [0, pins], { easing: inOutQuad });
+              var morphStart = stringFrames + MORPH_DELAY;
+              // The multiplier walks through each integer table with an eased step and a hold on every clean figure.
+              var u = interp(time, [morphStart, morphStart + morphFrames], [0, steps]) - 1e-9;
+              var step = Math.max(0, Math.floor(u));
+              var within = inOutCubic(clamp01((u - step) / (1 - HOLD)));
+              var k = from + (span * Math.min(steps, step + within)) / steps;
+
+              var threads = "", accents = [];
+              for (var s = 0; s < SWEEP_BUCKETS; s++) accents.push("");
+              var whole = Math.floor(strung);
+              var head = strung + Math.max(0, time - stringFrames) * SWEEP_SPEED;
+              var tail = Math.max(0, sweep) * pins;
+              for (var i = 0; i < Math.ceil(strung); i++) {
+                var start = point(i), end = point(k * i);
+                var f = i < whole ? 1 : strung - whole;
+                var tip = [start[0] + (end[0] - start[0]) * f, start[1] + (end[1] - start[1]) * f];
+                var d = "M " + xy(start) + " L " + xy(tip) + " ";
+                var behind = (((head - i) % pins) + pins) % pins;
+                if (tail > 0 && behind < tail) accents[Math.min(SWEEP_BUCKETS - 1, Math.floor((behind / tail) * SWEEP_BUCKETS))] += d;
+                else threads += d;
+              }
+              pThreads.setAttribute("d", threads);
+              for (var q = 0; q < SWEEP_BUCKETS; q++) sweepPaths[q].setAttribute("d", accents[q]);
+              pPins.setAttribute("fill-opacity", 0.55 * interp(time, [0, 12], [0, 1]));
+              label.style.opacity = 0.7 * interp(time, [stringFrames - 10, stringFrames + 6], [0, 1]);
+              labelK.textContent = k.toFixed(2) + " · i mod " + pins;
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "11.34") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "11.34");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["string-art"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

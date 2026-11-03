@@ -1,0 +1,166 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "string-art",
+  "type": "hyperframes:component",
+  "title": "String Art",
+  "description": "Threads are strung around a ring of pins as a times table, then the multiplier morphs the figure from a cardioid through a nephroid and beyond.",
+  "tags": [
+    "generative",
+    "math",
+    "lines",
+    "tech",
+    "morph",
+    "remocn-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 11.34,
+  "useWhen": [
+    "A math, algorithm or engineering story needs a precise generative figure that builds itself and then transforms.",
+    "An intro or section break should draw something intricate from simple rules, with a label that shows the rule.",
+    "A background needs fine linework that keeps a slow accent sweep running after the figure lands."
+  ],
+  "avoidWhen": [
+    "The figure should be a natural spiral of dots rather than straight threads: use phyllotaxis.",
+    "The scene needs a looping background with no build-up: use flow-field.",
+    "The data is real and should be read as a chart."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/string-art/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "string-art.html",
+      "target": "compositions/components/string-art.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "pins",
+      "type": "number",
+      "role": "style",
+      "label": "Pins",
+      "description": "Pins around the ring.",
+      "default": 200,
+      "min": 40,
+      "max": 400,
+      "step": 10
+    },
+    {
+      "id": "from",
+      "type": "number",
+      "role": "motion",
+      "label": "From multiplier",
+      "description": "Multiplier at the start (2 draws a cardioid).",
+      "default": 2,
+      "min": 1,
+      "max": 12,
+      "step": 0.5
+    },
+    {
+      "id": "to",
+      "type": "number",
+      "role": "motion",
+      "label": "To multiplier",
+      "description": "Multiplier at the end (3 is a nephroid, 4 a three-cusp epicycloid).",
+      "default": 4,
+      "min": 1,
+      "max": 12,
+      "step": 0.5
+    },
+    {
+      "id": "string_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "String frames",
+      "description": "Frames for the threads to be strung, one pin after another.",
+      "default": 60,
+      "min": 15,
+      "max": 150,
+      "step": 5,
+      "unit": "frames"
+    },
+    {
+      "id": "morph_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Morph frames",
+      "description": "Frames for the multiplier to drift from the start to the end. The component lasts 11.3 s, which fits the default.",
+      "default": 240,
+      "min": 30,
+      "max": 600,
+      "step": 10,
+      "unit": "frames"
+    },
+    {
+      "id": "sweep",
+      "type": "number",
+      "role": "style",
+      "label": "Accent sweep",
+      "description": "Length of the accent sweep, as a share of all threads; 0 turns it off.",
+      "default": 0.08,
+      "min": 0,
+      "max": 0.3,
+      "step": 0.01
+    },
+    {
+      "id": "thread_opacity",
+      "type": "number",
+      "role": "style",
+      "label": "Thread opacity",
+      "description": "Opacity of the threads.",
+      "default": 0.42,
+      "min": 0.1,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "show_label",
+      "type": "boolean",
+      "role": "style",
+      "label": "Label",
+      "description": "Show the running multiplier in the corner.",
+      "default": true
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background color.",
+      "default": "#111111"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Threads",
+      "description": "Thread and pin color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Accent sweep color.",
+      "default": "#E5322D"
+    }
+  ]
+}

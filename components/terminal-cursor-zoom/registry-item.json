@@ -1,0 +1,124 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "terminal-cursor-zoom",
+  "type": "hyperframes:component",
+  "title": "Terminal Cursor Zoom",
+  "description": "Camera locked to the typing cursor, dollying across a terminal as one command types at high zoom.",
+  "tags": [
+    "terminal",
+    "camera",
+    "typing",
+    "zoom",
+    "code",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 3,
+  "useWhen": [
+    "One install command is the whole beat and it must stay legible in a vertical crop: the camera holds the cursor at frame centre.",
+    "A short social clip needs kinetic energy from the typing itself."
+  ],
+  "avoidWhen": [
+    "The session has several lines, logs or output: use a terminal simulator; this types exactly one command.",
+    "The terminal window should stay statically framed."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/terminal-cursor-zoom/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "terminal-cursor-zoom.html",
+      "target": "compositions/components/terminal-cursor-zoom.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "command",
+      "type": "string",
+      "role": "content",
+      "label": "Command",
+      "description": "The single command that types out.",
+      "default": "npm run render -- --size 1080x1920"
+    },
+    {
+      "id": "zoom",
+      "type": "number",
+      "role": "motion",
+      "label": "Zoom",
+      "description": "Camera zoom on the cursor.",
+      "default": 2.8,
+      "min": 1,
+      "max": 4,
+      "step": 0.1,
+      "unit": "x"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Terminal font size in pixels.",
+      "default": 20,
+      "min": 10,
+      "max": 32,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "prompt",
+      "type": "string",
+      "role": "content",
+      "label": "Prompt",
+      "description": "Prompt character before the command.",
+      "default": "$"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Window title.",
+      "default": "~/code/promo-video"
+    },
+    {
+      "id": "chars_per_frame",
+      "type": "number",
+      "role": "motion",
+      "label": "Chars per frame",
+      "description": "Typing speed.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.25
+    },
+    {
+      "id": "chunk_size",
+      "type": "number",
+      "role": "motion",
+      "label": "Chunk size",
+      "description": "Characters revealed per step.",
+      "default": 1,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

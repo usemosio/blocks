@@ -1,0 +1,113 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "brick-mosaic",
+  "type": "hyperframes:component",
+  "title": "Brick Mosaic",
+  "description": "Toy bricks drop in row by row from the bottom with a small bounce and build a pixel-art image on a baseplate. Give it a pixel-art grid as text in the pattern variable, or leave it empty for a built-in red disc.",
+  "tags": [
+    "pixel-art",
+    "bricks",
+    "toy",
+    "playful",
+    "build",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 2.84,
+  "useWhen": [
+    "A logo, icon or emoji should be built out of toy bricks, one row at a time, for a playful reveal.",
+    "The image is simple enough to read as pixel art on a grid of about 10 to 40 cells across.",
+    "A kids, gaming or maker-themed video needs a build moment that feels hands-on."
+  ],
+  "avoidWhen": [
+    "The mark should assemble from a few geometric pieces that spin and snap into place: use puzzle-snap.",
+    "The build should rise as an isometric 3D city rather than a flat mosaic: use isometric-build.",
+    "The scene should melt into pixel streaks as a transition: use pixel-sort."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/brick-mosaic/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "brick-mosaic.html",
+      "target": "compositions/components/brick-mosaic.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "pattern",
+      "type": "string",
+      "role": "content",
+      "label": "Pattern",
+      "description": "Pixel art as text: rows separated by / , one character per cell. Characters are looked up in Colors; unknown characters and spaces leave the cell empty. Empty builds the default disc.",
+      "default": ""
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "JSON map from pattern character to a CSS color.",
+      "default": "{\"#\":\"#E5322D\",\".\":\"#FFFFFF\",\"x\":\"#111111\"}"
+    },
+    {
+      "id": "cols",
+      "type": "number",
+      "role": "style",
+      "label": "Columns",
+      "description": "Grid columns of the default disc.",
+      "default": 24,
+      "min": 6,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "rows",
+      "type": "number",
+      "role": "style",
+      "label": "Rows",
+      "description": "Grid rows of the default disc.",
+      "default": 14,
+      "min": 4,
+      "max": 24,
+      "step": 1
+    },
+    {
+      "id": "row_delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Row delay",
+      "description": "Frames between rows.",
+      "default": 3,
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Baseplate",
+      "description": "Baseplate color behind the bricks.",
+      "default": "#111111"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "short-slide-right",
+  "type": "hyperframes:component",
+  "title": "Short Slide Right",
+  "description": "The whole phrase glides in from the left while words reveal in sequence through opacity.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "slide",
+    "words",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A short headline should enter with horizontal momentum that reads as forward motion or progress.",
+    "Word-level opacity stagger is layered on a single group translation."
+  ],
+  "avoidWhen": [
+    "You are transitioning between two texts: use shared-axis-z or shared-axis-y.",
+    "You want vertical stacking motion: use short-slide-down."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/short-slide-right/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "short-slide-right.html",
+      "target": "compositions/components/short-slide-right.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Headline that glides in.", "default": "Move with intent." },
+    { "id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far left of its place the phrase starts.", "default": 24, "min": 0, "max": 120, "step": 1, "unit": "px" },
+    { "id": "stagger_delay", "type": "number", "role": "motion", "label": "Stagger", "description": "Frames between each word's fade (30 fps).", "default": 3, "min": 0, "max": 12, "step": 1, "unit": "frames" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

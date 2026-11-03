@@ -1,0 +1,778 @@
+<!doctype html>
+<!--
+  Speed Lines
+
+  Comic-style motion streaks: a squashing ball leaves a trail as it lands, or rays rush out from a focus point.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/speed-lines/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="speed-lines"
+  data-composition-duration="2"
+  data-composition-variables='[{"id":"mode","type":"enum","role":"motion","label":"Mode","description":"trail: a ball travels from one point to another leaving streaks. focus: rays rush out of a point.","default":"trail","options":[{"value":"trail","label":"Trail"},{"value":"focus","label":"Focus"}]},{"id":"from_x","type":"number","role":"layout","label":"From X","description":"Trail start across the frame (0 to 1; may sit outside the frame).","default":-0.25,"min":-1,"max":2,"step":0.01},{"id":"from_y","type":"number","role":"layout","label":"From Y","description":"Trail start down the frame (0 to 1).","default":0.5,"min":-1,"max":2,"step":0.01},{"id":"x","type":"number","role":"layout","label":"X","description":"Landing or focus point across the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},{"id":"y","type":"number","role":"layout","label":"Y","description":"Landing or focus point down the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},{"id":"count","type":"number","role":"layout","label":"Lines","description":"Number of streaks or rays.","default":12,"min":3,"max":32,"step":1},{"id":"weight","type":"number","role":"style","label":"Weight","description":"Line thickness at a 720 px frame height.","default":2,"min":1,"max":8,"step":0.5,"unit":"px"},{"id":"spread","type":"number","role":"layout","label":"Spread","description":"Size of the ball and the spread of the streaks.","default":96,"min":16,"max":320,"step":1,"unit":"px"},{"id":"duration","type":"number","role":"motion","label":"Travel frames","description":"Frames (30 fps) the ball takes to arrive.","default":14,"min":6,"max":40,"step":1,"unit":"frames"},{"id":"bounce","type":"number","role":"motion","label":"Bounce","description":"How much the ball rebounds on landing.","default":0.5,"min":0,"max":1,"step":0.05},{"id":"squash","type":"number","role":"motion","label":"Squash","description":"How much the ball stretches and squashes.","default":0.5,"min":0,"max":1,"step":0.05},{"id":"color","type":"color","role":"style","label":"Line color","description":"Color of the lines and ball.","default":"#ffffff"},{"id":"seed","type":"number","role":"motion","label":"Seed","description":"Seed for the random variation.","default":1,"min":1,"max":99,"step":1},{"id":"delay","type":"number","role":"motion","label":"Delay","description":"Frames (30 fps) before the motion starts.","default":0,"min":0,"max":60,"step":1,"unit":"frames"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Speed Lines</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        .spl-stage { position: absolute; inset: 0; }
+        .spl-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="speed-lines" data-duration="2" data-fps="30">
+        <div id="spl-clip" class="spl-stage clip" data-start="0" data-duration="2" data-track-index="0">
+          <svg id="spl-svg" class="spl-svg" aria-hidden="true"><path id="spl-path" fill="none" stroke-linecap="round"></path><ellipse id="spl-ball"></ellipse></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                                               
+
+                                  
+            
+            
+ 
+
+                                  
+                        
+                         
+                       
+             
+             
+                 
+                  
+                  
+                    
+                  
+                  
+                 
+                
+                 
+                 
+                       
+                     
+ 
+
+                                                
+                                             
+
+                                                                         
+                 
+                  
+               
+ 
+
+                                    
+                
+             
+             
+             
+             
+                 
+ 
+
+                                                             
+                 
+                
+ 
+
+                                                          
+                
+               
+                
+                
+ 
+
+                                      
+               
+                
+                 
+                   
+ 
+
+const speedLinesDefaults                                         = {
+  mode: "trail",
+  from: { x: -0.25, y: 0.5 },
+  x: 0.5,
+  y: 0.5,
+  count: 12,
+  weight: 2,
+  spread: 96,
+  duration: 14,
+  bounce: 0.5,
+  squash: 0.5,
+  color: "#ffffff",
+  seed: 1,
+  delay: 0,
+  speed: 1,
+};
+
+const REFERENCE = 720;
+const LANDING = 0.3;
+const CARRY = 0.3;
+const ECHO = 0.2;
+const SOFTEN = 1.2;
+const SETTLE = 6;
+const STRETCH = Math.log(1.3);
+const SQUASH = Math.log(1.25);
+const STRETCH_GAIN = 0.007;
+const SQUASH_GAIN = 0.018;
+const PROBE = 1e-3;
+const CENTER = "translate(-50%, -50%)";
+const HOLD = 24;
+const SPAWN_START = 0.04;
+const SPAWN_END = 0.8;
+const LIFE = 0.3;
+const MIN_LIFE = 3;
+const DRAW = 0.4;
+const ERASE = 0.35;
+const SHUTTER = 1.6;
+const DRIFT = 0.15;
+const SETBACK = 0.35;
+const SLOW = 5;
+const FAST = 14;
+const GOLDEN = (Math.sqrt(5) - 1) / 2;
+const IMPACT = 3;
+const RUSH_JITTER = 1;
+const RELAX = 0.12;
+const RELAX_RATE = 1.5;
+const RELEASE = 8;
+const RELEASE_JITTER = 1.5;
+const RETRACT = 3.5;
+const FOCUS_END = RELEASE + RELEASE_JITTER + RETRACT;
+const ANGLE_JITTER = 0.6;
+const RADIUS_JITTER = 0.6;
+const MAX_COUNT = 64;
+const MIN_WEIGHT = 0.5;
+const MAX_WEIGHT = 12;
+const MIN_SPREAD = 8;
+const MAX_SPREAD = 480;
+const MIN_DURATION = 4;
+const MAX_DURATION = 120;
+
+const finite = (value                    , fallback        ) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+const clamp = (value        , min        , max        ) =>
+  Math.min(max, Math.max(min, value));
+const round = (value        ) => Math.round(value * 100) / 100;
+const fine = (value        ) => Math.round(value * 10000) / 10000;
+const fraction = (value        ) => value - Math.floor(value);
+const modeOf = (value                    )                 =>
+  value === "focus" ? "focus" : "trail";
+const travelOf = (value                    ) =>
+  clamp(finite(value, speedLinesDefaults.duration), MIN_DURATION, MAX_DURATION);
+
+function smoothstep(value        ) {
+  const t = clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function easeOut(value        ) {
+  const t = clamp(value, 0, 1);
+  return 1 - (1 - t) * (1 - t);
+}
+
+function pointOf(
+  value                             ,
+  fallback                 ,
+) {
+  return { x: finite(value?.x, fallback.x), y: finite(value?.y, fallback.y) };
+}
+
+function key(seed        , index        , name        ) {
+  return random(`speed-lines-${seed}-${index}-${name}`);
+}
+
+function settingsOf(options                   ) {
+  const height = Math.max(1, finite(options.height, 720));
+  const x = finite(options.x, speedLinesDefaults.x);
+  const y = finite(options.y, speedLinesDefaults.y);
+  const count = finite(options.count, speedLinesDefaults.count);
+  const weight = finite(options.weight, speedLinesDefaults.weight);
+  const spread = finite(options.spread, speedLinesDefaults.spread);
+  return {
+    mode: modeOf(options.mode),
+    width: Math.max(1, finite(options.width, 1280)),
+    height,
+    fps: Math.max(1, finite(options.fps, 30)),
+    unit: height / REFERENCE,
+    from: pointOf(options.from, speedLinesDefaults.from),
+    to: pointOf(options.to, { x, y }),
+    x,
+    y,
+    count: Math.round(clamp(count, 1, MAX_COUNT)),
+    weight: clamp(weight, MIN_WEIGHT, MAX_WEIGHT),
+    spread: clamp(spread, MIN_SPREAD, MAX_SPREAD),
+    duration: travelOf(options.duration),
+    bounce: clamp(finite(options.bounce, speedLinesDefaults.bounce), 0, 1),
+    squash: clamp(finite(options.squash, speedLinesDefaults.squash), 0, 1),
+    seed: finite(options.seed, speedLinesDefaults.seed),
+    delay: Math.max(0, finite(options.delay, speedLinesDefaults.delay)),
+    speed: Math.max(0, finite(options.speed, speedLinesDefaults.speed)),
+  };
+}
+
+                                              
+
+function directionOf(settings          ) {
+  const { from, to, width, height } = settings;
+  const dx = (to.x - from.x) * width;
+  const dy = (to.y - from.y) * height;
+  const distance = Math.hypot(dx, dy);
+  if (distance < 1e-6) return { dx: 1, dy: 0, distance: 0 };
+  return { dx: dx / distance, dy: dy / distance, distance };
+}
+
+function along(position        , size        , step        ) {
+  if (step > 1e-9) return (size - position) / step;
+  if (step < -1e-9) return -position / step;
+  return Number.POSITIVE_INFINITY;
+}
+
+function exitDistance(
+  cx        ,
+  cy        ,
+  cos        ,
+  sin        ,
+  width        ,
+  height        ,
+) {
+  const inside = cx >= 0 && cx <= width && cy >= 0 && cy <= height;
+  if (!inside) {
+    const reachX = Math.max(Math.abs(cx), Math.abs(width - cx));
+    const reachY = Math.max(Math.abs(cy), Math.abs(height - cy));
+    return Math.hypot(reachX, reachY);
+  }
+  return Math.min(along(cx, width, cos), along(cy, height, sin));
+}
+
+function springOf(bounce        ) {
+  const landing = LANDING + CARRY * bounce;
+  const kappa = (1 + Math.sqrt(1 - landing)) / 2;
+  const gain = 1 / (0.5 - kappa / 3);
+  const echo = ECHO * bounce;
+  const decrement = -Math.log(echo);
+  const damping = echo > 0 ? decrement / Math.hypot(Math.PI, decrement) : 1;
+  const natural = 1 / (1 + SOFTEN * bounce);
+  const decay = damping * natural;
+  return {
+    kappa,
+    gain,
+    contact: gain * (1 - kappa),
+    decay,
+    ring: natural * Math.sqrt(1 - damping * damping),
+    settle: Math.ceil(SETTLE / decay),
+  };
+}
+
+function easeOf(time        , travel        , bounce        ) {
+  if (time <= 0) return 0;
+  const { kappa, gain, contact, decay, ring, settle } = springOf(bounce);
+  if (time < travel) {
+    const w = time / travel;
+    return gain * ((w * w) / 2 - (kappa * w * w * w) / 3);
+  }
+  const since = time - travel;
+  if (since >= settle) return 1;
+  const taper = smoothstep((2 * since) / settle - 1);
+  const wave = ring > 1e-9 ? Math.sin(ring * since) / ring : since;
+  const envelope = Math.exp(-decay * since) * (1 - taper);
+  return 1 + (contact / travel) * wave * envelope;
+}
+
+function getSpeedLinesTimeline(options                    = {}) {
+  const { mode, duration, bounce } = settingsOf(options);
+  if (mode === "focus") return { mode, impact: IMPACT, end: FOCUS_END };
+  return { mode, impact: duration, end: duration + springOf(bounce).settle };
+}
+
+                                                                          
+
+const speedLinesLength = getSpeedLinesTimeline().end;
+
+function getSpeedLinesDuration(options                    = {}) {
+  const { delay, speed } = settingsOf(options);
+  if (speed === 0) return 1;
+  const { end } = getSpeedLinesTimeline(options);
+  return Math.max(1, Math.ceil(delay + (end + HOLD) / speed));
+}
+
+function getSpeedLinesTime(
+  frame        ,
+  options                    = {},
+) {
+  const { fps, delay, speed } = settingsOf(options);
+  const elapsed = Math.max(0, finite(frame, 0) - delay);
+  return elapsed * (30 / fps) * speed;
+}
+
+function getSpeedLinesEase(
+  time        ,
+  options                    = {},
+) {
+  const { duration, bounce } = settingsOf(options);
+  return easeOf(finite(time, 0), duration, bounce);
+}
+
+function positionAt(time        , settings          ) {
+  const { mode, from, to, width, height, duration, bounce } = settings;
+  if (mode === "focus") {
+    return { x: settings.x * width, y: settings.y * height, progress: 1 };
+  }
+  const progress = easeOf(time, duration, bounce);
+  const startX = from.x * width;
+  const startY = from.y * height;
+  return {
+    x: startX + (to.x * width - startX) * progress,
+    y: startY + (to.y * height - startY) * progress,
+    progress,
+  };
+}
+
+function getSpeedLinesPosition(
+  time        ,
+  options                    = {},
+) {
+  const { x, y } = positionAt(finite(time, 0), settingsOf(options));
+  return { x, y };
+}
+
+function shapeAt(time        , settings          ) {
+  const { mode, duration, bounce, squash, unit, speed } = settings;
+  if (mode === "focus") return { rotation: 0, along: 1, across: 1 };
+  const { dx, dy, distance } = directionOf(settings);
+  const rotation = (Math.atan2(dy, dx) * 180) / Math.PI;
+  if (squash === 0 || distance === 0 || time <= 0) {
+    return { rotation, along: 1, across: 1 };
+  }
+  const span = distance / unit;
+  const ahead = easeOf(time + PROBE, duration, bounce);
+  const behind = easeOf(time - PROBE, duration, bounce);
+  const rate = (Math.abs(ahead - behind) / (2 * PROBE)) * span * speed;
+  const landed = time > duration ? easeOf(time, duration, bounce) - 1 : 0;
+  const past = Math.max(0, landed) * span;
+  const stretch = STRETCH * Math.tanh((squash * STRETCH_GAIN * rate) / STRETCH);
+  const compression =
+    SQUASH * Math.tanh((squash * SQUASH_GAIN * past) / SQUASH);
+  const strain = clamp(stretch - compression, -SQUASH, STRETCH);
+  return { rotation, along: Math.exp(strain), across: Math.exp(-strain) };
+}
+
+function getSpeedLinesShape(
+  time        ,
+  options                    = {},
+) {
+  return shapeAt(finite(time, 0), settingsOf(options));
+}
+
+                                                                    
+
+function getSpeedLinesVelocity(
+  frame        ,
+  options                    = {},
+) {
+  const settings = settingsOf(options);
+  const current = finite(frame, 0);
+  const now = positionAt(getSpeedLinesTime(current, options), settings);
+  const before = positionAt(getSpeedLinesTime(current - 1, options), settings);
+  const scale = settings.fps / 30;
+  const x = (now.x - before.x) * scale;
+  const y = (now.y - before.y) * scale;
+  const { dx, dy } = directionOf(settings);
+  return { x, y, forward: x * dx + y * dy };
+}
+
+function streakSeeds(settings          ) {
+  const { seed, count, spread, unit } = settings;
+  const band = spread * unit;
+  const phase = random(`speed-lines-${seed}-lanes`);
+  return Array.from({ length: count }, (_, index) => {
+    const jitter = (key(seed, index, "lane") - 0.5) / (2 * count);
+    const lane = fraction(phase + GOLDEN * index + jitter);
+    const slot = (index + key(seed, index, "spawn")) / count;
+    return {
+      index,
+      spawn: SPAWN_START + (SPAWN_END - SPAWN_START) * slot,
+      offset: band * (lane - 0.5),
+      factor: 0.5 + 0.5 * key(seed, index, "length"),
+      setback: SETBACK * band * key(seed, index, "setback"),
+    };
+  });
+}
+
+function getSpeedLinesStreaks(
+  frame        ,
+  options                    = {},
+)                     {
+  const settings = settingsOf(options);
+  if (settings.mode !== "trail") return [];
+  const time = getSpeedLinesTime(frame, options);
+  const { dx, dy, distance } = directionOf(settings);
+  if (distance === 0 || time <= 0) return [];
+  const { forward } = getSpeedLinesVelocity(frame, options);
+  const { unit, duration, bounce, weight } = settings;
+  const fast = smoothstep((forward - SLOW * unit) / ((FAST - SLOW) * unit));
+  const gate = fast * (1 - smoothstep(time - duration));
+  if (gate <= 0) return [];
+  const center = positionAt(time, settings);
+  const progress = time / duration;
+  const life = Math.max(MIN_LIFE, LIFE * duration) / duration;
+  const minimum = 0.5 * weight * unit;
+  const streaks                     = [];
+  for (const streak of streakSeeds(settings)) {
+    const age = (progress - streak.spawn) / life;
+    if (age <= 0 || age >= 1) continue;
+    const reach = SHUTTER * streak.factor * forward * gate;
+    const drawn = easeOut(age / DRAW);
+    const erased = smoothstep((age - ERASE) / (1 - ERASE));
+    const length = reach * (drawn - erased);
+    if (length < minimum) continue;
+    const spawned = easeOf(streak.spawn * duration, duration, bounce);
+    const since = Math.max(0, (center.progress - spawned) * distance);
+    const base = streak.setback + DRIFT * since;
+    const front = base + reach * erased;
+    const back = base + reach * drawn;
+    const laneX = center.x - dy * streak.offset;
+    const laneY = center.y + dx * streak.offset;
+    streaks.push({
+      index: streak.index,
+      offset: streak.offset,
+      reach,
+      x1: round(laneX - dx * front),
+      y1: round(laneY - dy * front),
+      x2: round(laneX - dx * back),
+      y2: round(laneY - dy * back),
+      length,
+    });
+  }
+  return streaks;
+}
+
+function getSpeedLinesRadius(time        , ray                     ) {
+  const { rest, outer, start = 0, release = RELEASE } = ray;
+  const t = finite(time, 0);
+  if (t <= start) return outer;
+  if (t < IMPACT) {
+    const q = (t - start) / (IMPACT - start);
+    return outer + (rest - outer) * q * q;
+  }
+  const settle = (at        ) =>
+    rest * (1 + RELAX * (1 - Math.exp(-(at - IMPACT) / RELAX_RATE)));
+  if (t < release) return settle(t);
+  const held = settle(release);
+  const q = clamp((t - release) / RETRACT, 0, 1);
+  return outer - (outer - held) * (1 - q * q);
+}
+
+function getSpeedLinesRays(
+  frame        ,
+  options                    = {},
+)                  {
+  const settings = settingsOf(options);
+  if (settings.mode !== "focus") return [];
+  const time = getSpeedLinesTime(frame, options);
+  if (time <= 0 || time >= FOCUS_END) return [];
+  const { seed, count, spread, weight, unit, width, height } = settings;
+  const cx = settings.x * width;
+  const cy = settings.y * height;
+  const minimum = 0.5 * weight * unit;
+  const rotation = random(`speed-lines-${seed}-rotation`);
+  const rays                  = [];
+  for (let index = 0; index < count; index++) {
+    const jitter = ANGLE_JITTER * (key(seed, index, "angle") - 0.5);
+    const angle = 2 * Math.PI * (rotation + (index + jitter) / count);
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const reach = RADIUS_JITTER * key(seed, index, "radius");
+    const rest = spread * unit * (1 + reach);
+    const outer = exitDistance(cx, cy, cos, sin, width, height) + weight * unit;
+    const inner = getSpeedLinesRadius(time, {
+      rest,
+      outer,
+      start: RUSH_JITTER * key(seed, index, "rush"),
+      release: RELEASE + RELEASE_JITTER * key(seed, index, "release"),
+    });
+    const length = outer - inner;
+    if (length < minimum) continue;
+    rays.push({
+      index,
+      angle,
+      rest,
+      inner,
+      outer,
+      x1: round(cx + cos * inner),
+      y1: round(cy + sin * inner),
+      x2: round(cx + cos * outer),
+      y2: round(cy + sin * outer),
+      length,
+    });
+  }
+  return rays;
+}
+
+function getSpeedLinesState(
+  frame        ,
+  options                    = {},
+) {
+  const settings = settingsOf(options);
+  const time = getSpeedLinesTime(frame, options);
+  const point = positionAt(time, settings);
+  const shape = shapeAt(time, settings);
+  const rotation = round(shape.rotation);
+  const scale = `scale(${fine(shape.along)}, ${fine(shape.across)})`;
+  const streaks = getSpeedLinesStreaks(frame, options);
+  const rays = getSpeedLinesRays(frame, options);
+  const path = [...streaks, ...rays]
+    .map(({ x1, y1, x2, y2 }) => `M ${x1} ${y1} L ${x2} ${y2}`)
+    .join(" ");
+  return {
+    mode: settings.mode,
+    width: settings.width,
+    height: settings.height,
+    unit: settings.unit,
+    time,
+    x: point.x,
+    y: point.y,
+    left: (point.x / settings.width) * 100,
+    top: (point.y / settings.height) * 100,
+    radius: (settings.spread * settings.unit) / 2,
+    strokeWidth: settings.weight * settings.unit,
+    rotation,
+    along: shape.along,
+    across: shape.across,
+    transform:
+      shape.along === 1
+        ? CENTER
+        : `${CENTER} rotate(${rotation}deg) ${scale} rotate(${-rotation}deg)`,
+    streaks,
+    rays,
+    path,
+  };
+}
+
+                                                                    
+
+
+            var opt = {
+              mode: pick(vars.mode, ["trail", "focus"], "trail"),
+              from: { x: num(vars.from_x, -0.25, -1, 2), y: num(vars.from_y, 0.5, -1, 2) },
+              x: num(vars.x, 0.5, 0, 1), y: num(vars.y, 0.5, 0, 1), count: Math.round(num(vars.count, 12, 3, 32)),
+              weight: num(vars.weight, 2, 1, 8), spread: num(vars.spread, 96, 16, 320), duration: num(vars.duration, 14, 6, 40),
+              bounce: num(vars.bounce, 0.5, 0, 1), squash: num(vars.squash, 0.5, 0, 1), seed: Math.round(num(vars.seed, 1, 1, 99)),
+              delay: num(vars.delay, 0, 0, 60), speed: 1, width: root.clientWidth, height: root.clientHeight, fps: 30
+            };
+            var color = str(vars.color, "#ffffff");
+            var svg = document.getElementById("spl-svg"), pathEl = document.getElementById("spl-path"), ball = document.getElementById("spl-ball");
+            svg.setAttribute("viewBox", "0 0 " + opt.width + " " + opt.height);
+            pathEl.setAttribute("stroke", color);
+            ball.setAttribute("fill", color);
+            function draw(frame) {
+              var s = getSpeedLinesState(frame, opt);
+              pathEl.setAttribute("d", s.path || "");
+              pathEl.setAttribute("stroke-width", s.strokeWidth);
+              pathEl.style.display = s.path ? "block" : "none";
+              if (s.mode === "trail") {
+                ball.style.display = "block";
+                ball.setAttribute("cx", s.x); ball.setAttribute("cy", s.y);
+                ball.setAttribute("rx", s.radius * s.along); ball.setAttribute("ry", s.radius * s.across);
+                ball.setAttribute("transform", "rotate(" + s.rotation + " " + s.x + " " + s.y + ")");
+              } else ball.style.display = "none";
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 60, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "2");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["speed-lines"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

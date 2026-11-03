@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "tooltip",
+  "type": "hyperframes:component",
+  "title": "Tooltip",
+  "description": "A small floating label that appears next to a button as the cursor hovers it, then fades away.",
+  "tags": [
+    "ui",
+    "tooltip",
+    "hover",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "Showing a hover tooltip appearing next to a UI element in a product walkthrough.",
+    "Demonstrating a contextual label that explains an icon or action.",
+    "Sequencing a show, read, hide moment: side sets the axis the tooltip enters from."
+  ],
+  "avoidWhen": [
+    "You need a title and description in the overlay: use popover.",
+    "You need a persistent side panel with actions: use sheet.",
+    "You need a blocking confirmation: use alert-dialog."
+  ],
+  "checkAt": [
+    0.4,
+    1.8,
+    3.0,
+    4.3
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/tooltip/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "tooltip.html",
+      "target": "compositions/components/tooltip.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "label", "type": "string", "role": "content", "label": "Label", "description": "Tooltip text.", "default": "Add to library"},
+    {"id": "side", "type": "enum", "role": "style", "label": "Side", "description": "Which side of the button the tooltip sits on, and the axis it enters from.", "default": "top", "options": [{"value": "top", "label": "Top"}, {"value": "bottom", "label": "Bottom"}, {"value": "left", "label": "Left"}, {"value": "right", "label": "Right"}]},
+    {"id": "button_label", "type": "string", "role": "content", "label": "Button label", "description": "Label of the anchor button.", "default": "Hover me"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

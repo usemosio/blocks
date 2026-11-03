@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "combobox",
+  "type": "hyperframes:component",
+  "title": "Combobox",
+  "description": "A searchable select: the panel opens, a query types itself, the list narrows, and the matching row is picked.",
+  "tags": [
+    "ui",
+    "combobox",
+    "select",
+    "search",
+    "typing",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "useWhen": [
+    "Showing a searchable, filterable dropdown with a typed query narrowing the list.",
+    "Demoing autocomplete or type-ahead selection in a product walkthrough.",
+    "A form field needs a constrained set of options with search."
+  ],
+  "avoidWhen": [
+    "The list is not filterable and selection is direct: use select.",
+    "The overlay is a command palette with icons and shortcuts: use command-menu.",
+    "The input is free-form text with no list: use input."
+  ],
+  "checkAt": [
+    0.7,
+    1.6,
+    2.5,
+    3.3
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/combobox/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "combobox.html",
+      "target": "compositions/components/combobox.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "query", "type": "string", "role": "content", "label": "Query", "description": "Text typed into the field.", "default": "ba"},
+    {"id": "placeholder", "type": "string", "role": "content", "label": "Placeholder", "description": "Text shown before anything is typed.", "default": "Select a fruit…"},
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "JSON array of option labels.", "default": "[\"Apple\", \"Banana\", \"Orange\", \"Grape\"]"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

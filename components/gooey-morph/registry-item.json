@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "gooey-morph",
+  "type": "hyperframes:component",
+  "title": "Gooey Morph",
+  "description": "Bars fly in Tetris-style, land as a row, then melt into a word through a gooey blur-and-threshold morph.",
+  "tags": [
+    "text-effects",
+    "liquid",
+    "goo",
+    "reveal",
+    "title",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A title reveal should feel liquid: shapes fuse and hand their mass to the word instead of crossfading.",
+    "You want a two-act entrance: a kinetic bar build, then the melt.",
+    "The word is short and set in a heavy display face, so the goo has solid masses to fuse."
+  ],
+  "avoidWhen": [
+    "You need a plain text entrance without the shape build-up: use soft-blur-in or mask-reveal-up.",
+    "The text is long or thin-stroked: the blur-threshold eats thin strokes.",
+    "The style should be crisp and geometric, not liquid: use kinetic-center-build."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/gooey-morph/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "gooey-morph.html",
+      "target": "compositions/components/gooey-morph.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "word", "type": "string", "role": "content", "label": "Word", "description": "Short word the bars melt into.", "default": "HELLO"},
+    {"id": "fill", "type": "color", "role": "style", "label": "Fill", "description": "Color of the bars and the word.", "default": "#f2f2f2"},
+    {"id": "font_family", "type": "string", "role": "style", "label": "Font family", "description": "CSS font-family for the word. Bodoni Moda is loaded.", "default": "'Bodoni Moda', Georgia, serif"},
+    {"id": "blur_radius", "type": "number", "role": "motion", "label": "Goo blur radius", "description": "Peak blur radius of the melt.", "default": 6, "min": 0, "max": 16, "step": 1, "unit": "px"},
+    {"id": "displace_amount", "type": "number", "role": "motion", "label": "Displace amount", "description": "Peak noise displacement during the melt.", "default": 20, "min": 0, "max": 60, "step": 1, "unit": "px"},
+    {"id": "bar_travel_frames", "type": "number", "role": "motion", "label": "Bar travel", "description": "Frames each bar takes to land (30 fps).", "default": 30, "min": 10, "max": 60, "step": 1, "unit": "frames"}
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "paper-wobble",
+  "type": "hyperframes:component",
+  "title": "Paper Wobble",
+  "description": "Per-pose reshoot jitter that makes any content feel hand-placed on a desk.",
+  "tags": [
+    "paper",
+    "stop-motion",
+    "jitter",
+    "handmade",
+    "wrapper",
+    "remocn-port"
+  ],
+  "category": "effects",
+  "duration": 3,
+  "useWhen": [
+    "Any block should carry the stop-motion reshoot wobble: headlines, cards, or content that must feel hand-placed rather than laid out.",
+    "Two or more elements should read as separate objects on a desk: give each its own seed."
+  ],
+  "avoidWhen": [
+    "The content should sit rock-still: UI simulations, code blocks being read.",
+    "You want smooth floating motion rather than discrete poses.",
+    "The component already jitters itself (paper stickers): wrapping it doubles the shake."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/paper-wobble/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "paper-wobble.html",
+      "target": "compositions/components/paper-wobble.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"title","type":"string","role":"content","label":"Title","description":"Headline that wobbles on its own.","default":"Paper Wobble"},
+    {"id":"card_title","type":"string","role":"content","label":"Card title","description":"Large line on the card.","default":"Shot on a desk"},
+    {"id":"card_subtitle","type":"string","role":"content","label":"Card subtitle","description":"Small line on the card.","default":"Every pose is placed by hand"},
+    {"id":"amp","type":"number","role":"motion","label":"Offset","description":"Largest jitter offset in pixels.","default":1.4,"min":0,"max":6,"step":0.1,"unit":"px"},
+    {"id":"rot_amp","type":"number","role":"motion","label":"Rotation","description":"Largest jitter rotation in degrees.","default":0.35,"min":0,"max":2,"step":0.05,"unit":"deg"},
+    {"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the jitter; each object gets its own.","default":"wobble"},
+    {"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each pose is held (30 fps).","default":3,"min":1,"max":6,"step":1,"unit":"frames"},
+    {"id":"color","type":"color","role":"style","label":"Ink","description":"Text color.","default":"#26242c"}
+  ]
+}

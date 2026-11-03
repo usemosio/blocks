@@ -1,0 +1,65 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "zoom-blur",
+  "type": "hyperframes:component",
+  "title": "Zoom Blur",
+  "description": "A quick cross-zoom: the outgoing scene swells and blurs out while the next scene scales up from slightly small and sharpens. Built-in placeholder scenes A and B (the two .zmb-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "zoom",
+    "blur",
+    "crossfade",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 0.6,
+  "useWhen": [
+    "A short, soft scene change between connected beats.",
+    "Quick montages where each scene should hand over cleanly."
+  ],
+  "avoidWhen": [
+    "You want a dramatic, long transition: use push-through or hyperspace.",
+    "Scenes already contain a lot of blur or zoom of their own."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/zoom-blur/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "zoom-blur.html",
+      "target": "compositions/components/zoom-blur.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Peak blur on the outgoing and incoming scene.",
+      "default": 16,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "rise",
+      "type": "number",
+      "role": "motion",
+      "label": "Rise",
+      "description": "Optional upward drift in pixels (0 keeps both scenes in place).",
+      "default": 0,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}

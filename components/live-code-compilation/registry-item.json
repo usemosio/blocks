@@ -1,0 +1,62 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "live-code-compilation",
+  "type": "hyperframes:component",
+  "title": "Live Code Compilation",
+  "description": "Split screen: code is typed on the left and the button on the right snaps to match on the exact frame each property finishes. On a tall frame the split stacks (code on top, preview below).",
+  "tags": [
+    "code",
+    "split-screen",
+    "hmr",
+    "developer",
+    "typing",
+    "remocn-port"
+  ],
+  "category": "compositions",
+  "duration": 8.667,
+  "useWhen": [
+    "You want cause and effect for a developer audience: a style prop finishes typing on the left and the button on the right changes on that exact frame.",
+    "The pitch needs an HMR moment where every property lands as a hard snap rather than an ease."
+  ],
+  "avoidWhen": [
+    "The code on screen has to be yours: the typed fragments and the resulting button are fixed here; use glass-code-block or glass-code-walk with your own code.",
+    "The shot is about commands and their output: use a terminal block."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/live-code-compilation/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "live-code-compilation.html",
+      "target": "compositions/components/live-code-compilation.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the caret and the property names.",
+      "default": "#3b82f6"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

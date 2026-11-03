@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "scribble-circle",
+  "type": "hyperframes:component",
+  "title": "Scribble Circle",
+  "description": "A hand-drawn marker circle scribbles itself around a target in stop-motion poses.",
+  "tags": [
+    "circle",
+    "hand-drawn",
+    "highlight",
+    "stop-motion",
+    "annotation",
+    "remocn-port"
+  ],
+  "category": "paper",
+  "duration": 5,
+  "useWhen": [
+    "A price, number or option should be circled by hand to direct attention to it.",
+    "A paper, scrapbook or stop-motion look is wanted."
+  ],
+  "avoidWhen": [
+    "You need a precise, geometric highlight ring.",
+    "The target moves: the circle is placed on a fixed spot."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/scribble-circle/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "scribble-circle.html",
+      "target": "compositions/components/scribble-circle.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"plans","type":"string","role":"content","label":"Rows","description":"JSON array of {name, price} rows shown on the card.","default":"[{\"name\":\"Hobby\",\"price\":\"Free\"},{\"name\":\"Pro\",\"price\":\"$19\"},{\"name\":\"Team\",\"price\":\"$49\"}]"},
+    {"id":"target","type":"number","role":"layout","label":"Circled row","description":"Index of the row whose price gets circled (0 is the first).","default":1,"min":0,"max":9,"step":1},
+    {"id":"laps","type":"number","role":"motion","label":"Laps","description":"How many times the pen goes around.","default":1.15,"min":0.5,"max":3,"step":0.05},
+    {"id":"stroke_width","type":"number","role":"style","label":"Stroke width","description":"Width of the marker stroke.","default":14,"min":2,"max":30,"step":1,"unit":"px"},
+    {"id":"pressure","type":"number","role":"motion","label":"Opening pressure","description":"Stroke width at the start, as a fraction of the stroke width.","default":0.2,"min":0.05,"max":1,"step":0.05},
+    {"id":"grain","type":"number","role":"style","label":"Grain","description":"How rough the ink edge is.","default":1,"min":0,"max":2,"step":0.1},
+    {"id":"duration_steps","type":"number","role":"motion","label":"Drawing poses","description":"Number of poses the scribble takes.","default":10,"min":3,"max":30,"step":1},
+    {"id":"color","type":"color","role":"style","label":"Color","description":"Marker color.","default":"#6f7f35"},
+    {"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the hand-drawn wobble.","default":"scribble"},
+    {"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each drawing pose is held.","default":3,"min":1,"max":6,"step":1,"unit":"frames"}
+  ]
+}

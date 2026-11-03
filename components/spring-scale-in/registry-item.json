@@ -1,0 +1,47 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "spring-scale-in",
+  "type": "hyperframes:component",
+  "title": "Spring Scale In",
+  "description": "Words pop in with a soft overshoot scale, like a spring settling into place.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "spring",
+    "words",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "The scene calls for energy and bounce: product launches, celebration moments, fun CTAs.",
+    "You want each word to snap into place with a soft overshoot."
+  ],
+  "avoidWhen": [
+    "The brand is serious or premium: use scale-down-fade or soft-blur-in.",
+    "The text is long and many bouncing words would be noisy: use staggered-fade-up."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/spring-scale-in/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "spring-scale-in.html",
+      "target": "compositions/components/spring-scale-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Words that pop in one after another.", "default": "Fast. Crisp. Fluid." },
+    { "id": "stagger_delay", "type": "number", "role": "motion", "label": "Stagger", "description": "Frames between each word popping in (30 fps).", "default": 3, "min": 1, "max": 12, "step": 1, "unit": "frames" },
+    { "id": "scale_from", "type": "number", "role": "motion", "label": "Scale from", "description": "Scale each word starts at before it springs to 1.", "default": 0.7, "min": 0.1, "max": 1, "step": 0.05 },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

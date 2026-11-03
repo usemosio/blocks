@@ -1,0 +1,108 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-spiral-pass",
+  "type": "hyperframes:component",
+  "title": "Shader Spiral Pass",
+  "description": "A neon spiral tunnel swallows the outgoing scene, the camera dives through its center, and an expanding aperture reveals the incoming scene. Rebuilt with a deterministic Canvas 2D tunnel instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .ssp-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "spiral",
+    "tunnel",
+    "shader",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 2.4,
+  "useWhen": [
+    "A hero moment: a dive through a tunnel into the next scene.",
+    "Tech, gaming or music content that wants an energetic, glowing scene change."
+  ],
+  "avoidWhen": [
+    "Subtle, corporate pieces.",
+    "Videos that already use several loud transitions."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-spiral-pass/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-spiral-pass.html",
+      "target": "compositions/components/shader-spiral-pass.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "spirals",
+      "type": "number",
+      "role": "style",
+      "label": "Spirals",
+      "description": "Number of spiral ribbons around the tunnel.",
+      "default": 3,
+      "min": 1,
+      "max": 6,
+      "step": 1
+    },
+    {
+      "id": "twist",
+      "type": "number",
+      "role": "style",
+      "label": "Twist",
+      "description": "How strongly the ribbons wind.",
+      "default": 0.7,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "zoom",
+      "type": "number",
+      "role": "motion",
+      "label": "Zoom",
+      "description": "Magnification reached while passing through the center.",
+      "default": 14,
+      "min": 2,
+      "max": 24,
+      "step": 1
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "Feather of the revealing aperture, as a fraction of the shorter side.",
+      "default": 0.12,
+      "min": 0.02,
+      "max": 0.3,
+      "step": 0.01
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Multiplier for the tunnel\u2019s own motion.",
+      "default": 1,
+      "min": 0,
+      "max": 5,
+      "step": 0.1
+    },
+    {
+      "id": "time_offset",
+      "type": "number",
+      "role": "motion",
+      "label": "Time offset",
+      "description": "Starting shader time in seconds.",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 0.5,
+      "unit": "s"
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+<!doctype html>
+<!--
+  Rolodex Flip
+
+  Cycle a word through a list of values inside a held line, with a 3D rolodex card flip. The remocn example scene (an install command whose last word flips) is built in.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/rolodex-flip/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="rolodex-flip"
+  data-composition-duration="3.6667"
+  data-composition-variables='[
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "Comma-separated values to flip through. The first shows from the start, the last stays.", "default": "button, dialog, command, tabs, chart-area"},
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Fixed text before the flipping word.", "default": "$ npm run "},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Frames between flips (30 fps).", "default": 20, "min": 10, "max": 40, "step": 2, "unit": "frames"},
+    {"id": "flip_duration", "type": "number", "role": "motion", "label": "Flip duration", "description": "Frames each flip takes (30 fps).", "default": 10, "min": 4, "max": 20, "step": 1, "unit": "frames"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 36, "min": 12, "max": 160, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Word color", "description": "Color of the flipping word.", "default": "#f2f2f2"},
+    {"id": "prefix_color", "type": "color", "role": "style", "label": "Prefix color", "description": "Color of the fixed text.", "default": "#8a8794"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rolodex Flip</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .rf-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono, "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace); }
+        .rf-line { white-space: pre; }
+        .rf-slot { position: relative; display: inline-block; perspective: 420px; vertical-align: bottom; }
+        .rf-size { visibility: hidden; }
+        .rf-item { position: absolute; left: 0; top: 0; white-space: nowrap; transform-origin: 50% 50%; backface-visibility: hidden; }
+      </style>
+
+      <div id="root" data-composition-id="rolodex-flip" data-duration="3.6667" data-fps="30">
+        <div id="rf-clip" class="rf-stage clip" data-start="0" data-duration="3.6667" data-track-index="0">
+          <span id="rf-line" class="rf-line"><span id="rf-prefix"></span><span id="rf-slot" class="rf-slot"></span></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            function fit(el, maxPx, size, ratio) {
+              // Shrink el's font size until its scrollWidth fits ratio of the frame width.
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * (ratio || 0.9));
+              if (el.scrollWidth > max) { size = Math.max(10, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            gsap.registerPlugin(CustomEase);
+            function ease(name, a, b, c, d) { return CustomEase.create(name, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1"); }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var tl = gsap.timeline({ paused: true });
+            var TOTAL = parseFloat(root.dataset.duration || "3.6667");
+            function ip(t, a, b, from, to, e) {
+              var p = b === a ? 1 : (t - a) / (b - a);
+              p = Math.min(1, Math.max(0, p));
+              if (e) p = e(p);
+              return from + (to - from) * p;
+            }
+            function hash01(seed) {
+              var h = 2166136261;
+              for (var i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+            }
+            function hashRange(seed, lo, hi) { return lo + hash01(seed) * (hi - lo); }
+            // Snap a frame number down to a stop-motion pose.
+            function qf(frame, step) { return Math.floor(frame / step + 1e-6) * step; }
+            function kf(t, keys, vals, e) {
+              if (t <= keys[0]) return vals[0];
+              for (var i = 0; i < keys.length - 1; i++) if (t <= keys[i + 1]) return ip(t, keys[i], keys[i + 1], vals[i], vals[i + 1], e);
+              return vals[vals.length - 1];
+            }
+            // Per-frame drawing: a pure function of the timeline time, run from a tween's onUpdate.
+            function tick(draw) {
+              tl.to({}, { duration: TOTAL, ease: "none", onUpdate: function () { draw(tl.time()); } }, 0);
+              draw(0);
+            }
+            var cubOut = ease("cub-out", 0.215, 0.61, 0.355, 1);
+            var cubIn = ease("cub-in", 0.55, 0.055, 0.675, 0.19);
+            var cubInOut = ease("cub-io", 0.645, 0.045, 0.355, 1);
+
+            var line = document.getElementById("rf-line");
+            var slot = document.getElementById("rf-slot");
+            var prefix = document.getElementById("rf-prefix");
+            var items = str(vars.items, "button, dialog, command, tabs, chart-area").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!items.length) items = ["button"];
+            var interval = num(vars.interval, 20, 10, 40);
+            var flip = num(vars.flip_duration, 10, 4, 20);
+            prefix.textContent = typeof vars.prefix === "string" ? vars.prefix : "$ npm run ";
+            prefix.style.color = col(vars.prefix_color, "#8a8794");
+            slot.style.color = col(vars.color, "#f2f2f2");
+            var sizer = items.reduce(function (a, b) { return b.length > a.length ? b : a; }, "");
+            var sz = document.createElement("span");
+            sz.className = "rf-size";
+            sz.textContent = sizer;
+            slot.appendChild(sz);
+            var els = items.map(function (t, i) {
+              var s = document.createElement("span");
+              s.id = "rf-item-" + i;
+              s.className = "rf-item";
+              s.textContent = t;
+              slot.appendChild(s);
+              return s;
+            });
+            fit(line, 0, num(vars.font_size, 36, 12, 160), 0.92);
+            tick(function (t) {
+              var f = t * 30;
+              els.forEach(function (el, i) {
+                var rot = 0, y = 0, op = 1;
+                if (i > 0) {
+                  var inStart = (i - 1) * interval + flip / 2;
+                  var pIn = ip(f, inStart, inStart + flip, 0, 1, cubOut);
+                  rot = (1 - pIn) * -85; y = (1 - pIn) * 20; op = pIn;
+                }
+                if (i < els.length - 1) {
+                  var outStart = i * interval;
+                  var pOut = ip(f, outStart, outStart + flip, 0, 1, cubIn);
+                  rot += pOut * 85; y -= pOut * 20; op *= 1 - pOut;
+                }
+                el.style.opacity = op <= 0.001 ? 0 : op;
+                el.style.transform = "translateY(" + y + "px) rotateX(" + rot + "deg)";
+              });
+            });
+            var total = parseFloat(root.dataset.duration || "3.6667");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["rolodex-flip"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

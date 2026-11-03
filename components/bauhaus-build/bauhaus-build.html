@@ -1,0 +1,816 @@
+<!doctype html>
+<!--
+  Bauhaus Build
+
+  Geometric Bauhaus pieces tumble in, snap into a composition, then tumble away again.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/bauhaus-build/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="bauhaus-build"
+  data-composition-duration="5"
+  data-composition-variables='[{"id":"scale","type":"number","role":"layout","label":"Scale","description":"Size of the composition relative to the frame.","default":1,"min":0.5,"max":1.25,"step":0.05},{"id":"seed","type":"number","role":"motion","label":"Seed","description":"Picks the build order and the mirrored variant of the composition.","default":1,"min":1,"max":24,"step":1},{"id":"ink_color","type":"color","role":"style","label":"Ink","description":"Primary shape color.","default":"#1c1a17"},{"id":"accent_color","type":"color","role":"style","label":"Accent","description":"Accent shape color.","default":"#e4572e"},{"id":"secondary_color","type":"color","role":"style","label":"Secondary","description":"Secondary shape color.","default":"#cbbc9f"},{"id":"tertiary_color","type":"color","role":"style","label":"Tertiary","description":"Tertiary shape color.","default":"#7e776b"},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"},{"id":"loop","type":"boolean","role":"motion","label":"Loop","description":"Repeat the build continuously.","default":false}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bauhaus Build</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        .bhb-stage { position: absolute; inset: 0; }
+        .bhb-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="bauhaus-build" data-duration="5" data-fps="30">
+        <div id="bhb-clip" class="bhb-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <svg id="bhb-svg" class="bhb-svg" role="img" aria-label="Geometric Bauhaus composition"><g id="bhb-mirror"></g></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                          
+            
+            
+                
+             
+          
+
+                                                                      
+
+                                                    
+
+                                                          
+
+                              
+               
+            
+            
+ 
+
+                               
+            
+            
+ 
+
+                                   
+             
+             
+             
+             
+ 
+
+                               
+             
+                      
+                
+                 
+                    
+                    
+                               
+                                 
+              
+                           
+ 
+
+                              
+                   
+                    
+                  
+                      
+               
+ 
+
+                               
+            
+            
+                   
+                
+                             
+ 
+
+                                                         
+             
+                      
+                    
+                
+                 
+                   
+ 
+
+                                    
+                 
+                
+                    
+                       
+                          
+                         
+                 
+                 
+                     
+ 
+
+                      
+                             
+               
+                      
+ 
+
+const bauhausBuildDefaults = {
+  scale: 1,
+  seed: 1,
+  inkColor: "#1c1a17",
+  accentColor: "#e4572e",
+  secondaryColor: "#cbbc9f",
+  tertiaryColor: "#7e776b",
+  speed: 1,
+  loop: false,
+};
+
+const bauhausBuildGrid = 12;
+const bauhausBuildBand = { top: 4, bottom: 8 };
+const bauhausBuildLength = 125;
+const bauhausBuildTimeline = {
+  lead: 22,
+  beat: 6,
+  rebuild: 90,
+  clear: 116,
+  duration: 150,
+};
+
+const bauhausBuildPieces                          = [
+  {
+    id: "hill",
+    shape: "quarter",
+    width: 4,
+    height: 4,
+    role: "ink",
+    slot: { turn: 3, x: 0, y: 4 },
+    enter: ["D-", "R+"],
+    rebuild: ["D-"],
+    cue: 0,
+    after: ["tile"],
+  },
+  {
+    id: "tile",
+    shape: "square",
+    width: 1,
+    height: 1,
+    role: "accent",
+    slot: { turn: 0, x: 4, y: 7 },
+    enter: ["U+", "U+", "U+", "U+"],
+    rebuild: ["D+"],
+    cue: 3,
+    after: ["pillar"],
+  },
+  {
+    id: "pillar",
+    shape: "bar",
+    width: 4,
+    height: 1,
+    role: "ink",
+    slot: { turn: 1, x: 5, y: 4 },
+    enter: ["R+", "R+"],
+    rebuild: ["U+"],
+    cue: 6,
+    after: ["sun"],
+  },
+  {
+    id: "sun",
+    shape: "circle",
+    width: 4,
+    height: 4,
+    role: "accent",
+    slot: { turn: 0, x: 6, y: 4 },
+    enter: ["U+", "U+"],
+    rebuild: ["U-"],
+    cue: 9,
+    after: [],
+  },
+  {
+    id: "dome",
+    shape: "semicircle",
+    width: 2,
+    height: 2,
+    role: "secondary",
+    slot: { turn: 3, x: 1, y: 1 },
+    enter: ["R+", "D-"],
+    rebuild: ["R+"],
+    cue: 12,
+    after: ["pillar"],
+  },
+  {
+    id: "post",
+    shape: "bar",
+    width: 4,
+    height: 1,
+    role: "tertiary",
+    slot: { turn: 1, x: 11, y: 4 },
+    enter: ["D+", "D+"],
+    rebuild: ["D-"],
+    cue: 15,
+    after: [],
+  },
+  {
+    id: "dot",
+    shape: "circle",
+    width: 1,
+    height: 1,
+    role: "ink",
+    slot: { turn: 0, x: 11, y: 3 },
+    enter: ["D-", "D-", "D-", "D-"],
+    rebuild: ["L-"],
+    cue: 18,
+    after: ["post"],
+  },
+  {
+    id: "block",
+    shape: "square",
+    width: 2,
+    height: 2,
+    role: "tertiary",
+    slot: { turn: 0, x: 6, y: 10 },
+    enter: ["U+", "U+", "U+"],
+    rebuild: ["L+"],
+    cue: 21,
+    after: ["sun"],
+  },
+  {
+    id: "fan",
+    shape: "quarter",
+    width: 2,
+    height: 2,
+    role: "secondary",
+    slot: { turn: 2, x: 8, y: 10 },
+    enter: ["L-", "L+", "L+"],
+    rebuild: ["R+"],
+    cue: 24,
+    after: ["block"],
+  },
+];
+
+const TURN = 5;
+const FILL = 0.8;
+const OVERSHOOT = 0.05;
+const SETTLE = 0.5;
+
+const MOVES                                 = {
+  "U+": { direction: "U", spin: 1, reverse: "D-" },
+  "U-": { direction: "U", spin: -1, reverse: "D+" },
+  "D+": { direction: "D", spin: 1, reverse: "U-" },
+  "D-": { direction: "D", spin: -1, reverse: "U+" },
+  "L+": { direction: "L", spin: 1, reverse: "R-" },
+  "L-": { direction: "L", spin: -1, reverse: "R+" },
+  "R+": { direction: "R", spin: 1, reverse: "L-" },
+  "R-": { direction: "R", spin: -1, reverse: "L+" },
+};
+
+const finite = (value        , fallback        ) =>
+  Number.isFinite(value) ? value : fallback;
+const clamp = (value        , min = 0, max = 1) =>
+  Math.min(max, Math.max(min, value));
+const swing = Easing.bezier(0.62, 0, 0.3, 1);
+const settle = Easing.bezier(0.45, 0, 0.55, 1);
+
+function seedKey(seed        ) {
+  return Number.isFinite(seed) ? Math.round(seed) : 1;
+}
+
+function getBauhausFootprint(
+  piece                                        ,
+  pose             ,
+)                   {
+  const odd = pose.turn % 2 !== 0;
+  return {
+    x0: pose.x,
+    y0: pose.y,
+    x1: pose.x + (odd ? piece.height : piece.width),
+    y1: pose.y + (odd ? piece.width : piece.height),
+  };
+}
+
+function getTumblePivot(
+  box                  ,
+  move            ,
+)               {
+  const { direction, spin } = MOVES[move];
+  const clockwise = spin === 1;
+  switch (direction) {
+    case "R":
+      return { x: box.x1, y: clockwise ? box.y1 : box.y0 };
+    case "L":
+      return { x: box.x0, y: clockwise ? box.y0 : box.y1 };
+    case "D":
+      return { x: clockwise ? box.x0 : box.x1, y: box.y1 };
+    default:
+      return { x: clockwise ? box.x1 : box.x0, y: box.y0 };
+  }
+}
+
+const quarterTurn = (
+  point              ,
+  pivot              ,
+  spin        ,
+)               => ({
+  x: pivot.x - spin * (point.y - pivot.y),
+  y: pivot.y + spin * (point.x - pivot.x),
+});
+
+function tumble(
+  piece                                        ,
+  pose             ,
+  move            ,
+)              {
+  const { spin } = MOVES[move];
+  const box = getBauhausFootprint(piece, pose);
+  const pivot = getTumblePivot(box, move);
+  const a = quarterTurn({ x: box.x0, y: box.y0 }, pivot, spin);
+  const b = quarterTurn({ x: box.x1, y: box.y1 }, pivot, spin);
+  return {
+    move,
+    from: pose,
+    to: {
+      turn: (pose.turn + spin + 4) % 4,
+      x: Math.min(a.x, b.x),
+      y: Math.min(a.y, b.y),
+    },
+    pivot,
+    spin,
+  };
+}
+
+function getBauhausPaths(piece              ) {
+  const walk = (from             , moves                       ) => {
+    const steps                = [];
+    let pose = from;
+    for (const move of moves) {
+      const step = tumble(piece, pose, move);
+      steps.push(step);
+      pose = step.to;
+    }
+    return steps;
+  };
+  let start = piece.slot;
+  for (let index = piece.enter.length - 1; index >= 0; index--) {
+    start = tumble(piece, start, MOVES[piece.enter[index]].reverse).to;
+  }
+  const rebuild = walk(piece.slot, piece.rebuild);
+  return {
+    start,
+    enter: walk(start, piece.enter),
+    rebuild,
+    handoff: rebuild.at(-1)?.to ?? piece.slot,
+  };
+}
+
+function getRestOffset(
+  piece                                        ,
+  turn        ,
+)               {
+  switch (turn) {
+    case 1:
+      return { x: piece.height, y: 0 };
+    case 2:
+      return { x: piece.width, y: piece.height };
+    case 3:
+      return { x: 0, y: piece.width };
+    default:
+      return { x: 0, y: 0 };
+  }
+}
+
+function getBauhausPoseFrame(
+  piece                                        ,
+  pose             ,
+)               {
+  const offset = getRestOffset(piece, pose.turn);
+  return {
+    x: pose.x + offset.x,
+    y: pose.y + offset.y,
+    rotation: pose.turn * 90,
+    scale: 1,
+    pivot: null,
+  };
+}
+
+function getBauhausStepFrame(
+  piece                                        ,
+  step             ,
+  progress        ,
+  grow = 1,
+)               {
+  const rest = getBauhausPoseFrame(piece, step.from);
+  const angle = (step.spin * progress * Math.PI) / 2;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const dx = rest.x - step.pivot.x;
+  const dy = rest.y - step.pivot.y;
+  return {
+    x: step.pivot.x + grow * (dx * cos - dy * sin),
+    y: step.pivot.y + grow * (dx * sin + dy * cos),
+    rotation: rest.rotation + step.spin * progress * 90,
+    scale: grow,
+    pivot: step.pivot,
+  };
+}
+
+function getTumbleDuration(
+  piece                                        ,
+) {
+  return TURN * Math.sqrt(Math.max(piece.width, piece.height));
+}
+
+function getTumbleProgress(
+  elapsed        ,
+  duration        ,
+  landing         ,
+) {
+  const t = clamp(elapsed / duration);
+  if (!landing) return swing(t);
+  if (elapsed <= duration) return (1 + OVERSHOOT) * swing(t);
+  const back = clamp((elapsed - duration) / (duration * SETTLE));
+  return 1 + OVERSHOOT * (1 - settle(back));
+}
+
+function getUnfoldScale(progress        ) {
+  return 1 - (1 - clamp(progress)) ** 3;
+}
+
+function getPathFrame(
+  piece              ,
+  steps                        ,
+  elapsed        ,
+  unfold         ,
+)               {
+  const duration = getTumbleDuration(piece);
+  const last = steps.length - 1;
+  const index = Math.min(last, Math.max(0, Math.floor(elapsed / duration)));
+  const local = elapsed - index * duration;
+  const landing = index === last;
+  const step = steps[index];
+  if (landing && local >= duration * (1 + SETTLE)) {
+    return getBauhausPoseFrame(piece, step.to);
+  }
+  const grow = unfold && index === 0 ? getUnfoldScale(local / duration) : 1;
+  const progress = getTumbleProgress(local, duration, landing);
+  return getBauhausStepFrame(piece, step, progress, grow);
+}
+
+function getPieceMotion(
+  piece              ,
+  arrival        ,
+  time        ,
+)               {
+  const { lead, beat, rebuild } = bauhausBuildTimeline;
+  const paths = getBauhausPaths(piece);
+  const cue = rebuild + piece.cue;
+  if (time >= cue && paths.rebuild.length > 0) {
+    return getPathFrame(piece, paths.rebuild, time - cue, false);
+  }
+  if (paths.enter.length === 0) {
+    return getBauhausPoseFrame(piece, piece.slot);
+  }
+  const travel = paths.enter.length * getTumbleDuration(piece);
+  const start = lead + arrival * beat - travel;
+  if (time < start) {
+    return { ...getBauhausPoseFrame(piece, paths.start), scale: 0 };
+  }
+  return getPathFrame(piece, paths.enter, time - start, true);
+}
+
+function getBauhausBuildDuration({
+  speed = bauhausBuildDefaults.speed,
+  loop = bauhausBuildDefaults.loop,
+}                                            = {}) {
+  const rate = finite(speed, 1);
+  const frames = bauhausBuildTimeline.duration * (loop ? 2 : 1);
+  return rate <= 0 ? 1 : Math.max(1, Math.ceil(frames / rate));
+}
+
+function getBauhausBuildOrder(seed = bauhausBuildDefaults.seed) {
+  const key = seedKey(seed);
+  const rank = (piece              ) =>
+    random(`bauhaus-build-${key}-order-${piece.id}`);
+  const placed                 = [];
+  const waiting = [...bauhausBuildPieces];
+  while (waiting.length > 0) {
+    const ready = waiting.filter((piece) =>
+      piece.after.every((id) => placed.some((done) => done.id === id)),
+    );
+    const next = ready.reduce((best, piece) =>
+      rank(piece) < rank(best) ? piece : best,
+    );
+    placed.push(next);
+    waiting.splice(waiting.indexOf(next), 1);
+  }
+  return placed;
+}
+
+function getBauhausBuildVariant(seed = bauhausBuildDefaults.seed) {
+  const index = (((seedKey(seed) - 1) % 4) + 4) % 4;
+  return { flipX: index % 2 === 1, flipY: index >= 2 };
+}
+
+function getPoster(scale        , width        , height        ) {
+  const w = Math.max(1, finite(width, 1280));
+  const h = Math.max(1, finite(height, 720));
+  const size = Math.min(w, h) * FILL * clamp(finite(scale, 1), 0.5, 1.25);
+  return { w, h, size, originX: (w - size) / 2, originY: (h - size) / 2 };
+}
+
+function getBauhausBuildField({
+  scale = bauhausBuildDefaults.scale,
+  width = 1280,
+  height = 720,
+}                                      
+                 
+                  
+  = {}) {
+  const poster = getPoster(scale, width, height);
+  const unit = poster.size / bauhausBuildGrid;
+  return {
+    x: 0,
+    y: poster.originY + bauhausBuildBand.top * unit,
+    width: poster.w,
+    height: (bauhausBuildBand.bottom - bauhausBuildBand.top) * unit,
+    unit,
+  };
+}
+
+function getBauhausBuildState(
+  time        ,
+  {
+    seed = bauhausBuildDefaults.seed,
+    scale = bauhausBuildDefaults.scale,
+    loop = bauhausBuildDefaults.loop,
+    width = 1280,
+    height = 720,
+  }                                                        
+                   
+                    
+    = {},
+) {
+  const { size, originX, originY } = getPoster(scale, width, height);
+  const { duration } = bauhausBuildTimeline;
+  const elapsed = Math.max(0, finite(time, 0));
+  const folded = elapsed % (duration * 2);
+  const local = loop ? Math.min(folded, duration * 2 - folded) : elapsed;
+  const pieces = getBauhausBuildOrder(seed).map((piece, arrival) => {
+    const motion = getPieceMotion(piece, arrival, local);
+    const frame                    = {
+      id: piece.id,
+      shape: piece.shape,
+      role: piece.role,
+      width: piece.width,
+      height: piece.height,
+      ...motion,
+      visible: motion.scale > 0.001,
+    };
+    return frame;
+  });
+  return {
+    time: local,
+    size,
+    unit: size / bauhausBuildGrid,
+    originX,
+    originY,
+    ...getBauhausBuildVariant(seed),
+    pieces,
+  };
+}
+
+function getBauhausShapePath(
+  shape              ,
+  width        ,
+  height        ,
+) {
+  const r = width / 2;
+  switch (shape) {
+    case "circle":
+      return `M 0 ${r} A ${r} ${r} 0 1 1 ${width} ${r} A ${r} ${r} 0 1 1 0 ${r} Z`;
+    case "semicircle":
+      return `M 0 ${height} A ${r} ${r} 0 0 1 ${width} ${height} Z`;
+    case "quarter":
+      return `M 0 ${height} L 0 0 A ${width} ${height} 0 0 1 ${width} ${height} Z`;
+    default:
+      return `M 0 0 H ${width} V ${height} H 0 Z`;
+  }
+}
+
+
+            var fills = { ink: str(vars.ink_color, "#1c1a17"), accent: str(vars.accent_color, "#e4572e"), secondary: str(vars.secondary_color, "#cbbc9f"), tertiary: str(vars.tertiary_color, "#7e776b") };
+            var speed = num(vars.speed, 1, 0.25, 3);
+            var opt = { seed: Math.round(num(vars.seed, 1, 1, 24)), scale: num(vars.scale, 1, 0.5, 1.25), loop: bool(vars.loop, false), width: root.clientWidth, height: root.clientHeight };
+            var width = opt.width, height = opt.height;
+            var svg = document.getElementById("bhb-svg"), mirror = document.getElementById("bhb-mirror");
+            svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+            var els = {};
+            bauhausBuildPieces.forEach(function (p) {
+              els[p.id] = svgEl("path", { id: "bhb-" + p.id, fill: fills[p.role], d: getBauhausShapePath(p.shape, p.width, p.height) }, mirror);
+            });
+            function draw(frame) {
+              var state = getBauhausBuildState(frame * speed, opt);
+              mirror.setAttribute("transform", "translate(" + (state.flipX ? width : 0) + " " + (state.flipY ? height : 0) + ") scale(" + (state.flipX ? -1 : 1) + " " + (state.flipY ? -1 : 1) + ")");
+              state.pieces.forEach(function (piece) {
+                var el = els[piece.id];
+                if (!el) return;
+                if (!piece.visible) { el.style.display = "none"; return; }
+                el.style.display = "";
+                el.setAttribute("transform", "translate(" + (state.originX + piece.x * state.unit) + " " + (state.originY + piece.y * state.unit) + ") rotate(" + piece.rotation + ") scale(" + piece.scale * state.unit + ")");
+              });
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 150, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["bauhaus-build"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

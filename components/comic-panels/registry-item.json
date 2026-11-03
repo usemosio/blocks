@@ -1,0 +1,106 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "comic-panels",
+  "type": "hyperframes:component",
+  "title": "Comic Panels",
+  "description": "The frame cracks into a three-panel comic page with speed lines and halftone, then the action panel bursts into a full-frame word such as POW. A built-in lockup stands in for the hero; a host replaces the contents of the .cp-hero layer with its own logo or headline.",
+  "tags": [
+    "comic",
+    "burst",
+    "halftone",
+    "playful",
+    "speed-lines",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 2.2,
+  "useWhen": [
+    "A logo, product or headline should land with comic-book energy, framed in a hero panel with speed lines.",
+    "A playful launch or social clip needs a loud sound-effect beat, like POW, ZAP or NEW, that takes over the frame.",
+    "The scene should turn from a single hero shot into a page layout in one move."
+  ],
+  "avoidWhen": [
+    "You only need the manga-style impact lines around an element, without the page: use speed-lines.",
+    "The hit should be a heavy slam with a camera jolt rather than a page cracking: use impact-shake.",
+    "The burst should be a sculptural ribbon opener rather than a printed comic page: use radial-burst."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/comic-panels/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "comic-panels.html",
+      "target": "compositions/components/comic-panels.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "word",
+      "type": "string",
+      "role": "content",
+      "label": "Word",
+      "description": "Word in the starburst, such as POW. Leave empty for no word.",
+      "default": "POW"
+    },
+    {
+      "id": "hero_text",
+      "type": "string",
+      "role": "content",
+      "label": "Hero text",
+      "description": "Text of the built-in hero lockup.",
+      "default": "Your brand"
+    },
+    {
+      "id": "hero_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Hero scale",
+      "description": "Scale of the hero inside the top panel.",
+      "default": 0.62,
+      "min": 0.3,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Ink color.",
+      "default": "#111111"
+    },
+    {
+      "id": "paper",
+      "type": "color",
+      "role": "style",
+      "label": "Paper",
+      "description": "Paper color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Accent color.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

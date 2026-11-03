@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "command-menu-item",
+  "type": "hyperframes:component",
+  "title": "Command Menu Item",
+  "description": "One command palette row going idle, hover, press and selected as the cursor reaches it and clicks.",
+  "tags": [
+    "ui",
+    "command-menu",
+    "row",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "useWhen": [
+    "Showing a single palette row reacting to hover, press and selection.",
+    "Building a custom command list one row at a time."
+  ],
+  "avoidWhen": [
+    "You need the whole palette with backdrop and typed query: use command-menu.",
+    "The list has no icons or shortcuts: use dropdown-menu."
+  ],
+  "checkAt": [
+    0.2,
+    1.0,
+    1.8,
+    3.4
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/command-menu-item/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "command-menu-item.html",
+      "target": "compositions/components/command-menu-item.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "label", "type": "string", "role": "content", "label": "Label", "description": "Row label.", "default": "Settings"},
+    {"id": "icon", "type": "enum", "role": "style", "label": "Icon", "description": "Icon at the start of the row.", "default": "settings", "options": [{"value": "settings", "label": "Settings"}, {"value": "search", "label": "Search"}, {"value": "user", "label": "User"}, {"value": "file", "label": "File"}]},
+    {"id": "shortcut", "type": "string", "role": "content", "label": "Shortcut", "description": "Keyboard shortcut chip at the end of the row. Leave empty for none.", "default": "⌘ S"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

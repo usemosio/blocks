@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "sheen-slide-in",
+  "type": "hyperframes:component",
+  "title": "Sheen Slide In",
+  "description": "A title glides in from the right with a long settle while a gradient sheen sweeps through the glyphs.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "sheen",
+    "gradient",
+    "title",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.134,
+  "useWhen": [
+    "An intro title should arrive with momentum: a fast entrance, a long exponential settle and a barely visible creep into center.",
+    "A colored gradient highlight sweeps once through the glyphs while the title settles."
+  ],
+  "avoidWhen": [
+    "You want a repeating metallic shimmer loop: use shimmer-sweep.",
+    "The title should build word by word: use word-push or word-stream."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/sheen-slide-in/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "sheen-slide-in.html",
+      "target": "compositions/components/sheen-slide-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Title that glides in.", "default": "Introducing" },
+    { "id": "exit_at", "type": "number", "role": "motion", "label": "Exit at", "description": "Frame where the title shrinks away (30 fps).", "default": 60, "min": 30, "max": 150, "step": 1, "unit": "frames" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "base_color", "type": "color", "role": "style", "label": "Base color", "description": "Text color once the sheen has passed.", "default": "#18181b" },
+    { "id": "sheen_color", "type": "color", "role": "style", "label": "Sheen color", "description": "Color of the gradient that sweeps through the letters.", "default": "#4f8ef7" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

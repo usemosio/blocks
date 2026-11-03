@@ -1,0 +1,151 @@
+<!doctype html>
+<!--
+  Per Character Rise
+
+  Letters slide up from below with no blur, one character after another.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/per-character-rise/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="per-character-rise"
+  data-composition-duration="2"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase that rises in.", "default": "One more thing." },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 220, "step": 1, "unit": "px" },
+    { "id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far below its place each letter starts.", "default": 32, "min": 0, "max": 120, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }] }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Per Character Rise</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .pcr-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .pcr-line {
+          letter-spacing: -0.05em;
+          line-height: 1;
+          white-space: pre;
+        }
+        .pcr-char {
+          display: inline-block;
+          white-space: pre;
+          opacity: 0;
+          backface-visibility: hidden;
+          transform-origin: 50% 55%;
+        }
+      </style>
+
+      <div id="root" data-composition-id="per-character-rise" data-duration="2" data-fps="30">
+        <div id="pcr-clip" class="pcr-stage clip" data-start="0" data-duration="2" data-track-index="0">
+          <span id="pcr-line" class="pcr-line" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var line = document.getElementById("pcr-line");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            var text = typeof vars.text === "string" && vars.text.trim() ? vars.text : "One more thing.";
+            var distance = num(vars.distance, 32, 0, 120);
+            var weight = ["400", "500", "600", "700"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "600";
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+
+            line.style.fontWeight = weight;
+            line.setAttribute("aria-label", text);
+            var chars = Array.from(text).map(function (ch, i) {
+              var span = document.createElement("span");
+              span.id = "pcr-char-" + i;
+              span.className = "pcr-char";
+              span.textContent = ch;
+              line.appendChild(span);
+              return span;
+            });
+
+            // Shrink to 90 % of the frame width when the text is wider.
+            var size = num(vars.font_size, 72, 12, 220);
+            line.style.fontSize = size + "px";
+            var maxWidth = Math.max(1, root.clientWidth * 0.9);
+            if (line.scrollWidth > maxWidth) {
+              size = Math.max(12, size * (maxWidth / line.scrollWidth));
+              line.style.fontSize = size + "px";
+            }
+
+            // Remotion frames at 30 fps: each letter fades over 21 frames and
+            // travels over 10, one frame after the previous letter.
+            gsap.registerPlugin(CustomEase);
+            var fadeEase = CustomEase.create("pcr-fade", "M0,0 C0.2,0.8 0.2,1 1,1");
+            var travelEase = CustomEase.create("pcr-travel", "M0,0 C0.2,0.8 0.6,0.85 1,1");
+            var tl = gsap.timeline({ paused: true });
+            chars.forEach(function (span, i) {
+              var at = i / 30;
+              tl.fromTo(span, { opacity: 0 }, { opacity: 1, duration: 21 / 30, ease: fadeEase, immediateRender: true }, at);
+              tl.fromTo(span, { y: distance }, { y: 0, duration: 10 / 30, ease: travelEase, immediateRender: true }, at);
+            });
+            var total = parseFloat(root.dataset.duration || "2");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["per-character-rise"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

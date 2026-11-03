@@ -1,0 +1,365 @@
+<!doctype html>
+<!--
+  Eye Icon
+
+  An animated icon: the strokes draw in, then it plays its signature motion.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-icons/icon-eye/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  The icon paths are derived from Lucide (https://lucide.dev):
+
+  ISC License
+
+  Copyright (c) 2026 Lucide Icons and Contributors
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+  ---
+
+  The following Lucide icons are derived from the Feather project:
+
+  airplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out
+
+  The MIT License (MIT) (for the icons listed above)
+
+  Copyright (c) 2013-present Cole Bemis
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="icon-eye"
+  data-composition-duration="3"
+  data-composition-variables='[{"id":"animation","type":"enum","role":"motion","label":"Animation","description":"Draw the strokes, play the action, or both.","default":"both","options":[{"value":"draw","label":"Draw"},{"value":"action","label":"Action"},{"value":"both","label":"Both"}]},{"id":"loop","type":"boolean","role":"motion","label":"Loop","description":"Repeat the action motion.","default":false},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":4,"step":0.05},{"id":"size","type":"number","role":"style","label":"Size","description":"Icon size in pixels.","default":48,"min":8,"max":1000,"step":1,"unit":"px"},{"id":"color","type":"color","role":"style","label":"Color","description":"Stroke color.","default":"#171717"},{"id":"stroke_width","type":"number","role":"style","label":"Stroke width","description":"Stroke width in a 24-unit grid.","default":2,"min":0.5,"max":6,"step":0.25}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Eye Icon</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #icon-eye-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #icon-eye-host { display: flex; line-height: 0; }
+      </style>
+
+      <div id="root" data-composition-id="icon-eye" data-duration="3" data-fps="30">
+        <div id="icon-eye-stage" class="clip" data-start="0" data-duration="3" data-track-index="0">
+          <div id="icon-eye-host"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var host = document.getElementById("icon-eye-host");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+
+            // ---- Small helpers written for this block (frame-based, 30 fps) ----
+            var FPS = 30;
+            var currentFrame = 0;
+            var opts = { animation: "both", loop: undefined, speed: 1 };
+            function clamp01(t) { return t < 0 ? 0 : t > 1 ? 1 : t; }
+            var Easing = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              in: function (f) { return f; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) {
+                return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 * (1 - t)) / 2; };
+              },
+              back: function (s) {
+                var k = s === undefined ? 1.70158 : s;
+                return function (t) { return t * t * ((k + 1) * t - k); };
+              },
+              bezier: function (x1, y1, x2, y2) {
+                function sx(t) { var u = 1 - t; return 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t; }
+                function sy(t) { var u = 1 - t; return 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t; }
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    t = (lo + hi) / 2;
+                    if (sx(t) < x) lo = t; else hi = t;
+                  }
+                  return sy(t);
+                };
+              }
+            };
+            // interpolate(input, inputRange, outputRange, { easing, extrapolateLeft, extrapolateRight })
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var ease = o.easing || Easing.linear;
+              var n = inR.length - 1;
+              var i = 0;
+              while (i < n - 1 && input > inR[i + 1]) i++;
+              var a = inR[i], b = inR[i + 1];
+              var t = (input - a) / (b - a);
+              if (t < 0 && o.extrapolateLeft === "clamp") t = 0;
+              if (t > 1 && o.extrapolateRight === "clamp") t = 1;
+              if (t >= 0 && t <= 1) t = ease(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            // Damped spring from rest to 1 (closed form). With durationInFrames the motion is
+            // stretched so it has settled by that many frames.
+            function springAt(t, cfg) {
+              var k = cfg.stiffness, c = cfg.damping, m = cfg.mass;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              function x(s) {
+                if (s <= 0) return 0;
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * s) * (Math.cos(wd * s) + ((z * w0) / wd) * Math.sin(wd * s));
+                }
+                return 1 - Math.exp(-w0 * s) * (1 + w0 * s);
+              }
+              return x(t);
+            }
+            var settleCache = {};
+            function settleTime(cfg) {
+              var key = cfg.stiffness + "/" + cfg.damping + "/" + cfg.mass;
+              if (settleCache[key] === undefined) {
+                var last = 0;
+                for (var s = 0; s < 10; s += 1 / 600) {
+                  if (Math.abs(1 - springAt(s, cfg)) > 0.005) last = s;
+                }
+                settleCache[key] = Math.max(last, 1 / 30);
+              }
+              return settleCache[key];
+            }
+            function spring(o) {
+              var cfg = o.config;
+              var t = o.frame / (o.fps || FPS);
+              if (o.durationInFrames) t = t * (settleTime(cfg) / (o.durationInFrames / (o.fps || FPS)));
+              return springAt(t, cfg);
+            }
+            function useVideoConfig() { return { fps: FPS }; }
+            function easeOut3(t) { return 1 - Math.pow(1 - t, 3); }
+            // The icon timeline: draw progress, scale-in spring, action progress (looping or one-shot).
+            function useIconAnimation(props, timings) {
+              var frame = currentFrame * (props.speed === undefined ? 1 : props.speed);
+              var animation = props.animation || "both";
+              var loop = props.loop === undefined ? !!timings.loop : props.loop;
+              var drawDur = timings.drawDurationInFrames === undefined ? 14 : timings.drawDurationInFrames;
+              var delay = timings.actionDelayInFrames === undefined ? 2 : timings.actionDelayInFrames;
+              var actDur = timings.actionDurationInFrames === undefined ? 20 : timings.actionDurationInFrames;
+              var drawProgress = animation === "action" ? 1 : easeOut3(clamp01(drawDur > 0 ? frame / drawDur : 1));
+              var scaleIn = clamp01(spring({ frame: frame, fps: FPS, config: { damping: 18, stiffness: 220, mass: 0.7 }, durationInFrames: Math.max(1, drawDur) }));
+              var actionStart = animation === "action" ? 0 : drawDur + delay;
+              var since = frame - actionStart;
+              if (animation === "draw" || since < 0) return { drawProgress: drawProgress, scaleIn: scaleIn, actionFrame: since, actionProgress: 0, cycleIndex: 0 };
+              if (actDur <= 0) return { drawProgress: drawProgress, scaleIn: scaleIn, actionFrame: since, actionProgress: 1, cycleIndex: 0 };
+              if (loop) {
+                var ci = Math.floor(since / actDur);
+                var local = since - ci * actDur;
+                return { drawProgress: drawProgress, scaleIn: scaleIn, actionFrame: local, actionProgress: local / actDur, cycleIndex: ci };
+              }
+              return { drawProgress: drawProgress, scaleIn: scaleIn, actionFrame: since, actionProgress: clamp01(since / actDur), cycleIndex: 0 };
+            }
+            // Stroke drawing with pathLength="1": dash 1, gap 1, offset 1 - progress.
+            function drawnPathProps(_d, progress) {
+              return { strokeDasharray: "1 1", strokeDashoffset: 1 - clamp01(progress) };
+            }
+            // Tiny JSX factory: builds SVG markup strings.
+            var ATTR = { className: "class", viewBox: "viewBox", pathLength: "pathLength" };
+            function kebab(k) { return ATTR[k] || k.replace(/[A-Z]/g, function (m) { return "-" + m.toLowerCase(); }); }
+            function __Frag(props) { return flat(props.children).join(""); }
+            function flat(c) {
+              var out = [];
+              (function walk(x) {
+                if (Array.isArray(x)) x.forEach(walk);
+                else if (x !== null && x !== undefined && x !== false && x !== true) out.push(String(x));
+              })(c);
+              return out;
+            }
+            function __h(tag, props) {
+              var kids = Array.prototype.slice.call(arguments, 2);
+              if (typeof tag === "function") return tag(Object.assign({}, props, { children: kids }));
+              var attrs = "";
+              props = props || {};
+              Object.keys(props).forEach(function (k) {
+                var v = props[k];
+                if (v === undefined || v === null || v === false) return;
+                if (k === "style") {
+                  v = Object.keys(v).map(function (s) { return kebab(s) + ":" + v[s]; }).join(";");
+                }
+                attrs += " " + kebab(k) + '="' + v + '"';
+              });
+              if (tag === "path" && props.strokeDasharray !== undefined) attrs += ' pathLength="1"';
+              var inner = flat(kids).join("");
+              return "<" + tag + attrs + ">" + inner + "</" + tag + ">";
+            }
+
+            // ---- Ported from the source component (TypeScript types removed, JSX built by __h) ----
+            const OUTLINE_PATH = "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0";
+            const PUPIL_PATH = "M12 9 A3 3 0 0 1 15 12 A3 3 0 0 1 12 15 A3 3 0 0 1 9 12 A3 3 0 0 1 12 9";
+            const TIMINGS = {
+              drawDurationInFrames: 16,
+              actionDelayInFrames: 2,
+              actionDurationInFrames: 22,
+              loop: false
+            };
+            function EyeIcon({
+              animation = "both",
+              loop,
+              speed,
+              size = 48,
+              color = "currentColor",
+              strokeWidth = 2,
+              className
+            }) {
+              const { drawProgress, scaleIn, actionProgress, actionFrame } = useIconAnimation({ animation, loop, speed }, TIMINGS);
+              const linearDraw = 1 - (1 - drawProgress) ** (1 / 3);
+              const acting = animation !== "draw" && actionFrame >= 0;
+              const outlineDraw = interpolate(linearDraw, [0, 0.75], [0, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.out(Easing.quad)
+              });
+              const pupilDraw = interpolate(linearDraw, [0.5, 1], [0, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.out(Easing.quad)
+              });
+              const blink = acting ? interpolate(actionProgress, [0, 0.27, 0.55], [1, 0.4, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.inOut(Easing.quad)
+              }) : 1;
+              const pupilPop = acting && actionProgress >= 0.55 ? interpolate(actionProgress, [0.55, 0.77, 1], [0.8, 1.1, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: Easing.inOut(Easing.quad)
+              }) : 1;
+              const outline = drawnPathProps(OUTLINE_PATH, outlineDraw);
+              const pupil = drawnPathProps(PUPIL_PATH, pupilDraw);
+              const scale = 0.85 + 0.15 * scaleIn;
+              const pupilTransform = `translate(${12 * (1 - pupilPop)} ${12 * (1 - pupilPop)}) scale(${pupilPop})`;
+              return __h("svg", {
+                className,
+                width: size,
+                height: size,
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: color,
+                strokeWidth,
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                style: {
+                  overflow: "visible",
+                  transformOrigin: "center",
+                  transform: `scale(${scale}) scaleY(${blink})`
+                }
+              }, __h("path", {
+                d: OUTLINE_PATH,
+                strokeDasharray: outline.strokeDasharray,
+                strokeDashoffset: outline.strokeDashoffset
+              }), __h("g", {
+                transform: pupilTransform
+              }, __h("path", {
+                d: PUPIL_PATH,
+                strokeDasharray: pupil.strokeDasharray,
+                strokeDashoffset: pupil.strokeDashoffset
+              })));
+            }
+
+            var animation = ["draw", "action", "both"].indexOf(vars.animation) >= 0 ? vars.animation : "both";
+            opts.animation = animation;
+            opts.loop = typeof vars.loop === "boolean" ? vars.loop : undefined;
+            opts.speed = num(vars.speed, 1, 0.25, 4);
+            var size = num(vars.size, 48, 8, 1000);
+            var color = typeof vars.color === "string" && vars.color ? vars.color : "#171717";
+            var strokeWidth = num(vars.stroke_width, 2, 0.5, 6);
+
+            function draw(frame) {
+              currentFrame = frame;
+              host.innerHTML = EyeIcon({ animation: animation, loop: opts.loop, speed: opts.speed, size: size, color: color, strokeWidth: strokeWidth });
+            }
+
+            var total = parseFloat(root.dataset.duration || "3");
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { frame: Math.round(total * 30), duration: total, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["icon-eye"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

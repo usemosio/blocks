@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "kinetic-morph-text",
+  "type": "hyperframes:component",
+  "title": "Kinetic Morph Text",
+  "description": "Letters lift, rotate, and reshape into the next phrase with delicate outline trails.",
+  "tags": [
+    "text-effects",
+    "morph",
+    "letters",
+    "sequence",
+    "trails",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 9.6,
+  "useWhen": [
+    "A short sequence of phrases should feel like the same letters physically rearranging.",
+    "A playful title needs individual letter flights, soft shape changes and readable pauses."
+  ],
+  "avoidWhen": [
+    "Words should switch with minimal movement: use per-word-crossfade.",
+    "The text should stay readable throughout a subtle entrance: use per-character-rise."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/kinetic-morph-text/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "kinetic-morph-text.html",
+      "target": "compositions/components/kinetic-morph-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "One phrase per line, or separate phrases with |.", "default": "Hello | Make it move | Shape what's next" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum type size in pixels. Long phrases shrink to fit 82 % of the width.", "default": 100, "min": 24, "max": 180, "step": 1, "unit": "px" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}] },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#b4f4d9" },
+    { "id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Color of the field behind the letters.", "default": "#a800b7" },
+    { "id": "spread", "type": "number", "role": "motion", "label": "Spread", "description": "Flight radius of the letters in pixels.", "default": 180, "min": 0, "max": 230, "step": 1, "unit": "px" },
+    { "id": "rotation", "type": "number", "role": "motion", "label": "Rotation", "description": "Maximum letter rotation in degrees.", "default": 110, "min": 0, "max": 240, "step": 1, "unit": "deg" },
+    { "id": "morph", "type": "number", "role": "motion", "label": "Morph", "description": "Strength of the soft silhouette blend, 0 to 1.", "default": 0.75, "min": 0, "max": 1, "step": 0.05 },
+    { "id": "trails", "type": "number", "role": "style", "label": "Trails", "description": "Opacity of the outline echoes, 0 to 1.", "default": 0.45, "min": 0, "max": 1, "step": 0.05 },
+    { "id": "transition_frames", "type": "number", "role": "motion", "label": "Transition frames", "description": "Frames each phrase change takes (30 fps).", "default": 54, "min": 18, "max": 90, "step": 1, "unit": "frames" },
+    { "id": "hold_frames", "type": "number", "role": "motion", "label": "Hold frames", "description": "Frames each phrase rests before the next change.", "default": 42, "min": 0, "max": 90, "step": 1, "unit": "frames" },
+    { "id": "loop", "type": "boolean", "role": "motion", "label": "Loop", "description": "Return to the first phrase at the end instead of resting on the last.", "default": false }
+  ]
+}

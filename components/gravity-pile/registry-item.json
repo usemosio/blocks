@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "gravity-pile",
+  "type": "hyperframes:component",
+  "title": "Gravity Pile",
+  "description": "Seeded circles, squares and triangles rain down, bounce off the floor and each other, and settle into a heap, with optional words or emoji of your own landing on top.",
+  "tags": [
+    "camera",
+    "physics",
+    "playful",
+    "shapes",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 3,
+  "useWhen": [
+    "A beat about volume should feel physical, such as a pile of tasks, tickets or features.",
+    "A playful transition beat or bumper needs real bounces rather than hand-keyed ones."
+  ],
+  "avoidWhen": [
+    "The moment is a celebration that should shower the frame with color: use confetti.",
+    "Pieces should fly together into a logo instead of falling into a heap: use puzzle-snap."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/gravity-pile/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "gravity-pile.html",
+      "target": "compositions/components/gravity-pile.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "count", "type": "number", "role": "style", "label": "Count", "description": "Number of falling bodies.", "default": 30, "min": 1, "max": 80, "step": 1},
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "Optional words or emoji, comma separated, dropped as round bodies that land on top of the heap.", "default": ""},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for sizes, shapes and start positions.", "default": 7, "min": 1, "max": 999, "step": 1},
+    {"id": "gravity", "type": "number", "role": "motion", "label": "Gravity", "description": "Gravity multiplier.", "default": 1, "min": 0.2, "max": 3, "step": 0.05},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "shape_color_1", "type": "color", "role": "style", "label": "Shape 1", "description": "First shape color.", "default": "#FFFFFF"},
+    {"id": "shape_color_2", "type": "color", "role": "style", "label": "Shape 2", "description": "Second shape color.", "default": "#C9C9C9"},
+    {"id": "shape_color_3", "type": "color", "role": "style", "label": "Shape 3", "description": "Third shape color.", "default": "#7A7A7A"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Color of the single accent body.", "default": "#E5322D"},
+    {"id": "floor_color", "type": "color", "role": "style", "label": "Floor", "description": "Floor line color.", "default": "#FFFFFF"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "slider",
+  "type": "hyperframes:component",
+  "title": "Slider",
+  "description": "A range slider whose thumb is picked up by the cursor and dragged from 20 to 80, with hover and press states on the thumb.",
+  "tags": [
+    "ui",
+    "slider",
+    "drag",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "Demonstrating a range control being dragged to a target value with hover and press thumb states.",
+    "Showing an audio, video or settings slider animating in a product walkthrough.",
+    "Composing a settings scene alongside switch and select."
+  ],
+  "avoidWhen": [
+    "You need to show completion with no thumb: use progress.",
+    "The value is binary: use switch.",
+    "You need step-by-step progress with connectors and checks: use stepper."
+  ],
+  "checkAt": [
+    0.6,
+    1.5,
+    2.6,
+    4.2
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/slider/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "slider.html",
+      "target": "compositions/components/slider.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "show_value", "type": "boolean", "role": "style", "label": "Show value", "description": "Show the number above the thumb.", "default": true},
+    {"id": "width", "type": "number", "role": "style", "label": "Width", "description": "Track width in design pixels.", "default": 320, "min": 120, "max": 640, "step": 10, "unit": "px"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

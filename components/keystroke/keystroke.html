@@ -1,0 +1,1133 @@
+<!doctype html>
+<!--
+  Keystroke
+
+  Physical keycaps rise and press to show keyboard shortcuts, one chord after another.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/keystroke/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="keystroke"
+  data-composition-duration="6"
+  data-composition-variables='[{"id":"steps","type":"string","role":"content","label":"Steps","description":"JSON array of {at, keys, hold}: at is the frame (30 fps), keys is a chord like \"mod+k\", \"shift+mod+p\", or a sequence like \"g i\"; mod is Command on Mac and Ctrl on Windows.","default":"[{\"at\":20,\"keys\":\"mod+k\"},{\"at\":78,\"keys\":\"g i\"},{\"at\":114,\"keys\":\"shift+mod+p\"}]"},{"id":"platform","type":"enum","role":"style","label":"Platform","description":"Keyboard legends for Mac or Windows.","default":"mac","options":[{"value":"mac","label":"Mac"},{"value":"windows","label":"Windows"}]},{"id":"theme","type":"enum","role":"style","label":"Theme","description":"Keycap theme.","default":"light","options":[{"value":"light","label":"Light"},{"value":"dark","label":"Dark"}]},{"id":"accent","type":"color","role":"style","label":"Accent","description":"Color of the pressed legend.","default":"#0a84ff"},{"id":"size","type":"number","role":"layout","label":"Key size","description":"Key size at a 720 px frame height.","default":64,"min":32,"max":128,"step":1,"unit":"px"},{"id":"linger","type":"number","role":"motion","label":"Linger","description":"Frames (30 fps) a shortcut stays after it is pressed.","default":30,"min":0,"max":90,"step":1,"unit":"frames"},{"id":"x","type":"number","role":"layout","label":"Center X","description":"Horizontal center across the frame, 0 to 1.","default":0.5,"min":0,"max":1,"step":0.01},{"id":"y","type":"number","role":"layout","label":"Center Y","description":"Vertical center down the frame, 0 to 1.","default":0.86,"min":0,"max":1,"step":0.01},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Keystroke</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        #root { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif; }
+        .kst-stage { position: absolute; inset: 0; }
+      </style>
+
+      <div id="root" data-composition-id="keystroke" data-duration="6" data-fps="30">
+        <div id="kst-clip" class="kst-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="kst-groups"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+
+                                                  
+                                              
+                           
+             
+            
+           
+             
+            
+            
+            
+         
+           
+              
+        
+          
+          
+            
+
+                                
+             
+               
+                
+ 
+
+                                 
+                                   
+                               
+                         
+                  
+             
+             
+                
+                  
+                 
+                     
+ 
+
+                                                                             
+                 
+                  
+               
+ 
+
+                             
+                                         
+                                  
+                                   
+
+                               
+               
+                
+                          
+                
+                    
+ 
+
+                                            
+
+                                     
+                
+                  
+ 
+
+                                       
+                
+               
+                             
+ 
+
+                                  
+                                                                     
+                                                            
+                   
+ 
+
+                                 
+                
+               
+               
+                
+                           
+                                 
+                          
+             
+               
+                
+                      
+                   
+               
+              
+ 
+
+                                   
+              
+               
+               
+              
+                    
+                 
+ 
+
+                                   
+                                                         
+            
+           
+            
+         
+           
+               
+            
+              
+        
+          
+          
+           
+          
+         
+            
+               
+                                                           
+                                                                      
+                                                                           
+                  
+                 
+                                                          
+  
+
+const keystrokeDefaults                                        = {
+  platform: "mac",
+  theme: "light",
+  accent: "#0a84ff",
+  x: 0.5,
+  y: 0.86,
+  size: 64,
+  linger: 30,
+  speed: 1,
+};
+
+const keystrokeDefaultSteps                           = [
+  { at: 20, keys: "mod+k" },
+  { at: 78, keys: "g i" },
+  { at: 114, keys: "shift+mod+p" },
+];
+
+const keystrokePalettes                                           = {
+  light: {
+    cap: "#fcfcfb",
+    edge: "#dfdfda",
+    wall: "#cfcfca",
+    ink: "#1d1d1f",
+    separator: "#8e8e89",
+    shadow: "rgba(20, 20, 16, 0.18)",
+  },
+  dark: {
+    cap: "#38393e",
+    edge: "#48494f",
+    wall: "#1f2023",
+    ink: "#f5f5f7",
+    separator: "#9d9da4",
+    shadow: "rgba(0, 0, 0, 0.5)",
+  },
+};
+
+const PRESS = 3;
+const PRESS_GAP = 3;
+const RELEASE_GAP = 3;
+const LEAD = 7;
+const STAGGER = 1;
+const BEAT = 2;
+const HOLD = 8;
+const RELEASE = 10;
+const RELEASE_RISE = 3;
+const RELEASE_TAPER = 6;
+const RELEASE_DAMPING = 0.46;
+const ENTER = 10;
+const ENTER_RISE = 4;
+const ENTER_TAPER = 7;
+const ENTER_DAMPING = 0.65;
+const FADE_IN = 4;
+const SLIDE = 10;
+const DIM = 6;
+const DIM_OPACITY = 0.45;
+const PUSH = 10;
+const BRIEF = 18;
+const EXIT = 8;
+const TAIL = 14;
+const MAX_FRAMES = 600;
+const MIN_SIZE = 8;
+const MAX_SIZE = 400;
+const WALL = 0.16;
+const TRAVEL = 0.12;
+const RADIUS = 0.16;
+const RISE = 0.42;
+const KEY_GAP = 0.14;
+const SEPARATOR = 0.95;
+const CHAR_FONT = 0.4;
+const WORD_FONT = 0.26;
+const ICON_SIZE = 0.36;
+const SEPARATOR_FONT = 0.25;
+const WORD_CHAR = 0.6 * WORD_FONT;
+const WORD_PAD = 0.24;
+const WINDOWS_WORD = 1.25;
+const SLOT_RISE = 1.09;
+const SLOT_SCALE = 0.86;
+const SLOT_OPACITY = 0.55;
+const EXIT_DRIFT = 0.22;
+const EXIT_SCALE = 0.04;
+const SHADOW_Y = 0.07;
+const SHADOW_Y_PRESSED = 0.02;
+const SHADOW_BLUR = 0.11;
+const SHADOW_BLUR_PRESSED = 0.03;
+const GLIDE = Easing.bezier(0.33, 1, 0.68, 1);
+const FONT_FAMILY =
+  'var(--font-geist-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif)';
+
+const ICONS                                   = {
+  command: {
+    box: "0 0 24 24",
+    paths: [
+      "M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3",
+    ],
+  },
+  option: { box: "0 0 24 24", paths: ["M3 3h6l6 18h6", "M14 3h7"] },
+  shift: {
+    box: "0 0 24 24",
+    paths: [
+      "M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z",
+    ],
+  },
+  control: { box: "0 0 24 24", paths: ["m18 15-6-6-6 6"] },
+  return: {
+    box: "0 0 24 24",
+    paths: ["M20 4v7a4 4 0 0 1-4 4H4", "m9 10-5 5 5 5"],
+  },
+  delete: {
+    box: "0 0 24 24",
+    paths: [
+      "M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z",
+      "m12 9 6 6",
+      "m18 9-6 6",
+    ],
+  },
+  escape: {
+    box: "0 0 24 24",
+    paths: ["M2 8V2h6", "m2 2 10 10", "M12 2A10 10 0 1 1 2 12"],
+  },
+  tab: {
+    box: "0 0 24 24",
+    paths: ["M17 12H3", "m11 18 6-6-6-6", "M21 5v14"],
+  },
+  space: {
+    box: "0 6 24 24",
+    paths: ["M22 17v1c0 .5-.5 1-1 1H3c-.5 0-1-.5-1-1v-1"],
+  },
+  capsLock: {
+    box: "0 0 24 24",
+    paths: [
+      "M14 16a1 1 0 0 0 1-1v-2a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-6.939-6.939a1.207 1.207 0 0 0-1.708 0l-6.94 6.94a.707.707 0 0 0 .5 1.206H8a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1z",
+      "M9 20h6",
+    ],
+  },
+  up: { box: "0 0 24 24", paths: ["m5 12 7-7 7 7", "M12 19V5"] },
+  down: { box: "0 0 24 24", paths: ["M12 5v14", "m19 12-7 7-7-7"] },
+  left: { box: "0 0 24 24", paths: ["m12 19-7-7 7-7", "M19 12H5"] },
+  right: { box: "0 0 24 24", paths: ["M5 12h14", "m12 5 7 7-7 7"] },
+};
+
+const MODIFIERS = new Map                  ([
+  ["fn", "fn"],
+  ["ctrl", "ctrl"],
+  ["control", "ctrl"],
+  ["alt", "alt"],
+  ["option", "alt"],
+  ["opt", "alt"],
+  ["shift", "shift"],
+  ["cmd", "meta"],
+  ["command", "meta"],
+  ["meta", "meta"],
+  ["win", "meta"],
+  ["super", "meta"],
+]);
+
+const MODIFIER_ORDER                                                 = {
+  mac: ["fn", "ctrl", "alt", "shift", "meta"],
+  windows: ["fn", "meta", "ctrl", "alt", "shift"],
+};
+
+const MAC_MODIFIERS                                            = {
+  ctrl: { label: "Control", icon: "control", units: 1 },
+  alt: { label: "Option", icon: "option", units: 1 },
+  shift: { label: "Shift", icon: "shift", units: 1.5 },
+  meta: { label: "Command", icon: "command", units: 1 },
+};
+
+const WINDOWS_MODIFIERS                           = {
+  fn: "Fn",
+  ctrl: "Ctrl",
+  alt: "Alt",
+  shift: "Shift",
+  meta: "Win",
+};
+
+const NAMED = new Map               ([
+  ["enter", "enter"],
+  ["return", "enter"],
+  ["esc", "escape"],
+  ["escape", "escape"],
+  ["tab", "tab"],
+  ["space", "space"],
+  ["backspace", "backspace"],
+  ["delete", "delete"],
+  ["del", "delete"],
+  ["capslock", "capsLock"],
+  ["up", "up"],
+  ["arrowup", "up"],
+  ["down", "down"],
+  ["arrowdown", "down"],
+  ["left", "left"],
+  ["arrowleft", "left"],
+  ["right", "right"],
+  ["arrowright", "right"],
+  ["home", "home"],
+  ["end", "end"],
+  ["pageup", "pageUp"],
+  ["pgup", "pageUp"],
+  ["pagedown", "pageDown"],
+  ["pgdn", "pageDown"],
+]);
+
+const CHARACTERS = new Map                ([
+  ["plus", "+"],
+  ["minus", "-"],
+  ["comma", ","],
+  ["period", "."],
+  ["slash", "/"],
+  ["backslash", "\\"],
+  ["semicolon", ";"],
+  ["quote", "'"],
+  ["backquote", "`"],
+  ["bracketleft", "["],
+  ["bracketright", "]"],
+  ["equal", "="],
+]);
+
+const ARROWS                                                     = {
+  up: { label: "Up Arrow", icon: "up", units: 1 },
+  down: { label: "Down Arrow", icon: "down", units: 1 },
+  left: { label: "Left Arrow", icon: "left", units: 1 },
+  right: { label: "Right Arrow", icon: "right", units: 1 },
+};
+
+const NAMED_KEYS                                                      = {
+  mac: {
+    enter: { label: "Return", icon: "return", units: 1.5 },
+    escape: { label: "Escape", icon: "escape", units: 1 },
+    tab: { label: "Tab", icon: "tab", units: 1.25 },
+    space: { label: "Space", icon: "space", units: 2.5 },
+    backspace: { label: "Delete", icon: "delete", units: 1.25 },
+    delete: { label: "Delete", icon: "delete", units: 1.25 },
+    capsLock: { label: "Caps Lock", icon: "capsLock", units: 1.5 },
+    ...ARROWS,
+    home: { label: "Home", word: "home", units: 1 },
+    end: { label: "End", word: "end", units: 1 },
+    pageUp: { label: "Page Up", word: "page up", units: 1 },
+    pageDown: { label: "Page Down", word: "page down", units: 1 },
+  },
+  windows: {
+    enter: { label: "Enter", word: "Enter", units: WINDOWS_WORD },
+    escape: { label: "Esc", word: "Esc", units: WINDOWS_WORD },
+    tab: { label: "Tab", word: "Tab", units: WINDOWS_WORD },
+    space: { label: "Space", word: "Space", units: 2.5 },
+    backspace: { label: "Backspace", word: "Backspace", units: WINDOWS_WORD },
+    delete: { label: "Delete", word: "Delete", units: WINDOWS_WORD },
+    capsLock: { label: "Caps Lock", word: "Caps Lock", units: WINDOWS_WORD },
+    ...ARROWS,
+    home: { label: "Home", word: "Home", units: WINDOWS_WORD },
+    end: { label: "End", word: "End", units: WINDOWS_WORD },
+    pageUp: { label: "Page Up", word: "PgUp", units: WINDOWS_WORD },
+    pageDown: { label: "Page Down", word: "PgDn", units: WINDOWS_WORD },
+  },
+};
+
+const finite = (value                    , fallback        ) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+const clamp = (value        , min        , max        ) =>
+  Math.min(max, Math.max(min, value));
+const within = (
+  value                    ,
+  fallback        ,
+  min        ,
+  max        ,
+) => clamp(finite(value, fallback), min, max);
+const round = (value        ) => Math.round(value * 1000) / 1000 + 0;
+const smoothstep = (value        ) => {
+  const t = clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+};
+const fpsOf = (fps                    ) => Math.max(1, finite(fps, 30));
+const rateOf = (speed                    ) =>
+  Math.max(0, finite(speed, keystrokeDefaults.speed));
+const platformOf = (value                    )                    =>
+  value === "windows" ? value : "mac";
+const themeOf = (value                    )                 =>
+  value === "dark" ? value : "light";
+const accentOf = (value                    ) =>
+  typeof value === "string" && value.trim() !== ""
+    ? value.trim()
+    : keystrokeDefaults.accent;
+const modOf = (platform                   )           =>
+  platform === "mac" ? "meta" : "ctrl";
+
+function eased(frames        , duration        , curve                       ) {
+  if (Number.isNaN(frames) || frames <= 0) return 0;
+  if (frames >= duration) return 1;
+  return curve(frames / duration);
+}
+
+function settle(rise        , damping        , taper        , end        ) {
+  const frequency = (Math.PI - Math.acos(damping)) / rise;
+  const ratio = damping / Math.sqrt(1 - damping ** 2);
+  return (frames        ) => {
+    if (Number.isNaN(frames) || frames <= 0) return 0;
+    if (frames >= end) return 1;
+    const phase = frequency * frames;
+    const decay = Math.exp(-ratio * phase);
+    const ring = decay * (Math.cos(phase) + ratio * Math.sin(phase));
+    return 1 - ring * (1 - smoothstep((frames - taper) / (end - taper)));
+  };
+}
+
+const riseCurve = settle(ENTER_RISE, ENTER_DAMPING, ENTER_TAPER, ENTER);
+const releaseCurve = settle(
+  RELEASE_RISE,
+  RELEASE_DAMPING,
+  RELEASE_TAPER,
+  RELEASE,
+);
+
+function getKeystrokePress(frames        ) {
+  return eased(frames, PRESS, smoothstep);
+}
+
+function getKeystrokeRelease(frames        ) {
+  return releaseCurve(frames);
+}
+
+function getKeystrokeRise(frames        ) {
+  return riseCurve(frames);
+}
+
+function getKeystrokeDepth(time        , timing                    ) {
+  if (Number.isNaN(time) || time <= timing.press) return 0;
+  if (time < timing.release) return getKeystrokePress(time - timing.press);
+  const bottom = getKeystrokePress(timing.release - timing.press);
+  return bottom * (1 - getKeystrokeRelease(time - timing.release));
+}
+
+function getKeystrokeWordUnits(text        , min = 1) {
+  const raw = Array.from(text).length * WORD_CHAR + 2 * WORD_PAD;
+  return Math.max(min, Math.ceil(raw * 4 - 1e-9) / 4);
+}
+
+function wordKey(
+  name        ,
+  label        ,
+  text        ,
+  platform                   ,
+  modifier         ,
+  min = 1,
+)               {
+  const floor = platform === "windows" ? Math.max(min, WINDOWS_WORD) : min;
+  const units = getKeystrokeWordUnits(text, floor);
+  return { name, label, legend: { kind: "word", text }, units, modifier };
+}
+
+function modifierKey(
+  modifier          ,
+  platform                   ,
+)               {
+  if (platform === "windows") {
+    const word = WINDOWS_MODIFIERS[modifier];
+    return wordKey(modifier, word, word, platform, true);
+  }
+  if (modifier === "fn") return wordKey("fn", "Fn", "fn", platform, true);
+  const { label, icon, units } = MAC_MODIFIERS[modifier];
+  return {
+    name: modifier,
+    label,
+    legend: { kind: "icon", icon },
+    units,
+    modifier: true,
+  };
+}
+
+function namedKey(named       , platform                   )               {
+  const spec = NAMED_KEYS[platform][named];
+  if ("word" in spec) {
+    return wordKey(named, spec.label, spec.word, platform, false, spec.units);
+  }
+  return {
+    name: named,
+    label: spec.label,
+    legend: { kind: "icon", icon: spec.icon },
+    units: spec.units,
+    modifier: false,
+  };
+}
+
+function keyOf(part        , platform                   )               {
+  const name = part.toLowerCase();
+  const named = NAMED.get(name);
+  if (named) return namedKey(named, platform);
+  const character =
+    CHARACTERS.get(name) ?? (Array.from(part).length === 1 ? part : undefined);
+  if (character !== undefined) {
+    const text = character.toUpperCase();
+    return {
+      name: character.toLowerCase(),
+      label: text,
+      legend: { kind: "char", text },
+      units: 1,
+      modifier: false,
+    };
+  }
+  const fkey = /^f([1-9]|1\d|2[0-4])$/.exec(name);
+  if (fkey) {
+    const text = `F${fkey[1]}`;
+    return wordKey(name, text, text, platform, false);
+  }
+  const text = `${part.charAt(0).toUpperCase()}${part.slice(1)}`;
+  return wordKey(name, text, text, platform, false);
+}
+
+function splitChord(token        ) {
+  const parts = token.split("+");
+  const names           = [];
+  for (const [index, part] of parts.entries()) {
+    if (part !== "") names.push(part);
+    else if (index === parts.length - 1 && parts[index - 1] === "") {
+      names.push("+");
+    }
+  }
+  return names;
+}
+
+function parseChord(token        , platform                   ) {
+  const held = new Set          ();
+  const keys                 = [];
+  for (const part of splitChord(token)) {
+    const name = part.toLowerCase();
+    const modifier = name === "mod" ? modOf(platform) : MODIFIERS.get(name);
+    if (modifier) held.add(modifier);
+    else keys.push(keyOf(part, platform));
+  }
+  const modifiers = MODIFIER_ORDER[platform]
+    .filter((modifier) => held.has(modifier))
+    .map((modifier) => modifierKey(modifier, platform));
+  return [...modifiers, ...keys];
+}
+
+function parseKeystrokeKeys(
+  keys        ,
+  platform                    ,
+)                   {
+  if (typeof keys !== "string") return [];
+  const target = platformOf(platform);
+  return keys
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token !== "")
+    .map((token) => parseChord(token, target))
+    .filter((chord) => chord.length > 0);
+}
+
+function getKeystrokeLayout(
+  chords                           ,
+)                  {
+  const layout                  = { caps: [], separators: [], widths: [] };
+  let cursor = 0;
+  for (const [chord, keys] of chords.entries()) {
+    if (chord > 0) {
+      layout.separators.push({ chord, x: round(cursor), width: SEPARATOR });
+      cursor += SEPARATOR;
+    }
+    for (const [index, key] of keys.entries()) {
+      if (index > 0) cursor += KEY_GAP;
+      layout.caps.push({ chord, index, x: round(cursor), width: key.units });
+      cursor += key.units;
+    }
+    layout.widths.push(round(cursor));
+  }
+  return layout;
+}
+
+function schedule(chords                           , hold        ) {
+  const timing                         = [];
+  let enter = 0;
+  for (const chord of chords) {
+    const last = chord.length - 1;
+    const fire = enter + LEAD + PRESS_GAP * last + PRESS;
+    const keys = chord.map((_, index) => ({
+      press: fire - PRESS - PRESS_GAP * (last - index),
+      release: fire + hold + RELEASE_GAP * (last - index),
+    }));
+    timing.push({ enter, fire, keys });
+    enter = fire + hold + RELEASE_GAP * last + BEAT;
+  }
+  return timing;
+}
+
+function getKeystrokeLeadIn(keys        , hold = HOLD) {
+  const chords = parseKeystrokeKeys(keys);
+  if (chords.length === 0) return 0;
+  const timing = schedule(chords, within(hold, HOLD, 0, MAX_FRAMES));
+  return timing[timing.length - 1].fire - timing[0].enter;
+}
+
+function getKeystrokeTimeline(
+  options                                                                  = {},
+) {
+  const platform = platformOf(options.platform);
+  const scale = 30 / fpsOf(options.fps);
+  const lingerFrames = within(
+    options.linger,
+    keystrokeDefaults.linger,
+    0,
+    MAX_FRAMES,
+  );
+  const linger = lingerFrames * scale;
+  const steps = options.steps ?? keystrokeDefaultSteps;
+  const drafts          = [];
+  for (const [step, entry] of steps.entries()) {
+    if (typeof entry.at !== "number" || !Number.isFinite(entry.at)) continue;
+    const chords = parseKeystrokeKeys(entry.keys, platform);
+    if (chords.length === 0) continue;
+    const at = entry.at * scale;
+    const hold = within(entry.hold, HOLD, 0, MAX_FRAMES) * scale;
+    const planned = schedule(chords, hold);
+    const offset = at - planned[planned.length - 1].fire;
+    const timing = planned.map((chord) => ({
+      enter: round(chord.enter + offset),
+      fire: round(chord.fire + offset),
+      keys: chord.keys.map((key) => ({
+        press: round(key.press + offset),
+        release: round(key.release + offset),
+      })),
+    }));
+    const releases = timing.flatMap((chord) =>
+      chord.keys.map((key) => key.release),
+    );
+    drafts.push({
+      step,
+      keys: entry.keys,
+      chords,
+      timing,
+      at: round(at),
+      hold: round(hold),
+      enter: timing[0].enter,
+      lastRelease: Math.max(...releases),
+    });
+  }
+  drafts.sort((a, b) => a.enter - b.enter || a.at - b.at || a.step - b.step);
+  const groups = drafts.map((draft, index)                 => {
+    const pushes           = [];
+    let exit = Math.max(draft.enter, draft.lastRelease + linger);
+    for (const newer of drafts.slice(index + 1)) {
+      if (newer.enter >= exit + EXIT) break;
+      const at = Math.max(newer.enter, draft.enter);
+      const brief = Math.max(at, draft.lastRelease) + BRIEF;
+      pushes.push(at);
+      exit = Math.min(exit, pushes.length === 1 ? brief : at);
+      if (pushes.length === 2) break;
+    }
+    exit = round(Math.max(exit, draft.enter));
+    const label = draft.chords
+      .map((chord) => chord.map((key) => key.label).join(" "))
+      .join(" then ");
+    return {
+      ...draft,
+      index,
+      label,
+      layout: getKeystrokeLayout(draft.chords),
+      pushes,
+      exit,
+      end: round(exit + EXIT),
+    };
+  });
+  const end = groups.reduce((latest, group) => Math.max(latest, group.end), 0);
+  return { platform, linger: round(linger), groups, end };
+}
+
+                                                                        
+
+const keystrokeLength = getKeystrokeTimeline().end;
+
+function getKeystrokeDuration(
+  options                                                               = {},
+) {
+  const fps = fpsOf(options.fps);
+  const rate = rateOf(options.speed);
+  const { end } = getKeystrokeTimeline(options);
+  const motion = rate === 0 ? 0 : (end * fps) / 30 / rate;
+  return Math.ceil(round(motion)) + Math.round((TAIL * fps) / 30);
+}
+
+function getKeystrokeTime(
+  frame        ,
+  options                                          = {},
+) {
+  const elapsed = Math.max(0, finite(frame, 0));
+  return (elapsed * rateOf(options.speed) * 30) / fpsOf(options.fps);
+}
+
+function getKeystrokeMetrics(size        , unit = 1) {
+  return {
+    size: round(size),
+    height: round(size),
+    wall: round(size * WALL),
+    travel: round(size * TRAVEL),
+    keytop: round(size * (1 - WALL)),
+    radius: round(size * RADIUS),
+    rise: round(size * RISE),
+    border: round(Math.max(1, unit)),
+    charFont: round(size * CHAR_FONT),
+    wordFont: round(size * WORD_FONT),
+    icon: round(size * ICON_SIZE),
+    separatorFont: round(size * SEPARATOR_FONT),
+  };
+}
+
+                                                                      
+
+function legendColor(ink        , accent        , amount        ) {
+  const share = Math.floor(clamp(amount, 0, 1) * 100);
+  if (share <= 0) return ink;
+  if (share >= 100) return accent;
+  return `color-mix(in srgb, ${accent} ${share}%, ${ink})`;
+}
+
+function fadeIn(frames        ) {
+  return eased(frames, FADE_IN, (t) => 1 - (1 - t) ** 2);
+}
+
+function groupState(
+  group                ,
+  time        ,
+  metrics                  ,
+  palette                  ,
+  accent        ,
+) {
+  const { size } = metrics;
+  const slot = group.pushes.reduce(
+    (sum, at) => sum + eased(time - at, PUSH, GLIDE),
+    0,
+  );
+  const leaving = clamp((time - group.exit) / EXIT, 0, 1);
+  const pushedAway = group.pushes.some((at) => at <= group.exit);
+  const drift = (pushedAway ? -1 : 1) * EXIT_DRIFT * size * leaving ** 3;
+  const dimmed = 1 - (1 - SLOT_OPACITY) * Math.min(1, slot);
+  const last = group.chords.length - 1;
+  let visible = group.layout.widths[0];
+  for (let chord = 1; chord <= last; chord++) {
+    const added = group.layout.widths[chord] - group.layout.widths[chord - 1];
+    visible += added * eased(time - group.timing[chord].enter, SLIDE, GLIDE);
+  }
+  const left = -visible / 2;
+  const caps = group.layout.caps.flatMap((cap) => {
+    const timing = group.timing[cap.chord];
+    const enter = timing.enter + cap.index * STAGGER;
+    if (time <= enter) return [];
+    const key = group.chords[cap.chord][cap.index];
+    const depth = getKeystrokeDepth(time, timing.keys[cap.index]);
+    const landing =
+      group.timing.at(cap.chord + 1)?.fire ?? Number.POSITIVE_INFINITY;
+    const dim = smoothstep((time - (landing - DIM)) / DIM);
+    const lean = clamp(depth, -1, 1);
+    const shadowY = SHADOW_Y - (SHADOW_Y - SHADOW_Y_PRESSED) * lean;
+    const shadowBlur = SHADOW_BLUR - (SHADOW_BLUR - SHADOW_BLUR_PRESSED) * lean;
+    return [
+      {
+        id: `${cap.chord}-${cap.index}`,
+        chord: cap.chord,
+        index: cap.index,
+        key,
+        x: round((left + cap.x) * size),
+        y: round((1 - getKeystrokeRise(time - enter)) * metrics.rise),
+        width: round(cap.width * size),
+        opacity: round(fadeIn(time - enter) * (1 - (1 - DIM_OPACITY) * dim)),
+        depth: round(depth),
+        lift: round(depth * metrics.travel),
+        wall: round(metrics.wall - depth * metrics.travel),
+        shadowY: round(shadowY * size),
+        shadowBlur: round(shadowBlur * size),
+        color: legendColor(palette.ink, accent, clamp(depth, 0, 1)),
+      },
+    ];
+  });
+  const separators = group.layout.separators.flatMap((separator) => {
+    const enter = group.timing[separator.chord].enter;
+    if (time <= enter) return [];
+    return [
+      {
+        id: `then-${separator.chord}`,
+        chord: separator.chord,
+        x: round((left + separator.x) * size),
+        y: round((1 - getKeystrokeRise(time - enter)) * metrics.rise),
+        width: round(separator.width * size),
+        opacity: round(fadeIn(time - enter)),
+      },
+    ];
+  });
+  return {
+    id: `${group.step}`,
+    index: group.index,
+    step: group.step,
+    keys: group.keys,
+    label: group.label,
+    slot: round(slot),
+    width: round(visible * size),
+    y: round(-slot * SLOT_RISE * size + drift),
+    scale: round((1 - (1 - SLOT_SCALE) * slot) * (1 - EXIT_SCALE * leaving)),
+    opacity: round(dimmed * (1 - leaving ** 2)),
+    caps,
+    separators,
+  };
+}
+
+function getKeystrokeState(
+  frame        ,
+  options                   = {},
+  timeline                    = getKeystrokeTimeline(options),
+) {
+  const width = Math.max(1, finite(options.width, 1280));
+  const height = Math.max(1, finite(options.height, 720));
+  const unit = height / 720;
+  const reference = within(
+    options.size,
+    keystrokeDefaults.size,
+    MIN_SIZE,
+    MAX_SIZE,
+  );
+  const metrics = getKeystrokeMetrics(reference * unit, unit);
+  const time = getKeystrokeTime(frame, options);
+  const x = finite(options.x, keystrokeDefaults.x);
+  const y = finite(options.y, keystrokeDefaults.y);
+  const theme = themeOf(options.theme);
+  const palette = keystrokePalettes[theme];
+  const accent = accentOf(options.accent);
+  const groups = timeline.groups
+    .filter((group) => time > group.enter && time < group.end)
+    .map((group) => groupState(group, time, metrics, palette, accent));
+  return {
+    width,
+    height,
+    unit,
+    time: round(time),
+    x,
+    y,
+    originX: round(x * width),
+    originY: round(y * height),
+    theme,
+    palette,
+    accent,
+    metrics,
+    groups,
+  };
+}
+
+                                                                  
+
+
+            var steps = keystrokeDefaultSteps;
+            try {
+              var parsed = JSON.parse(str(vars.steps, ""));
+              if (Array.isArray(parsed) && parsed.length > 0) steps = parsed.map(function (s) { return { at: Number(s.at) || 0, keys: String(s.keys == null ? "" : s.keys), hold: s.hold == null ? undefined : Number(s.hold) }; });
+            } catch (e) {}
+            var platform = pick(vars.platform, ["mac", "windows"], "mac");
+            var linger = num(vars.linger, 30, 0, 90);
+            var o = { width: root.clientWidth, height: root.clientHeight, fps: 30, theme: pick(vars.theme, ["light", "dark"], "light"), accent: str(vars.accent, "#0a84ff"), x: num(vars.x, 0.5, 0, 1), y: num(vars.y, 0.86, 0, 1), size: num(vars.size, 64, 32, 128), speed: num(vars.speed, 1, 0.25, 3) };
+            var timeline = getKeystrokeTimeline({ steps: steps, platform: platform, linger: linger, fps: 30 });
+            var host = document.getElementById("kst-groups");
+            function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function legend(lg, m) {
+              if (lg.kind === "icon") {
+                var icon = ICONS[lg.icon];
+                return '<svg width="' + m.icon + '" height="' + m.icon + '" viewBox="' + icon.box + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block">' + icon.paths.map(function (d) { return '<path d="' + d + '"/>'; }).join("") + "</svg>";
+              }
+              var fs = lg.kind === "word" ? m.wordFont : m.charFont;
+              return '<span style="font-size:' + fs + 'px;font-weight:500;line-height:1;white-space:nowrap">' + esc(lg.text) + "</span>";
+            }
+            function draw(frame) {
+              var state = getKeystrokeState(frame, o, timeline);
+              var m = state.metrics, p = state.palette, html = "";
+              state.groups.forEach(function (g) {
+                html += '<div style="position:absolute;left:' + state.x * 100 + '%;top:' + state.y * 100 + '%;width:0;height:0;opacity:' + g.opacity + ';transform:translateY(' + g.y + 'px) scale(' + g.scale + ');transform-origin:0 0">';
+                g.separators.forEach(function (s) {
+                  html += '<div style="position:absolute;left:' + s.x + 'px;top:' + (s.y - m.height / 2) + 'px;width:' + s.width + 'px;height:' + m.keytop + 'px;display:flex;align-items:center;justify-content:center;opacity:' + s.opacity + ';color:' + p.separator + ';font-size:' + m.separatorFont + 'px;font-weight:500;line-height:1;white-space:nowrap">then</div>';
+                });
+                g.caps.forEach(function (c) {
+                  html += '<div style="position:absolute;left:' + c.x + 'px;top:' + (c.y - m.height / 2) + 'px;width:' + c.width + 'px;height:' + m.height + 'px;opacity:' + c.opacity + '">' +
+                    '<div style="position:absolute;left:0;right:0;top:' + m.travel + 'px;bottom:0;border-radius:' + m.radius + 'px;background:' + p.wall + ';box-shadow:0 ' + c.shadowY + 'px ' + c.shadowBlur + 'px ' + p.shadow + '"></div>' +
+                    '<div style="position:absolute;left:0;right:0;top:0;height:' + m.keytop + 'px;box-sizing:border-box;border-radius:' + m.radius + 'px;border:' + m.border + 'px solid ' + p.edge + ';background:' + p.cap + ';color:' + c.color + ';transform:translateY(' + c.lift + 'px);display:flex;align-items:center;justify-content:center">' + legend(c.key.legend, m) + "</div></div>";
+                });
+                html += "</div>";
+              });
+              host.innerHTML = html;
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 180, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["keystroke"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

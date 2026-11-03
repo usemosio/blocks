@@ -1,0 +1,4241 @@
+{
+  "name": "usemosio-blocks",
+  "homepage": "https://github.com/usemosio/blocks",
+  "items": [
+    {
+      "name": "accordion",
+      "type": "hyperframes:component",
+      "title": "Accordion",
+      "description": "A collapsible panel: a pointer clicks the header, the chevron turns and the content unfolds, then it closes again.",
+      "category": "ui",
+      "tags": [
+        "accordion",
+        "collapse",
+        "faq",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "accordion-unfold",
+      "type": "hyperframes:component",
+      "title": "Accordion Unfold",
+      "description": "A tight paper zigzag unfolds sideways into a flat card with the logo printed across it. The placeholder lockup is a stand-in: a host prints its own logo by replacing the .au-print contents in the script.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "paper",
+        "fold",
+        "3d",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "agent-run",
+      "type": "hyperframes:component",
+      "title": "Agent Run",
+      "description": "A brand-neutral AI agent run that thinks, calls tools against a real-seconds timer and streams a markdown answer in bursts.",
+      "category": "ai",
+      "tags": [
+        "ai",
+        "agent",
+        "chat",
+        "product-demo",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ai-prompt-flow",
+      "type": "hyperframes:component",
+      "title": "AI Prompt Flow",
+      "description": "A full prompt-to-answer scene: the prompt types itself, the button runs to loading, a skeleton shimmers, the answer crossfades in and a toast confirms.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "flow",
+        "ai",
+        "prompt",
+        "typing",
+        "loading",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "alert-dialog",
+      "type": "hyperframes:component",
+      "title": "Alert Dialog",
+      "description": "A destructive confirmation: a pointer clicks Delete account, a dimmed alert dialog scales in and the Delete button is pressed.",
+      "category": "ui",
+      "tags": [
+        "alert-dialog",
+        "modal",
+        "confirm",
+        "destructive",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "anamorphic-flare",
+      "type": "hyperframes:component",
+      "title": "Anamorphic Flare",
+      "description": "A point of light stretches into a cinematic horizontal streak that sweeps the frame and reveals the logo behind it. The placeholder lockup is a stand-in: a host swaps in its own logo by editing the .af-logo element.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "lens-flare",
+        "cinematic",
+        "premium",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "animated-line-chart",
+      "type": "hyperframes:component",
+      "title": "Animated Line Chart",
+      "description": "A line chart whose path draws on from left to right with a glowing leading dot.",
+      "category": "data-viz",
+      "tags": [
+        "chart",
+        "line",
+        "trend",
+        "draw-on",
+        "data",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ascii-dissolve",
+      "type": "hyperframes:component",
+      "title": "ASCII Dissolve",
+      "description": "The frame turns into plain text: a field of monospace characters rises over the outgoing scene, flows as living ASCII, then dissolves cell by cell into the incoming scene. Built-in placeholder scenes A and B (the two .asd-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "ascii",
+        "text",
+        "retro",
+        "terminal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "backdrop",
+      "type": "hyperframes:component",
+      "title": "Backdrop",
+      "description": "Full-frame colour or gradient fill with a padded, rounded, shadowed content frame (the floating-card look). Frame holds a built-in placeholder.",
+      "category": "layout",
+      "tags": [
+        "background",
+        "frame",
+        "padding",
+        "screen-studio",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "bauhaus-build",
+      "type": "hyperframes:component",
+      "title": "Bauhaus Build",
+      "description": "Geometric Bauhaus pieces tumble in, snap into a composition, then tumble away again.",
+      "category": "shapes",
+      "tags": [
+        "bauhaus",
+        "geometric",
+        "shapes",
+        "build",
+        "tumble",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "blueprint",
+      "type": "hyperframes:component",
+      "title": "Blueprint",
+      "description": "A product wipes left to right into a technical drawing with a blueprint grid, white linework, dimension lines and a red callout. A built-in red device stands in for the product; labels and colors are variables.",
+      "category": "graphic-looks",
+      "tags": [
+        "technical",
+        "drawing",
+        "product",
+        "callout",
+        "dimensions",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "brick-mosaic",
+      "type": "hyperframes:component",
+      "title": "Brick Mosaic",
+      "description": "Toy bricks drop in row by row from the bottom with a small bounce and build a pixel-art image on a baseplate. Give it a pixel-art grid as text in the pattern variable, or leave it empty for a built-in red disc.",
+      "category": "graphic-looks",
+      "tags": [
+        "pixel-art",
+        "bricks",
+        "toy",
+        "playful",
+        "build",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "button",
+      "type": "hyperframes:component",
+      "title": "Button",
+      "description": "A button that plays its whole lifecycle: a pointer arrives, the button hovers, presses, shows a spinner, then a check.",
+      "category": "ui",
+      "tags": [
+        "button",
+        "cta",
+        "click",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-active-pop",
+      "type": "hyperframes:component",
+      "title": "Caption Active Pop",
+      "description": "The word being spoken turns to the accent color and springs up in scale, then settles back as the voice moves on.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "active-word",
+        "pop",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-blur-in",
+      "type": "hyperframes:component",
+      "title": "Caption Blur In",
+      "description": "Each word resolves out of a soft blur the moment it is spoken, for captions that arrive quietly.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "blur",
+        "focus",
+        "calm",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-bounce-in",
+      "type": "hyperframes:component",
+      "title": "Caption Bounce In",
+      "description": "Each word springs up into place with a little overshoot the moment it is spoken, and the phrase builds word by word.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "bounce",
+        "spring",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-cube",
+      "type": "hyperframes:component",
+      "title": "Caption Cube",
+      "description": "Each new phrase turns into view as the next face of a 3D cube, the previous phrase rotating up and away on a horizontal hinge.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "cube",
+        "3d",
+        "one-line",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-dim-progress",
+      "type": "hyperframes:component",
+      "title": "Caption Dim Progress",
+      "description": "The whole phrase sits on screen dimmed and each word brightens the moment it is spoken, with no motion at all.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "dim",
+        "progress",
+        "accessibility",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-drop",
+      "type": "hyperframes:component",
+      "title": "Caption Drop",
+      "description": "Each word falls into place from above and bounces as it lands the moment it is spoken, and the whole phrase drops out of frame when the speaker pauses.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "drop",
+        "gravity",
+        "bounce",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-emoji",
+      "type": "hyperframes:component",
+      "title": "Caption Emoji",
+      "description": "An emoji pops up above a chosen word the moment it is spoken and stays until the phrase leaves.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "emoji",
+        "pop",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-handwrite",
+      "type": "hyperframes:component",
+      "title": "Caption Handwrite",
+      "description": "Each word is inked in by hand from left to right at the pace it is spoken, every word sitting at its own slight angle.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "handwrite",
+        "ink",
+        "personal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-highlight-box",
+      "type": "hyperframes:component",
+      "title": "Caption Highlight Box",
+      "description": "A solid box travels behind the word being spoken, sliding from word to word as the voice moves on.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "highlight",
+        "box",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-karaoke",
+      "type": "hyperframes:component",
+      "title": "Caption Karaoke",
+      "description": "Each word fills with color left to right exactly as it is spoken, with the whole phrase readable before the voice reaches it.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "karaoke",
+        "fill",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-knockout",
+      "type": "hyperframes:component",
+      "title": "Caption Knockout",
+      "description": "A solid plate with the words cut clean through it, each word punching out the moment it is spoken so the footage shows through the letters.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "knockout",
+        "plate",
+        "graphic",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-label-maker",
+      "type": "hyperframes:component",
+      "title": "Caption Label Maker",
+      "description": "Each phrase is punched letter by letter into a strip of embossing tape at the pace it is spoken, the tape feeding out as the words arrive.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "label",
+        "tape",
+        "analog",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-marker",
+      "type": "hyperframes:component",
+      "title": "Caption Marker",
+      "description": "Plain captions where the words that matter get a highlighter swipe the moment they are spoken.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "marker",
+        "highlight",
+        "keyword",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-outline",
+      "type": "hyperframes:component",
+      "title": "Caption Outline",
+      "description": "Heavy-stroked captions that stay readable over any footage, with the spoken word switching to a contrast color and nothing else moving.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "outline",
+        "stroke",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-prosody",
+      "type": "hyperframes:component",
+      "title": "Caption Prosody",
+      "description": "Word size follows the delivery: drawn-out words land large and rushed words stay small, so the rhythm of the voice is visible with the sound off.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "prosody",
+        "size",
+        "expressive",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-redact",
+      "type": "hyperframes:component",
+      "title": "Caption Redact",
+      "description": "The whole phrase starts blacked out like a declassified file, and each bar pulls away the moment its word is spoken.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "redact",
+        "reveal",
+        "storytelling",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-rise",
+      "type": "hyperframes:component",
+      "title": "Caption Rise",
+      "description": "Each word slides up out of a mask at its baseline the moment it is spoken, with no bounce and no scale.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "rise",
+        "mask",
+        "editorial",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-scramble",
+      "type": "hyperframes:component",
+      "title": "Caption Scramble",
+      "description": "Each word arrives as random glyphs at the moment it is spoken and decodes left to right into the real letters.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "scramble",
+        "decode",
+        "technical",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-slice",
+      "type": "hyperframes:component",
+      "title": "Caption Slice",
+      "description": "Each word arrives cut in two, the top half sliding in from the left and the bottom from the right, locking together the moment it is spoken.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "slice",
+        "split",
+        "tech",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-slot",
+      "type": "hyperframes:component",
+      "title": "Caption Slot",
+      "description": "One short line at a time, each new phrase rolling up into place as the previous one rolls out the top.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "slot",
+        "one-line",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-speaker",
+      "type": "hyperframes:component",
+      "title": "Caption Speaker",
+      "description": "Dialogue captions where every phrase takes its speaker's color, so a conversation reads like a script.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "speaker",
+        "dialogue",
+        "interview",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-split-flap",
+      "type": "hyperframes:component",
+      "title": "Caption Split Flap",
+      "description": "Every letter sits on its own flap tile and clatters through a few characters before landing the moment the word is spoken, like a station departure board.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "split-flap",
+        "board",
+        "mechanical",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-stack",
+      "type": "hyperframes:component",
+      "title": "Caption Stack",
+      "description": "Kinetic captions stacked a couple of words per line, with the keyword of each page set large on its own line.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "stack",
+        "keyword",
+        "kinetic",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-stamp",
+      "type": "hyperframes:component",
+      "title": "Caption Stamp",
+      "description": "Plain captions where the words that matter slam down as a rubber stamp the moment they are spoken.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "stamp",
+        "keyword",
+        "impact",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-subtitle",
+      "type": "hyperframes:component",
+      "title": "Caption Subtitle",
+      "description": "Classic broadcast subtitles: a whole phrase on a translucent plate, with no word-level animation at all.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "subtitle",
+        "plate",
+        "accessibility",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-teleprompter",
+      "type": "hyperframes:component",
+      "title": "Caption Teleprompter",
+      "description": "The whole transcript scrolls smoothly through a short window with the current line centred, past lines fading above and the next line waiting below.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "teleprompter",
+        "scroll",
+        "reading",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-timeline",
+      "type": "hyperframes:component",
+      "title": "Caption Timeline",
+      "description": "The whole transcript laid out on a scrolling time strip that slides under a fixed playhead, so every pause shows up as space between words.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "timeline",
+        "playhead",
+        "audio",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-typewriter",
+      "type": "hyperframes:component",
+      "title": "Caption Typewriter",
+      "description": "Each word types out character by character at the pace it is spoken, with a caret that blinks while the speaker pauses.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "typewriter",
+        "caret",
+        "technical",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-underline",
+      "type": "hyperframes:component",
+      "title": "Caption Underline",
+      "description": "A bar slides under the word being spoken, travelling from word to word while the text itself stays untouched.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "underline",
+        "marker",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-weight",
+      "type": "hyperframes:component",
+      "title": "Caption Weight",
+      "description": "The word being spoken swells from a light weight to a heavy one and relaxes as the voice moves on, with no layout shift.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "weight",
+        "variable-font",
+        "typographic",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-word-pop",
+      "type": "hyperframes:component",
+      "title": "Caption Word Pop",
+      "description": "One large word at a time, each popping in on a spring the moment it is spoken.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "word-timed",
+        "one-word",
+        "pop",
+        "social",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caret",
+      "type": "hyperframes:component",
+      "title": "Caret",
+      "description": "A blinking text caret: a thin rounded bar that flips on and off, sitting after a line of text.",
+      "category": "ui",
+      "tags": [
+        "caret",
+        "blink",
+        "text",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "caret-wipe",
+      "type": "hyperframes:component",
+      "title": "Caret Wipe",
+      "description": "A tall text caret sweeps across the frame: behind it the new scene is typed in, ahead of it the old scene is backspaced away. Built-in placeholder scenes A and B (the two .crw-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "wipe",
+        "typography",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "centered-word-build",
+      "type": "hyperframes:component",
+      "title": "Centered Word Build",
+      "description": "Words appear sharply from below while the centered phrase pushes closer on every beat.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "words",
+        "camera",
+        "beat",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "chat-flow",
+      "type": "hyperframes:component",
+      "title": "Chat Flow",
+      "description": "A messaging conversation: outgoing messages type into the composer and send, typing dots precede replies, and reactions pop onto bubbles.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "flow",
+        "chat",
+        "messaging",
+        "typing",
+        "reactions",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "chat-to-preview-layout",
+      "type": "hyperframes:component",
+      "title": "Chat to Preview Layout",
+      "description": "A two-up split where the chat panel shrinks and the preview panel expands, to show an agent building something. Both panels hold generic placeholder content. On a tall frame the split stacks vertically (chat on top).",
+      "category": "layout",
+      "tags": [
+        "split",
+        "chat",
+        "preview",
+        "agent",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "check-list",
+      "type": "hyperframes:component",
+      "title": "Check List",
+      "description": "A handwritten checklist that writes itself out, then ticks and strikes through every done item.",
+      "category": "ui-blocks",
+      "tags": [
+        "list",
+        "handwriting",
+        "paper",
+        "stop-motion",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "hyperframes:component",
+      "title": "Checkbox",
+      "description": "A checkbox that a pointer ticks and unticks: the box fills with the primary color and the check draws in.",
+      "category": "ui",
+      "tags": [
+        "checkbox",
+        "form",
+        "toggle",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "checkout-flow",
+      "type": "hyperframes:component",
+      "title": "Checkout Flow",
+      "description": "A cursor-driven checkout card: pick the yearly plan, type a card number, accept the terms, pay, and a toast confirms.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "flow",
+        "checkout",
+        "payment",
+        "cursor",
+        "form",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "chromatic-wave",
+      "type": "hyperframes:component",
+      "title": "Chromatic Wave",
+      "description": "A soft wave travels down through the type; where it crosses, the letters ripple and split into RGB fringes, then settle back to white.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "rgb-split",
+        "glass",
+        "wave",
+        "music-video",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "hyperframes:component",
+      "title": "Combobox",
+      "description": "A searchable select: the panel opens, a query types itself, the list narrows, and the matching row is picked.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "combobox",
+        "select",
+        "search",
+        "typing",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "comic-panels",
+      "type": "hyperframes:component",
+      "title": "Comic Panels",
+      "description": "The frame cracks into a three-panel comic page with speed lines and halftone, then the action panel bursts into a full-frame word such as POW. A built-in lockup stands in for the hero; a host replaces the contents of the .cp-hero layer with its own logo or headline.",
+      "category": "graphic-looks",
+      "tags": [
+        "comic",
+        "burst",
+        "halftone",
+        "playful",
+        "speed-lines",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "command-menu",
+      "type": "hyperframes:component",
+      "title": "Command Menu",
+      "description": "A keyboard-driven command palette: the backdrop dims, a query types itself, the list filters, and the first row is picked.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "command-menu",
+        "palette",
+        "typing",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "command-menu-item",
+      "type": "hyperframes:component",
+      "title": "Command Menu Item",
+      "description": "One command palette row going idle, hover, press and selected as the cursor reaches it and clicks.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "command-menu",
+        "row",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "context-menu",
+      "type": "hyperframes:component",
+      "title": "Context Menu",
+      "description": "A right-click menu that opens at the cursor over a file card, then an item is hovered, pressed and the menu closes.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "context-menu",
+        "right-click",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "crumple-toss",
+      "type": "hyperframes:component",
+      "title": "Crumple Toss",
+      "description": "A card crumples into a paper wad in stop-motion poses and is tossed into a bin: the old way, thrown away.",
+      "category": "paper",
+      "tags": [
+        "paper",
+        "crumple",
+        "toss",
+        "stop-motion",
+        "transition",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "cursor",
+      "type": "hyperframes:component",
+      "title": "Cursor",
+      "description": "An animated mouse pointer that follows a scripted path to a button, clicks it with a ripple, and the button shows hover, press, loading and success.",
+      "category": "ui",
+      "tags": [
+        "cursor",
+        "pointer",
+        "click",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "cursor-gravity",
+      "type": "hyperframes:component",
+      "title": "Cursor Gravity",
+      "description": "A rounded triangular cursor tugs a button out of the screen edge with pulsed elastic resistance.",
+      "category": "effects",
+      "tags": [
+        "cursor",
+        "button",
+        "call-to-action",
+        "elastic",
+        "playful",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "hyperframes:component",
+      "title": "Dialog",
+      "description": "A modal dialog: a pointer clicks a trigger, the scrim dims the frame and the dialog scales in; clicking Save closes it.",
+      "category": "ui",
+      "tags": [
+        "dialog",
+        "modal",
+        "overlay",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "dither-dissolve",
+      "type": "hyperframes:component",
+      "title": "Dither Dissolve",
+      "description": "A two-color ordered-dither pattern rises over the outgoing scene, holds, and falls away to reveal the next one. Rebuilt with a deterministic Canvas 2D Bayer dither instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .dtd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "dither",
+        "shader",
+        "retro",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "dolly-zoom",
+      "type": "hyperframes:component",
+      "title": "Dolly Zoom",
+      "description": "The vertigo shot: a corridor with a red door stretches deeper while the subject in the middle keeps its exact size. A host puts its own subject in by replacing the .dz-subject svg with its own centered content.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "vertigo",
+        "dolly",
+        "cinematic",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "drawer",
+      "type": "hyperframes:component",
+      "title": "Drawer",
+      "description": "A bottom panel: a pointer clicks a trigger inside a mock app window, the scrim dims it and a drawer rises from the bottom; clicking Save closes it.",
+      "category": "ui",
+      "tags": [
+        "drawer",
+        "bottom-sheet",
+        "overlay",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "drift",
+      "type": "hyperframes:component",
+      "title": "Drift",
+      "description": "A slow constant camera push-in, so no scene is ever frozen. Plays on a built-in placeholder scene.",
+      "category": "layout",
+      "tags": [
+        "camera",
+        "wrapper",
+        "push-in",
+        "ambient",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "hyperframes:component",
+      "title": "Dropdown Menu",
+      "description": "An action menu: a pointer clicks the trigger, the menu drops open, a row is hovered and pressed, then the menu closes.",
+      "category": "ui",
+      "tags": [
+        "dropdown-menu",
+        "menu",
+        "actions",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "dropdown-menu-item",
+      "type": "hyperframes:component",
+      "title": "Dropdown Menu Item",
+      "description": "A menu row: a pointer hovers it and presses it, inside a small action menu.",
+      "category": "ui",
+      "tags": [
+        "menu",
+        "row",
+        "hover",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "duotone-beat",
+      "type": "hyperframes:component",
+      "title": "Duotone Beat",
+      "description": "A two-ink halftone portrait that swaps its ink pair on every beat, punches in on the downbeat and shows a bar indicator. A built-in silhouette stands in for the photo; a host replaces the contents of the .db-picture layer with its own image.",
+      "category": "graphic-looks",
+      "tags": [
+        "duotone",
+        "halftone",
+        "beat",
+        "social",
+        "portrait",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "echo-stack",
+      "type": "hyperframes:component",
+      "title": "Echo Stack",
+      "description": "A word focuses in at the center while outline copies of it unfold above and below and keep drifting, like the one clear line on a spinning drum.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "echo",
+        "outline",
+        "loop",
+        "statement",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ecosystem-constellation",
+      "type": "hyperframes:component",
+      "title": "Ecosystem Constellation",
+      "description": "A central product mark orbited by integration satellites with pulsing data lines. The eight satellites are generic placeholder marks, not real brands.",
+      "category": "compositions",
+      "tags": [
+        "hub",
+        "integrations",
+        "orbit",
+        "network",
+        "satellites",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "exploded-view",
+      "type": "hyperframes:component",
+      "title": "Exploded View",
+      "description": "An isometric stack of slabs springs apart with leader lines and labels, holds, then clicks back together.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "isometric",
+        "diagram",
+        "exploded",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "extrude-pop",
+      "type": "hyperframes:component",
+      "title": "Extrude Pop",
+      "description": "A flat word pops up out of the plane on a solid colored 3D body, no camera involved.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "3d",
+        "extrude",
+        "pop",
+        "poster",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "field",
+      "type": "hyperframes:component",
+      "title": "Field",
+      "description": "A labelled form field: a label above, an input that focuses and types, helper text below, and a second filled field in the same group.",
+      "category": "ui",
+      "tags": [
+        "field",
+        "form",
+        "label",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "flow-field",
+      "type": "hyperframes:component",
+      "title": "Flow Field",
+      "description": "Hundreds of particles ride a seeded, slowly changing vector field and leave fine fading trails, as a seamless loop.",
+      "category": "motion-graphics",
+      "tags": [
+        "generative",
+        "background",
+        "loop",
+        "lines",
+        "particles",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "focus-pull",
+      "type": "hyperframes:component",
+      "title": "Focus Pull",
+      "description": "A rack focus between scenes: the outgoing scene defocuses and brightens, the incoming scene pulls into sharp focus. Built-in placeholder scenes A and B (the two .fcp-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "blur",
+        "focus",
+        "camera",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "fog-rise",
+      "type": "hyperframes:component",
+      "title": "Fog Rise",
+      "description": "Display text resolves out of fog center-out, sharpening from heavy blur as it tilts up on a spring.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "blur",
+        "3d",
+        "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "glass-code-block",
+      "type": "hyperframes:component",
+      "title": "Glass Code Block",
+      "description": "A frosted-glass code editor window with a small regex colouring (plain spans, no highlighter library) and a line-by-line stagger reveal. Transparent, so it composites over any background.",
+      "category": "ui-blocks",
+      "tags": [
+        "code",
+        "glass",
+        "editor",
+        "window",
+        "tech",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "glass-code-walk",
+      "type": "hyperframes:component",
+      "title": "Glass Code Walk",
+      "description": "A camera that scans a frosted-glass code block top to bottom as its lines appear, then pulls back to a centred hold.",
+      "category": "ui-blocks",
+      "tags": [
+        "code",
+        "glass",
+        "camera",
+        "walk",
+        "tech",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "glyph-anatomy",
+      "type": "hyperframes:component",
+      "title": "Glyph Anatomy",
+      "description": "A word builds as in a font editor, with metric guides, anchors along each contour and Bézier handles that pull straight segments into curves before the glyphs fill.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "font-editor",
+        "bezier",
+        "construction",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "gooey-morph",
+      "type": "hyperframes:component",
+      "title": "Gooey Morph",
+      "description": "Bars fly in Tetris-style, land as a row, then melt into a word through a gooey blur-and-threshold morph.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "liquid",
+        "goo",
+        "reveal",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "gradient-scale-cut-text",
+      "type": "hyperframes:component",
+      "title": "Gradient Scale Cut Text",
+      "description": "An oversized gradient reveal snaps to a compact blurred line that settles into focus.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "gradient",
+        "title",
+        "cut",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "grain-dissolve",
+      "type": "hyperframes:component",
+      "title": "Grain Dissolve",
+      "description": "A grainy gradient field blurs the outgoing scene away, fills the frame, and then clears to reveal the incoming scene. Rebuilt with a deterministic Canvas 2D gradient instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .grd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "grain",
+        "gradient",
+        "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "gravity-pile",
+      "type": "hyperframes:component",
+      "title": "Gravity Pile",
+      "description": "Seeded circles, squares and triangles rain down, bounce off the floor and each other, and settle into a heap, with optional words or emoji of your own landing on top.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "physics",
+        "playful",
+        "shapes",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "hand-count",
+      "type": "hyperframes:component",
+      "title": "Hand Count",
+      "description": "A number that counts up in stop-motion poses, rewritten by hand at every pose.",
+      "category": "typography",
+      "tags": [
+        "numbers",
+        "counter",
+        "handwriting",
+        "stop-motion",
+        "paper",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "handwrite",
+      "type": "hyperframes:component",
+      "title": "Handwrite",
+      "description": "Handwritten text laid down letter by letter on a quantized stop-motion clock.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "handwriting",
+        "stop-motion",
+        "paper",
+        "reveal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "hyperspace",
+      "type": "hyperframes:component",
+      "title": "Hyperspace",
+      "description": "A jump to lightspeed: stars stretch into streaks around the outgoing scene, which is pushed toward the camera, then a white flash cuts to the incoming scene while the last streaks fade. Built-in placeholder scenes A and B (the two .hsp-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "hyperspace",
+        "stars",
+        "sci-fi",
+        "flash",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "icon-activity",
+      "type": "hyperframes:component",
+      "title": "Activity Icon",
+      "description": "An animated activity icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "activity"
+      ]
+    },
+    {
+      "name": "icon-alert-triangle",
+      "type": "hyperframes:component",
+      "title": "Alert Triangle Icon",
+      "description": "An animated alert triangle icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "alert-triangle"
+      ]
+    },
+    {
+      "name": "icon-arrow-down",
+      "type": "hyperframes:component",
+      "title": "Arrow Down Icon",
+      "description": "An animated arrow down icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "arrow-down"
+      ]
+    },
+    {
+      "name": "icon-arrow-left",
+      "type": "hyperframes:component",
+      "title": "Arrow Left Icon",
+      "description": "An animated arrow left icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "arrow-left"
+      ]
+    },
+    {
+      "name": "icon-arrow-right",
+      "type": "hyperframes:component",
+      "title": "Arrow Right Icon",
+      "description": "An animated arrow right icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "arrow-right"
+      ]
+    },
+    {
+      "name": "icon-arrow-up",
+      "type": "hyperframes:component",
+      "title": "Arrow Up Icon",
+      "description": "An animated arrow up icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "arrow-up"
+      ]
+    },
+    {
+      "name": "icon-at-sign",
+      "type": "hyperframes:component",
+      "title": "At Sign Icon",
+      "description": "An animated at sign icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "at-sign"
+      ]
+    },
+    {
+      "name": "icon-award",
+      "type": "hyperframes:component",
+      "title": "Award Icon",
+      "description": "An animated award icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "award"
+      ]
+    },
+    {
+      "name": "icon-bar-chart-3",
+      "type": "hyperframes:component",
+      "title": "Bar Chart 3 Icon",
+      "description": "An animated bar chart 3 icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "bar-chart-3"
+      ]
+    },
+    {
+      "name": "icon-bell",
+      "type": "hyperframes:component",
+      "title": "Bell Icon",
+      "description": "An animated bell icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "bell"
+      ]
+    },
+    {
+      "name": "icon-bookmark",
+      "type": "hyperframes:component",
+      "title": "Bookmark Icon",
+      "description": "An animated bookmark icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "bookmark"
+      ]
+    },
+    {
+      "name": "icon-calendar",
+      "type": "hyperframes:component",
+      "title": "Calendar Icon",
+      "description": "An animated calendar icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "calendar"
+      ]
+    },
+    {
+      "name": "icon-camera",
+      "type": "hyperframes:component",
+      "title": "Camera Icon",
+      "description": "An animated camera icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "camera"
+      ]
+    },
+    {
+      "name": "icon-check",
+      "type": "hyperframes:component",
+      "title": "Check Icon",
+      "description": "An animated check icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "check"
+      ]
+    },
+    {
+      "name": "icon-check-circle",
+      "type": "hyperframes:component",
+      "title": "Check Circle Icon",
+      "description": "An animated check circle icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "check-circle"
+      ]
+    },
+    {
+      "name": "icon-chevron-down",
+      "type": "hyperframes:component",
+      "title": "Chevron Down Icon",
+      "description": "An animated chevron down icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "chevron-down"
+      ]
+    },
+    {
+      "name": "icon-chevron-left",
+      "type": "hyperframes:component",
+      "title": "Chevron Left Icon",
+      "description": "An animated chevron left icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "chevron-left"
+      ]
+    },
+    {
+      "name": "icon-chevron-right",
+      "type": "hyperframes:component",
+      "title": "Chevron Right Icon",
+      "description": "An animated chevron right icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "chevron-right"
+      ]
+    },
+    {
+      "name": "icon-chevron-up",
+      "type": "hyperframes:component",
+      "title": "Chevron Up Icon",
+      "description": "An animated chevron up icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "chevron-up"
+      ]
+    },
+    {
+      "name": "icon-clock",
+      "type": "hyperframes:component",
+      "title": "Clock Icon",
+      "description": "An animated clock icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "clock"
+      ]
+    },
+    {
+      "name": "icon-cloud",
+      "type": "hyperframes:component",
+      "title": "Cloud Icon",
+      "description": "An animated cloud icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "cloud"
+      ]
+    },
+    {
+      "name": "icon-code",
+      "type": "hyperframes:component",
+      "title": "Code Icon",
+      "description": "An animated code icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "code"
+      ]
+    },
+    {
+      "name": "icon-copy",
+      "type": "hyperframes:component",
+      "title": "Copy Icon",
+      "description": "An animated copy icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "copy"
+      ]
+    },
+    {
+      "name": "icon-credit-card",
+      "type": "hyperframes:component",
+      "title": "Credit Card Icon",
+      "description": "An animated credit card icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "credit-card"
+      ]
+    },
+    {
+      "name": "icon-crown",
+      "type": "hyperframes:component",
+      "title": "Crown Icon",
+      "description": "An animated crown icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "crown"
+      ]
+    },
+    {
+      "name": "icon-database",
+      "type": "hyperframes:component",
+      "title": "Database Icon",
+      "description": "An animated database icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "database"
+      ]
+    },
+    {
+      "name": "icon-dollar-sign",
+      "type": "hyperframes:component",
+      "title": "Dollar Sign Icon",
+      "description": "An animated dollar sign icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "dollar-sign"
+      ]
+    },
+    {
+      "name": "icon-download",
+      "type": "hyperframes:component",
+      "title": "Download Icon",
+      "description": "An animated download icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "download"
+      ]
+    },
+    {
+      "name": "icon-external-link",
+      "type": "hyperframes:component",
+      "title": "External Link Icon",
+      "description": "An animated external link icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "external-link"
+      ]
+    },
+    {
+      "name": "icon-eye",
+      "type": "hyperframes:component",
+      "title": "Eye Icon",
+      "description": "An animated eye icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "eye"
+      ]
+    },
+    {
+      "name": "icon-eye-off",
+      "type": "hyperframes:component",
+      "title": "Eye Off Icon",
+      "description": "An animated eye off icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "eye-off"
+      ]
+    },
+    {
+      "name": "icon-file-text",
+      "type": "hyperframes:component",
+      "title": "File Text Icon",
+      "description": "An animated file text icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "file-text"
+      ]
+    },
+    {
+      "name": "icon-filter",
+      "type": "hyperframes:component",
+      "title": "Filter Icon",
+      "description": "An animated filter icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "filter"
+      ]
+    },
+    {
+      "name": "icon-flame",
+      "type": "hyperframes:component",
+      "title": "Flame Icon",
+      "description": "An animated flame icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "flame"
+      ]
+    },
+    {
+      "name": "icon-folder",
+      "type": "hyperframes:component",
+      "title": "Folder Icon",
+      "description": "An animated folder icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "folder"
+      ]
+    },
+    {
+      "name": "icon-gem",
+      "type": "hyperframes:component",
+      "title": "Gem Icon",
+      "description": "An animated gem icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "gem"
+      ]
+    },
+    {
+      "name": "icon-gift",
+      "type": "hyperframes:component",
+      "title": "Gift Icon",
+      "description": "An animated gift icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "gift"
+      ]
+    },
+    {
+      "name": "icon-globe",
+      "type": "hyperframes:component",
+      "title": "Globe Icon",
+      "description": "An animated globe icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "globe"
+      ]
+    },
+    {
+      "name": "icon-heart",
+      "type": "hyperframes:component",
+      "title": "Heart Icon",
+      "description": "An animated heart icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "heart"
+      ]
+    },
+    {
+      "name": "icon-help-circle",
+      "type": "hyperframes:component",
+      "title": "Help Circle Icon",
+      "description": "An animated help circle icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "help-circle"
+      ]
+    },
+    {
+      "name": "icon-home",
+      "type": "hyperframes:component",
+      "title": "Home Icon",
+      "description": "An animated home icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "home"
+      ]
+    },
+    {
+      "name": "icon-image",
+      "type": "hyperframes:component",
+      "title": "Image Icon",
+      "description": "An animated image icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "image"
+      ]
+    },
+    {
+      "name": "icon-inbox",
+      "type": "hyperframes:component",
+      "title": "Inbox Icon",
+      "description": "An animated inbox icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "inbox"
+      ]
+    },
+    {
+      "name": "icon-info",
+      "type": "hyperframes:component",
+      "title": "Info Icon",
+      "description": "An animated info icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "info"
+      ]
+    },
+    {
+      "name": "icon-key",
+      "type": "hyperframes:component",
+      "title": "Key Icon",
+      "description": "An animated key icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "key"
+      ]
+    },
+    {
+      "name": "icon-layout-grid",
+      "type": "hyperframes:component",
+      "title": "Layout Grid Icon",
+      "description": "An animated layout grid icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "layout-grid"
+      ]
+    },
+    {
+      "name": "icon-link",
+      "type": "hyperframes:component",
+      "title": "Link Icon",
+      "description": "An animated link icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "link"
+      ]
+    },
+    {
+      "name": "icon-loader",
+      "type": "hyperframes:component",
+      "title": "Loader Icon",
+      "description": "An animated loader icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "loader"
+      ]
+    },
+    {
+      "name": "icon-lock",
+      "type": "hyperframes:component",
+      "title": "Lock Icon",
+      "description": "An animated lock icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "lock"
+      ]
+    },
+    {
+      "name": "icon-log-out",
+      "type": "hyperframes:component",
+      "title": "Log Out Icon",
+      "description": "An animated log out icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "log-out"
+      ]
+    },
+    {
+      "name": "icon-mail",
+      "type": "hyperframes:component",
+      "title": "Mail Icon",
+      "description": "An animated mail icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "mail"
+      ]
+    },
+    {
+      "name": "icon-maximize",
+      "type": "hyperframes:component",
+      "title": "Maximize Icon",
+      "description": "An animated maximize icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "maximize"
+      ]
+    },
+    {
+      "name": "icon-menu",
+      "type": "hyperframes:component",
+      "title": "Menu Icon",
+      "description": "An animated menu icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "menu"
+      ]
+    },
+    {
+      "name": "icon-message-circle",
+      "type": "hyperframes:component",
+      "title": "Message Circle Icon",
+      "description": "An animated message circle icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "message-circle"
+      ]
+    },
+    {
+      "name": "icon-mic",
+      "type": "hyperframes:component",
+      "title": "Mic Icon",
+      "description": "An animated mic icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "mic"
+      ]
+    },
+    {
+      "name": "icon-monitor",
+      "type": "hyperframes:component",
+      "title": "Monitor Icon",
+      "description": "An animated monitor icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "monitor"
+      ]
+    },
+    {
+      "name": "icon-moon",
+      "type": "hyperframes:component",
+      "title": "Moon Icon",
+      "description": "An animated moon icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "moon"
+      ]
+    },
+    {
+      "name": "icon-more-horizontal",
+      "type": "hyperframes:component",
+      "title": "More Horizontal Icon",
+      "description": "An animated more horizontal icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "more-horizontal"
+      ]
+    },
+    {
+      "name": "icon-package",
+      "type": "hyperframes:component",
+      "title": "Package Icon",
+      "description": "An animated package icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "package"
+      ]
+    },
+    {
+      "name": "icon-party-popper",
+      "type": "hyperframes:component",
+      "title": "Party Popper Icon",
+      "description": "An animated party popper icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "party-popper"
+      ]
+    },
+    {
+      "name": "icon-pause",
+      "type": "hyperframes:component",
+      "title": "Pause Icon",
+      "description": "An animated pause icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "pause"
+      ]
+    },
+    {
+      "name": "icon-pencil",
+      "type": "hyperframes:component",
+      "title": "Pencil Icon",
+      "description": "An animated pencil icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "pencil"
+      ]
+    },
+    {
+      "name": "icon-phone",
+      "type": "hyperframes:component",
+      "title": "Phone Icon",
+      "description": "An animated phone icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "phone"
+      ]
+    },
+    {
+      "name": "icon-play",
+      "type": "hyperframes:component",
+      "title": "Play Icon",
+      "description": "An animated play icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "play"
+      ]
+    },
+    {
+      "name": "icon-plus",
+      "type": "hyperframes:component",
+      "title": "Plus Icon",
+      "description": "An animated plus icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "plus"
+      ]
+    },
+    {
+      "name": "icon-plus-circle",
+      "type": "hyperframes:component",
+      "title": "Plus Circle Icon",
+      "description": "An animated plus circle icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "plus-circle"
+      ]
+    },
+    {
+      "name": "icon-refresh-cw",
+      "type": "hyperframes:component",
+      "title": "Refresh Cw Icon",
+      "description": "An animated refresh cw icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "refresh-cw"
+      ]
+    },
+    {
+      "name": "icon-rocket",
+      "type": "hyperframes:component",
+      "title": "Rocket Icon",
+      "description": "An animated rocket icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "rocket"
+      ]
+    },
+    {
+      "name": "icon-save",
+      "type": "hyperframes:component",
+      "title": "Save Icon",
+      "description": "An animated save icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "save"
+      ]
+    },
+    {
+      "name": "icon-scatter",
+      "type": "hyperframes:component",
+      "title": "Icon Scatter",
+      "description": "A field of line icons draws itself over the outgoing scene, covers the swap, then scatters outward to reveal the incoming scene. Built-in placeholder scenes A and B (the two .isc-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "icons",
+        "scatter",
+        "line-art",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "icon-search",
+      "type": "hyperframes:component",
+      "title": "Search Icon",
+      "description": "An animated search icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "search"
+      ]
+    },
+    {
+      "name": "icon-send",
+      "type": "hyperframes:component",
+      "title": "Send Icon",
+      "description": "An animated send icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "send"
+      ]
+    },
+    {
+      "name": "icon-settings",
+      "type": "hyperframes:component",
+      "title": "Settings Icon",
+      "description": "An animated settings icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "settings"
+      ]
+    },
+    {
+      "name": "icon-share-2",
+      "type": "hyperframes:component",
+      "title": "Share 2 Icon",
+      "description": "An animated share 2 icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "share-2"
+      ]
+    },
+    {
+      "name": "icon-shield",
+      "type": "hyperframes:component",
+      "title": "Shield Icon",
+      "description": "An animated shield icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "shield"
+      ]
+    },
+    {
+      "name": "icon-shopping-cart",
+      "type": "hyperframes:component",
+      "title": "Shopping Cart Icon",
+      "description": "An animated shopping cart icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "shopping-cart"
+      ]
+    },
+    {
+      "name": "icon-skip-forward",
+      "type": "hyperframes:component",
+      "title": "Skip Forward Icon",
+      "description": "An animated skip forward icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "skip-forward"
+      ]
+    },
+    {
+      "name": "icon-smartphone",
+      "type": "hyperframes:component",
+      "title": "Smartphone Icon",
+      "description": "An animated smartphone icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "smartphone"
+      ]
+    },
+    {
+      "name": "icon-sparkles",
+      "type": "hyperframes:component",
+      "title": "Sparkles Icon",
+      "description": "An animated sparkles icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "sparkles"
+      ]
+    },
+    {
+      "name": "icon-star",
+      "type": "hyperframes:component",
+      "title": "Star Icon",
+      "description": "An animated star icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "star"
+      ]
+    },
+    {
+      "name": "icon-sun",
+      "type": "hyperframes:component",
+      "title": "Sun Icon",
+      "description": "An animated sun icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "sun"
+      ]
+    },
+    {
+      "name": "icon-tag",
+      "type": "hyperframes:component",
+      "title": "Tag Icon",
+      "description": "An animated tag icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "tag"
+      ]
+    },
+    {
+      "name": "icon-target",
+      "type": "hyperframes:component",
+      "title": "Target Icon",
+      "description": "An animated target icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "target"
+      ]
+    },
+    {
+      "name": "icon-terminal",
+      "type": "hyperframes:component",
+      "title": "Terminal Icon",
+      "description": "An animated terminal icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "terminal"
+      ]
+    },
+    {
+      "name": "icon-thumbs-up",
+      "type": "hyperframes:component",
+      "title": "Thumbs Up Icon",
+      "description": "An animated thumbs up icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "thumbs-up"
+      ]
+    },
+    {
+      "name": "icon-timer",
+      "type": "hyperframes:component",
+      "title": "Timer Icon",
+      "description": "An animated timer icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "timer"
+      ]
+    },
+    {
+      "name": "icon-trash",
+      "type": "hyperframes:component",
+      "title": "Trash Icon",
+      "description": "An animated trash icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "trash"
+      ]
+    },
+    {
+      "name": "icon-trending-down",
+      "type": "hyperframes:component",
+      "title": "Trending Down Icon",
+      "description": "An animated trending down icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "trending-down"
+      ]
+    },
+    {
+      "name": "icon-trending-up",
+      "type": "hyperframes:component",
+      "title": "Trending Up Icon",
+      "description": "An animated trending up icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "trending-up"
+      ]
+    },
+    {
+      "name": "icon-trophy",
+      "type": "hyperframes:component",
+      "title": "Trophy Icon",
+      "description": "An animated trophy icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "trophy"
+      ]
+    },
+    {
+      "name": "icon-upload",
+      "type": "hyperframes:component",
+      "title": "Upload Icon",
+      "description": "An animated upload icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "upload"
+      ]
+    },
+    {
+      "name": "icon-user",
+      "type": "hyperframes:component",
+      "title": "User Icon",
+      "description": "An animated user icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "user"
+      ]
+    },
+    {
+      "name": "icon-user-plus",
+      "type": "hyperframes:component",
+      "title": "User Plus Icon",
+      "description": "An animated user plus icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "user-plus"
+      ]
+    },
+    {
+      "name": "icon-users",
+      "type": "hyperframes:component",
+      "title": "Users Icon",
+      "description": "An animated users icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "users"
+      ]
+    },
+    {
+      "name": "icon-video",
+      "type": "hyperframes:component",
+      "title": "Video Icon",
+      "description": "An animated video icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "video"
+      ]
+    },
+    {
+      "name": "icon-volume-2",
+      "type": "hyperframes:component",
+      "title": "Volume 2 Icon",
+      "description": "An animated volume 2 icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "volume-2"
+      ]
+    },
+    {
+      "name": "icon-volume-x",
+      "type": "hyperframes:component",
+      "title": "Volume X Icon",
+      "description": "An animated volume x icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "volume-x"
+      ]
+    },
+    {
+      "name": "icon-wallet",
+      "type": "hyperframes:component",
+      "title": "Wallet Icon",
+      "description": "An animated wallet icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "wallet"
+      ]
+    },
+    {
+      "name": "icon-x",
+      "type": "hyperframes:component",
+      "title": "X Icon",
+      "description": "An animated x icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "x"
+      ]
+    },
+    {
+      "name": "icon-x-circle",
+      "type": "hyperframes:component",
+      "title": "X Circle Icon",
+      "description": "An animated x circle icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "x-circle"
+      ]
+    },
+    {
+      "name": "icon-zap",
+      "type": "hyperframes:component",
+      "title": "Zap Icon",
+      "description": "An animated zap icon: the strokes draw in, then it plays its signature motion.",
+      "category": "icons",
+      "tags": [
+        "icon",
+        "icons",
+        "remocn-port",
+        "zap"
+      ]
+    },
+    {
+      "name": "impact-shake",
+      "type": "hyperframes:component",
+      "title": "Impact Shake",
+      "description": "Heavy content slams down from above with a squash, a damped camera jolt, a two-frame RGB split and dust puffs kicking out sideways. The built-in subject is a big word; a host puts its own content in by replacing the .is-word elements.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "impact",
+        "shake",
+        "hype",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "infinite-bento-pan",
+      "type": "hyperframes:component",
+      "title": "Infinite Bento Pan",
+      "description": "A hypnotic diagonal camera glide over an oversized grid of bento cards (charts, counters, code, gradients) with a vignette. All figures are filler.",
+      "category": "compositions",
+      "tags": [
+        "bento",
+        "dashboard",
+        "pan",
+        "camera",
+        "ambient",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "infinite-marquee",
+      "type": "hyperframes:component",
+      "title": "Infinite Marquee",
+      "description": "A continuously scrolling horizontal text strip that loops seamlessly.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "marquee",
+        "ticker",
+        "loop",
+        "ambient",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "inflate",
+      "type": "hyperframes:component",
+      "title": "Inflate",
+      "description": "A flat sliver puffs up like a balloon toy, squashes and settles into a glossy mark, then the wordmark slides out. The mark is a fixed rounded square with a dot; the wordmark is the text variable.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "playful",
+        "balloon",
+        "squash",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ink-arrow",
+      "type": "hyperframes:component",
+      "title": "Ink Arrow",
+      "description": "A hand-drawn arrow that draws itself from one point to another in stop-motion poses.",
+      "category": "paper",
+      "tags": [
+        "arrow",
+        "hand-drawn",
+        "annotation",
+        "stop-motion",
+        "callout",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ink-underline",
+      "type": "hyperframes:component",
+      "title": "Ink Underline",
+      "description": "A hand-dragged ink stroke that draws itself across in a few stop-motion poses.",
+      "category": "typography",
+      "tags": [
+        "underline",
+        "ink",
+        "brush",
+        "stop-motion",
+        "paper",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "inline-pill-takeover",
+      "type": "hyperframes:component",
+      "title": "Inline Pill Takeover",
+      "description": "A clipped pill expands inside a sentence, pushes the words apart, and takes over the frame.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "pill",
+        "cta",
+        "camera",
+        "punch-in",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "inline-word-roll",
+      "type": "hyperframes:component",
+      "title": "Inline Word Roll",
+      "description": "Switch words beside a fixed prefix with an accelerating vertical roll; the whole line recenters as word lengths change.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "word-cycle",
+        "roll",
+        "headline",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "input",
+      "type": "hyperframes:component",
+      "title": "Input",
+      "description": "A text field that plays its states: a pointer hovers and clicks it, it focuses with a ring, the value types in, then the field shows an invalid state.",
+      "category": "ui",
+      "tags": [
+        "input",
+        "form",
+        "text-field",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "iris-wipe",
+      "type": "hyperframes:component",
+      "title": "Iris Wipe",
+      "description": "A classic iris: the outgoing scene closes to a small dot on a solid color, then the incoming scene opens from the same point. Built-in placeholder scenes A and B (the two .irw-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "iris",
+        "circle",
+        "wipe",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "isometric-build",
+      "type": "hyperframes:component",
+      "title": "Isometric Build",
+      "description": "An isometric tile grid springs up row by row into a stepped block sculpture with one accent tower, then holds.",
+      "category": "motion-graphics",
+      "tags": [
+        "isometric",
+        "build",
+        "blocks",
+        "tech",
+        "3d-look",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "keystroke",
+      "type": "hyperframes:component",
+      "title": "Keystroke",
+      "description": "Physical keycaps rise and press to show keyboard shortcuts, one chord after another.",
+      "category": "effects",
+      "tags": [
+        "keyboard",
+        "shortcut",
+        "keycap",
+        "ui",
+        "tutorial",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "kinetic-morph-text",
+      "type": "hyperframes:component",
+      "title": "Kinetic Morph Text",
+      "description": "Letters lift, rotate, and reshape into the next phrase with delicate outline trails.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "morph",
+        "letters",
+        "sequence",
+        "trails",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "kinetic-warp",
+      "type": "hyperframes:component",
+      "title": "Kinetic Warp",
+      "description": "A coarse mesh warp bends a whole word in staccato beats, one axis moving per keyframe.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "warp",
+        "kinetic-type",
+        "beat",
+        "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "lens-zoom",
+      "type": "hyperframes:component",
+      "title": "Lens Zoom",
+      "description": "A fast fisheye lens push: the outgoing scene bulges and zooms into the lens with motion blur, a camera shake and a slight color fringe, then the incoming scene unwinds out of the same lens. Built-in placeholder scenes A and B (the two .lz-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "lens",
+        "fisheye",
+        "zoom",
+        "shake",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "life-grid",
+      "type": "hyperframes:component",
+      "title": "Life Grid",
+      "description": "Conway's Game of Life runs on a seeded grid, newborn cells flashing in the accent and dying cells shrinking away.",
+      "category": "motion-graphics",
+      "tags": [
+        "generative",
+        "background",
+        "grid",
+        "tech",
+        "simulation",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "line-boil",
+      "type": "hyperframes:component",
+      "title": "Line Boil",
+      "description": "A hand-drawn outline draws itself, boils on threes like a cel animation, and fills with color while it keeps boiling. Takes any closed outline as SVG path data in the path variable (default: a five-point star).",
+      "category": "graphic-looks",
+      "tags": [
+        "hand-drawn",
+        "cel",
+        "outline",
+        "playful",
+        "shape",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "liquid-fill",
+      "type": "hyperframes:component",
+      "title": "Liquid Fill",
+      "description": "A drop falls into an outlined mark and liquid rises with a sloshing surface and bubbles until the mark is solid. Give it any closed shape as the shape path variable.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "liquid",
+        "fill",
+        "bubbles",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "live-code-compilation",
+      "type": "hyperframes:component",
+      "title": "Live Code Compilation",
+      "description": "Split screen: code is typed on the left and the button on the right snaps to match on the exact frame each property finishes. On a tall frame the split stacks (code on top, preview below).",
+      "category": "compositions",
+      "tags": [
+        "code",
+        "split-screen",
+        "hmr",
+        "developer",
+        "typing",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "logo-enter",
+      "type": "hyperframes:component",
+      "title": "Logo Enter",
+      "description": "A stacked, overlapping group of round chips that spring in one by one, then hold. Ships with generic placeholder marks; set the chip count and colours to match your own.",
+      "category": "social",
+      "tags": [
+        "logos",
+        "chips",
+        "stack",
+        "spring",
+        "integrations",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "long-shadow",
+      "type": "hyperframes:component",
+      "title": "Long Shadow",
+      "description": "A flat icon pops in and casts a long shadow to the frame edge, then the light swings and the shadow sweeps around on a spring. A built-in check badge stands in for the mark; a host replaces the contents of the .ls-mark layers with its own flat icon.",
+      "category": "graphic-looks",
+      "tags": [
+        "flat-design",
+        "shadow",
+        "icon",
+        "badge",
+        "clean",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "mask-reveal-up",
+      "type": "hyperframes:component",
+      "title": "Mask Reveal Up",
+      "description": "Lines reveal upward with a soft masked feel and compact stagger.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "lines",
+        "blur",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "message-bubble",
+      "type": "hyperframes:component",
+      "title": "Message Bubble",
+      "description": "A speech bubble that pops in, with an optional reaction badge that springs onto its corner.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "message-bubble",
+        "chat",
+        "reaction",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "micro-scale-fade",
+      "type": "hyperframes:component",
+      "title": "Micro Scale Fade",
+      "description": "A calm, tiny scale pop for subtle premium polish on labels and headings.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "fade",
+        "subtle",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "mondrian-split",
+      "type": "hyperframes:component",
+      "title": "Mondrian Split",
+      "description": "A De Stijl grid draws itself line by line, fills with primary colors, and one cell expands to take over the frame.",
+      "category": "shapes",
+      "tags": [
+        "mondrian",
+        "de-stijl",
+        "grid",
+        "transition",
+        "geometric",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "neon-sign",
+      "type": "hyperframes:component",
+      "title": "Neon Sign",
+      "description": "A glass neon tube stutters alive segment by segment, buzzes off once, then holds lit with a glow on the wall. Replace the path variable with your own monoline SVG path.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "neon",
+        "glow",
+        "retro",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "orbit-lock",
+      "type": "hyperframes:component",
+      "title": "Orbit Lock",
+      "description": "Moons ride tilted, shrinking orbits into a core that bursts into a ring flash, and the logo springs into place. The placeholder lockup is a stand-in: a host swaps in its own logo by editing the .ol-logo element.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "orbit",
+        "impact",
+        "tech",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "outline-fill-track-text",
+      "type": "hyperframes:component",
+      "title": "Outline Fill Track Text",
+      "description": "A rising lead word gives way to an outlined value that fills as one continuous track moves left.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "number",
+        "outline",
+        "fill",
+        "dark",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "outline-trace",
+      "type": "hyperframes:component",
+      "title": "Outline Trace",
+      "description": "Every glyph contour draws itself as a stroke, letter by letter, then the fill wipes up inside each letter and the stroke fades into it.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "outline",
+        "stroke",
+        "trim-path",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "page-turn",
+      "type": "hyperframes:component",
+      "title": "Page Turn",
+      "description": "The outgoing scene lifts off like a page and rotates up out of the frame in a few stepped poses, uncovering the next scene. Built-in placeholder scenes A and B (the two .pgt-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "page",
+        "stop-motion",
+        "reveal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "paper-sticker",
+      "type": "hyperframes:component",
+      "title": "Paper Sticker",
+      "description": "Taped paper chips that slap onto a stop-motion scene over two poses, one after another.",
+      "category": "effects",
+      "tags": [
+        "paper",
+        "stop-motion",
+        "sticker",
+        "label",
+        "handmade",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "paper-tear",
+      "type": "hyperframes:component",
+      "title": "Paper Tear",
+      "description": "The outgoing scene is printed on paper that strains, rips down the middle with a jolt of the camera and a flash, and is flung apart in two torn halves with flying scraps, revealing the next scene. Built-in placeholder scenes A and B (the two .ptr-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "paper",
+        "tear",
+        "impact",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "paper-wobble",
+      "type": "hyperframes:component",
+      "title": "Paper Wobble",
+      "description": "Per-pose reshoot jitter that makes any content feel hand-placed on a desk.",
+      "category": "effects",
+      "tags": [
+        "paper",
+        "stop-motion",
+        "jitter",
+        "handmade",
+        "wrapper",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "parallax-depth",
+      "type": "hyperframes:component",
+      "title": "Parallax Depth",
+      "description": "A layered landscape trucks sideways with a gentle push-in, near layers sliding faster than far ones. Built-in sun and hills preview on their own; a host adds its own full-frame layers by pushing an element and a depth (1 is nearest, larger moves less) onto LAYERS in the script.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "parallax",
+        "depth",
+        "landscape",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "path-ride",
+      "type": "hyperframes:component",
+      "title": "Path Ride",
+      "description": "A line draws itself along a curve with the text riding behind its head, then the curve pulls taut and the text settles on a straight, centered baseline.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "path",
+        "tagline",
+        "line-draw",
+        "reveal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "pendulum-wave",
+      "type": "hyperframes:component",
+      "title": "Pendulum Wave",
+      "description": "A row of pendulums drifts out of phase into waves, then snaps back into a straight line.",
+      "category": "backgrounds",
+      "tags": [
+        "background",
+        "loop",
+        "waves",
+        "rhythm",
+        "generative",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "per-character-rise",
+      "type": "hyperframes:component",
+      "title": "Per Character Rise",
+      "description": "Letters slide up from below with no blur, one after another: crisp and kinetic.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "kinetic-type",
+        "letters",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "period-drop",
+      "type": "hyperframes:component",
+      "title": "Period Drop",
+      "description": "A word rises out of its line, then a colored dot falls from above the frame, bounces with squash and stretch, and settles as the period.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "period",
+        "bounce",
+        "end-card",
+        "wordmark",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "perlin-dissolve",
+      "type": "hyperframes:component",
+      "title": "Perlin Dissolve",
+      "description": "Organic noise grows over the outgoing scene until the frame is flooded with one color, then the incoming scene fades in. Rebuilt with a deterministic Canvas 2D noise field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .prd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "noise",
+        "shader",
+        "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "perspective-squeeze",
+      "type": "hyperframes:component",
+      "title": "Perspective Squeeze",
+      "description": "Two lines of heavy type endlessly trade height while corner-pinned perspective bends the flat stack into receding planes.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "perspective",
+        "loop",
+        "poster",
+        "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "phyllotaxis",
+      "type": "hyperframes:component",
+      "title": "Phyllotaxis",
+      "description": "Seeds spiral out at the golden angle into a sunflower head, then one Fibonacci arm turns accent and pulses outward while the head slowly turns.",
+      "category": "motion-graphics",
+      "tags": [
+        "generative",
+        "nature",
+        "golden-ratio",
+        "spiral",
+        "dots",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "pixel-sort",
+      "type": "hyperframes:component",
+      "title": "Pixel Sort",
+      "description": "The outgoing scene melts downward in vertical columns of different speeds, smeared into bright streaks, and the incoming scene drops in column by column and snaps sharp. Built-in placeholder scenes A and B (the two .pxs-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "glitch",
+        "melt",
+        "columns",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "polaroid",
+      "type": "hyperframes:component",
+      "title": "Polaroid",
+      "description": "An instant-photo frame with a handwritten caption. The photo is a built-in live placeholder (a drifting sunrise gradient); layer your own video or image over the photo window to use it.",
+      "category": "ui-blocks",
+      "tags": [
+        "paper",
+        "stop-motion",
+        "photo",
+        "caption",
+        "handmade",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "popover",
+      "type": "hyperframes:component",
+      "title": "Popover",
+      "description": "A hover card that opens above a mention chip as the cursor arrives, then closes when it leaves.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "popover",
+        "hover-card",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "hyperframes:component",
+      "title": "Progress",
+      "description": "A progress bar that fills along a scripted value: a fast start, a stall, then a finish.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "progress",
+        "loading",
+        "bar",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "push-through",
+      "type": "hyperframes:component",
+      "title": "Push Through",
+      "description": "The outgoing scene is pushed toward the camera and blurs away while the next scene arrives from behind it. Built-in placeholder scenes A and B (the two .pth-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "zoom",
+        "blur",
+        "push",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "puzzle-snap",
+      "type": "hyperframes:component",
+      "title": "Puzzle Snap",
+      "description": "Geometric pieces spin in from scattered positions and snap into a mark with sparks, then the wordmark slides out beside it. The mark is a fixed set of shapes; the wordmark is the text variable.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "geometric",
+        "playful",
+        "sparks",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "radial-burst",
+      "type": "hyperframes:component",
+      "title": "Radial Burst",
+      "description": "A dot launches rounded ribbons that curl into a ring, spin shut and sweep out of frame in a bold geometric burst.",
+      "category": "shapes",
+      "tags": [
+        "shape",
+        "burst",
+        "geometric",
+        "logo-sting",
+        "transition",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "radio",
+      "type": "hyperframes:component",
+      "title": "Radio",
+      "description": "A radio that a pointer selects: the ring takes the primary color and the dot scales in.",
+      "category": "ui",
+      "tags": [
+        "radio",
+        "form",
+        "toggle",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "reel",
+      "type": "hyperframes:component",
+      "title": "Reel",
+      "description": "A fixed centered card where images stack on the z-axis and each blooms open over the last. Five CSS-drawn placeholder screens stand in for your shots: a host swaps its own images in by replacing the contents of each .rl-shot with an img (object-fit cover).",
+      "category": "ui-blocks",
+      "tags": [
+        "gallery",
+        "reveal",
+        "screenshots",
+        "stack",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "resizable",
+      "type": "hyperframes:component",
+      "title": "Resizable",
+      "description": "A two-panel split whose divider is grabbed by the cursor and dragged right, left, then back to the middle.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "resizable",
+        "split",
+        "drag",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ring-text",
+      "type": "hyperframes:component",
+      "title": "Ring Text",
+      "description": "Text runs around a tilted 3D band that spins, reading on the near side and mirrored on the far side.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "3d",
+        "ring",
+        "badge",
+        "loop",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ripple-zoom",
+      "type": "hyperframes:component",
+      "title": "Ripple Zoom",
+      "description": "Rings of color ripple out and zoom past the camera while the outgoing scene swells away and the incoming scene scales up out of the pattern. Rebuilt with a deterministic Canvas 2D gradient instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .rpz-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "ripple",
+        "zoom",
+        "grain",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "riso-print",
+      "type": "hyperframes:component",
+      "title": "Riso Print",
+      "description": "Print a subject in two risograph inks, with the accent plate sliding in off-register and settling a hair out of alignment over grainy paper. A built-in geometric poster stands in for the subject; a host replaces the contents of both .rp-subject layers with its own picture.",
+      "category": "graphic-looks",
+      "tags": [
+        "print",
+        "paper",
+        "grain",
+        "poster",
+        "two-color",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "rolling-number",
+      "type": "hyperframes:component",
+      "title": "Rolling Number",
+      "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
+      "category": "typography",
+      "tags": [
+        "numbers",
+        "odometer",
+        "counter",
+        "data",
+        "stats",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "rolodex-flip",
+      "type": "hyperframes:component",
+      "title": "Rolodex Flip",
+      "description": "Cycle a word through a list of values inside a held line, with a 3D rolodex card flip.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "flip",
+        "3d",
+        "cycle",
+        "terminal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "scale-down-fade",
+      "type": "hyperframes:component",
+      "title": "Scale Down Fade",
+      "description": "Subtle premium settle-in with a restrained scale-down fade on exit.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "fade",
+        "exit",
+        "subtle",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "scribble-circle",
+      "type": "hyperframes:component",
+      "title": "Scribble Circle",
+      "description": "A hand-drawn marker circle scribbles itself around a target in stop-motion poses.",
+      "category": "paper",
+      "tags": [
+        "circle",
+        "hand-drawn",
+        "highlight",
+        "stop-motion",
+        "annotation",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "search-reveal",
+      "type": "hyperframes:component",
+      "title": "Search Reveal",
+      "description": "Construction circles expand into a search field, type your product name, and reveal an abstract graphic panel.",
+      "category": "ui-blocks",
+      "tags": [
+        "search",
+        "typing",
+        "product-intro",
+        "geometric",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "select",
+      "type": "hyperframes:component",
+      "title": "Select",
+      "description": "A select box: a pointer clicks the trigger, the option panel drops open, an option is hovered, pressed and committed with a check, then the panel closes.",
+      "category": "ui",
+      "tags": [
+        "select",
+        "dropdown",
+        "picker",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "select-item",
+      "type": "hyperframes:component",
+      "title": "Select Item",
+      "description": "A selectable option row: a pointer hovers it, presses it, and it commits as selected with a check, inside a small option list.",
+      "category": "ui",
+      "tags": [
+        "select",
+        "option",
+        "list-item",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "select-menu",
+      "type": "hyperframes:component",
+      "title": "Select Menu",
+      "description": "A vertical option list: a highlight glides down to an option as the pointer follows it, presses it and commits it with a check, then fades back.",
+      "category": "ui",
+      "tags": [
+        "select-menu",
+        "list",
+        "highlight",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "selection-snap",
+      "type": "hyperframes:component",
+      "title": "Selection Snap",
+      "description": "A thin word in a loose viewfinder snaps into a design-tool selection while it goes from Thin to Black, pops its handles and counts up a size badge.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "design-tool",
+        "selection",
+        "weight",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "shader-spiral-pass",
+      "type": "hyperframes:component",
+      "title": "Shader Spiral Pass",
+      "description": "A neon spiral tunnel swallows the outgoing scene, the camera dives through its center, and an expanding aperture reveals the incoming scene. Rebuilt with a deterministic Canvas 2D tunnel instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .ssp-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "spiral",
+        "tunnel",
+        "shader",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "shadow-sweep-text",
+      "type": "hyperframes:component",
+      "title": "Shadow Sweep Text",
+      "description": "A rising line is uncovered and removed by two dense dark shadow sweeps.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "shadow",
+        "exit",
+        "dark",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "sheen-slide-in",
+      "type": "hyperframes:component",
+      "title": "Sheen Slide In",
+      "description": "A title glides in from the right with a long settle while a gradient sheen sweeps through the glyphs.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "sheen",
+        "gradient",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "sheet",
+      "type": "hyperframes:component",
+      "title": "Sheet",
+      "description": "A side panel: a pointer clicks a trigger inside a mock app window, the scrim dims it and a panel slides in from the right; clicking Save closes it.",
+      "category": "ui",
+      "tags": [
+        "sheet",
+        "side-panel",
+        "overlay",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "short-slide-down",
+      "type": "hyperframes:component",
+      "title": "Short Slide Down",
+      "description": "Words drop in from above and stack into a centered multi-line composition.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "stack",
+        "words",
+        "slide",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "short-slide-right",
+      "type": "hyperframes:component",
+      "title": "Short Slide Right",
+      "description": "The whole phrase glides in from the left while words reveal in sequence through opacity.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "slide",
+        "words",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "simulated-cursor",
+      "type": "hyperframes:component",
+      "title": "Simulated Cursor",
+      "description": "A synthetic mouse cursor that travels between waypoints and fires a click ripple, for narrating a UI on screen.",
+      "category": "effects",
+      "tags": [
+        "cursor",
+        "ui",
+        "click",
+        "screen-demo",
+        "overlay",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "hyperframes:component",
+      "title": "Skeleton",
+      "description": "A shimmer placeholder that crossfades to the real content once it has loaded.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "skeleton",
+        "loading",
+        "crossfade",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "skeleton-block",
+      "type": "hyperframes:component",
+      "title": "Skeleton Block",
+      "description": "A single shimmer placeholder rectangle whose highlight sweeps across it on a 2 second loop.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "skeleton",
+        "loading",
+        "shimmer",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "slide-swap",
+      "type": "hyperframes:component",
+      "title": "Slide Swap",
+      "description": "Scenes swap on one canvas, never overlapping: the old scene is shoved off under power and the next one springs in and brakes into place. Plays three scenes (A, B, C). Built-in placeholder scenes A, B and C (the three .ssw-panel elements) make it preview on its own; to use it with your own scenes, replace the contents of those panels (each holds for 70 frames) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "slide",
+        "spring",
+        "scene-swap",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "slider",
+      "type": "hyperframes:component",
+      "title": "Slider",
+      "description": "A range slider whose thumb is picked up by the cursor and dragged from 20 to 80, with hover and press states on the thumb.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "slider",
+        "drag",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "smoke-dissolve",
+      "type": "hyperframes:component",
+      "title": "Smoke Dissolve",
+      "description": "A ring of smoke expands from the center of the frame and the incoming scene materializes out of it. Rebuilt with a deterministic Canvas 2D noise field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .smd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "smoke",
+        "shader",
+        "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "speed-lines",
+      "type": "hyperframes:component",
+      "title": "Speed Lines",
+      "description": "Comic-style motion streaks: a squashing ball leaves a trail as it lands, or rays rush out from a focus point.",
+      "category": "shapes",
+      "tags": [
+        "speed-lines",
+        "comic",
+        "motion",
+        "impact",
+        "streaks",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "spinner",
+      "type": "hyperframes:component",
+      "title": "Spinner",
+      "description": "A deterministic spinning arc: a rounded stroke that turns once every 60 frames at speed 1.",
+      "category": "ui",
+      "tags": [
+        "spinner",
+        "loading",
+        "motion-atom",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "spotlight",
+      "type": "hyperframes:component",
+      "title": "Spotlight",
+      "description": "A soft stage spotlight searches the dark, overshoots, lands on the logo, and the house lights come up. The placeholder lockup is a stand-in: a host swaps in its own logo by editing the .sp-logo element.",
+      "category": "logo-stings",
+      "tags": [
+        "logo-sting",
+        "light",
+        "reveal",
+        "premium",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "spring-scale-in",
+      "type": "hyperframes:component",
+      "title": "Spring Scale In",
+      "description": "Words pop in with a soft overshoot scale, like a spring settling into place.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "spring",
+        "words",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "spring-settle",
+      "type": "hyperframes:component",
+      "title": "Spring Settle",
+      "description": "Scenes leave as one group, shrinking and fading, then the stage changes color on an empty beat and the next scene's items spring in staggered from slightly oversized. Plays three scenes (A, B, C). Built-in placeholder scenes A, B and C (the three .ssl-scene elements, whose .ssl-item children settle in one after another) make it preview on its own; to use it with your own scenes, replace the contents of those scenes, give the elements that should settle in the class ssl-item, and set each scene's stage color in the SCENES list in the script.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "spring",
+        "stagger",
+        "scene-swap",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "squeeze-in",
+      "type": "hyperframes:component",
+      "title": "Squeeze In",
+      "description": "Characters are uncovered one by one by a clean wipe, then the whole word squeezes tighter as the last one lands.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "wipe",
+        "tracking",
+        "wordmark",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "squiggle",
+      "type": "hyperframes:component",
+      "title": "Squiggle",
+      "description": "A wavy, zigzag, looping or coiled line draws itself with a springy swim, settles, holds and erases.",
+      "category": "shapes",
+      "tags": [
+        "line",
+        "squiggle",
+        "wave",
+        "zigzag",
+        "accent",
+        "underline",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "stage",
+      "type": "hyperframes:component",
+      "title": "Stage",
+      "description": "A long page on a perspective studio plane, with the camera travelling across it on keyframes. The plane holds a built-in placeholder page drawn in CSS; to use your own, replace the markup inside #st-page in the file (it is 1265 wide and 5000 tall, scaled to the plane).",
+      "category": "layout",
+      "tags": [
+        "camera",
+        "3d",
+        "perspective",
+        "screenshot",
+        "studio",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "stepper",
+      "type": "hyperframes:component",
+      "title": "Stepper",
+      "description": "A multi-step progress indicator: circles fill, check marks draw and connectors fill as the position advances.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "stepper",
+        "progress",
+        "steps",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "stretch-in",
+      "type": "hyperframes:component",
+      "title": "Stretch In",
+      "description": "Letters fly in from off-canvas and smear horizontally on the way: a vertex-lag deformation, not a scale.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "smear",
+        "deformation",
+        "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "string-art",
+      "type": "hyperframes:component",
+      "title": "String Art",
+      "description": "Threads are strung around a ring of pins as a times table, then the multiplier morphs the figure from a cardioid through a nephroid and beyond.",
+      "category": "motion-graphics",
+      "tags": [
+        "generative",
+        "math",
+        "lines",
+        "tech",
+        "morph",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "stripe-type",
+      "type": "hyperframes:component",
+      "title": "Stripe Type",
+      "description": "A word cut into horizontal bands, as in the IBM logo, slides together from alternating sides and locks, then can pass on through.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "stripes",
+        "bands",
+        "title",
+        "transition",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "swirl-dissolve",
+      "type": "hyperframes:component",
+      "title": "Swirl Dissolve",
+      "description": "A rotating swirl of color bands unwinds to open and winds shut again, and the incoming scene grows out of its center. Rebuilt with a deterministic Canvas 2D field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .swd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "swirl",
+        "shader",
+        "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "hyperframes:component",
+      "title": "Switch",
+      "description": "A switch that a pointer flips: the track fills with the primary color while the thumb slides across.",
+      "category": "ui",
+      "tags": [
+        "switch",
+        "settings",
+        "toggle",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "synthwave",
+      "type": "hyperframes:component",
+      "title": "Synthwave",
+      "description": "A retro neon horizon with a scrolling perspective grid, a rising striped sun and mountain ranges that slide in. The grid keeps scrolling for as long as the clip lasts.",
+      "category": "graphic-looks",
+      "tags": [
+        "background",
+        "retro",
+        "neon",
+        "synthwave",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "hyperframes:component",
+      "title": "Tabs",
+      "description": "A tab bar: a pointer clicks each tab in turn, the indicator slides to it, the label darkens and the panel text cross-fades.",
+      "category": "ui",
+      "tags": [
+        "tabs",
+        "navigation",
+        "segmented",
+        "ui",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "terminal-cursor-zoom",
+      "type": "hyperframes:component",
+      "title": "Terminal Cursor Zoom",
+      "description": "Camera locked to the typing cursor, dollying across a terminal as one command types at high zoom.",
+      "category": "ui-blocks",
+      "tags": [
+        "terminal",
+        "camera",
+        "typing",
+        "zoom",
+        "code",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "tiny-planet",
+      "type": "hyperframes:component",
+      "title": "Tiny Planet",
+      "description": "A seeded flat skyline bends into a tiny planet through a polar remap, then keeps turning beside a red sun.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "planet",
+        "skyline",
+        "playful",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "toast",
+      "type": "hyperframes:component",
+      "title": "Toast",
+      "description": "A notification that slides in from below after a button click, holds, then auto-dismisses.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "toast",
+        "notification",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "toggle-group",
+      "type": "hyperframes:component",
+      "title": "Toggle Group",
+      "description": "A segmented control whose thumb slides between segments as the cursor clicks Yearly, then Monthly.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "toggle-group",
+        "segmented",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "hyperframes:component",
+      "title": "Tooltip",
+      "description": "A small floating label that appears next to a button as the cursor hovers it, then fades away.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "tooltip",
+        "hover",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "topo-lines",
+      "type": "hyperframes:component",
+      "title": "Topo Lines",
+      "description": "Topographic contour lines around a few seeded peaks breathe and drift, with index contours and one line picked out in the accent, as a seamless loop.",
+      "category": "motion-graphics",
+      "tags": [
+        "generative",
+        "background",
+        "loop",
+        "map",
+        "lines",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "trim-burst",
+      "type": "hyperframes:component",
+      "title": "Trim Burst",
+      "description": "Short strokes shoot outward from a point and shrink to nothing: a quick spark, pop or impact accent.",
+      "category": "shapes",
+      "tags": [
+        "burst",
+        "spark",
+        "accent",
+        "lines",
+        "impact",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "truchet-flip",
+      "type": "hyperframes:component",
+      "title": "Truchet Flip",
+      "description": "A grid of quarter-circle tiles flips in waves, then settles into a clean pattern: rings, a field or a silhouette.",
+      "category": "backgrounds",
+      "tags": [
+        "pattern",
+        "truchet",
+        "tiles",
+        "generative",
+        "background",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "turntable",
+      "type": "hyperframes:component",
+      "title": "Turntable",
+      "description": "A product card with real thickness spins on an invisible turntable through front, edge and back, with face shading, a moving sheen and a floor shadow. The faces are placeholders; a host puts its own content in the .tt-front and .tt-back markup in the script.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "3d",
+        "product",
+        "spin",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "type-fossil",
+      "type": "hyperframes:component",
+      "title": "Type Fossil",
+      "description": "A readable word carries layers of fine contours, revises itself through earlier drafts, then compresses into a clean typographic imprint.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "contour",
+        "process",
+        "premium",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "type-repeater",
+      "type": "hyperframes:component",
+      "title": "Type Repeater",
+      "description": "An After Effects style repeater on a word, where copies unfold into a tunnel, a spiral or a fan behind it, breathe, then fold back into the word.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "repeater",
+        "tunnel",
+        "spiral",
+        "title",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "type-wall",
+      "type": "hyperframes:component",
+      "title": "Type Wall",
+      "description": "Rows of one word fill the frame, run in alternating directions at different speeds in heavy, narrow and outline faces, with an accent band through the middle.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "poster",
+        "marquee",
+        "loop",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "typed-split-wipe",
+      "type": "hyperframes:component",
+      "title": "Typed Split Wipe",
+      "description": "A centered cursorless type build exits through opposing fixed-layout glyph wipes.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typing",
+        "wipe",
+        "exit",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "value-swap",
+      "type": "hyperframes:component",
+      "title": "Value Swap",
+      "description": "Swap a value in place with a vertical slide so the layout never shifts.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "swap",
+        "status",
+        "inline",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "venetian-blinds",
+      "type": "hyperframes:component",
+      "title": "Venetian Blinds",
+      "description": "The outgoing scene is cut into horizontal slats that turn edge-on one after another, like blinds opening onto the next scene. Built-in placeholder scenes A and B (the two .vnb-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "slats",
+        "3d",
+        "wipe",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "warp-dissolve",
+      "type": "hyperframes:component",
+      "title": "Warp Dissolve",
+      "description": "The outgoing scene melts and blurs into a flowing, domain-warped color field that then resolves into the incoming scene. Rebuilt with a deterministic Canvas 2D noise field instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .wpd-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "warp",
+        "liquid",
+        "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "wave-wipe",
+      "type": "hyperframes:component",
+      "title": "Wave Wipe",
+      "description": "A grainy gradient of waves drifts up the frame while the outgoing scene lifts away and the incoming scene rises from the bottom. Rebuilt with a deterministic Canvas 2D gradient instead of the original WebGL shader. The block draws its own colored field between two built-in placeholder scenes A and B (the two .wvw-panel elements); to use it between your own scenes, replace the contents of those two panels and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "wave",
+        "grain",
+        "wipe",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "word-push",
+      "type": "hyperframes:component",
+      "title": "Word Push",
+      "description": "Words drive in from the right and push the line left into its new center.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "words",
+        "push",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "word-stream",
+      "type": "hyperframes:component",
+      "title": "Word Stream",
+      "description": "Voiceover-paced phrases building word by word while the line drifts left.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "words",
+        "voiceover",
+        "sequence",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "x-ray-scan",
+      "type": "hyperframes:component",
+      "title": "X-Ray Scan",
+      "description": "A glowing scanner bar sweeps across a device and reveals its white-line internals, with one part marked in red. A built-in phone stands in for the product; a host replaces the .xr-outside and .xr-inside layers with its own exterior and interior pictures.",
+      "category": "graphic-looks",
+      "tags": [
+        "scan",
+        "x-ray",
+        "device",
+        "tech",
+        "reveal",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "zoom-blur",
+      "type": "hyperframes:component",
+      "title": "Zoom Blur",
+      "description": "A quick cross-zoom: the outgoing scene swells and blurs out while the next scene scales up from slightly small and sharpens. Built-in placeholder scenes A and B (the two .zmb-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "zoom",
+        "blur",
+        "crossfade",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "zoom-words",
+      "type": "hyperframes:component",
+      "title": "Zoom Words",
+      "description": "Huge words fade into a long line while the camera rides the write head.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "camera",
+        "words",
+        "cold-open",
+        "remocn-port"
+      ]
+    }
+  ]
+}

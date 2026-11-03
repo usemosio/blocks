@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "mondrian-split",
+  "type": "hyperframes:component",
+  "title": "Mondrian Split",
+  "description": "A De Stijl grid draws itself line by line, fills with primary colors, and one cell expands to take over the frame.",
+  "tags": [
+    "mondrian",
+    "de-stijl",
+    "grid",
+    "transition",
+    "geometric",
+    "remocn-port"
+  ],
+  "category": "shapes",
+  "duration": 4.85,
+  "useWhen": [
+    "A scene change or title should arrive as a De Stijl grid that draws itself and then opens into the next scene.",
+    "A bold, flat, art-poster look is wanted."
+  ],
+  "avoidWhen": [
+    "A soft, photographic or minimal transition is needed.",
+    "You need the color field to match a specific brand palette that is not primary: set the colors explicitly."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/mondrian-split/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "mondrian-split.html",
+      "target": "compositions/components/mondrian-split.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"text","type":"string","role":"content","label":"Text","description":"Optional text shown inside the expanding cell; leave empty for a plain color field.","default":""},
+    {"id":"seed","type":"number","role":"layout","label":"Seed","description":"Seed for the grid layout.","default":7,"min":1,"max":99,"step":1},
+    {"id":"splits","type":"number","role":"layout","label":"Splits","description":"Number of lines in the grid.","default":7,"min":3,"max":12,"step":1},
+    {"id":"line_weight","type":"number","role":"style","label":"Line weight","description":"Thickness of the black lines at a 720 px frame height.","default":14,"min":4,"max":32,"step":1,"unit":"px"},
+    {"id":"expand_cell","type":"number","role":"layout","label":"Expanding cell","description":"Which cell expands to fill the frame; 0 is the largest.","default":0,"min":0,"max":12,"step":1},
+    {"id":"line_color","type":"color","role":"style","label":"Lines","description":"Grid line color.","default":"#121212"},
+    {"id":"red_color","type":"color","role":"style","label":"Red","description":"Red fill.","default":"#d62d20"},
+    {"id":"yellow_color","type":"color","role":"style","label":"Yellow","description":"Yellow fill.","default":"#f4c20d"},
+    {"id":"blue_color","type":"color","role":"style","label":"Blue","description":"Blue fill.","default":"#1f4e9e"},
+    {"id":"field_color","type":"color","role":"style","label":"Expanding cell color","description":"Color the expanding cell fills the frame with.","default":"#d62d20"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Color of the text in the expanding cell.","default":"#ffffff"},
+    {"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"}
+  ]
+}

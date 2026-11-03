@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "popover",
+  "type": "hyperframes:component",
+  "title": "Popover",
+  "description": "A hover card that opens above a mention chip as the cursor arrives, then closes when it leaves.",
+  "tags": [
+    "ui",
+    "popover",
+    "hover-card",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "Showing a hover card with richer content than a single-line tooltip.",
+    "Demonstrating a popover opening and closing on the timeline.",
+    "The overlay should enter from a specific side."
+  ],
+  "avoidWhen": [
+    "You only need a single-line label: use tooltip.",
+    "You need a persistent side panel with actions: use sheet.",
+    "The overlay is a blocking modal: use alert-dialog."
+  ],
+  "checkAt": [
+    0.5,
+    1.8,
+    2.9,
+    4.2
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/popover/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "popover.html",
+      "target": "compositions/components/popover.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "handle", "type": "string", "role": "content", "label": "Handle", "description": "Text of the chip the cursor hovers.", "default": "@alexsmith"},
+    {"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Name in the card.", "default": "Alex Smith"},
+    {"id": "description", "type": "string", "role": "content", "label": "Description", "description": "Bio line in the card.", "default": "Product designer. Building in public."},
+    {"id": "side", "type": "enum", "role": "style", "label": "Side", "description": "Which side of the chip the card opens on.", "default": "top", "options": [{"value": "top", "label": "Top"}, {"value": "bottom", "label": "Bottom"}, {"value": "left", "label": "Left"}, {"value": "right", "label": "Right"}]},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

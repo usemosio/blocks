@@ -1,0 +1,351 @@
+<!doctype html>
+<!--
+  Comic Panels
+
+  The frame cracks into a three-panel comic page with speed lines and halftone, then the action panel bursts into a full-frame word. The built-in hero lockup (a rounded icon and a line of text) is a stand-in: a host puts its own logo or headline in by replacing the contents of the .cp-hero layer.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/comic-panels/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="comic-panels"
+  data-composition-duration="2.2"
+  data-composition-variables='[
+    {"id": "word", "type": "string", "role": "content", "label": "Word", "description": "Word in the starburst, such as POW. Leave empty for no word.", "default": "POW"},
+    {"id": "hero_text", "type": "string", "role": "content", "label": "Hero text", "description": "Text of the built-in hero lockup.", "default": "Your brand"},
+    {"id": "hero_scale", "type": "number", "role": "style", "label": "Hero scale", "description": "Scale of the hero inside the top panel.", "default": 0.62, "min": 0.3, "max": 1, "step": 0.02},
+    {"id": "ink", "type": "color", "role": "style", "label": "Ink", "description": "Ink color.", "default": "#111111"},
+    {"id": "paper", "type": "color", "role": "style", "label": "Paper", "description": "Paper color.", "default": "#FFFFFF"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Accent color.", "default": "#E5322D"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Comic Panels</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #ffffff; }
+        .cp-stage { position: absolute; inset: 0; overflow: hidden; }
+        .cp-stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .cp-hero { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .cp-lockup { display: flex; align-items: center; white-space: nowrap; }
+        .cp-icon { display: flex; align-items: center; justify-content: center; flex: none; }
+        .cp-name { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif; font-weight: 800; letter-spacing: -0.04em; }
+      </style>
+
+      <div id="root" data-composition-id="comic-panels" data-duration="2.2" data-fps="30">
+        <div id="cp-clip" class="cp-stage clip" data-start="0" data-duration="2.2" data-track-index="0">
+          <svg id="cp-back" aria-hidden="true"></svg>
+          <div id="cp-hero" class="cp-hero"><div class="cp-lockup" id="cp-lockup"><div class="cp-icon" id="cp-icon"><div id="cp-dot"></div></div><span class="cp-name" id="cp-name"></span></div></div>
+          <svg id="cp-front" aria-hidden="true"></svg>
+          <svg id="cp-top" aria-hidden="true"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Seeded random in [0, 1): a string hash, so the same key always gives the same value.
+            function rnd(key) {
+              var h = 1779033703 ^ key.length;
+              for (var i = 0; i < key.length; i++) {
+                h = Math.imul(h ^ key.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+              }
+              h = Math.imul(h ^ (h >>> 16), 2246822507);
+              h = Math.imul(h ^ (h >>> 13), 3266489909);
+              h ^= h >>> 16;
+              return (h >>> 0) / 4294967296;
+            }
+
+            // Piecewise-linear map of x from inR to outR, optionally eased per segment and clamped.
+            function interp(x, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var i = 0;
+              if (x >= inR[n - 1]) i = n - 2;
+              else if (x > inR[0]) { while (x > inR[i + 1]) i++; }
+              var t = (x - inR[i]) / (inR[i + 1] - inR[i]);
+              if (o.clamp !== false) t = Math.min(1, Math.max(0, t));
+              if (o.easing) t = o.easing(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+
+            // Easings with Remotion's names; every one maps 0..1 to 0..1.
+            var E = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              back: function (s) { return function (t) { return t * t * ((s + 1) * t - s); }; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; },
+              bezier: function (x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var k = 0; k < 24; k++) {
+                    var mt = 1 - t;
+                    var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                    if (bx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var m = 1 - t;
+                  return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+                };
+              }
+            };
+
+            function fmt(n) { return Math.round(n * 10) / 10; }
+
+            function dot(x, y, r) {
+              return "M " + fmt(x - r) + " " + fmt(y) + " a " + fmt(r) + " " + fmt(r) + " 0 1 0 " + fmt(r * 2) + " 0 a " + fmt(r) + " " + fmt(r) + " 0 1 0 " + fmt(-r * 2) + " 0 ";
+            }
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var word = typeof vars.word === "string" ? vars.word : "POW";
+            var heroText = str(vars.hero_text, "Your brand");
+            var heroScale = num(vars.hero_scale, 0.62, 0.3, 1);
+            var ink = str(vars.ink, "#111111"), paper = str(vars.paper, "#FFFFFF"), accent = str(vars.accent, "#E5322D");
+            var speed = num(vars.speed, 1, 0.1, 4);
+            root.style.background = paper;
+
+            var u = Math.min(W, H) / 720;
+            var FONT = "'Arial Black', Impact, Inter, -apple-system, 'Segoe UI', sans-serif";
+            function poly(points) { return points.map(function (p) { return p.join(","); }).join(" "); }
+            var inOut = E.inOut(E.cubic), outCubic = E.out(E.cubic), outExp = E.out(function (t) { return Math.pow(2, 10 * (t - 1)); }), inCubic = E.cubic;
+            function ease(t, a, b, easing) { return interp(t, [a, b], [0, 1], { easing: easing || inOut }); }
+
+            // Page geometry: one slanted horizontal gutter, one slanted vertical one.
+            var a0 = 0.6 * H, a1 = 0.5 * H;
+            function yA(x) { return a0 + ((a1 - a0) * x) / W; }
+            var b0 = [0.53 * W, yA(0.53 * W)], b1 = [0.46 * W, H];
+            var gutter = 16 * u, border = 5 * u;
+            var left = [[0, a0], b0, b1, [0, H]], right = [b0, [W, a1], [W, H], b1];
+
+            // Hero lockup, sized in pixels at the frame's scale.
+            var lock = document.getElementById("cp-lockup"), icon = document.getElementById("cp-icon"), dotEl = document.getElementById("cp-dot"), nameEl = document.getElementById("cp-name");
+            lock.style.gap = 28 * u + "px";
+            icon.style.cssText += ";width:" + 120 * u + "px;height:" + 120 * u + "px;border-radius:" + 32 * u + "px;background:" + accent;
+            dotEl.style.cssText = "width:" + 36 * u + "px;height:" + 36 * u + "px;border-radius:50%;background:" + ink;
+            nameEl.style.cssText += ";font-size:" + 104 * u + "px;color:" + ink;
+            nameEl.textContent = heroText;
+            var hero = document.getElementById("cp-hero");
+
+            function setBox(svg) { svg.setAttribute("viewBox", "0 0 " + W + " " + H); }
+            var back = document.getElementById("cp-back"), front = document.getElementById("cp-front"), top = document.getElementById("cp-top");
+            [back, front, top].forEach(setBox);
+
+            // Speed lines.
+            var wedgeG = el("g", { fill: ink }, back);
+            var wedgeEls = [];
+            for (var i = 0; i < 56; i++) wedgeEls.push(el("polygon", {}, wedgeG));
+
+            // Front: the two panels, gutters, margin.
+            var defs = el("defs", {}, front);
+            el("polygon", { points: poly(left) }, el("clipPath", { id: "cp-left" }, defs));
+            el("polygon", { points: poly(right) }, el("clipPath", { id: "cp-right" }, defs));
+            var leftG = el("g", { "clip-path": "url(#cp-left)" }, front);
+            var leftSlide = el("g", { opacity: 0 }, leftG);
+            el("polygon", { points: poly(left), fill: paper }, leftSlide);
+            var joltDots = el("g", { fill: accent }, leftSlide);
+            var pitch = 20 * u, dotsD = "";
+            for (var y = a1 - pitch; y < H + pitch; y += pitch) {
+              for (var x = 0; x < b0[0] + pitch; x += pitch) {
+                var ox = (Math.round(y / pitch) % 2) * (pitch / 2);
+                var d = Math.hypot(x + ox, H - y) / Math.hypot(b0[0], H - a0);
+                var r = pitch * 0.5 * Math.max(0, Math.min(1, 1.15 - d));
+                if (r > 0.6 * u) dotsD += dot(x + ox, y, r);
+              }
+            }
+            el("path", { d: dotsD }, joltDots);
+            var rightG = el("g", { "clip-path": "url(#cp-right)" }, front);
+            var rightSlide = el("g", { opacity: 0 }, rightG);
+            el("polygon", { points: poly(right), fill: ink }, rightSlide);
+            var burstHolderA = el("g", {}, rightSlide);
+            var gutters = [ink, paper].map(function (stroke, pass) {
+              var g = el("g", { stroke: stroke, "stroke-width": pass === 0 ? gutter + border * 2 : gutter, "stroke-linecap": "butt" }, front);
+              return [el("line", {}, g), el("line", {}, g)];
+            });
+            el("path", { d: "M " + -W + " " + -H + " H " + 2 * W + " V " + 2 * H + " H " + -W + " Z M 0 0 V " + H + " H " + W + " V 0 Z", fill: paper, "fill-rule": "evenodd" }, front);
+            var marginPath = front.lastChild;
+            var marginRect = el("rect", { fill: "none", stroke: ink, "stroke-width": border }, front);
+
+            // The starburst, drawn twice: inside the right panel until it bursts, then on top of everything.
+            function starburst(spikes, outer, inner, seed) {
+              var points = [];
+              for (var i = 0; i < spikes * 2; i++) {
+                var a = (i / (spikes * 2)) * Math.PI * 2 + (rnd(seed + "-a-" + i) - 0.5) * 0.12;
+                var r = i % 2 === 0 ? outer * (0.82 + 0.18 * rnd(seed + "-r-" + i)) : inner * (0.9 + 0.1 * rnd(seed + "-r-" + i));
+                points.push([Math.cos(a) * r, Math.sin(a) * r]);
+              }
+              return poly(points);
+            }
+            var c3 = [(b0[0] + W + W + b1[0]) / 4, (b0[1] + a1 + H + H) / 4];
+            var outer = 0.4 * (H - a1);
+            var redPts = starburst(16, outer, outer * 0.68, "comic-red");
+            var whitePts = starburst(13, outer * 0.62, outer * 0.42, "comic-white");
+            function makeBurst(parent) {
+              var g = el("g", {}, parent);
+              var red = el("polygon", { points: redPts, fill: accent, stroke: ink, "stroke-linejoin": "round" }, g);
+              var white = el("polygon", { points: whitePts, fill: paper, stroke: ink, "stroke-linejoin": "round" }, g);
+              var wordG = el("g", { "text-anchor": "middle", "dominant-baseline": "central", "font-family": FONT, "font-weight": 900, "font-size": outer * 0.4 }, g);
+              if (word) {
+                el("text", { x: outer * 0.03, y: outer * 0.03, fill: accent }, wordG).textContent = word;
+                el("text", { fill: ink }, wordG).textContent = word;
+              }
+              return { g: g, red: red, white: white, word: wordG };
+            }
+            var burstA = makeBurst(burstHolderA);
+            var jolted = el("g", {}, top);
+            var burstB = makeBurst(jolted);
+            function updateBurst(b, center, spin, redScale, whiteScale) {
+              b.g.setAttribute("transform", "translate(" + center[0] + " " + center[1] + ") rotate(" + spin + ")");
+              b.red.setAttribute("transform", "scale(" + redScale + ")");
+              b.red.setAttribute("stroke-width", (border * 0.8) / redScale);
+              b.white.setAttribute("transform", "scale(" + whiteScale + ")");
+              b.white.setAttribute("stroke-width", (border * 0.8) / whiteScale);
+              b.word.setAttribute("transform", "scale(" + whiteScale + ") rotate(-8)");
+            }
+
+            function draw(frame) {
+              var t = frame * speed;
+              var margin = ease(t, 0, 8) * 22 * u;
+              var crackA = ease(t, 2, 10, outCubic), crackB = ease(t, 8, 14, outCubic);
+              var slide2 = ease(t, 10, 18, outExp), slide3 = ease(t, 13, 21, outExp);
+              var burst = ease(t, 23, 34, inCubic), settle = ease(t, 30, 36, outCubic);
+              var shaking = t >= 22 && t < 31;
+              var step = Math.floor(t / 2);
+              var shake = shaking ? [(rnd("comic-sx-" + step) - 0.5) * 14 * u, (rnd("comic-sy-" + step) - 0.5) * 14 * u] : [0, 0];
+              var jolt = "translate(" + shake[0] + " " + shake[1] + ")";
+              var heroFocus = [W / 2, interp(crackA, [0, 1], [H / 2, 0.27 * H])];
+              var heroS = interp(crackA, [0, 1], [1, heroScale]);
+
+              // Speed lines: wedges from the hero focus, redrawn every 2 frames.
+              wedgeG.setAttribute("transform", jolt);
+              for (var i = 0; i < 56; i++) {
+                var a = (i / 56) * Math.PI * 2 + (rnd("comic-w-" + step + "-" + i) - 0.5) * 0.09;
+                var spread = 0.008 + 0.014 * rnd("comic-ws-" + step + "-" + i);
+                var r0 = (0.3 + 0.12 * rnd("comic-wr-" + step + "-" + i)) * W * heroS, r1 = W * 1.2;
+                var at = function (r, d) { return [heroFocus[0] + Math.cos(a + d) * r, heroFocus[1] + Math.sin(a + d) * r * 0.62]; };
+                wedgeEls[i].setAttribute("points", poly([at(r0, 0), at(r1, -spread), at(r1, spread)]));
+              }
+              hero.style.transform = "translate(" + (heroFocus[0] - W / 2 + shake[0]) + "px, " + (heroFocus[1] - H / 2 + shake[1]) + "px) scale(" + heroS + ")";
+
+              leftSlide.setAttribute("transform", "translate(" + (slide2 - 1) * b0[0] + " 0)");
+              leftSlide.setAttribute("opacity", slide2 > 0 ? 1 : 0);
+              joltDots.setAttribute("transform", jolt);
+              rightSlide.setAttribute("transform", "translate(" + (1 - slide3) * (W - b1[0]) + " 0)");
+              rightSlide.setAttribute("opacity", slide3 > 0 ? 1 : 0);
+              burstHolderA.setAttribute("transform", jolt);
+
+              var pulse = 1 + 0.04 * Math.sin(t * 1.4);
+              var center = [interp(burst, [0, 1], [c3[0], W / 2]), interp(burst, [0, 1], [c3[1], H / 2])];
+              var redScale = interp(burst, [0, 1], [1, 9]) * pulse;
+              var whiteScale = interp(burst, [0, 1], [1, (0.4 * Math.min(W, H)) / (outer * 0.62)]) * pulse * interp(settle, [0, 1], [1.08, 1]);
+              var spin = interp(burst, [0, 1], [0, 14]);
+              updateBurst(burstA, center, spin, redScale, whiteScale);
+              updateBurst(burstB, center, spin, redScale, whiteScale);
+              burstHolderA.setAttribute("display", burst === 0 ? "inline" : "none");
+              jolted.setAttribute("display", burst > 0 ? "inline" : "none");
+              jolted.setAttribute("transform", jolt);
+
+              // Gutters: ink edges first, then the white channel on top.
+              gutters.forEach(function (pair) {
+                var l1 = pair[0], l2 = pair[1];
+                var x2 = -gutter + (W + 2 * gutter) * crackA;
+                l1.setAttribute("x1", -gutter); l1.setAttribute("y1", yA(-gutter)); l1.setAttribute("x2", x2); l1.setAttribute("y2", yA(x2));
+                l2.setAttribute("x1", b0[0]); l2.setAttribute("y1", b0[1]);
+                l2.setAttribute("x2", b0[0] + (b1[0] + (b1[0] - b0[0]) * 0.05 - b0[0]) * crackB);
+                l2.setAttribute("y2", b0[1] + (H * 1.05 - b0[1]) * crackB);
+              });
+              marginPath.setAttribute("d", "M " + -W + " " + -H + " H " + 2 * W + " V " + 2 * H + " H " + -W + " Z M " + margin + " " + margin + " V " + (H - margin) + " H " + (W - margin) + " V " + margin + " Z");
+              marginRect.setAttribute("x", margin); marginRect.setAttribute("y", margin);
+              marginRect.setAttribute("width", W - margin * 2); marginRect.setAttribute("height", H - margin * 2);
+              marginRect.setAttribute("opacity", margin > 0 ? 1 : 0);
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "2.2") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "2.2");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["comic-panels"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

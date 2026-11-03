@@ -1,0 +1,144 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "line-boil",
+  "type": "hyperframes:component",
+  "title": "Line Boil",
+  "description": "A hand-drawn outline draws itself, boils on threes like a cel animation, and fills with color while it keeps boiling. Takes any closed outline as SVG path data in the path variable (default: a five-point star).",
+  "tags": [
+    "hand-drawn",
+    "cel",
+    "outline",
+    "playful",
+    "shape",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 3,
+  "useWhen": [
+    "A simple mark, icon or shape should feel hand-animated, with the restless line of traditional cel animation.",
+    "A playful explainer or kids-friendly scene needs a hero shape that draws itself and then stays alive on screen.",
+    "You have the shape as SVG path data and want it drawn, filled and boiling without keyframing anything."
+  ],
+  "avoidWhen": [
+    "The thing being drawn is a word or a font's glyph outlines: use outline-trace.",
+    "The line should circle or mark up an existing part of the frame rather than be the subject: use scribble-circle.",
+    "Existing content should just feel hand-placed and jittery, without being redrawn: use paper-wobble."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/line-boil/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "line-boil.html",
+      "target": "compositions/components/line-boil.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "path",
+      "type": "string",
+      "role": "content",
+      "label": "Path",
+      "description": "Closed outline as SVG path data, in any coordinate space. It is fitted to the frame.",
+      "default": "M 100.00 0.00 L 123.51 67.64 L 195.11 69.10 L 138.04 112.36 L 158.78 180.90 L 100.00 140.00 L 41.22 180.90 L 61.96 112.36 L 4.89 69.10 L 76.49 67.64 Z"
+    },
+    {
+      "id": "boil_every",
+      "type": "number",
+      "role": "motion",
+      "label": "Boil every",
+      "description": "Frames each drawing holds before the next one (3 is on threes).",
+      "default": 3,
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "drawings",
+      "type": "number",
+      "role": "motion",
+      "label": "Drawings",
+      "description": "Distinct drawings the boil cycles through.",
+      "default": 3,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "amplitude",
+      "type": "number",
+      "role": "motion",
+      "label": "Wobble",
+      "description": "Wobble strength; 1 is a gentle hand-drawn boil.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Line weight",
+      "description": "Base line weight in pixels at 720p.",
+      "default": 9,
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Shape size as a fraction of the short frame side.",
+      "default": 0.66,
+      "min": 0.2,
+      "max": 0.9,
+      "step": 0.02
+    },
+    {
+      "id": "line",
+      "type": "color",
+      "role": "style",
+      "label": "Line",
+      "description": "Outline color.",
+      "default": "#111111"
+    },
+    {
+      "id": "fill",
+      "type": "color",
+      "role": "style",
+      "label": "Fill",
+      "description": "Shape fill color.",
+      "default": "#E5322D"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background color.",
+      "default": "#FFFFFF"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

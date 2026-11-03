@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "search-reveal",
+  "type": "hyperframes:component",
+  "title": "Search Reveal",
+  "description": "Construction circles expand into a search field, type your product name, and reveal an abstract graphic panel.",
+  "tags": [
+    "search",
+    "typing",
+    "product-intro",
+    "geometric",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 3.6,
+  "useWhen": [
+    "A product introduction should begin with a search for its name.",
+    "A search scene needs editable copy and palette without external assets."
+  ],
+  "avoidWhen": [
+    "Words should fly and morph between phrases: use kinetic-morph-text.",
+    "Typing should resemble a command-line session: use terminal-simulator."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/search-reveal/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "search-reveal.html",
+      "target": "compositions/components/search-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Product name typed into the search field.", "default": "studio"},
+    {"id": "field_width", "type": "number", "role": "style", "label": "Field width", "description": "Width of the search field on the 1280 by 720 layout.", "default": 464, "min": 320, "max": 640, "step": 2, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum typed text size.", "default": 34, "min": 18, "max": 54, "step": 1, "unit": "px"},
+    {"id": "frames_per_character", "type": "number", "role": "motion", "label": "Frames per character", "description": "Typing pace.", "default": 4, "min": 1, "max": 12, "step": 1},
+    {"id": "show_panel", "type": "boolean", "role": "style", "label": "Graphic panel", "description": "Reveal the abstract graphic panel behind the field.", "default": true},
+    {"id": "show_guides", "type": "boolean", "role": "style", "label": "Guides", "description": "Show construction guides and crosses.", "default": true},
+    {"id": "color", "type": "color", "role": "style", "label": "Text", "description": "Typed text and guide cross color.", "default": "#26232b"},
+    {"id": "field_color", "type": "color", "role": "style", "label": "Field", "description": "Search field color.", "default": "#ffffff"},
+    {"id": "ring_color", "type": "color", "role": "style", "label": "Rings", "description": "Construction circle and icon color.", "default": "#cbc5cf"},
+    {"id": "panel_color", "type": "color", "role": "style", "label": "Panel", "description": "Graphic panel color.", "default": "#a800b7"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Panel accent shapes color.", "default": "#e8f99a"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#f5f1f5"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

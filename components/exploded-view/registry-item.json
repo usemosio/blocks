@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "exploded-view",
+  "type": "hyperframes:component",
+  "title": "Exploded View",
+  "description": "An isometric stack of slabs springs apart with leader lines and labels, holds, then clicks back together.",
+  "tags": [
+    "camera",
+    "isometric",
+    "diagram",
+    "exploded",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 2.333,
+  "useWhen": [
+    "An architecture or a product stack should be explained layer by layer, such as interface, engine, storage and hardware.",
+    "One layer of a system is the point of the story and should be called out in brand color."
+  ],
+  "avoidWhen": [
+    "The object should turn to show its front and back rather than come apart: use turntable.",
+    "The layers are numbers to compare rather than parts of one thing: use animated-bar-chart."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/exploded-view/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "exploded-view.html",
+      "target": "compositions/components/exploded-view.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "layers", "type": "number", "role": "style", "label": "Layers", "description": "Number of slabs, 2 to 6.", "default": 4, "min": 2, "max": 6, "step": 1},
+    {"id": "labels", "type": "string", "role": "content", "label": "Labels", "description": "One label per slab, top slab first, comma separated.", "default": "Interface, Engine, Storage, Hardware"},
+    {"id": "highlight", "type": "number", "role": "style", "label": "Highlight", "description": "Index of the highlighted slab, counted from the top (0 is the top slab).", "default": 1, "min": 0, "max": 5, "step": 1},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "top_color", "type": "color", "role": "style", "label": "Top face", "description": "Top face of a slab.", "default": "#F4F4F4"},
+    {"id": "left_color", "type": "color", "role": "style", "label": "Left face", "description": "Left face of a slab.", "default": "#A6A6A6"},
+    {"id": "right_color", "type": "color", "role": "style", "label": "Right face", "description": "Right face of a slab.", "default": "#747474"},
+    {"id": "highlight_top_color", "type": "color", "role": "style", "label": "Highlight top", "description": "Top face of the highlighted slab.", "default": "#E5322D"},
+    {"id": "highlight_left_color", "type": "color", "role": "style", "label": "Highlight left", "description": "Left face of the highlighted slab.", "default": "#B5231F"},
+    {"id": "highlight_right_color", "type": "color", "role": "style", "label": "Highlight right", "description": "Right face of the highlighted slab.", "default": "#8A1A17"},
+    {"id": "line_color", "type": "color", "role": "style", "label": "Leader lines", "description": "Leader line color.", "default": "#FFFFFF"},
+    {"id": "label_color", "type": "color", "role": "style", "label": "Labels", "description": "Label text color.", "default": "#FFFFFF"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

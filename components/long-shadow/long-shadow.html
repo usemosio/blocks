@@ -1,0 +1,239 @@
+<!doctype html>
+<!--
+  Long Shadow
+
+  A flat icon pops in and casts a long shadow to the frame edge, then the light swings and the shadow sweeps around on a spring. The built-in check badge is a stand-in: a host swaps its own flat mark in by replacing the contents of the .ls-mark layers (the shadow layer and the top layer hold the same mark).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/long-shadow/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="long-shadow"
+  data-composition-duration="2.34"
+  data-composition-variables='[
+    {"id": "angle_from", "type": "number", "role": "motion", "label": "Start angle", "description": "Shadow direction in degrees at the start (0 is right, 90 is down).", "default": 45, "min": 0, "max": 360, "step": 5, "unit": "deg"},
+    {"id": "angle_to", "type": "number", "role": "motion", "label": "End angle", "description": "Shadow direction after the light swings.", "default": 135, "min": 0, "max": 360, "step": 5, "unit": "deg"},
+    {"id": "fade", "type": "number", "role": "style", "label": "Fade", "description": "Fade the shadow toward its far end, 0 to 1.", "default": 0, "min": 0, "max": 1, "step": 0.05},
+    {"id": "shadow_color", "type": "color", "role": "style", "label": "Shadow", "description": "Shadow color.", "default": "#ECEAE6"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#FFFFFF"},
+    {"id": "icon_color", "type": "color", "role": "style", "label": "Badge", "description": "Color of the built-in badge.", "default": "#E5322D"},
+    {"id": "check_color", "type": "color", "role": "style", "label": "Check", "description": "Color of the check mark on the built-in badge.", "default": "#FFFFFF"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed.", "default": 1, "min": 0.1, "max": 4, "step": 0.1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Long Shadow</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #ffffff; }
+        .ls-stage { position: absolute; inset: 0; overflow: hidden; }
+        .ls-pop { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .ls-mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      </style>
+
+      <div id="root" data-composition-id="long-shadow" data-duration="2.34" data-fps="30">
+        <div id="ls-clip" class="ls-stage clip" data-start="0" data-duration="2.34" data-track-index="0">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="ls-defs"></defs></svg>
+          <div id="ls-pop" class="ls-pop">
+            <div id="ls-shadow" class="ls-mark"></div>
+            <div id="ls-top" class="ls-mark"></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Piecewise-linear map of x from inR to outR, optionally eased per segment and clamped.
+            function interp(x, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var i = 0;
+              if (x >= inR[n - 1]) i = n - 2;
+              else if (x > inR[0]) { while (x > inR[i + 1]) i++; }
+              var t = (x - inR[i]) / (inR[i + 1] - inR[i]);
+              if (o.clamp !== false) t = Math.min(1, Math.max(0, t));
+              if (o.easing) t = o.easing(t);
+              return outR[i] + (outR[i + 1] - outR[i]) * t;
+            }
+            function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+
+            // Easings with Remotion's names; every one maps 0..1 to 0..1.
+            var E = {
+              linear: function (t) { return t; },
+              quad: function (t) { return t * t; },
+              cubic: function (t) { return t * t * t; },
+              sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+              back: function (s) { return function (t) { return t * t * ((s + 1) * t - s); }; },
+              out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+              inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; },
+              bezier: function (x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var k = 0; k < 24; k++) {
+                    var mt = 1 - t;
+                    var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                    if (bx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var m = 1 - t;
+                  return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+                };
+              }
+            };
+
+            // Closed-form damped spring from 0 to 1 (rest at 1), sampled at `frame` frames.
+            function spring(frame, mass, stiffness, damping) {
+              if (frame <= 0) return 0;
+              var t = frame / FPS;
+              var w0 = Math.sqrt(stiffness / mass);
+              var z = damping / (2 * Math.sqrt(stiffness * mass));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+              }
+              return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+            }
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var angleFrom = num(vars.angle_from, 45, 0, 360);
+            var angleTo = num(vars.angle_to, 135, 0, 360);
+            var fade = num(vars.fade, 0, 0, 1);
+            var shadowColor = str(vars.shadow_color, "#ECEAE6");
+            root.style.background = str(vars.background, "#FFFFFF");
+            var iconColor = str(vars.icon_color, "#E5322D");
+            var checkColor = str(vars.check_color, "#FFFFFF");
+            var speed = num(vars.speed, 1, 0.1, 4);
+
+            var unit = Math.min(W, H) / 720;
+            // Log-doubling extrusion: each pass unions the silhouette with itself shifted by twice the previous distance, so 10 passes stack 1024 copies.
+            var PASSES = 10, COPIES = Math.pow(2, PASSES) - 1;
+            var defs = document.getElementById("ls-defs");
+            var f = el("filter", { id: "ls-extrude", x: 0, y: 0, width: 1, height: 1, "color-interpolation-filters": "sRGB" }, defs);
+            el("feColorMatrix", { in: "SourceAlpha", type: "matrix", values: "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 3 0", result: "m0" }, f);
+            var offsets = [];
+            for (var i = 0; i < PASSES; i++) {
+              offsets.push(el("feOffset", { in: "m" + i, dx: 0, dy: 0, result: "o" + i }, f));
+              var mg = el("feMerge", { result: "m" + (i + 1) }, f);
+              el("feMergeNode", { in: "m" + i }, mg);
+              el("feMergeNode", { in: "o" + i }, mg);
+            }
+            // feOffset snaps to whole pixels; a hair of blur hides the steps.
+            el("feGaussianBlur", { in: "m" + PASSES, stdDeviation: 0.8 * unit, result: "soft" }, f);
+            el("feFlood", { "flood-color": shadowColor }, f);
+            el("feComposite", { in2: "soft", operator: "in" }, f);
+
+            function badge(parent) {
+              var size = Math.min(W, H) * 0.34;
+              var svg = el("svg", { width: size, height: size, viewBox: "0 0 100 100", "aria-hidden": "true" }, parent);
+              svg.style.width = size + "px"; svg.style.height = size + "px"; svg.style.flex = "none";
+              el("circle", { cx: 50, cy: 50, r: 49, fill: iconColor }, svg);
+              el("path", { d: "M 29 52 L 44 66 L 72 36", fill: "none", stroke: checkColor, "stroke-width": 11, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+            }
+            var shadowLayer = document.getElementById("ls-shadow"), topLayer = document.getElementById("ls-top");
+            badge(shadowLayer); badge(topLayer);
+            shadowLayer.style.filter = "url(#ls-extrude)";
+            var pop = document.getElementById("ls-pop");
+            var outCubic = E.out(E.cubic);
+
+            function draw(frame) {
+              var t = frame * speed;
+              var p = spring(t, 0.8, 170, 13);
+              var grow = interp(t, [7, 22], [0, 1], { easing: outCubic });
+              var swing = spring(t - 24, 0.9, 70, 11);
+              var angle = angleFrom + (angleTo - angleFrom) * swing;
+              var rad = (angle * Math.PI) / 180;
+              var step = (Math.hypot(W, H) * grow) / COPIES;
+              var dx = Math.cos(rad) * step, dy = Math.sin(rad) * step;
+              offsets.forEach(function (o, i) { o.setAttribute("dx", dx * Math.pow(2, i)); o.setAttribute("dy", dy * Math.pow(2, i)); });
+              pop.style.transform = "scale(" + p + ")";
+              shadowLayer.style.opacity = grow > 0 ? 1 : 0;
+              var mask = fade > 0 ? "linear-gradient(" + (angle + 90) + "deg, #000 50%, rgba(0,0,0," + (1 - Math.min(1, fade)) + ") 100%)" : "none";
+              shadowLayer.style.maskImage = mask;
+              shadowLayer.style.webkitMaskImage = mask;
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "2.34") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "2.34");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["long-shadow"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

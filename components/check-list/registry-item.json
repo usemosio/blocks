@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "check-list",
+  "type": "hyperframes:component",
+  "title": "Check List",
+  "description": "A handwritten checklist that writes itself out, then ticks and strikes through every done item.",
+  "tags": [
+    "list",
+    "handwriting",
+    "paper",
+    "stop-motion",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 4.1,
+  "useWhen": [
+    "A list of features, steps, or done-items should be read in full and then crossed off in a hand-made scene.",
+    "One line in the list has not landed yet: mark it checked false and it stays clean."
+  ],
+  "avoidWhen": [
+    "Labels need to wrap across lines, or the list needs numbering or nesting. One label, one line.",
+    "The list should sit at an angle or wobble: wrap it in paper-wobble."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/check-list/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "check-list.html",
+      "target": "compositions/components/check-list.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "JSON array of list items: a string (ticked) or an object with text and checked. One line per label.", "default": "[\"Render on your own machine\",\"No watermark, ever\",\"Every component MIT\",{\"text\":\"Ships as source\",\"checked\":false}]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Label size in px on a 1280 by 720 layout; the whole list scales to fit the frame.", "default": 40, "min": 24, "max": 120, "step": 2, "unit": "px"},
+    {"id": "list_width", "type": "number", "role": "style", "label": "List width", "description": "Row width in px on the 1280 by 720 layout.", "default": 820, "min": 300, "max": 1600, "step": 10, "unit": "px"},
+    {"id": "item_gap", "type": "number", "role": "motion", "label": "Item gap", "description": "Frames between items starting to write.", "default": 18, "min": 6, "max": 48, "step": 3},
+    {"id": "close_gap", "type": "number", "role": "motion", "label": "Close gap", "description": "Frames between ticks when the done items are crossed off.", "default": 9, "min": 3, "max": 24, "step": 3},
+    {"id": "per_step", "type": "number", "role": "motion", "label": "Letters per step", "description": "Letters written per stepped frame.", "default": 1.6, "min": 0.5, "max": 6, "step": 0.1},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frame step", "description": "Stop-motion step: motion updates every this many frames.", "default": 3, "min": 1, "max": 6, "step": 1},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Stroke width", "description": "Pen stroke width.", "default": 3, "min": 1, "max": 8, "step": 0.5},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the handwriting.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Text", "description": "Handwriting color.", "default": "#26242c"},
+    {"id": "box_color", "type": "color", "role": "style", "label": "Box", "description": "Checkbox outline color.", "default": "#26242c"},
+    {"id": "tick_color", "type": "color", "role": "style", "label": "Tick", "description": "Tick and strike-through color.", "default": "#6f7f35"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Paper color.", "default": "#f1eee7"},
+    {"id": "seed", "type": "string", "role": "motion", "label": "Seed", "description": "Seed for the hand-drawn wobble.", "default": "checklist"}
+  ]
+}

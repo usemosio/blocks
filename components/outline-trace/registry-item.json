@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "outline-trace",
+  "type": "hyperframes:component",
+  "title": "Outline Trace",
+  "description": "Every glyph contour draws itself as a stroke, letter by letter, then the fill wipes up inside each letter and the stroke fades into it.",
+  "tags": [
+    "text-effects",
+    "outline",
+    "stroke",
+    "trim-path",
+    "title",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.5,
+  "useWhen": [
+    "A title should be drawn rather than revealed, like a trim path running around the real letterforms.",
+    "You want a crafted, vector-native entrance for a brand word or a headline.",
+    "An outline-only look is wanted: set Fill off and the drawn contours stay."
+  ],
+  "avoidWhen": [
+    "The text should look handwritten, stroke by stroke in a script face: use handwrite.",
+    "The letters should fly in and deform rather than be drawn: use stretch-in.",
+    "The build should show the construction points and handles of a font editor: use glyph-anatomy."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/outline-trace/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "outline-trace.html",
+      "target": "compositions/components/outline-trace.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase. Letters, digits and . , ! ? ' - : & @ # $ % + / ( ) are drawn from built-in Inter ExtraBold outlines; other characters become spaces.", "default": "Outline"},
+    {"id": "color", "type": "color", "role": "style", "label": "Fill", "description": "Color the letters fill with.", "default": "#111111"},
+    {"id": "stroke_color", "type": "color", "role": "style", "label": "Stroke", "description": "Color of the drawn stroke.", "default": "#111111"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in reference pixels (1280×720 stage); long text shrinks to fit.", "default": 150, "min": 60, "max": 300, "step": 1, "unit": "px"},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Stroke width", "description": "Width of the drawn contour in reference pixels.", "default": 2.5, "min": 0.5, "max": 8, "step": 0.1, "unit": "px"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Letter stagger", "description": "Frames between letters (30 fps).", "default": 3, "min": 0, "max": 12, "step": 1, "unit": "frames"},
+    {"id": "fill", "type": "boolean", "role": "style", "label": "Fill", "description": "Wipe a fill up inside each letter.", "default": true},
+    {"id": "keep_stroke", "type": "boolean", "role": "style", "label": "Keep stroke", "description": "Keep the stroke after the fill arrives.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

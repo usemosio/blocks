@@ -1,0 +1,280 @@
+<!doctype html>
+<!--
+  Search Reveal
+
+  Construction circles expand into a search field, type your product name, and reveal an abstract graphic panel.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/search-reveal/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="search-reveal"
+  data-composition-duration="3.6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Product name typed into the search field.", "default": "studio"},
+    {"id": "field_width", "type": "number", "role": "style", "label": "Field width", "description": "Width of the search field on the 1280 by 720 layout.", "default": 464, "min": 320, "max": 640, "step": 2, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum typed text size.", "default": 34, "min": 18, "max": 54, "step": 1, "unit": "px"},
+    {"id": "frames_per_character", "type": "number", "role": "motion", "label": "Frames per character", "description": "Typing pace.", "default": 4, "min": 1, "max": 12, "step": 1},
+    {"id": "show_panel", "type": "boolean", "role": "style", "label": "Graphic panel", "description": "Reveal the abstract graphic panel behind the field.", "default": true},
+    {"id": "show_guides", "type": "boolean", "role": "style", "label": "Guides", "description": "Show construction guides and crosses.", "default": true},
+    {"id": "color", "type": "color", "role": "style", "label": "Text", "description": "Typed text and guide cross color.", "default": "#26232b"},
+    {"id": "field_color", "type": "color", "role": "style", "label": "Field", "description": "Search field color.", "default": "#ffffff"},
+    {"id": "ring_color", "type": "color", "role": "style", "label": "Rings", "description": "Construction circle and icon color.", "default": "#cbc5cf"},
+    {"id": "panel_color", "type": "color", "role": "style", "label": "Panel", "description": "Graphic panel color.", "default": "#a800b7"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Panel accent shapes color.", "default": "#e8f99a"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#f5f1f5"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Search Reveal</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--bg); }
+        .sr-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .sr-scene { position: relative; width: 1280px; height: 720px; flex-shrink: 0; }
+        .sr-anchor { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+        .sr-svg { position: absolute; overflow: visible; }
+        .sr-panel { position: absolute; overflow: hidden; }
+        .sr-field { position: absolute; border-radius: 999px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-family: Arial, Helvetica, sans-serif; font-weight: 400; box-shadow: 0 3px 12px #26232b08, inset 0 0 0 1px #26232b0a; }
+        .sr-typed { display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: pre; }
+        .sr-caret { width: 1.5px; margin-left: 2px; flex-shrink: 0; }
+        .sr-icon { position: absolute; right: 24px; }
+      </style>
+
+      <div id="root" data-composition-id="search-reveal" data-duration="3.6" data-fps="30">
+        <div id="sr-clip" class="sr-stage clip" data-start="0" data-duration="3.6" data-track-index="0">
+          <div class="sr-scene" id="sr-scene"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "search-reveal";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var scene = document.getElementById("sr-scene");
+var text = typeof vars.text === "string" && vars.text.length ? vars.text : "studio";
+var fieldW = num(vars.field_width, 464, 320, 640), fontSizeV = num(vars.font_size, 34, 18, 54), fpc = num(vars.frames_per_character, 4, 1, 12), speed = num(vars.speed, 1, 0, 4);
+var showPanel = bool(vars.show_panel, true), showGuides = bool(vars.show_guides, true);
+var color = col(vars.color, "#26232b"), fieldC = col(vars.field_color, "#ffffff"), ringC = col(vars.ring_color, "#cbc5cf"), panelC = col(vars.panel_color, "#a800b7"), accentC = col(vars.accent_color, "#e8f99a"), bg = col(vars.background_color, "#f5f1f5");
+root.style.setProperty("--bg", bg);
+var W = root.clientWidth, H = root.clientHeight;
+var scale = Math.min(W / 1280, H / 720);
+scene.style.transform = "scale(" + scale + ")";
+var letters = typeof Intl !== "undefined" && Intl.Segmenter ? Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (x) { return x.segment; }) : Array.from(text);
+var END = Math.max(90, 54 + letters.length * fpc + 10);
+var total = Math.ceil((END + 18) / Math.max(0.01, speed));
+var curve = bez(0.22, 1, 0.36, 1);
+function tween(f, a, b, from, to) { return interp(f, [a, b], [from === undefined ? 0 : from, to === undefined ? 1 : to], curve); }
+function cross(parent, x, y, s) { return svgEl("path", { d: "M " + (x - s) + " " + y + " H " + (x + s) + " M " + x + " " + (y - s) + " V " + (y + s) }, parent); }
+// Construction circles.
+var circSvg = svgEl("svg", { class: "sr-svg", width: 1280, height: 720, viewBox: "-640 -360 1280 720", style: "left:0;top:0" }, scene);
+var circG = svgEl("g", { fill: "none", stroke: ringC, "stroke-width": 1 }, circSvg);
+var circles = [-1, 1].map(function (side) {
+  var g = svgEl("g", {}, circG);
+  var c = svgEl("circle", { cy: 0 }, g);
+  var crs = showGuides ? [-1, 1].map(function (edge) { return { edge: edge, el: cross(g, 0, 0, 6) }; }) : [];
+  return { side: side, c: c, crs: crs };
+});
+// Field group: tilted anchor with panel, guides and the search pill.
+var anchor = document.createElement("div"); anchor.className = "sr-anchor"; scene.appendChild(anchor);
+var panel = document.createElement("div"); panel.className = "sr-panel"; panel.style.background = panelC; if (showPanel) anchor.appendChild(panel);
+var psvg = svgEl("svg", { width: 844, height: 374, viewBox: "0 0 844 374", style: "position:absolute;left:50%;top:50%" }, panel);
+var g1 = svgEl("g", { fill: "none", stroke: fieldC }, psvg);
+for (var i = 0; i < 30; i++) svgEl("ellipse", { rx: 82 + i * 3, ry: 118, transform: "rotate(" + i * 6 + ")", "stroke-width": 1.4, opacity: 0.35 + i / 70 }, g1);
+var g2 = svgEl("g", { fill: accentC }, psvg);
+for (i = 0; i < 10; i++) svgEl("ellipse", { cy: -41, rx: 19, ry: 48, transform: "rotate(" + i * 36 + ")" }, g2);
+var g3 = svgEl("g", { fill: "none", stroke: accentC, "stroke-width": 22 }, psvg);
+svgEl("path", { d: "M -68 -115 V 80 M -122 -60 L -14 26 M -125 18 L -12 -61" }, g3);
+svgEl("circle", { cx: 103, cy: -35, r: 54 }, g3);
+var gsvg = svgEl("svg", { class: "sr-svg", width: 1280, height: 720, viewBox: "-640 -360 1280 720", style: "left:-640px;top:-360px" }, anchor);
+if (!showGuides) gsvg.style.display = "none";
+var gr = svgEl("g", { fill: "none", stroke: ringC, "stroke-width": 1 }, gsvg), guidePath = svgEl("path", {}, gr);
+var gk = svgEl("g", { fill: "none", stroke: color, "stroke-width": 1.5 }, gsvg);
+var gc1 = svgEl("path", {}, gk), gc2 = svgEl("path", {}, gk);
+var field = document.createElement("div"); field.className = "sr-field"; field.style.background = fieldC; field.style.color = color;
+var typed = document.createElement("div"); typed.className = "sr-typed";
+var typedText = document.createElement("span"), caret = document.createElement("span"); caret.className = "sr-caret"; caret.style.background = color;
+typed.appendChild(typedText); typed.appendChild(caret); field.appendChild(typed);
+var icon = svgEl("svg", { class: "sr-icon", width: 28, height: 28, viewBox: "0 0 28 28", fill: "none", stroke: ringC, "stroke-width": 1.5, "stroke-linecap": "round" }, field);
+svgEl("circle", { cx: 11.5, cy: 11.5, r: 7.5 }, icon); svgEl("path", { d: "m17 17 7 7" }, icon);
+anchor.appendChild(field);
+function crossD(x, y, s) { return "M " + (x - s) + " " + y + " H " + (x + s) + " M " + x + " " + (y - s) + " V " + (y + s); }
+function draw(frame) {
+  var t = frame * speed;
+  var typedCount = cl(Math.floor((t - 54) / fpc), 0, letters.length);
+  var reveal = showPanel ? tween(t, 56, 90) : 0;
+  var fw = tween(t, 26, 48, 130, fieldW), fh = tween(t, 26, 46, 24, 80);
+  var panelW = fw + (Math.max(774, fieldW + 170) - fw) * reveal, panelH = fh + (374 - fh) * reveal;
+  var circR = tween(t, 0, 26, 250, 410), circO = tween(t, 0, 26, 62, 185);
+  var iconO = tween(t, 34, 46), tilt = tween(t, 26, 47, -4, 0);
+  var fitted = Math.min(fontSizeV, (fw - 120) / Math.max(1, letters.length * 0.65));
+  circSvg.style.display = t < 26 ? "" : "none";
+  circles.forEach(function (c) {
+    setA(c.c, { cx: c.side * circO, r: circR });
+    c.crs.forEach(function (k) { k.el.setAttribute("d", crossD(c.side * circO + k.edge * circR, 0, 6)); });
+  });
+  anchor.style.display = t >= 26 ? "" : "none";
+  anchor.style.transform = "rotate(" + tilt + "deg)";
+  var mw = showPanel ? panelW : fw, mh = showPanel ? panelH : fh;
+  panel.style.left = -panelW / 2 + "px"; panel.style.top = -panelH / 2 + "px"; panel.style.width = panelW + "px"; panel.style.height = panelH + "px";
+  panel.style.borderRadius = 40 * (1 - reveal) + "px"; panel.style.opacity = tween(t, 56, 60);
+  psvg.style.transform = "translate(-50%,-50%) scale(" + (1.07 - reveal * 0.07) + ")";
+  g1.setAttribute("transform", "translate(310 -45) rotate(" + (-24 + 10 * reveal) + ")");
+  g2.setAttribute("transform", "translate(65 233) rotate(" + reveal * 25 + ")");
+  g3.setAttribute("transform", "translate(720 357) rotate(" + -18 * reveal + ")");
+  guidePath.setAttribute("d", "M " + mw / 2 + " " + (-mh / 2 - 14) + " V -360 M " + -mw / 2 + " " + (mh / 2 + 14) + " V 360");
+  gr.setAttribute("opacity", 0.5 * iconO);
+  gc1.setAttribute("d", crossD(-mw / 2, mh / 2, 9)); gc2.setAttribute("d", crossD(mw / 2, -mh / 2, 9));
+  field.style.left = -fw / 2 + "px"; field.style.top = -fh / 2 + "px"; field.style.width = fw + "px"; field.style.height = fh + "px"; field.style.fontSize = fitted + "px";
+  typed.style.maxWidth = fw - 116 + "px";
+  typedText.textContent = letters.slice(0, typedCount).join("");
+  caret.style.height = fitted * 1.12 + "px";
+  caret.style.opacity = t >= 52 && t < END && (typedCount < letters.length || Math.floor((t - 52) / 12) % 2 === 0) ? 1 : 0;
+  icon.style.opacity = iconO;
+}
+finish(drive(draw, Math.max(TOTAL, total)));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

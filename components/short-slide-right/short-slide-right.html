@@ -1,0 +1,160 @@
+<!doctype html>
+<!--
+  Short Slide Right
+
+  The whole phrase glides in from the left while words reveal in sequence through opacity.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/short-slide-right/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="short-slide-right"
+  data-composition-duration="2"
+  data-composition-variables='[
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Headline that glides in.", "default": "Move with intent." },
+    { "id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far left of its place the phrase starts.", "default": 24, "min": 0, "max": 120, "step": 1, "unit": "px" },
+    { "id": "stagger_delay", "type": "number", "role": "motion", "label": "Stagger", "description": "Frames between each word's fade (30 fps).", "default": 3, "min": 0, "max": 12, "step": 1, "unit": "frames" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Short Slide Right</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .ssr-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ssr-line { display: inline-block; letter-spacing: -0.03em; line-height: 1.1; white-space: nowrap; }
+        .ssr-word { display: inline-block; margin-right: 0.25em; opacity: 0; white-space: pre; }
+        .ssr-word:last-child { margin-right: 0; }
+      </style>
+
+      <div id="root" data-composition-id="short-slide-right" data-duration="2" data-fps="30">
+        <div id="ssr-clip" class="ssr-stage clip" data-start="0" data-duration="2" data-track-index="0">
+          <span id="ssr-line" class="ssr-line" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            gsap.registerPlugin(CustomEase);
+            function bz(id, a, b, c, d) {
+              return CustomEase.create("ssr-" + id, "M0,0 C" + a + "," + b + " " + c + "," + d + " 1,1");
+            }
+            // interpolate(frame, [a, b], [from, to], { easing }) as a tween (frames at 30 fps).
+            function tw(tl, el, from, to, a, b, ease, keep) {
+              var t = Object.assign({}, to, { duration: (b - a) / 30, ease: ease || "none", immediateRender: !keep });
+              tl.fromTo(el, from, t, a / 30);
+            }
+            // Shrink an element's font size so it fits a fraction of the frame width.
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            var TOTAL = parseFloat(root.dataset.duration || "2");
+            function finish(tl) {
+              if (tl.duration() < TOTAL) tl.to({}, { duration: TOTAL - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["short-slide-right"] = tl;
+            }
+            var text = str(vars.text, "Move with intent.");
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "600");
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+
+            var distance = num(vars.distance, 24, 0, 120);
+            var stagger = num(vars.stagger_delay, 3, 0, 12);
+            var line = document.getElementById("ssr-line");
+            line.style.fontWeight = weight;
+            line.setAttribute("aria-label", text);
+            var words = text.trim().split(/\s+/).map(function (w, i) {
+              var s = document.createElement("span");
+              s.id = "ssr-word-" + i;
+              s.className = "ssr-word";
+              s.textContent = w;
+              line.appendChild(s);
+              return s;
+            });
+            fit(line, num(vars.font_size, 72, 12, 160), 0.85);
+
+            var ease = bz("ease", 0.2, 0.8, 0.2, 1);
+            var tl = gsap.timeline({ paused: true });
+            tw(tl, line, { x: -distance }, { x: 0 }, 0, 8, ease);
+            tw(tl, line, { filter: "blur(1.2px)" }, { filter: "blur(0px)" }, 0, 16, ease);
+            words.forEach(function (w, i) {
+              tw(tl, w, { opacity: 0 }, { opacity: 1 }, i * stagger, i * stagger + 6, ease);
+            });
+            finish(tl);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

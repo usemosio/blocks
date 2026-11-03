@@ -1,0 +1,83 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "iris-wipe",
+  "type": "hyperframes:component",
+  "title": "Iris Wipe",
+  "description": "A classic iris: the outgoing scene closes to a small dot on a solid color, then the incoming scene opens from the same point. Built-in placeholder scenes A and B (the two .irw-panel elements) make it preview on its own; to use it between your own scenes, replace the contents of those two panels with your scenes (or set them to your full-frame clips) and keep the block on a track above.",
+  "tags": [
+    "transition",
+    "iris",
+    "circle",
+    "wipe",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 1.2,
+  "useWhen": [
+    "A retro, cartoon or film-style scene change that closes one scene and opens the next.",
+    "Drawing the eye to a specific point (set the center) between two scenes."
+  ],
+  "avoidWhen": [
+    "The tone is modern and minimal: use a fade or slide.",
+    "The iris color would clash with both scenes."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/iris-wipe/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "iris-wipe.html",
+      "target": "compositions/components/iris-wipe.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Fill shown outside the iris while it is closed.",
+      "default": "#000000"
+    },
+    {
+      "id": "center_x",
+      "type": "number",
+      "role": "layout",
+      "label": "Center X",
+      "description": "Horizontal iris center, 0 to 1.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "center_y",
+      "type": "number",
+      "role": "layout",
+      "label": "Center Y",
+      "description": "Vertical iris center, 0 to 1.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "hold_radius",
+      "type": "number",
+      "role": "motion",
+      "label": "Hold radius",
+      "description": "Radius of the held dot as a percentage of the frame diagonal.",
+      "default": 12,
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "%"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "gradient-scale-cut-text",
+  "type": "hyperframes:component",
+  "title": "Gradient Scale Cut Text",
+  "description": "An oversized gradient reveal snaps to a compact blurred line that settles into focus.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "gradient",
+    "title",
+    "cut",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 1.2,
+  "useWhen": [
+    "A title should begin at an imposing scale and resolve through a deliberately abrupt editorial cut.",
+    "A gradient reveal needs to continue across two very different framings."
+  ],
+  "avoidWhen": [
+    "The scale change must feel continuous: use scale-down-fade or zoom-words.",
+    "The text should stay one size while a gradient passes over it: use shimmer-sweep."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/gradient-scale-cut-text/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "gradient-scale-cut-text.html",
+      "target": "compositions/components/gradient-scale-cut-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Title that is revealed at giant scale, then cut to compact.", "default": "Introducing" },
+    { "id": "giant_font_size", "type": "number", "role": "style", "label": "Giant font size", "description": "Type size of the first, oversized framing, in px at a 1920 px wide frame.", "default": 520, "min": 160, "max": 720, "step": 1, "unit": "px" },
+    { "id": "compact_font_size", "type": "number", "role": "style", "label": "Compact font size", "description": "Type size after the cut, in px at a 1920 px wide frame.", "default": 132, "min": 40, "max": 240, "step": 1, "unit": "px" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}] },
+    { "id": "gradient_start", "type": "color", "role": "style", "label": "Gradient start", "description": "Color at the leading edge of the gradient.", "default": "#f04a14" },
+    { "id": "gradient_end", "type": "color", "role": "style", "label": "Gradient end", "description": "Color the gradient settles into.", "default": "#f3f1f1" },
+    { "id": "ghost_color", "type": "color", "role": "style", "label": "Ghost color", "description": "Color of the unrevealed text.", "default": "#170b0a" },
+    { "id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Color of the field behind the text.", "default": "#000000" },
+    { "id": "anchor_offset_x", "type": "number", "role": "motion", "label": "Anchor offset", "description": "Horizontal offset of the text from the center.", "default": -16, "min": -400, "max": 400, "step": 1, "unit": "px" },
+    { "id": "giant_travel", "type": "number", "role": "motion", "label": "Giant travel", "description": "How far the giant framing drifts left before the cut.", "default": 400, "min": 0, "max": 800, "step": 1, "unit": "px" },
+    { "id": "settle_travel", "type": "number", "role": "motion", "label": "Settle travel", "description": "How far right of its place the compact line starts.", "default": 160, "min": 0, "max": 400, "step": 1, "unit": "px" },
+    { "id": "cut_frame", "type": "number", "role": "motion", "label": "Cut frame", "description": "Frame of the cut from giant to compact (30 fps).", "default": 13, "min": 4, "max": 24, "step": 1, "unit": "frames" },
+    { "id": "reveal_softness", "type": "number", "role": "style", "label": "Reveal softness", "description": "Softness of the reveal edge, in percent of the line.", "default": 14, "min": 0, "max": 40, "step": 1, "unit": "%" },
+    { "id": "compact_blur", "type": "number", "role": "motion", "label": "Compact blur", "description": "Blur in pixels the compact line starts with.", "default": 12, "min": 0, "max": 40, "step": 1, "unit": "px" }
+  ]
+}

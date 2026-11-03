@@ -1,0 +1,313 @@
+<!doctype html>
+<!--
+  Lens Zoom
+
+  A fast fisheye lens push: the outgoing scene bulges and zooms into the lens with motion blur, a camera shake and a slight color fringe, then the incoming scene unwinds out of the same lens.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/lens-zoom/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="lens-zoom"
+  data-composition-duration="0.9333"
+  data-composition-variables='[
+  {
+    "id": "lens_steps",
+    "type": "number",
+    "role": "style",
+    "label": "Lens steps",
+    "description": "Rings used to approximate the fisheye bulge. More is smoother but heavier.",
+    "default": 9,
+    "min": 4,
+    "max": 32,
+    "step": 1
+  },
+  {
+    "id": "blur_samples",
+    "type": "number",
+    "role": "style",
+    "label": "Blur samples",
+    "description": "Copies blended for the motion blur at full strength.",
+    "default": 7,
+    "min": 2,
+    "max": 32,
+    "step": 1
+  },
+  {
+    "id": "shake_amount",
+    "type": "number",
+    "role": "motion",
+    "label": "Shake amount",
+    "description": "Strength of the camera shake, in percent.",
+    "default": 50,
+    "min": 0,
+    "max": 300,
+    "step": 5,
+    "unit": "%"
+  },
+  {
+    "id": "shake_translate_px",
+    "type": "number",
+    "role": "motion",
+    "label": "Shake travel",
+    "description": "Largest shake offset in pixels.",
+    "default": 73,
+    "min": 0,
+    "max": 80,
+    "step": 1,
+    "unit": "px"
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lens Zoom</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+
+        #root { background: #141318; }
+        .lz-stage { position: absolute; inset: 0; }
+        .lz-panel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .lz-in { display: flex; flex-direction: column; align-items: center; gap: 2.4cqmin; }
+        .lz-in span { font-size: 9cqmin; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #f2f2f2; white-space: nowrap; }
+        .lz-bar { display: block; width: 14cqmin; height: 0.8cqmin; border-radius: 1cqmin; background: rgba(242, 242, 242, 0.55); }
+        .lz-pa { background: #141318; }
+        .lz-pb { background: linear-gradient(135deg, #3b3699 0%, #1e2a6b 55%, #0f4c75 100%); }
+        .lz-pc { background: linear-gradient(135deg, #7a2f5f 0%, #3a2250 55%, #1c1b3f 100%); }
+
+        .lz-stage { position: absolute; inset: 0; overflow: hidden; background: #000; }
+        .lz-shake, .lz-comp, .lz-ch { position: absolute; inset: 0; }
+        .lz-comp { background: #000; }
+        .lz-ch { mix-blend-mode: screen; }
+        .lz-svg { position: absolute; width: 0; height: 0; }
+
+      </style>
+
+      <div id="root" data-composition-id="lens-zoom" data-duration="0.9333" data-fps="30">
+        <div id="lz-clip" class="lz-stage clip" data-start="0" data-duration="0.9333" data-track-index="0">
+          <div id="lz-src" style="display:none"><div id="lz-a" class="lz-panel lz-pa"><div class="lz-in"><span>Scene A</span><i class="lz-bar"></i></div></div>
+          <div id="lz-b" class="lz-panel lz-pb"><div class="lz-in"><span>Scene B</span><i class="lz-bar"></i></div></div></div>
+          <svg class="lz-svg" aria-hidden="true"><defs>
+            <filter id="lz-fr" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" /></filter>
+            <filter id="lz-fg" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" /></filter>
+            <filter id="lz-fb" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" /></filter>
+          </defs></svg>
+          <div id="lz-shake" class="lz-shake"><div id="lz-comp" class="lz-comp">
+            <div id="lz-ch-r" class="lz-ch"></div><div id="lz-ch-g" class="lz-ch"></div><div id="lz-ch-b" class="lz-ch"></div>
+          </div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        
+        <script>
+          (function () {
+            "use strict";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v.trim() : f; }
+function pick(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smooth(a, b, x) { var t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); }
+// cubic-bezier easing, solved by bisection (pure function of x)
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    var lo = 0, hi = 1, t = x;
+    for (var i = 0; i < 28; i++) {
+      var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+      if (cx < x) lo = t; else hi = t;
+      t = (lo + hi) / 2;
+    }
+    return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+  };
+}
+var inOutEase = bez(0.42, 0, 0.58, 1);
+function inCubic(x) { return x * x * x; }
+function outCubic(x) { return 1 - Math.pow(1 - x, 3); }
+function inQuad(x) { return x * x; }
+function outQuad(x) { return 1 - (1 - x) * (1 - x); }
+function outBack(s) { return function (x) { return 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2); }; }
+// interpolate(p, inputs, outputs, ease): clamped, eased per segment (like Remotion's interpolate)
+function interp(p, xs, ys, ease) {
+  var n = xs.length;
+  if (p <= xs[0]) return ys[0];
+  if (p >= xs[n - 1]) return ys[n - 1];
+  for (var i = 1; i < n; i++) {
+    if (p <= xs[i]) {
+      var t = (p - xs[i - 1]) / (xs[i] - xs[i - 1]);
+      if (ease) t = ease(t);
+      return lerp(ys[i - 1], ys[i], t);
+    }
+  }
+  return ys[n - 1];
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// damped spring from 0 to 1 (zero initial velocity), t in seconds
+function spring(t, damping, stiffness, mass) {
+  if (t <= 0) return 0;
+  var w0 = Math.sqrt(stiffness / mass), z = damping / (2 * Math.sqrt(stiffness * mass));
+  if (Math.abs(z - 1) < 1e-4) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+  }
+  var s = Math.sqrt(z * z - 1), r1 = -w0 * (z - s), r2 = -w0 * (z + s);
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+function stripIds(node) {
+  var all = node.querySelectorAll("[id]");
+  for (var i = 0; i < all.length; i++) all[i].removeAttribute("id");
+  node.removeAttribute("id");
+  return node;
+}
+function drive(name, duration, frame) {
+  var st = { p: 0 };
+  frame(0);
+  var tl = gsap.timeline({ paused: true });
+  tl.to(st, { p: 1, duration: duration, ease: "none", onUpdate: function () { frame(st.p); } }, 0);
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[name] = tl;
+}
+
+            var D = 0.9333;
+
+var lensSteps = Math.round(num(vars.lens_steps, 9, 4, 32)), blurSamples = Math.round(num(vars.blur_samples, 7, 2, 32));
+var shakeAmount = num(vars.shake_amount, 50, 0, 300), shakeTravel = num(vars.shake_translate_px, 73, 0, 80);
+var W = root.clientWidth, H = root.clientHeight, cx = W / 2, cy = H / 2, origin = cx + "px " + cy + "px";
+var srcA = document.getElementById("lz-a"), srcB = document.getElementById("lz-b");
+var shakeEl = document.getElementById("lz-shake");
+var chans = [["r", 1.01], ["g", 1], ["b", 0.99]].map(function (c) {
+  var el = document.getElementById("lz-ch-" + c[0]);
+  el.style.filter = "url(#lz-f" + c[0] + ")"; el.style.scale = c[1]; el.style.transformOrigin = origin;
+  return el;
+});
+var easeIn = bez(0.54, 0, 0.82, 0.8), easeOut = bez(0.18, 0.2, 0.46, 1);
+function hashed(seed, i) {
+  var t = Math.imul(i ^ seed, 0x27d4eb2d); t ^= t >>> 15; t = Math.imul(t, 0x85ebca6b); t ^= t >>> 13;
+  return ((t >>> 0) / 4294967296) * 2 - 1;
+}
+function valueNoise(seed, t) {
+  var i = Math.floor(t), f = t - i, u = f * f * (3 - 2 * f);
+  return hashed(seed, i) * (1 - u) + hashed(seed, i + 1) * u;
+}
+function magnification(r, fov) {
+  if (fov < 0.01) return 1;
+  var theta = Math.min(fov, 178) / 2 * Math.PI / 180, peak = Math.tan(theta) / theta;
+  if (r <= 0) return peak;
+  var a = r * theta;
+  if (a >= Math.PI / 2 - 1e-3) return 1;
+  var rs = Math.tan(a) / Math.tan(theta);
+  if (rs <= 1e-6) return peak;
+  return Math.max(1, r / rs);
+}
+function radiusFor(target, fov) {
+  var lo = 0, hi = 1;
+  for (var i = 0; i < 24; i++) { var mid = (lo + hi) / 2; if (magnification(mid, fov) > target) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+function circle(r, cw) {
+  var s = cw ? 1 : 0;
+  return "M " + (cx + r) + " " + cy + " A " + r + " " + r + " 0 1 " + s + " " + (cx - r) + " " + cy + " A " + r + " " + r + " 0 1 " + s + " " + (cx + r) + " " + cy + " Z";
+}
+function ring(rin, rout) {
+  var outer = rout === null ? "M 0 0 L " + W + " 0 L " + W + " " + H + " L 0 " + H + " Z" : circle(rout, true);
+  return rin > 0 ? outer + " " + circle(rin, false) : outer;
+}
+function buildHalf(src, scale, fov, blur, rot) {
+  var wrap = document.createElement("div");
+  wrap.style.cssText = "position:absolute;inset:0";
+  var base = scale / 100, peak = magnification(0, fov), steps = peak <= 1.001 ? 0 : lensSteps, rings = [];
+  for (var i = 0; i < steps; i++) { var s = 1 + (peak - 1) * (i + 0.5) / steps; rings.push({ s: s, r: radiusFor(s, fov) }); }
+  var samples = blur <= 0.05 ? 1 : Math.max(2, Math.round(blurSamples * blur / 60)), weights = [];
+  for (var j = 0; j < samples; j++) weights.push(Math.pow(1 - j / samples, 1.5));
+  var running = 0;
+  for (var jj = samples - 1; jj >= 0; jj--) {
+    running += weights[jj];
+    var g = samples === 1 ? 1 : 1 + (blur / 100) * (jj / (samples - 1)), hw = W / 2 * g;
+    var grp = document.createElement("div");
+    grp.style.cssText = "position:absolute;inset:0;opacity:" + (weights[jj] / running);
+    var copies = [{ clip: ring(rings.length ? rings[0].r * hw : 0, null), k: g * base }];
+    for (var q = 0; q < rings.length; q++) {
+      copies.push({ clip: ring(q + 1 < rings.length ? rings[q + 1].r * hw : 0, rings[q].r * hw), k: g * rings[q].s * base });
+    }
+    for (var c = 0; c < copies.length; c++) {
+      var d = document.createElement("div");
+      d.style.cssText = "position:absolute;inset:0;clip-path:path('" + copies[c].clip + "');transform-origin:" + origin + ";rotate:" + rot + "deg;scale:" + copies[c].k;
+      d.appendChild(stripIds(src.cloneNode(true)));
+      grp.appendChild(d);
+    }
+    wrap.appendChild(grp);
+  }
+  return wrap;
+}
+function frame(p) {
+  var exiting = p < 0.5;
+  var pp = exiting ? interp(p, [0, 0.5], [0, 1], easeIn) : interp(p, [0.5, 1], [0, 1], easeOut);
+  function L(a, b) { return a + (b - a) * pp; }
+  var scale = exiting ? L(100, 150) : L(135, 100), fov = exiting ? L(0, 160) : L(135, 0);
+  var blur = exiting ? L(0, 60) : L(45, 0), rot = exiting ? L(0, -15) : L(345, 360);
+  var env = interp(p, [0.0909, 0.3636, 0.6818, 0.9091], [0, shakeAmount, shakeAmount, 0]) / 100;
+  var tt = p * D * 1.4 * 8;
+  function oct(seed) { return valueNoise(seed, tt) + 0.45 * valueNoise(seed + 977, tt * 2.6); }
+  shakeEl.style.translate = oct(11) * shakeTravel * env + "px " + oct(23) * shakeTravel * env + "px";
+  shakeEl.style.rotate = oct(41) * 1.1 * env + "deg";
+  shakeEl.style.transformOrigin = origin;
+  var core = buildHalf(exiting ? srcA : srcB, scale, fov, blur, rot);
+  chans[0].replaceChildren(core);
+  chans[1].replaceChildren(core.cloneNode(true));
+  chans[2].replaceChildren(core.cloneNode(true));
+}
+
+            drive("lens-zoom", D, frame);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

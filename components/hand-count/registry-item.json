@@ -1,0 +1,58 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hand-count",
+  "type": "hyperframes:component",
+  "title": "Hand Count",
+  "description": "A number that counts up in stop-motion poses, rewritten by hand at every pose.",
+  "tags": [
+    "numbers",
+    "counter",
+    "handwriting",
+    "stop-motion",
+    "paper",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A stat, price, or count belongs in a hand-made scene: the number should arrive by being written, not by rolling.",
+    "A paper pricing reveal or year-in-review needs its figure in the same voice as the rest of the shot.",
+    "A unit or currency should be written in the same hand as the digits: prefix and suffix jitter along with them."
+  ],
+  "avoidWhen": [
+    "The scene is a slick product UI or a dashboard metric: use rolling-number or number-wheel.",
+    "You need per-digit odometer choreography: that is number-wheel's job.",
+    "You need locale grouping separators (1,000) or full currency formatting; prefix and decimals are the whole surface here."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/hand-count/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "hand-count.html",
+      "target": "compositions/components/hand-count.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "to", "type": "number", "role": "content", "label": "Count to", "description": "Final number.", "default": 1284, "min": 0, "max": 10000, "step": 1},
+    {"id": "from", "type": "number", "role": "content", "label": "Count from", "description": "Starting number.", "default": 0, "min": 0, "max": 1000, "step": 1},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Frames before counting starts (30 fps).", "default": 0, "min": 0, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "duration_steps", "type": "number", "role": "motion", "label": "Poses counting", "description": "Stop-motion poses the count takes.", "default": 18, "min": 2, "max": 24, "step": 1},
+    {"id": "decimals", "type": "number", "role": "content", "label": "Decimals", "description": "Digits after the decimal point.", "default": 0, "min": 0, "max": 2, "step": 1},
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Written before the number, for example Rp.", "default": ""},
+    {"id": "suffix", "type": "string", "role": "content", "label": "Suffix", "description": "Written after the number, for example %.", "default": ""},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Wider numbers shrink to fit.", "default": 96, "min": 32, "max": 300, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Ink color.", "default": "#26242c"},
+    {"id": "weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the handwriting.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "ease", "type": "enum", "role": "motion", "label": "Ease", "description": "Pacing of the count.", "default": "in-out", "options": [{"value": "in-out", "label": "In-out"}, {"value": "out", "label": "Out"}, {"value": "linear", "label": "Linear"}]},
+    {"id": "align", "type": "enum", "role": "style", "label": "Align", "description": "Where the number sits.", "default": "center", "options": [{"value": "center", "label": "Center"}, {"value": "left", "label": "Left"}]},
+    {"id": "seed", "type": "string", "role": "style", "label": "Seed", "description": "Any text; changes the per-pose wobble.", "default": "count"},
+    {"id": "step", "type": "number", "role": "motion", "label": "Frames per pose", "description": "Stop-motion clock, in frames at 30 fps.", "default": 3, "min": 1, "max": 6, "step": 1, "unit": "frames"}
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ink-arrow",
+  "type": "hyperframes:component",
+  "title": "Ink Arrow",
+  "description": "A hand-drawn arrow that draws itself from one point to another in stop-motion poses.",
+  "tags": [
+    "arrow",
+    "hand-drawn",
+    "annotation",
+    "stop-motion",
+    "callout",
+    "remocn-port"
+  ],
+  "category": "paper",
+  "duration": 5,
+  "useWhen": [
+    "A hand-drawn annotation should point from one thing to another: callouts over paper or scrapbook scenes.",
+    "The pointing itself is part of the story and should be seen being drawn, pose by pose."
+  ],
+  "avoidWhen": [
+    "You need a straight technical connector or a diagram edge: this is a wobbly pen line with a personality.",
+    "The arrow must follow another element's live position: the endpoints are fixed in the layout."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/ink-arrow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ink-arrow.html",
+      "target": "compositions/components/ink-arrow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"label","type":"string","role":"content","label":"Label","description":"Text the arrow starts from.","default":"Start here"},
+    {"id":"card_title","type":"string","role":"content","label":"Card title","description":"Large line on the card the arrow points at.","default":"The thing it points at"},
+    {"id":"card_subtitle","type":"string","role":"content","label":"Card subtitle","description":"Small line on the card.","default":"Positioned by you, drawn by the pen"},
+    {"id":"curvature","type":"number","role":"motion","label":"Curvature","description":"How much the shaft bows; negative bends the other way.","default":0.35,"min":-1,"max":1,"step":0.05},
+    {"id":"stroke_width","type":"number","role":"style","label":"Brush width","description":"Width of the pen stroke.","default":8,"min":2,"max":24,"step":1,"unit":"px"},
+    {"id":"pressure","type":"number","role":"motion","label":"Opening pressure","description":"Stroke width at the start, as a fraction of the brush width.","default":0.2,"min":0.05,"max":1,"step":0.05},
+    {"id":"release","type":"number","role":"motion","label":"Closing pressure","description":"Stroke width at the end, as a fraction of the brush width.","default":1,"min":0.05,"max":1,"step":0.05},
+    {"id":"grain","type":"number","role":"style","label":"Grain","description":"How rough the ink edge is.","default":1,"min":0,"max":2,"step":0.1},
+    {"id":"head_size","type":"number","role":"style","label":"Head size","description":"Length of the arrow head strokes.","default":24,"min":8,"max":48,"step":1,"unit":"px"},
+    {"id":"draw_dur","type":"number","role":"motion","label":"Draw frames","description":"Frames (30 fps) the shaft takes to draw.","default":36,"min":12,"max":90,"step":1,"unit":"frames"},
+    {"id":"head_dur","type":"number","role":"motion","label":"Head frames","description":"Frames (30 fps) the arrow head takes to draw.","default":12,"min":4,"max":48,"step":1,"unit":"frames"},
+    {"id":"color","type":"color","role":"style","label":"Ink color","description":"Ink and text color.","default":"#26242c"},
+    {"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the hand-drawn wobble.","default":"arrow"},
+    {"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each drawing pose is held.","default":3,"min":1,"max":6,"step":1,"unit":"frames"}
+  ]
+}

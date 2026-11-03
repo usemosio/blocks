@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "centered-word-build",
+  "type": "hyperframes:component",
+  "title": "Centered Word Build",
+  "description": "Words appear sharply from below while the centered phrase pushes closer on every beat.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "words",
+    "camera",
+    "beat",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.5,
+  "useWhen": [
+    "A short statement should assemble one word at a time while every visible prefix stays centered and pushes closer.",
+    "Beat-synced typography where words appear sharply but still travel up into place."
+  ],
+  "avoidWhen": [
+    "Each new word should drive the existing line aside: use word-push.",
+    "Words should replace one another in the same fixed slot: use per-word-crossfade."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/centered-word-build/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "centered-word-build.html",
+      "target": "compositions/components/centered-word-build.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short statement assembled one word at a time.", "default": "everything we learn from" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 52, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#fff3df" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] },
+    { "id": "word_gap", "type": "number", "role": "motion", "label": "Word gap", "description": "Frames before the second and third words (30 fps).", "default": 11, "min": 4, "max": 24, "step": 1, "unit": "frames" },
+    { "id": "accel", "type": "number", "role": "motion", "label": "Acceleration", "description": "Each later gap is this fraction of the previous one.", "default": 0.75, "min": 0.4, "max": 1, "step": 0.05 },
+    { "id": "rise", "type": "number", "role": "motion", "label": "Rise", "description": "How far below its place each word starts, in font sizes.", "default": 0.18, "min": 0, "max": 0.5, "step": 0.01 },
+    { "id": "zoom_step", "type": "number", "role": "motion", "label": "Zoom step", "description": "Extra scale the camera pushes in on every new word.", "default": 0.035, "min": 0, "max": 0.1, "step": 0.005 },
+    { "id": "settle_frames", "type": "number", "role": "motion", "label": "Settle frames", "description": "Frames each word takes to settle (30 fps).", "default": 9, "min": 2, "max": 20, "step": 1, "unit": "frames" },
+    { "id": "exit_at", "type": "number", "role": "motion", "label": "Exit at", "description": "Frame where the soft left-to-right wipe starts (30 fps).", "default": 51, "min": 20, "max": 100, "step": 1, "unit": "frames" },
+    { "id": "exit_frames", "type": "number", "role": "motion", "label": "Exit frames", "description": "Frames the exit wipe takes.", "default": 12, "min": 4, "max": 30, "step": 1, "unit": "frames" }
+  ]
+}

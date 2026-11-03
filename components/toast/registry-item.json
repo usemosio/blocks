@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "toast",
+  "type": "hyperframes:component",
+  "title": "Toast",
+  "description": "A notification that slides in from below after a button click, holds, then auto-dismisses.",
+  "tags": [
+    "ui",
+    "toast",
+    "notification",
+    "cursor",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 5.5,
+  "useWhen": [
+    "Showing a success or error notification after an action (form submit, save, API call).",
+    "Ending a flow with a confirmation sliding in.",
+    "Demonstrating auto-dismiss feedback with a hidden, visible, hidden sequence."
+  ],
+  "avoidWhen": [
+    "The feedback is persistent and must not auto-dismiss: use a banner or inline alert.",
+    "You need a blocking confirmation with actions: use alert-dialog.",
+    "You need a persistent side panel: use sheet."
+  ],
+  "checkAt": [
+    0.5,
+    1.8,
+    3.2,
+    5.2
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/toast/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "toast.html",
+      "target": "compositions/components/toast.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Toast heading.", "default": "Changes saved"},
+    {"id": "description", "type": "string", "role": "content", "label": "Description", "description": "Second line. Leave empty for a one-line toast.", "default": "Your profile has been updated."},
+    {"id": "variant", "type": "enum", "role": "style", "label": "Variant", "description": "Icon and tone of the toast.", "default": "success", "options": [{"value": "success", "label": "Success"}, {"value": "default", "label": "Default"}, {"value": "error", "label": "Error"}]},
+    {"id": "button_label", "type": "string", "role": "content", "label": "Button label", "description": "Label of the button the cursor clicks.", "default": "Show toast"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

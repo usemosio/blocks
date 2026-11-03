@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rolling-number",
+  "type": "hyperframes:component",
+  "title": "Rolling Number",
+  "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
+  "tags": [
+    "numbers",
+    "odometer",
+    "counter",
+    "data",
+    "stats",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "Animating a large integer metric on a stats or milestone slide (revenue, signups, impressions).",
+    "Each digit place should animate independently so the viewer can read the number building up.",
+    "The from and to values are pure numbers with no currency symbol or unit."
+  ],
+  "avoidWhen": [
+    "The value has a prefix or suffix like $99 or 1.2M: use slot-machine-roll.",
+    "The change is small or decorative and wants a playful reel feel.",
+    "The value is a small integer or counts down: use number-wheel."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/rolling-number/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "rolling-number.html",
+      "target": "compositions/components/rolling-number.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "from", "type": "number", "role": "content", "label": "From", "description": "Starting number.", "default": 0, "min": 0, "max": 999999999, "step": 1},
+    {"id": "to", "type": "number", "role": "content", "label": "To", "description": "Target number.", "default": 24813, "min": 0, "max": 999999999, "step": 1},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Wide numbers shrink to fit the frame.", "default": 120, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Digit color.", "default": "#171717"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier for the roll.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

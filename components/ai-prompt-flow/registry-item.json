@@ -1,0 +1,58 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ai-prompt-flow",
+  "type": "hyperframes:component",
+  "title": "AI Prompt Flow",
+  "description": "A full prompt-to-answer scene: the prompt types itself, the button runs to loading, a skeleton shimmers, the answer crossfades in and a toast confirms.",
+  "tags": [
+    "ui",
+    "flow",
+    "ai",
+    "prompt",
+    "typing",
+    "loading",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 8,
+  "useWhen": [
+    "Demoing an AI product's whole prompt-to-answer experience in one self-contained scene.",
+    "Showing the generation lifecycle end to end: typing, loading, answer reveal, confirmation toast.",
+    "A product walkthrough needs a polished AI workflow beat with no custom timing work."
+  ],
+  "avoidWhen": [
+    "You only need a button press with a loading state: use button.",
+    "You only need a field that types: use input.",
+    "You need custom orchestration across scenes: compose the primitives yourself."
+  ],
+  "checkAt": [
+    1.0,
+    2.6,
+    4.2,
+    6.4
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/ai-prompt-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ai-prompt-flow.html",
+      "target": "compositions/components/ai-prompt-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "prompt", "type": "string", "role": "content", "label": "Prompt", "description": "Text typed into the prompt field.", "default": "Summarize this thread"},
+    {"id": "button_label", "type": "string", "role": "content", "label": "Button label", "description": "Label of the submit button.", "default": "Generate"},
+    {"id": "answer_lines", "type": "string", "role": "content", "label": "Answer lines", "description": "JSON array of answer lines revealed at the end.", "default": "[\"The thread debates the Q3 roadmap: ship the editor first,\", \"defer billing to Q4, and pull the migration forward so\", \"infra is unblocked before the team scales next quarter.\"]"},
+    {"id": "toast_title", "type": "string", "role": "content", "label": "Toast title", "description": "Heading of the confirmation toast.", "default": "Response ready"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

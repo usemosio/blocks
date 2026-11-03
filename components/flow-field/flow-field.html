@@ -1,0 +1,253 @@
+<!doctype html>
+<!--
+  Flow Field
+
+  Hundreds of particles ride a seeded, slowly changing vector field and leave fine fading trails, as a seamless loop.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/flow-field/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="flow-field"
+  data-composition-duration="10"
+  data-composition-variables='[
+    {"id": "particles", "type": "number", "role": "style", "label": "Particles", "description": "Number of particles in flight.", "default": 300, "min": 50, "max": 800, "step": 10},
+    {"id": "trail_length", "type": "number", "role": "style", "label": "Trail length", "description": "Trail length in frames.", "default": 72, "min": 8, "max": 120, "step": 1, "unit": "frames"},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Stroke width", "description": "Trail width in pixels at 720p.", "default": 1.4, "min": 0.5, "max": 4, "step": 0.1, "unit": "px"},
+    {"id": "accent_ratio", "type": "number", "role": "style", "label": "Accent share", "description": "Share of trails drawn in the accent color.", "default": 0.1, "min": 0, "max": 1, "step": 0.05},
+    {"id": "loop_frames", "type": "number", "role": "motion", "label": "Loop frames", "description": "Frames for one seamless loop of the field. The component lasts 10 s, so 300 loops once.", "default": 300, "min": 120, "max": 600, "step": 30, "unit": "frames"},
+    {"id": "seed", "type": "number", "role": "style", "label": "Seed", "description": "Changes the field and where the particles start.", "default": 1, "min": 1, "max": 50, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the simulation.", "default": 1, "min": 0.1, "max": 4, "step": 0.1},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background color.", "default": "#111111"},
+    {"id": "color", "type": "color", "role": "style", "label": "Trails", "description": "Trail color.", "default": "#FFFFFF"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Accent trail color.", "default": "#E5322D"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flow Field</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #111111; }
+        .ff-stage { position: absolute; inset: 0; }
+        .ff-stage svg { display: block; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="flow-field" data-duration="10" data-fps="30">
+        <div id="ff-clip" class="ff-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <svg id="ff-svg" role="img" aria-label="Flow field"></svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (typeof value === "boolean") return value;
+              if (value === "true") return true;
+              if (value === "false") return false;
+              return fallback;
+            }
+            var FPS = 30;
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+
+            // Seeded random in [0, 1): a string hash, so the same key always gives the same value.
+            function rnd(key) {
+              var h = 1779033703 ^ key.length;
+              for (var i = 0; i < key.length; i++) {
+                h = Math.imul(h ^ key.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+              }
+              h = Math.imul(h ^ (h >>> 16), 2246822507);
+              h = Math.imul(h ^ (h >>> 13), 3266489909);
+              h ^= h >>> 16;
+              return (h >>> 0) / 4294967296;
+            }
+
+            function fmt(n) { return Math.round(n * 10) / 10; }
+
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function el(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            // Runs draw(frame) from the timeline so seeking to a time always draws the same picture.
+            function drive(frames, draw) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+              draw(0);
+            }
+
+            var particles = Math.round(num(vars.particles, 300, 50, 800));
+            var trailLength = num(vars.trail_length, 72, 8, 120);
+            var strokeWidth = num(vars.stroke_width, 1.4, 0.5, 4);
+            var accentRatio = num(vars.accent_ratio, 0.1, 0, 1);
+            var loop = Math.round(num(vars.loop_frames, 300, 120, 600));
+            var seed = Math.round(num(vars.seed, 1, 1, 50));
+            var speed = num(vars.speed, 1, 0.1, 4);
+            root.style.background = str(vars.background, "#111111");
+            var color = str(vars.color, "#FFFFFF");
+            var accent = str(vars.accent, "#E5322D");
+
+            var TAU = Math.PI * 2, WAVES = 4, STEP = 0.0042, BUCKETS = 6, LIFE_FRAMES = 150;
+            function r(key) { return rnd("flow-field-" + seed + "-" + key); }
+            var base = r("base") * TAU, waves = [];
+            for (var k = 0; k < WAVES; k++) {
+              waves.push({
+                fx: (r("fx" + k) * 2 - 1) * (0.9 + k * 0.8),
+                fy: (r("fy" + k) * 2 - 1) * (0.9 + k * 0.8),
+                phase: r("ph" + k) * TAU,
+                drift: 0.6 + r("dr" + k) * 0.9,
+                amp: 1.6 / (1 + k * 1.4)
+              });
+            }
+            // Flow angle at (x, y); tau walks once around a circle per loop, so the end matches the start.
+            function field(x, y, tau) {
+              var a = base;
+              for (var i = 0; i < WAVES; i++) {
+                var w = waves[i];
+                a += w.amp * Math.sin(w.fx * x + w.fy * y + w.phase + w.drift * Math.sin(tau + w.phase));
+              }
+              return a;
+            }
+
+            var svg = document.getElementById("ff-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var unit = Math.min(W, H), spanX = W / unit, spanY = H / unit;
+            var sw = (strokeWidth * unit) / 720;
+            var layers = {};
+            ["color", "accent"].forEach(function (name) {
+              var g = el("g", { fill: "none", stroke: name === "color" ? color : accent, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+              layers[name] = [];
+              for (var b = 0; b < BUCKETS; b++) {
+                layers[name].push(el("path", {
+                  "stroke-opacity": 0.9 * Math.pow(1 - b / BUCKETS, 1.4),
+                  "stroke-width": sw * (1 - (b / BUCKETS) * 0.5)
+                }, g));
+              }
+            });
+
+            var lives = Math.max(1, Math.round(loop / LIFE_FRAMES));
+            var life = loop / lives;
+            var trail = Math.max(2, Math.min(trailLength, life * 0.6));
+            var travel = life - trail;
+            var offsets = [], isAccent = [];
+            for (var p = 0; p < particles; p++) {
+              offsets.push(r("off-" + p) * life);
+              isAccent.push(r("accent-" + p) < accentRatio);
+            }
+            var pts = [];
+
+            function draw(frame) {
+              var time = frame * speed;
+              var paths = { color: [], accent: [] };
+              for (var b = 0; b < BUCKETS; b++) { paths.color.push(""); paths.accent.push(""); }
+              for (var i = 0; i < particles; i++) {
+                var local = time + offsets[i];
+                var cycle = Math.floor(local / life);
+                var age = local - cycle * life;
+                // The head moves for `travel` frames, then stops while the tail catches up.
+                var head = Math.min(age, travel);
+                var tail = Math.max(0, age - trail);
+                if (head - tail < 0.05) continue;
+                var slot = ((cycle % lives) + lives) % lives;
+                var key = "p" + i + "-c" + slot;
+                var x = -0.08 + r(key + "-x") * (spanX + 0.16);
+                var y = -0.08 + r(key + "-y") * (spanY + 0.16);
+                var birth = time - age;
+                pts.length = 0;
+                pts.push(x, y);
+                var steps = Math.ceil(head);
+                for (var s = 0; s < steps; s++) {
+                  var a = field(x, y, (TAU * (birth + s)) / loop);
+                  x += Math.cos(a) * STEP;
+                  y += Math.sin(a) * STEP;
+                  pts.push(x, y);
+                }
+                var at = function (kk) {
+                  var j = Math.min(Math.floor(kk), steps - 1);
+                  var f = kk - j;
+                  if (j < 0) return [pts[0], pts[1]];
+                  return [pts[j * 2] + (pts[j * 2 + 2] - pts[j * 2]) * f, pts[j * 2 + 1] + (pts[j * 2 + 3] - pts[j * 2 + 1]) * f];
+                };
+                var target = isAccent[i] ? paths.accent : paths.color;
+                // Older age buckets are fainter.
+                for (var bk = 0; bk < BUCKETS; bk++) {
+                  var from = Math.max(tail, age - (trail * (bk + 1)) / BUCKETS);
+                  var to = Math.min(head, age - (trail * bk) / BUCKETS);
+                  if (to - from <= 0.01) continue;
+                  var f0 = at(from);
+                  var d = "M " + fmt(f0[0] * unit) + " " + fmt(f0[1] * unit);
+                  for (var q = Math.floor(from) + 1; q < to; q++) d += " L " + fmt(pts[q * 2] * unit) + " " + fmt(pts[q * 2 + 1] * unit);
+                  var t0 = at(to);
+                  d += " L " + fmt(t0[0] * unit) + " " + fmt(t0[1] * unit) + " ";
+                  target[bk] += d;
+                }
+              }
+              for (var n = 0; n < BUCKETS; n++) {
+                layers.color[n].setAttribute("d", paths.color[n]);
+                layers.accent[n].setAttribute("d", paths.accent[n]);
+              }
+            }
+            drive(Math.round(parseFloat(root.dataset.duration || "10") * FPS), draw);
+
+            var total = parseFloat(root.dataset.duration || "10");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["flow-field"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

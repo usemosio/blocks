@@ -1,0 +1,73 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "infinite-bento-pan",
+  "type": "hyperframes:component",
+  "title": "Infinite Bento Pan",
+  "description": "A hypnotic diagonal camera glide over an oversized grid of bento cards (charts, counters, code, gradients) with a vignette. All figures are filler.",
+  "tags": [
+    "bento",
+    "dashboard",
+    "pan",
+    "camera",
+    "ambient",
+    "remocn-port"
+  ],
+  "category": "compositions",
+  "duration": 10,
+  "useWhen": [
+    "You need an ambient establishing shot that says a lot is happening here without asking anyone to read a number.",
+    "A background layer is wanted behind a title or logo, with dozens of dashboard cards drifting past."
+  ],
+  "avoidWhen": [
+    "The figures on screen have to mean something: every counter, stat and chart here is filler; use a real chart block.",
+    "You need the camera to slow down, hold or land on one card: the pan is a single linear diagonal."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/infinite-bento-pan/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "infinite-bento-pan.html",
+      "target": "compositions/components/infinite-bento-pan.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "pan_speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Pan distance",
+      "description": "Share of the grid the camera crosses (1 = the whole diagonal).",
+      "default": 1,
+      "min": 0.25,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of charts, bars and logo tiles.",
+      "default": "#7c3aed"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

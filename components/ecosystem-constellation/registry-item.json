@@ -1,0 +1,81 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ecosystem-constellation",
+  "type": "hyperframes:component",
+  "title": "Ecosystem Constellation",
+  "description": "A central product mark orbited by integration satellites with pulsing data lines. The eight satellites are generic placeholder marks, not real brands.",
+  "tags": [
+    "hub",
+    "integrations",
+    "orbit",
+    "network",
+    "satellites",
+    "remocn-port"
+  ],
+  "category": "compositions",
+  "duration": 8,
+  "useWhen": [
+    "The story is \"we plug into everything\": one hub product ringed by the tools it connects to.",
+    "The shot has to hold for a while: satellites assemble once on a staggered spring, then orbit and fire their lines one at a time."
+  ],
+  "avoidWhen": [
+    "You need your own integration logos: edit the SVG marks in the file.",
+    "You want brand chips to arrive and hold with no orbit: use logo-enter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/ecosystem-constellation/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ecosystem-constellation.html",
+      "target": "compositions/components/ecosystem-constellation.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "satellite_count",
+      "type": "number",
+      "role": "content",
+      "label": "Satellites",
+      "description": "How many satellites orbit (3 to 8).",
+      "default": 6,
+      "min": 3,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "center_label",
+      "type": "string",
+      "role": "content",
+      "label": "Centre label",
+      "description": "Letter or short text on the central mark.",
+      "default": "V"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the hub, glow and lines.",
+      "default": "#a855f7"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

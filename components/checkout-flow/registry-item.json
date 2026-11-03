@@ -1,0 +1,62 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "checkout-flow",
+  "type": "hyperframes:component",
+  "title": "Checkout Flow",
+  "description": "A cursor-driven checkout card: pick the yearly plan, type a card number, accept the terms, pay, and a toast confirms.",
+  "tags": [
+    "ui",
+    "flow",
+    "checkout",
+    "payment",
+    "cursor",
+    "form",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 10.5,
+  "useWhen": [
+    "Demoing a SaaS payment or upgrade UX end to end with cursor navigation and a toast confirmation.",
+    "A product video needs a complete purchase journey (plan, card, pay, success) in one scene.",
+    "Showing the full checkout funnel without assembling the primitives."
+  ],
+  "avoidWhen": [
+    "You only need a payment form without cursor animation: compose field, input and button.",
+    "The flow is a multi-step onboarding, not payment: use onboarding-stepper-flow.",
+    "You need custom timing control over individual steps: orchestrate the primitives."
+  ],
+  "checkAt": [
+    1.2,
+    3.4,
+    6.0,
+    8.6
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/checkout-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "checkout-flow.html",
+      "target": "compositions/components/checkout-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Card heading.", "default": "Upgrade your plan"},
+    {"id": "description", "type": "string", "role": "content", "label": "Description", "description": "Line under the heading.", "default": "Complete your purchase to unlock every feature."},
+    {"id": "plans", "type": "string", "role": "content", "label": "Plans", "description": "JSON array of {\"value\",\"label\"}; the cursor picks the second one.", "default": "[{\"value\": \"monthly\", \"label\": \"Monthly\"}, {\"value\": \"yearly\", \"label\": \"Yearly\"}]"},
+    {"id": "card_label", "type": "string", "role": "content", "label": "Card label", "description": "Label above the card field.", "default": "Card number"},
+    {"id": "card_placeholder", "type": "string", "role": "content", "label": "Card number", "description": "Placeholder, and the number that types itself.", "default": "4242 4242 4242 4242"},
+    {"id": "terms_label", "type": "string", "role": "content", "label": "Terms label", "description": "Label of the checkbox.", "default": "I accept the terms and conditions"},
+    {"id": "pay_label", "type": "string", "role": "content", "label": "Pay label", "description": "Label of the pay button.", "default": "Pay $49"},
+    {"id": "toast_title", "type": "string", "role": "content", "label": "Toast title", "description": "Heading of the confirmation toast.", "default": "Payment successful"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

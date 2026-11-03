@@ -1,0 +1,57 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "outline-fill-track-text",
+  "type": "hyperframes:component",
+  "title": "Outline Fill Track Text",
+  "description": "A rising lead word gives way to an outlined value that fills as one continuous track moves left.",
+  "tags": [
+    "text-effects",
+    "number",
+    "outline",
+    "fill",
+    "dark",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.667,
+  "useWhen": [
+    "A statement should hand focus from a lead word to a large numeric value in one continuous move.",
+    "An outlined percentage or metric should gain visual weight without fading."
+  ],
+  "avoidWhen": [
+    "The two texts should swap in place: use value-swap.",
+    "The value needs to count numerically: use rolling-number or number-wheel."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/outline-fill-track-text/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "outline-fill-track-text.html",
+      "target": "compositions/components/outline-fill-track-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "lead_text", "type": "string", "role": "content", "label": "Lead text", "description": "Word that rises first.", "default": "Keep" },
+    { "id": "value_text", "type": "string", "role": "content", "label": "Value text", "description": "Large value that is outlined, then fills.", "default": "1000000000%" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in pixels at a 1920 px wide frame; it scales with the frame.", "default": 368, "min": 120, "max": 520, "step": 1, "unit": "px" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}] },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#f4f3f6" },
+    { "id": "outline_color", "type": "color", "role": "style", "label": "Outline color", "description": "Color of the outline before the fill.", "default": "#e6e2ed" },
+    { "id": "outline_width", "type": "number", "role": "style", "label": "Outline width", "description": "Outline thickness in pixels at 1920 px wide.", "default": 3, "min": 0, "max": 12, "step": 0.5, "unit": "px" },
+    { "id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Color of the field behind the text.", "default": "#030012" },
+    { "id": "glow_color", "type": "color", "role": "style", "label": "Glow color", "description": "Color of the soft glow the lead word rises through.", "default": "#64109a" },
+    { "id": "enter_offset", "type": "number", "role": "motion", "label": "Enter offset", "description": "How far below its place the lead word starts.", "default": 240, "min": 0, "max": 420, "step": 1, "unit": "px" },
+    { "id": "anchor_offset_x", "type": "number", "role": "motion", "label": "Anchor offset", "description": "Horizontal offset of the lead word from the center.", "default": -84, "min": -400, "max": 400, "step": 1, "unit": "px" },
+    { "id": "track_distance", "type": "number", "role": "motion", "label": "Track distance", "description": "Distance the track moves left. 0 measures it from the text.", "default": 0, "min": 0, "max": 1800, "step": 1, "unit": "px" },
+    { "id": "word_gap", "type": "number", "role": "style", "label": "Word gap", "description": "Gap between the lead word and the value.", "default": 220, "min": 0, "max": 500, "step": 1, "unit": "px" },
+    { "id": "end_padding", "type": "number", "role": "motion", "label": "End padding", "description": "Space kept to the right of the value at the end.", "default": 96, "min": 0, "max": 320, "step": 1, "unit": "px" },
+    { "id": "fill_duration", "type": "number", "role": "motion", "label": "Fill duration", "description": "Frames the fill takes to sweep across (30 fps).", "default": 38, "min": 8, "max": 45, "step": 1, "unit": "frames" }
+  ]
+}

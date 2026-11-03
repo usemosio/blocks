@@ -1,0 +1,106 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "select",
+  "type": "hyperframes:component",
+  "title": "Select",
+  "description": "A select box: a pointer clicks the trigger, the option panel drops open, an option is hovered, pressed and committed with a check, then the panel closes.",
+  "tags": [
+    "select",
+    "dropdown",
+    "picker",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4.5,
+  "useWhen": [
+    "A form demo needs a dropdown choosing one value from a list.",
+    "Showing a picker opening and committing a choice."
+  ],
+  "avoidWhen": [
+    "Actions rather than a stored choice: use dropdown-menu.",
+    "A vertical list with a sliding highlight: use select-menu."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/select/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "select.html",
+      "target": "compositions/components/select.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Trigger text.",
+      "default": "Select a fruit"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Items",
+      "description": "Comma-separated option labels.",
+      "default": "Apple, Banana, Orange, Grape"
+    },
+    {
+      "id": "selected_index",
+      "type": "number",
+      "role": "motion",
+      "label": "Row index",
+      "description": "Which row the pointer picks (0 is the first).",
+      "default": 1,
+      "min": 0,
+      "max": 7,
+      "step": 1
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

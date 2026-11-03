@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "select-menu",
+  "type": "hyperframes:component",
+  "title": "Select Menu",
+  "description": "A vertical option list: a highlight glides down to an option as the pointer follows it, presses it and commits it with a check, then fades back.",
+  "tags": [
+    "select-menu",
+    "list",
+    "highlight",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 3.6,
+  "useWhen": [
+    "A game or app menu needs a highlight sliding between options, then committing one.",
+    "A settings list shows a tactile press and selection check."
+  ],
+  "avoidWhen": [
+    "A dropdown that opens from a trigger: use select or dropdown-menu.",
+    "A searchable list: use combobox."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/select-menu/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "select-menu.html",
+      "target": "compositions/components/select-menu.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "options",
+      "type": "string",
+      "role": "content",
+      "label": "Options",
+      "description": "Comma-separated option labels.",
+      "default": "New Game, Continue, Settings, Quit"
+    },
+    {
+      "id": "selected_index",
+      "type": "number",
+      "role": "motion",
+      "label": "Selected index",
+      "description": "Which option the highlight glides to and commits (0 is the first).",
+      "default": 1,
+      "min": 0,
+      "max": 7,
+      "step": 1
+    },
+    {
+      "id": "variant",
+      "type": "enum",
+      "role": "style",
+      "label": "Variant",
+      "description": "Soft outlined highlight or solid primary highlight.",
+      "default": "soft",
+      "options": [
+        {
+          "value": "soft",
+          "label": "Soft"
+        },
+        {
+          "value": "solid",
+          "label": "Solid"
+        }
+      ]
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "scale-down-fade",
+  "type": "hyperframes:component",
+  "title": "Scale Down Fade",
+  "description": "Subtle premium settle-in with a restrained scale-down fade on exit.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "fade",
+    "exit",
+    "subtle",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A headline needs a confident, minimal entrance with no kinetic exaggeration.",
+    "One element should settle calmly into focus while the surroundings move."
+  ],
+  "avoidWhen": [
+    "You want energy or playfulness: use spring-scale-in.",
+    "The text should be revealed word by word: use staggered-fade-up or soft-blur-in."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/scale-down-fade/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "scale-down-fade.html",
+      "target": "compositions/components/scale-down-fade.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text that settles in and fades out.", "default": "Quietly refined." },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}

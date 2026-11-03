@@ -1,0 +1,554 @@
+<!doctype html>
+<!--
+  Scribble Circle
+
+  A hand-drawn marker circle scribbles itself around a target in stop-motion poses.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/scribble-circle/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="scribble-circle"
+  data-composition-duration="5"
+  data-composition-variables='[{"id":"plans","type":"string","role":"content","label":"Rows","description":"JSON array of {name, price} rows shown on the card.","default":"[{\"name\":\"Hobby\",\"price\":\"Free\"},{\"name\":\"Pro\",\"price\":\"$19\"},{\"name\":\"Team\",\"price\":\"$49\"}]"},{"id":"target","type":"number","role":"layout","label":"Circled row","description":"Index of the row whose price gets circled (0 is the first).","default":1,"min":0,"max":9,"step":1},{"id":"laps","type":"number","role":"motion","label":"Laps","description":"How many times the pen goes around.","default":1.15,"min":0.5,"max":3,"step":0.05},{"id":"stroke_width","type":"number","role":"style","label":"Stroke width","description":"Width of the marker stroke.","default":14,"min":2,"max":30,"step":1,"unit":"px"},{"id":"pressure","type":"number","role":"motion","label":"Opening pressure","description":"Stroke width at the start, as a fraction of the stroke width.","default":0.2,"min":0.05,"max":1,"step":0.05},{"id":"grain","type":"number","role":"style","label":"Grain","description":"How rough the ink edge is.","default":1,"min":0,"max":2,"step":0.1},{"id":"duration_steps","type":"number","role":"motion","label":"Drawing poses","description":"Number of poses the scribble takes.","default":10,"min":3,"max":30,"step":1},{"id":"color","type":"color","role":"style","label":"Color","description":"Marker color.","default":"#6f7f35"},{"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the hand-drawn wobble.","default":"scribble"},{"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each drawing pose is held.","default":3,"min":1,"max":6,"step":1,"unit":"frames"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Scribble Circle</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        #root { font-family: Geist, system-ui, sans-serif; color: #26242c; }
+        .scc-stage { position: absolute; inset: 0; }
+        .scc-card { position: relative; width: 460px; padding: 24px; box-sizing: border-box; border-radius: 18px; background: #fdfcf8; }
+        .scc-row { display: flex; align-items: center; justify-content: space-between; height: 84px; padding: 0 18px; }
+        .scc-name { font-size: 30px; font-weight: 600; }
+        .scc-price { display: inline-block; width: 76px; text-align: center; font-size: 26px; color: rgba(38,36,44,0.55); }
+        .scc-mark { position: absolute; width: 108px; height: 62px; }
+        .scc-svg { position: absolute; display: block; overflow: visible; }
+      </style>
+
+      <div id="root" data-composition-id="scribble-circle" data-duration="5" data-fps="30">
+        <div id="scc-clip" class="scc-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="scc-card" class="scc-card">
+            <div id="scc-mark" class="scc-mark"><svg id="scc-svg" class="scc-svg"><defs id="scc-defs"></defs><path id="scc-path" opacity="0.85"></path></svg></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+const DEFAULT_STEP = 3;
+
+const qf = (frame        , step = DEFAULT_STEP)         =>
+  Math.floor(frame / step) * step;
+
+const qstep = (frame        , step = DEFAULT_STEP)         =>
+  Math.floor(frame / step);
+
+const hash01 = (seed        )         => {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h = Math.imul(h ^ (h >>> 13), 2246822519);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+
+const hashRange = (seed        , lo        , hi        )         =>
+  lo + hash01(seed) * (hi - lo);
+
+                                                           
+
+const paperJitter = (
+  frame        ,
+  seed        ,
+  options                                                   ,
+)         => {
+  const amp = options?.amp ?? 1.4;
+  const rotAmp = options?.rotAmp ?? 0.35;
+  const s = qstep(frame, options?.step ?? DEFAULT_STEP);
+  return {
+    x: hashRange(`${seed}:x:${s}`, -amp, amp),
+    y: hashRange(`${seed}:y:${s}`, -amp, amp),
+    rot: hashRange(`${seed}:r:${s}`, -rotAmp, rotAmp),
+  };
+};
+
+const steppedSpring = (args   
+                
+              
+                 
+                
+                                                                   
+ )         =>
+  spring({
+    frame: qf(
+      Math.max(0, args.frame - (args.delay ?? 0)),
+      args.step ?? DEFAULT_STEP,
+    ),
+    fps: args.fps,
+    config: args.config,
+  });
+
+const steppedRamp = (
+  frame        ,
+  from        ,
+  to        ,
+  options                                                  ,
+)         => {
+  const f = qf(frame, options?.step ?? DEFAULT_STEP);
+  if (f <= from) return 0;
+  if (f >= to) return 1;
+  const ease = options?.ease ?? ((t        ) => t);
+  return ease((f - from) / (to - from));
+};
+
+            
+
+const GRAIN_RATIO = 0.5;
+const GRAIN_FREQUENCY = 0.7;
+const GRAIN_OCTAVES = 3;
+
+                                                  
+
+                          
+                      
+                    
+                   
+  
+
+function brushHalfWidth(taper            , t        )         {
+  const pressure = taper.pressure ?? 0.2;
+  const release = taper.release ?? 1;
+  return (taper.strokeWidth / 2) * (pressure + (release - pressure) * t);
+}
+
+function brushGrainScale(strokeWidth        , grain        )         {
+  return strokeWidth * GRAIN_RATIO * grain;
+}
+
+function brushReach(strokeWidth        , grain        )         {
+  return strokeWidth / 2 + brushGrainScale(strokeWidth, grain) / 2;
+}
+
+function brushFilterId(
+  seed        ,
+  strokeWidth        ,
+  grain        ,
+)         {
+  return `remocn-brush-${Math.floor(hash01(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
+}
+
+function sampleCubic(
+  from            ,
+  c1            ,
+  c2            ,
+  to            ,
+  points = 32,
+)               {
+  const count = Math.max(2, points);
+  return Array.from({ length: count }, (_, i) => {
+    const t = i / (count - 1);
+    const u = 1 - t;
+    const a = u * u * u;
+    const b = 3 * u * u * t;
+    const c = 3 * u * t * t;
+    const d = t * t * t;
+    return {
+      x: a * from.x + b * c1.x + c * c2.x + d * to.x,
+      y: a * from.y + b * c1.y + c * c2.y + d * to.y,
+    };
+  });
+}
+
+function sampleLine(
+  from            ,
+  to            ,
+  points = 8,
+)               {
+  const count = Math.max(2, points);
+  return Array.from({ length: count }, (_, i) => {
+    const t = i / (count - 1);
+    return {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t,
+    };
+  });
+}
+
+const normalAt = (points              , i        )             => {
+  const before = points[i - 1] ?? points[i];
+  const after = points[i + 1] ?? points[i];
+  const tx = after.x - before.x;
+  const ty = after.y - before.y;
+  const length = Math.hypot(tx, ty) || 1;
+  return { x: -ty / length, y: tx / length };
+};
+
+const curveSegments = (points              )         =>
+  points
+    .slice(0, -1)
+    .map((p1, i) => {
+      const p0 = points[i - 1] ?? p1;
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] ?? p2;
+      return `C ${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6}, ${p2.x - (p3.x - p1.x) / 6} ${p2.y - (p3.y - p1.y) / 6}, ${p2.x} ${p2.y}`;
+    })
+    .join(" ");
+
+function brushRibbon(
+  spine              ,
+  options                                    ,
+)         {
+  const progress = options.progress ?? 1;
+  const drawn = Math.max(2, Math.round(progress * (spine.length - 1)) + 1);
+
+  const left               = [];
+  const right               = [];
+  for (let i = 0; i < drawn; i++) {
+    const half = brushHalfWidth(options, i / (spine.length - 1));
+    const normal = normalAt(spine, i);
+    left.push({
+      x: spine[i].x + normal.x * half,
+      y: spine[i].y + normal.y * half,
+    });
+    right.push({
+      x: spine[i].x - normal.x * half,
+      y: spine[i].y - normal.y * half,
+    });
+  }
+  const back = right.slice().reverse();
+
+  return `M ${left[0].x} ${left[0].y} ${curveSegments(left)} L ${back[0].x} ${back[0].y} ${curveSegments(back)} Z`;
+}
+
+
+            
+
+const SAMPLES_PER_LAP = 48;
+const NOISE = 0.035;
+const CENTRE = 0.02;
+
+                                      
+                
+                 
+                      
+                
+                    
+                   
+                 
+                
+                  
+                    
+  
+
+function scribbleCircleCentre(
+  width        ,
+  height        ,
+  seed = "scribble",
+)             {
+  return {
+    x: width / 2 + hashRange(`${seed}:cx`, -CENTRE, CENTRE) * width,
+    y: height / 2 + hashRange(`${seed}:cy`, -CENTRE, CENTRE) * height,
+  };
+}
+
+function scribbleCirclePoints(args   
+                
+                 
+                
+                
+                  
+ )               {
+  const laps = args.laps ?? 1.15;
+  const seed = args.seed ?? "scribble";
+  const points = args.points ?? SAMPLES_PER_LAP;
+
+  const count = Math.max(2, Math.ceil(laps * points));
+  const rx = args.width / 2;
+  const ry = args.height / 2;
+  const { x: cx, y: cy } = scribbleCircleCentre(args.width, args.height, seed);
+
+  return Array.from({ length: count }, (_, i) => {
+    const angle = laps * Math.PI * 2 * (i / (count - 1));
+    const scale = 1 + hashRange(`${seed}:r${i}`, -NOISE, NOISE);
+    return {
+      x: cx + rx * scale * Math.cos(angle),
+      y: cy + ry * scale * Math.sin(angle),
+    };
+  });
+}
+
+function scribbleCirclePath(args                        )   
+            
+                  
+                  
+                  
+  {
+  const grain = args.grain ?? 1;
+  const reach = brushReach(args.strokeWidth, grain);
+  const marginX = reach + (args.width / 2) * NOISE + args.width * CENTRE;
+  const marginY = reach + (args.height / 2) * NOISE + args.height * CENTRE;
+
+  return {
+    d: brushRibbon(scribbleCirclePoints(args), {
+      strokeWidth: args.strokeWidth,
+      pressure: args.pressure,
+      release: args.release,
+      progress: args.progress,
+    }),
+    viewBox: `${-marginX} ${-marginY} ${args.width + marginX * 2} ${args.height + marginY * 2}`,
+    marginX,
+    marginY,
+  };
+}
+
+function scribbleCircleProgress(
+  frame        ,
+  options                                                            ,
+)         {
+  const delay = options?.delay ?? 0;
+  const durationSteps = options?.durationSteps ?? 10;
+  const step = options?.step ?? DEFAULT_STEP;
+  return steppedRamp(frame, delay, delay + durationSteps * step, { step });
+}
+
+
+            var plans = [{ name: "Hobby", price: "Free" }, { name: "Pro", price: "$19" }, { name: "Team", price: "$49" }];
+            try {
+              var parsed = JSON.parse(str(vars.plans, ""));
+              if (Array.isArray(parsed) && parsed.length > 0) plans = parsed.slice(0, 10).map(function (p) { return { name: String(p.name == null ? "" : p.name), price: String(p.price == null ? "" : p.price) }; });
+            } catch (e) {}
+            var target = Math.min(plans.length - 1, Math.round(num(vars.target, 1, 0, 9)));
+            var laps = num(vars.laps, 1.15, 0.5, 3), strokeWidth = num(vars.stroke_width, 14, 2, 30), pressure = num(vars.pressure, 0.2, 0.05, 1);
+            var grain = num(vars.grain, 1, 0, 2), durationSteps = Math.round(num(vars.duration_steps, 10, 3, 30));
+            var color = str(vars.color, "#6f7f35"), seed = str(vars.seed, "scribble"), step = Math.round(num(vars.step, 3, 1, 6));
+            var card = document.getElementById("scc-card"), mark = document.getElementById("scc-mark");
+            plans.forEach(function (p, i) {
+              var row = document.createElement("div");
+              row.id = "scc-row-" + i;
+              row.className = "scc-row";
+              row.innerHTML = '<span class="scc-name"></span><span class="scc-price"></span>';
+              row.firstChild.textContent = p.name;
+              row.lastChild.textContent = p.price;
+              card.insertBefore(row, mark);
+            });
+            var CW = 108, CH = 62;
+            mark.style.left = 460 - 24 - 18 - 76 + (76 - CW) / 2 + "px";
+            mark.style.top = 24 + target * 84 + (84 - CH) / 2 + "px";
+            fit(card, 460, 48 + plans.length * 84, 1.05 * Math.min(1, 1));
+            var scale = Math.min(root.clientWidth / 460, root.clientHeight / (48 + plans.length * 84)) * 0.8;
+            card.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+
+            var geo = scribbleCirclePath({ width: CW, height: CH, strokeWidth: strokeWidth, laps: laps, pressure: pressure, grain: grain, seed: seed, progress: 1 });
+            var svg = document.getElementById("scc-svg"), pathEl = document.getElementById("scc-path");
+            svg.setAttribute("width", CW + geo.marginX * 2); svg.setAttribute("height", CH + geo.marginY * 2);
+            svg.setAttribute("viewBox", geo.viewBox);
+            svg.style.left = -geo.marginX + "px"; svg.style.top = -geo.marginY + "px";
+            var fid = brushFilterId(seed, strokeWidth, grain);
+            if (grain > 0) {
+              document.getElementById("scc-defs").innerHTML = '<filter id="' + fid + '" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency="' + GRAIN_FREQUENCY + '" numOctaves="' + GRAIN_OCTAVES + '" seed="' + Math.floor(hash01(seed + ":grain") * 1000) + '" result="brushGrain"/><feDisplacementMap in="SourceGraphic" in2="brushGrain" scale="' + brushGrainScale(strokeWidth, grain) + '" xChannelSelector="R" yChannelSelector="G"/></filter>';
+              pathEl.setAttribute("filter", "url(#" + fid + ")");
+            }
+            pathEl.setAttribute("fill", color);
+            function draw(frame) {
+              var progress = scribbleCircleProgress(frame, { delay: 0, durationSteps: durationSteps, step: step });
+              mark.style.opacity = progress > 0 ? 1 : 0;
+              if (progress > 0) pathEl.setAttribute("d", scribbleCirclePath({ width: CW, height: CH, strokeWidth: strokeWidth, laps: laps, pressure: pressure, grain: grain, seed: seed, progress: progress }).d);
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 150, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["scribble-circle"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

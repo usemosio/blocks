@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "caption-speaker",
+  "type": "hyperframes:component",
+  "title": "Caption Speaker",
+  "description": "Dialogue captions where every phrase takes its speaker's color, so a conversation reads like a script.",
+  "tags": [
+    "captions",
+    "word-timed",
+    "speaker",
+    "dialogue",
+    "interview",
+    "remocn-port"
+  ],
+  "category": "captions",
+  "duration": 9.4,
+  "useWhen": [
+    "An interview, podcast clip or two-person demo where the viewer has to know who is talking without seeing their mouth.",
+    "Your transcript already has speaker labels from diarization and you want them to carry through to the screen."
+  ],
+  "avoidWhen": [
+    "Only one person speaks: use caption-karaoke, which spends the color on the voice's progress instead.",
+    "You want plain, neutral subtitles for an explainer: use caption-subtitle."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/caption-speaker/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "caption-speaker.html",
+      "target": "compositions/components/caption-speaker.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "captions", "type": "string", "role": "content", "label": "Captions", "description": "Word timings as JSON: [{\"text\",\"startMs\",\"endMs\"}] in milliseconds, or [{\"text\",\"start\",\"end\"}] in seconds. A transcript from Mosio works as is.", "default": "[{\"text\":\" So\",\"startMs\":300,\"endMs\":460,\"speaker\":\"host\"},{\"text\":\" what\",\"startMs\":460,\"endMs\":640,\"speaker\":\"host\"},{\"text\":\" made\",\"startMs\":640,\"endMs\":860,\"speaker\":\"host\"},{\"text\":\" you\",\"startMs\":860,\"endMs\":980,\"speaker\":\"host\"},{\"text\":\" add\",\"startMs\":980,\"endMs\":1180,\"speaker\":\"host\"},{\"text\":\" captions?\",\"startMs\":1180,\"endMs\":1800,\"speaker\":\"host\"},{\"text\":\" Most\",\"startMs\":2300,\"endMs\":2560,\"speaker\":\"guest\"},{\"text\":\" people\",\"startMs\":2560,\"endMs\":2900,\"speaker\":\"guest\"},{\"text\":\" watch\",\"startMs\":2900,\"endMs\":3160,\"speaker\":\"guest\"},{\"text\":\" with\",\"startMs\":3160,\"endMs\":3280,\"speaker\":\"guest\"},{\"text\":\" the\",\"startMs\":3280,\"endMs\":3380,\"speaker\":\"guest\"},{\"text\":\" sound\",\"startMs\":3380,\"endMs\":3720,\"speaker\":\"guest\"},{\"text\":\" off.\",\"startMs\":3720,\"endMs\":4240,\"speaker\":\"guest\"},{\"text\":\" Really?\",\"startMs\":4800,\"endMs\":5400,\"speaker\":\"host\"},{\"text\":\" Almost\",\"startMs\":5800,\"endMs\":6140,\"speaker\":\"guest\"},{\"text\":\" everyone.\",\"startMs\":6140,\"endMs\":6760,\"speaker\":\"guest\"},{\"text\":\" Captions\",\"startMs\":7000,\"endMs\":7480,\"speaker\":\"guest\"},{\"text\":\" keep\",\"startMs\":7480,\"endMs\":7700,\"speaker\":\"guest\"},{\"text\":\" them\",\"startMs\":7700,\"endMs\":7860,\"speaker\":\"guest\"},{\"text\":\" watching.\",\"startMs\":7860,\"endMs\":8400,\"speaker\":\"guest\"}]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Caption text size in pixels (at 1080 px on the short side).", "default": 64, "min": 24, "max": 140, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "number", "role": "style", "label": "Font weight", "description": "Weight of the caption text.", "default": 800, "min": 400, "max": 900, "step": 100},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Caption text color.", "default": "#ffffff"},
+    {"id": "combine_tokens_within_milliseconds", "type": "number", "role": "motion", "label": "Page window", "description": "Words that start within this window share one page of captions. A sentence end always starts a new page.", "default": 1200, "min": 0, "max": 3000, "step": 100, "unit": "ms"},
+    {"id": "hold_ms", "type": "number", "role": "motion", "label": "Hold", "description": "How long the last page stays after its final word.", "default": 600, "min": 0, "max": 2000, "step": 50, "unit": "ms"},
+    {"id": "shadow", "type": "boolean", "role": "style", "label": "Shadow", "description": "Soft shadow behind the text for legibility on footage.", "default": true},
+    {"id": "speaker_colors", "type": "string", "role": "style", "label": "Speaker colors", "description": "JSON object mapping a speaker label to a color, for example {\"host\":\"#38bdf8\"}. Unlisted speakers get colors automatically.", "default": "{}"},
+    {"id": "upcoming_opacity", "type": "number", "role": "style", "label": "Upcoming opacity", "description": "Opacity of words that have not been spoken yet.", "default": 0.4, "min": 0, "max": 1, "step": 0.05}
+  ]
+}

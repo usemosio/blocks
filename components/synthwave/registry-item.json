@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "synthwave",
+  "type": "hyperframes:component",
+  "title": "Synthwave",
+  "description": "A retro neon horizon with a scrolling perspective grid, a rising striped sun and mountain ranges that slide in. The grid keeps scrolling for as long as the clip lasts.",
+  "tags": [
+    "background",
+    "retro",
+    "neon",
+    "synthwave",
+    "remocn-port"
+  ],
+  "category": "graphic-looks",
+  "duration": 4,
+  "useWhen": [
+    "A scene needs an 80s retro backdrop: a music drop, a gaming or nostalgia beat, a late-night product teaser.",
+    "Titles or a logo should sit over a moving background that loops for as long as the beat lasts."
+  ],
+  "avoidWhen": [
+    "The camera should fly forward through space into the next scene: use hyperspace.",
+    "The backdrop should be a calm landscape that trucks sideways in layers: use parallax-depth."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/synthwave/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "synthwave.html",
+      "target": "compositions/components/synthwave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "sky_top", "type": "color", "role": "style", "label": "Sky top", "description": "Top of the sky gradient.", "default": "#08080B"},
+    {"id": "sky_horizon", "type": "color", "role": "style", "label": "Sky horizon", "description": "Sky glow at the horizon.", "default": "#3B0C10"},
+    {"id": "sun_top", "type": "color", "role": "style", "label": "Sun top", "description": "Top of the sun gradient.", "default": "#FFC46B"},
+    {"id": "sun_bottom", "type": "color", "role": "style", "label": "Sun bottom", "description": "Bottom of the sun gradient.", "default": "#E5322D"},
+    {"id": "grid_color", "type": "color", "role": "style", "label": "Grid", "description": "Grid line color.", "default": "#E5322D"},
+    {"id": "floor_color", "type": "color", "role": "style", "label": "Floor", "description": "Floor color.", "default": "#0A0A0C"},
+    {"id": "mountains_back", "type": "color", "role": "style", "label": "Back mountains", "description": "Back mountain range color.", "default": "#2A0A0E"},
+    {"id": "mountains_front", "type": "color", "role": "style", "label": "Front mountains", "description": "Front mountain range color.", "default": "#111111"},
+    {"id": "grid_speed", "type": "number", "role": "motion", "label": "Grid speed", "description": "Grid rows that pass the viewer per second.", "default": 2, "min": 0, "max": 8, "step": 0.1},
+    {"id": "horizon", "type": "number", "role": "style", "label": "Horizon", "description": "Horizon height as a fraction of the frame.", "default": 0.6, "min": 0.3, "max": 0.8, "step": 0.01},
+    {"id": "sun_stripes", "type": "boolean", "role": "style", "label": "Sun stripes", "description": "Scroll the sun stripes downward.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]
+}

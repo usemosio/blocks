@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "perspective-squeeze",
+  "type": "hyperframes:component",
+  "title": "Perspective Squeeze",
+  "description": "Two lines of heavy type endlessly trade height while corner-pinned perspective bends the flat stack into receding planes.",
+  "tags": [
+    "text-effects",
+    "perspective",
+    "loop",
+    "poster",
+    "display",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 7.5,
+  "useWhen": [
+    "A looping hold (an outro, a background title, a stream screen) needs constant, hypnotic typographic motion.",
+    "You want an editorial poster feel: heavy condensed type crushed and stretched like a print layout come alive.",
+    "Two short words can share the frame: both lines are forced to the same width."
+  ],
+  "avoidWhen": [
+    "You need an entrance or a reveal: the type is fully visible from the first frame; use kinetic-warp.",
+    "The copy must stay easily readable throughout: lines spend most of the loop crushed to a third of their height.",
+    "You only need the vertical stretch without the perspective bend."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/perspective-squeeze/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "perspective-squeeze.html",
+      "target": "compositions/components/perspective-squeeze.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "upper_text", "type": "string", "role": "content", "label": "Upper line", "description": "Top line, set large.", "default": "STUDIO"},
+    {"id": "lower_text", "type": "string", "role": "content", "label": "Lower line", "description": "Bottom line.", "default": "BEST"},
+    {"id": "fill", "type": "color", "role": "style", "label": "Fill", "description": "Text color.", "default": "#f2f2f2"},
+    {"id": "upper_font", "type": "string", "role": "style", "label": "Upper font", "description": "CSS font-family of the upper line. Anton is loaded.", "default": "Anton, Impact, 'Arial Narrow', sans-serif"},
+    {"id": "lower_font", "type": "string", "role": "style", "label": "Lower font", "description": "CSS font-family of the lower line.", "default": "Anton, Impact, 'Arial Narrow', sans-serif"},
+    {"id": "line_gap", "type": "number", "role": "style", "label": "Line gap", "description": "Gap between the two lines inside the block, in stage pixels (1920×1080 stage).", "default": 50, "min": 0, "max": 200, "step": 1, "unit": "px"}
+  ]
+}

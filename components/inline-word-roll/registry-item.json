@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "inline-word-roll",
+  "type": "hyperframes:component",
+  "title": "Inline Word Roll",
+  "description": "Switch words beside a fixed prefix with an accelerating vertical roll; the whole line recenters as word lengths change.",
+  "tags": [
+    "text-effects",
+    "word-cycle",
+    "roll",
+    "headline",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A headline keeps its opening phrase while cycling through audiences, benefits or outcomes.",
+    "Different word lengths should smoothly recenter the whole line during each switch."
+  ],
+  "avoidWhen": [
+    "Every new word should remain in the sentence: use word-push.",
+    "Entire phrases should transform letter by letter: use kinetic-morph-text."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/inline-word-roll/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "inline-word-roll.html",
+      "target": "compositions/components/inline-word-roll.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "prefix", "type": "string", "role": "content", "label": "Fixed text", "description": "Text that stays in place before the rolling word.", "default": "Looking for"},
+    {"id": "text", "type": "string", "role": "content", "label": "Words", "description": "Words or phrases separated by |.", "default": "leads | customers | subscribers | appointments | demos | quotes | registrants | trials | conversions"},
+    {"id": "suffix", "type": "string", "role": "content", "label": "Word suffix", "description": "Text attached to every word.", "default": "?"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels at full size. Wide lines scale down to fit.", "default": 60, "min": 16, "max": 260, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "700", "label": "Bold"}]},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Initial frames per word", "description": "Frames the first word holds (30 fps).", "default": 12, "min": 6, "max": 60, "step": 1, "unit": "frames"},
+    {"id": "acceleration", "type": "number", "role": "motion", "label": "Interval multiplier", "description": "Each following hold is multiplied by this; 1 keeps a steady pace.", "default": 0.9, "min": 0.5, "max": 1, "step": 0.01},
+    {"id": "transition_frames", "type": "number", "role": "motion", "label": "Roll duration", "description": "Frames each roll takes (30 fps).", "default": 6, "min": 1, "max": 20, "step": 1, "unit": "frames"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#f5f5f5"}
+  ]
+}

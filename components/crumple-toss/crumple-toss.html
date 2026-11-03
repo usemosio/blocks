@@ -1,0 +1,648 @@
+<!doctype html>
+<!--
+  Crumple Toss
+
+  A card crumples into a paper wad in stop-motion poses and is tossed into a bin: the old way, thrown away.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/crumple-toss/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="crumple-toss"
+  data-composition-duration="3"
+  data-composition-variables='[{"id":"card_title","type":"string","role":"content","label":"Card title","description":"Small line on the card.","default":"How it used to work"},{"id":"card_body","type":"string","role":"content","label":"Card text","description":"Large line on the card.","default":"Six steps and a wiki page"},{"id":"at","type":"number","role":"motion","label":"Start frame","description":"Frame (30 fps) where the crumple begins.","default":6,"min":0,"max":60,"step":1,"unit":"frames"},{"id":"crumple_steps","type":"number","role":"motion","label":"Crumple poses","description":"Number of poses the crumple takes.","default":4,"min":1,"max":10,"step":1},{"id":"toss_steps","type":"number","role":"motion","label":"Toss poses","description":"Number of poses the toss takes.","default":5,"min":1,"max":12,"step":1},{"id":"direction","type":"number","role":"motion","label":"Direction","description":"Launch angle of the toss in degrees (negative is up and to the right).","default":-35,"min":-180,"max":180,"step":1,"unit":"deg"},{"id":"distance","type":"number","role":"motion","label":"Distance","description":"How far the wad is thrown, at design size.","default":440,"min":100,"max":900,"step":5,"unit":"px"},{"id":"spin","type":"number","role":"motion","label":"Spin","description":"Degrees the wad turns in flight.","default":220,"min":-720,"max":720,"step":5,"unit":"deg"},{"id":"segments","type":"number","role":"layout","label":"Segments","description":"Number of folded wedges.","default":9,"min":3,"max":16,"step":1},{"id":"layers","type":"number","role":"layout","label":"Layers","description":"Rings of wedges from the middle outwards.","default":2,"min":1,"max":4,"step":1},{"id":"randomness","type":"number","role":"motion","label":"Randomness","description":"How irregular the folds are.","default":0.6,"min":0,"max":1,"step":0.05},{"id":"crush_to","type":"number","role":"motion","label":"Crush to","description":"Size of the wad relative to the card.","default":0.34,"min":0.15,"max":0.8,"step":0.01},{"id":"seed","type":"string","role":"motion","label":"Seed","description":"Seed for the folds.","default":"toss"},{"id":"step","type":"number","role":"motion","label":"Frames per pose","description":"How many frames each pose is held.","default":3,"min":1,"max":6,"step":1,"unit":"frames"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Crumple Toss</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+
+        }
+        #root { font-family: Geist, system-ui, sans-serif; }
+        .cts-stage { position: absolute; inset: 0; }
+        .cts-card { width: 380px; height: 220px; padding: 28px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 10px; background: #fdfcf8; border: 1px solid rgba(38,36,44,0.12); box-shadow: 0 8px 20px rgba(38,36,44,0.12); color: #26242c; }
+        .cts-card-title { font-size: 15px; color: rgba(38,36,44,0.55); }
+        .cts-card-body { font-size: 30px; font-weight: 600; line-height: 1.2; }
+        .cts-wad { position: absolute; left: 0; top: 0; width: 380px; height: 220px; }
+        .cts-piece { position: absolute; inset: 0; }
+        .cts-fill { position: absolute; inset: 0; }
+        .cts-shade { position: absolute; inset: 0; }
+        .cts-rim { position: absolute; border-radius: 50%; background: #bdb6a5; height: 30px; width: 150px; display: none; }
+        .cts-bin { position: absolute; width: 150px; height: 170px; clip-path: polygon(0% 0%, 100% 0%, 84% 100%, 16% 100%); background: #ded8ca; display: none; }
+        .cts-rib { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(38,36,44,0.09); }
+      </style>
+
+      <div id="root" data-composition-id="crumple-toss" data-duration="3" data-fps="30">
+        <div id="cts-clip" class="cts-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <div id="cts-group" class="cts-group">
+            <div id="cts-rim" class="cts-rim"></div>
+            <div id="cts-wad" class="cts-wad"></div>
+            <div id="cts-bin" class="cts-bin"><div class="cts-rib" style="left:30%"></div><div class="cts-rib" style="left:50%"></div><div class="cts-rib" style="left:70%"></div></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Remotion-style helpers, written from their definitions.
+            var Easing = (function () {
+              function bezier(x1, y1, x2, y2) {
+                return function (x) {
+                  if (x <= 0) return 0;
+                  if (x >= 1) return 1;
+                  var lo = 0, hi = 1, t = x;
+                  for (var i = 0; i < 40; i++) {
+                    var u = 1 - t;
+                    var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                    if (Math.abs(cx - x) < 1e-6) break;
+                    if (cx < x) lo = t; else hi = t;
+                    t = (lo + hi) / 2;
+                  }
+                  var v = 1 - t;
+                  return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+                };
+              }
+              return {
+                bezier: bezier,
+                linear: function (t) { return t; },
+                quad: function (t) { return t * t; },
+                cubic: function (t) { return t * t * t; },
+                sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); },
+                poly: function (n) { return function (t) { return Math.pow(t, n); }; },
+                ease: bezier(0.42, 0, 1, 1),
+                out: function (f) { return function (t) { return 1 - f(1 - t); }; },
+                inOut: function (f) { return function (t) { return t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2; }; }
+              };
+            })();
+            function interpolate(input, inR, outR, o) {
+              o = o || {};
+              var n = inR.length;
+              var left = o.extrapolateLeft || "extend";
+              var right = o.extrapolateRight || "extend";
+              var i = 1;
+              while (i < n - 1 && input > inR[i]) i++;
+              var a = inR[i - 1], b = inR[i];
+              if (input < inR[0] && left === "clamp") return outR[0];
+              if (input > inR[n - 1] && right === "clamp") return outR[n - 1];
+              var t = b === a ? 0 : (input - a) / (b - a);
+              if (o.easing) t = o.easing(t);
+              return outR[i - 1] + (outR[i] - outR[i - 1]) * t;
+            }
+            // Damped spring from rest to 1. durationInFrames stretches time so the spring has settled by then.
+            function spring(o) {
+              var c = o.config || {};
+              var mass = c.mass != null ? c.mass : 1;
+              var k = c.stiffness != null ? c.stiffness : 100;
+              var damp = c.damping != null ? c.damping : 10;
+              function at(t) {
+                var w0 = Math.sqrt(k / mass);
+                var z = damp / (2 * Math.sqrt(k * mass));
+                if (z < 1) {
+                  var wd = w0 * Math.sqrt(1 - z * z);
+                  return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+                }
+                return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              }
+              var t = Math.max(0, o.frame) / o.fps;
+              if (o.durationInFrames) {
+                var settle = 4, step = 1 / o.fps;
+                for (var s = settle; s > 0.05; s -= step) {
+                  if (Math.abs(1 - at(s)) > 0.001) { settle = s + step; break; }
+                  settle = s;
+                }
+                t = (Math.max(0, o.frame) / o.durationInFrames) * settle;
+                if (o.frame >= o.durationInFrames) return 1;
+              }
+              return at(t);
+            }
+            function parseColor(c) {
+              var m;
+              c = String(c).trim();
+              if ((m = /^#([0-9a-f]{3,8})$/i.exec(c))) {
+                var h = m[1];
+                if (h.length <= 4) h = h.split("").map(function (x) { return x + x; }).join("");
+                return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+              }
+              if ((m = /^rgba?\(([^)]+)\)/i.exec(c))) {
+                var p = m[1].split(",").map(Number);
+                return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+              }
+              return [0, 0, 0, 1];
+            }
+            function interpolateColors(t, inR, outR) {
+              var a = parseColor(outR[0]), b = parseColor(outR[1]);
+              var u = Math.min(1, Math.max(0, (t - inR[0]) / (inR[1] - inR[0])));
+              return "rgba(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(",") + "," + (a[3] + (b[3] - a[3]) * u) + ")";
+            }
+            // Seeded 0..1 value: the same seed always gives the same number.
+            function random(seed) {
+              var s = String(seed), h = 2166136261;
+              for (var i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+              }
+              h = Math.imul(h ^ (h >>> 13), 2246822519);
+              h = Math.imul(h ^ (h >>> 16), 3266489917);
+              return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+            }
+            // Fit a fixed-size design stage into the frame.
+            function fit(el, w, h, fill) {
+              var s = Math.min(root.clientWidth / w, root.clientHeight / h) * (fill || 1);
+              el.style.position = "absolute";
+              el.style.left = "50%";
+              el.style.top = "50%";
+              el.style.width = w + "px";
+              el.style.height = h + "px";
+              el.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+              return s;
+            }
+            // Drive draw(frame) from the timeline so seeking always draws the same picture.
+            function clockTween(tl, totalFrames, draw, rate) {
+              var clock = { frame: 0 };
+              tl.to(clock, { frame: totalFrames, duration: totalFrames / 30, ease: "none", onUpdate: function () { draw(clock.frame * (rate || 1)); } }, 0);
+              draw(0);
+            }
+            var SVGNS = "http://www.w3.org/2000/svg";
+            function svgEl(tag, attrs, parent) {
+              var e = document.createElementNS(SVGNS, tag);
+              for (var k in attrs) e.setAttribute(k, attrs[k]);
+              if (parent) parent.appendChild(e);
+              return e;
+            }
+
+
+            
+const DEFAULT_STEP = 3;
+
+const qf = (frame        , step = DEFAULT_STEP)         =>
+  Math.floor(frame / step) * step;
+
+const qstep = (frame        , step = DEFAULT_STEP)         =>
+  Math.floor(frame / step);
+
+const hash01 = (seed        )         => {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h = Math.imul(h ^ (h >>> 13), 2246822519);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+
+const hashRange = (seed        , lo        , hi        )         =>
+  lo + hash01(seed) * (hi - lo);
+
+                                                           
+
+const paperJitter = (
+  frame        ,
+  seed        ,
+  options                                                   ,
+)         => {
+  const amp = options?.amp ?? 1.4;
+  const rotAmp = options?.rotAmp ?? 0.35;
+  const s = qstep(frame, options?.step ?? DEFAULT_STEP);
+  return {
+    x: hashRange(`${seed}:x:${s}`, -amp, amp),
+    y: hashRange(`${seed}:y:${s}`, -amp, amp),
+    rot: hashRange(`${seed}:r:${s}`, -rotAmp, rotAmp),
+  };
+};
+
+const steppedSpring = (args   
+                
+              
+                 
+                
+                                                                   
+ )         =>
+  spring({
+    frame: qf(
+      Math.max(0, args.frame - (args.delay ?? 0)),
+      args.step ?? DEFAULT_STEP,
+    ),
+    fps: args.fps,
+    config: args.config,
+  });
+
+const steppedRamp = (
+  frame        ,
+  from        ,
+  to        ,
+  options                                                  ,
+)         => {
+  const f = qf(frame, options?.step ?? DEFAULT_STEP);
+  if (f <= from) return 0;
+  if (f >= to) return 1;
+  const ease = options?.ease ?? ((t        ) => t);
+  return ease((f - from) / (to - from));
+};
+
+            
+
+const GRAVITY = 0.9;
+const FLIGHT_SHRINK = 0.5;
+const EXIT_OPACITY = 0.4;
+
+const FOLD_TILT = 46;
+const WAD_REACH = 0.27;
+const WAD_SPREAD = 0.07;
+const ANGLE_JITTER = 0.22;
+const SCALE_SPREAD = 0.25;
+const DEFAULT_RANDOMNESS = 0.6;
+const DEFAULT_LAYERS = 2;
+const LAYER_TILT_FLOOR = 0.45;
+const FACET_SIZE = 0.5;
+const FACET_CAP = 0.5;
+
+const TONE_PATTERN = [0, 1, 3, 1, 0, 2, 1, 2, 0];
+
+const TONES = [
+  { lit: "rgba(255,255,255,0.66)", dark: "rgba(255,255,255,0.18)" },
+  { lit: "rgba(255,255,255,0.30)", dark: "rgba(38,36,44,0.10)" },
+  { lit: "rgba(255,255,255,0.08)", dark: "rgba(38,36,44,0.20)" },
+  { lit: "rgba(38,36,44,0.06)", dark: "rgba(38,36,44,0.30)" },
+];
+
+const LIGHT_ANGLE = -55;
+const CREASE_BLEND = 9;
+
+                                                                
+
+                           
+                      
+                
+                
+                 
+            
+            
+                  
+  
+
+                              
+                           
+                           
+             
+             
+                
+                 
+               
+                 
+  
+
+                                 
+             
+                        
+                     
+                     
+                    
+                
+                   
+                
+                
+  
+
+const rayToEdge = (
+  angle        ,
+  halfWidth        ,
+  halfHeight        ,
+)                   => {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const t = Math.min(
+    halfWidth / (Math.abs(cos) || 1e-9),
+    halfHeight / (Math.abs(sin) || 1e-9),
+  );
+  return [cos * t, sin * t];
+};
+
+const normalize = (angle        ) => {
+  const turn = Math.PI * 2;
+  return ((angle % turn) + turn) % turn;
+};
+
+const shrinkToward = (
+  [x, y]                  ,
+  factor        ,
+)                   => [x * factor, y * factor];
+
+const averageOf = (points                    )                   => [
+  points.reduce((sum, p) => sum + p[0], 0) / points.length,
+  points.reduce((sum, p) => sum + p[1], 0) / points.length,
+];
+
+function crumpleSegments(args   
+                
+                 
+                    
+                  
+                   
+                      
+                
+ )                   {
+  const count = Math.max(3, Math.round(args.segments ?? 9));
+  const layers = Math.max(1, Math.round(args.layers ?? DEFAULT_LAYERS));
+  const crushTo = args.crushTo ?? 0.34;
+  const chaos = Math.min(1, Math.max(0, args.randomness ?? DEFAULT_RANDOMNESS));
+  const seed = args.seed ?? "toss";
+  const halfWidth = args.width / 2;
+  const halfHeight = args.height / 2;
+  const wad = Math.min(args.width, args.height) * crushTo;
+
+  const angles = Array.from(
+    { length: count },
+    (_, i) =>
+      (i / count) * Math.PI * 2 +
+      hashRange(`${seed}:ang${i}`, -ANGLE_JITTER, ANGLE_JITTER) * chaos,
+  );
+
+  const corners                     = [
+    [halfWidth, halfHeight],
+    [-halfWidth, halfHeight],
+    [-halfWidth, -halfHeight],
+    [halfWidth, -halfHeight],
+  ];
+
+  const toPercent = ([x, y]                  )                   => [
+    ((x + halfWidth) / args.width) * 100,
+    ((y + halfHeight) / args.height) * 100,
+  ];
+
+  const panels                   = [];
+
+  angles.forEach((angle, i) => {
+    const nextAngle =
+      angles[(i + 1) % count] + (i === count - 1 ? Math.PI * 2 : 0);
+    const from = rayToEdge(angle, halfWidth, halfHeight);
+    const to = rayToEdge(nextAngle, halfWidth, halfHeight);
+
+    const span = normalize(nextAngle - angle);
+    const between = corners
+      .map((corner)                             => [
+        corner,
+        normalize(Math.atan2(corner[1], corner[0]) - angle),
+      ])
+      .filter(([, spanned]) => spanned > 0 && spanned < span)
+      .sort((a, b) => a[1] - b[1])
+      .map(([corner]) => corner);
+
+    const rim                     = [from, ...between, to];
+
+    for (let layer = 0; layer < layers; layer++) {
+      const inner = layer / layers;
+      const outer = (layer + 1) / layers;
+      const depth = (layer + 1) / layers;
+      const shape                     =
+        layer === 0
+          ? [[0, 0], ...rim.map((point) => shrinkToward(point, outer))]
+          : [
+              ...rim.map((point) => shrinkToward(point, outer)),
+              ...[...rim].reverse().map((point) => shrinkToward(point, inner)),
+            ];
+
+      const centroid = averageOf(shape);
+      const extent =
+        Math.max(
+          ...shape.map((point) =>
+            Math.hypot(point[0] - centroid[0], point[1] - centroid[1]),
+          ),
+        ) || 1;
+      const key = `${seed}:${i}:${layer}`;
+
+      const reach =
+        wad *
+        (WAD_REACH * depth +
+          hashRange(`${key}:reach`, -WAD_SPREAD, WAD_SPREAD) * chaos * depth);
+      const heading = Math.atan2(centroid[1], centroid[0]);
+
+      panels.push({
+        clip: shape.map(toPercent),
+        origin: toPercent(centroid),
+        dx: Math.cos(heading) * reach - centroid[0],
+        dy: Math.sin(heading) * reach - centroid[1],
+        scale:
+          Math.min(FACET_CAP, (wad * FACET_SIZE) / extent) *
+          (1 + hashRange(`${key}:size`, -SCALE_SPREAD, SCALE_SPREAD) * chaos),
+        rotate:
+          chaos === 0
+            ? 0
+            : hashRange(`${seed}:tilt${i}`, -FOLD_TILT, FOLD_TILT) *
+              chaos *
+              (LAYER_TILT_FLOOR + (1 - LAYER_TILT_FLOOR) * depth),
+        tone: Math.min(
+          TONES.length - 1,
+          TONE_PATTERN[panels.length % TONE_PATTERN.length] +
+            Math.ceil((1 - depth) * 2),
+        ),
+        crease: 0.5 + hashRange(`${key}:crease`, -0.2, 0.2) * chaos,
+      });
+    }
+  });
+
+  return panels;
+}
+
+function creaseShading(
+  piece                                                    ,
+  crush        ,
+)         {
+  const tone = TONES[piece.tone];
+  const fold = piece.crease * 100;
+  const lit = Math.max(0, fold - CREASE_BLEND).toFixed(1);
+  const dark = Math.min(100, fold + CREASE_BLEND).toFixed(1);
+  const angle = (LIGHT_ANGLE - piece.rotate * crush).toFixed(1);
+  return `linear-gradient(${angle}deg, ${tone.lit} 0%, ${tone.lit} ${lit}%, ${tone.dark} ${dark}%, ${tone.dark} 100%)`;
+}
+
+function crumpleTossLanding(options    
+                     
+                    
+ )                           {
+  const distance = options?.distance ?? 900;
+  const radians = ((options?.direction ?? -35) * Math.PI) / 180;
+  return {
+    x: distance * Math.cos(radians),
+    y: distance * Math.sin(radians) + GRAVITY * distance,
+  };
+}
+
+function crumpleTossPose(
+  args                                       ,
+)              {
+  const crumpleSteps = args.crumpleSteps ?? 4;
+  const tossSteps = args.tossSteps ?? 5;
+  const direction = args.direction ?? -35;
+  const distance = args.distance ?? 900;
+  const spin = args.spin ?? 220;
+  const step = args.step ?? DEFAULT_STEP;
+
+  if (args.frame < args.at) {
+    return {
+      phase: "idle",
+      crush: 0,
+      scale: 1,
+      rotate: 0,
+      x: 0,
+      y: 0,
+      opacity: 1,
+    };
+  }
+
+  const pose = qstep(args.frame - args.at, step);
+
+  if (pose < crumpleSteps) {
+    return {
+      phase: "crumple",
+      crush: (pose + 1) / crumpleSteps,
+      scale: 1,
+      rotate: 0,
+      x: 0,
+      y: 0,
+      opacity: 1,
+    };
+  }
+
+  if (pose < crumpleSteps + tossSteps) {
+    const t = (pose - crumpleSteps + 1) / tossSteps;
+    const radians = (direction * Math.PI) / 180;
+    return {
+      phase: "toss",
+      crush: 1,
+      scale: 1 - FLIGHT_SHRINK * t,
+      rotate: spin * t,
+      x: distance * Math.cos(radians) * t,
+      y: distance * Math.sin(radians) * t + GRAVITY * distance * t * t,
+      opacity: t === 1 ? EXIT_OPACITY : 1,
+    };
+  }
+
+  return {
+    phase: "gone",
+    crush: 1,
+    scale: 0,
+    rotate: 0,
+    x: 0,
+    y: 0,
+    opacity: 0,
+  };
+}
+
+
+            var W = 380, H = 220;
+            var at = num(vars.at, 6, 0, 60), crumpleSteps = Math.round(num(vars.crumple_steps, 4, 1, 10)), tossSteps = Math.round(num(vars.toss_steps, 5, 1, 12));
+            var direction = num(vars.direction, -35, -180, 180), distance = num(vars.distance, 440, 100, 900), spin = num(vars.spin, 220, -720, 720);
+            var segments = Math.round(num(vars.segments, 9, 3, 16)), layers = Math.round(num(vars.layers, 2, 1, 4)), randomness = num(vars.randomness, 0.6, 0, 1);
+            var crushTo = num(vars.crush_to, 0.34, 0.15, 0.8), seed = str(vars.seed, "toss"), step = Math.round(num(vars.step, 3, 1, 6));
+            var timing = { at: at, crumpleSteps: crumpleSteps, tossSteps: tossSteps, direction: direction, distance: distance, spin: spin, crushTo: crushTo, seed: seed, step: step };
+            var cardHtml = '<div class="cts-card"><div class="cts-card-title"></div><div class="cts-card-body"></div></div>';
+            var wad = document.getElementById("cts-wad");
+            var pieces = crumpleSegments({ width: W, height: H, segments: segments, layers: layers, randomness: randomness, crushTo: crushTo, seed: seed });
+            var nodes = pieces.map(function (piece, i) {
+              var el = document.createElement("div");
+              el.id = "cts-piece-" + i;
+              el.className = "cts-piece";
+              el.style.clipPath = "polygon(" + piece.clip.map(function (p) { return p[0] + "% " + p[1] + "%"; }).join(", ") + ")";
+              el.style.transformOrigin = piece.origin[0] + "% " + piece.origin[1] + "%";
+              el.innerHTML = '<div class="cts-fill">' + cardHtml + '</div><div class="cts-shade"></div>';
+              wad.appendChild(el);
+              return { el: el, shade: el.lastChild, piece: piece };
+            });
+            var title = str(vars.card_title, "How it used to work"), body = str(vars.card_body, "Six steps and a wiki page");
+            Array.prototype.forEach.call(wad.querySelectorAll(".cts-card-title"), function (e) { e.textContent = title; });
+            Array.prototype.forEach.call(wad.querySelectorAll(".cts-card-body"), function (e) { e.textContent = body; });
+
+            var landing = crumpleTossLanding({ direction: direction, distance: distance });
+            var binLeft = W / 2 + landing.x - 75, binTop = H / 2 + landing.y;
+            var rim = document.getElementById("cts-rim"), bin = document.getElementById("cts-bin");
+            var gx = Math.min(0, binLeft), gw = Math.max(W, binLeft + 150) - gx, gh = Math.max(H, binTop + 170);
+            rim.style.left = binLeft - gx + "px"; rim.style.top = binTop - 15 + "px";
+            bin.style.left = binLeft - gx + "px"; bin.style.top = binTop + "px";
+            wad.style.left = -gx + "px";
+            var group = document.getElementById("cts-group");
+            fit(group, gw, gh, 0.9);
+            function draw(frame) {
+              var pose = crumpleTossPose(Object.assign({ frame: frame }, timing));
+              var binOut = pose.crush >= 1;
+              rim.style.display = binOut ? "block" : "none";
+              bin.style.display = binOut ? "block" : "none";
+              if (pose.phase === "gone") { wad.style.display = "none"; return; }
+              wad.style.display = "block";
+              var c = pose.crush;
+              wad.style.opacity = pose.opacity;
+              wad.style.transformOrigin = "50% 50%";
+              wad.style.transform = "translate(" + pose.x + "px, " + pose.y + "px) rotate(" + pose.rotate + "deg) scale(" + pose.scale + ")";
+              nodes.forEach(function (n) {
+                var p = n.piece;
+                n.el.style.transform = "translate(" + p.dx * c + "px, " + p.dy * c + "px) rotate(" + p.rotate * c + "deg) scale(" + (1 + (p.scale - 1) * c) + ")";
+                n.el.style.filter = c > 0 ? "drop-shadow(0 0 " + 0.6 * c + "px rgba(38,36,44,0.55))" : "none";
+                n.shade.style.background = creaseShading(p, c);
+                n.shade.style.opacity = c;
+              });
+            }
+            var tl = gsap.timeline({ paused: true });
+            clockTween(tl, 90, draw, 1);
+
+            var total = parseFloat(root.dataset.duration || "3");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["crumple-toss"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

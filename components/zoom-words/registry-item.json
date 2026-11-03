@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "zoom-words",
+  "type": "hyperframes:component",
+  "title": "Zoom Words",
+  "description": "Huge words fade into a long line while the camera rides the write head.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "camera",
+    "words",
+    "cold-open",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.5,
+  "useWhen": [
+    "An intro should open uncomfortably close: huge words appear one by one while the camera tracks the growing line off-frame.",
+    "The shot starts slightly defocused and sharpens while the reveal runs."
+  ],
+  "avoidWhen": [
+    "The whole phrase must fit the frame at rest: use per-word-crossfade or word-stream.",
+    "You need character-by-character typing with a caret: use typewriter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/zoom-words/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "zoom-words.html",
+      "target": "compositions/components/zoom-words.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Phrase written word by word while the camera follows.", "default": "Still piecing together tools" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size in pixels, before the camera zoom.", "default": 64, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "zoom", "type": "number", "role": "motion", "label": "Zoom", "description": "Camera zoom on the whole line.", "default": 2.2, "min": 1, "max": 4, "step": 0.1 },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#cfc2ff" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] },
+    { "id": "word_gap", "type": "number", "role": "motion", "label": "Word gap", "description": "Frames per word across the whole phrase (30 fps).", "default": 12, "min": 4, "max": 24, "step": 1, "unit": "frames" },
+    { "id": "anchor", "type": "number", "role": "motion", "label": "Anchor", "description": "Horizontal position of the write head, 0 left to 1 right.", "default": 0.5, "min": 0.2, "max": 0.9, "step": 0.05 },
+    { "id": "blur", "type": "number", "role": "motion", "label": "Blur", "description": "Starting defocus as a fraction of the zoomed font size.", "default": 0.04, "min": 0, "max": 0.3, "step": 0.01 },
+    { "id": "blur_frames", "type": "number", "role": "motion", "label": "Blur frames", "description": "Frames the defocus takes to sharpen (30 fps).", "default": 60, "min": 10, "max": 120, "step": 1, "unit": "frames" }
+  ]
+}

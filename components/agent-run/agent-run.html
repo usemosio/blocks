@@ -1,0 +1,457 @@
+<!doctype html>
+<!--
+  Agent Run
+
+  A brand-neutral AI agent run that thinks, calls tools against a real-seconds timer and streams a markdown answer in bursts. Rewritten as DOM layout driven by the timeline; the streaming schedule, timer and spinner follow remocn's design.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/agent-run/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="agent-run"
+  data-composition-duration="10.433"
+  data-composition-variables='[
+    {"id": "run", "type": "string", "role": "content", "label": "Run script", "description": "JSON of the agent run: title, prompt, plan (list of strings), steps (name, detail, duration in seconds, icon of chart, database, search, book, globe, terminal or file, optional sources list) and answer (short markdown: heading, bullets, code fence, bold, inline code, citations like [1]).", "default": "{\"title\": \"Checkout conversion drop\", \"prompt\": \"Why did checkout conversion drop last week?\", \"plan\": [\"Compare the checkout funnel with the week before\", \"Break the drop down by browser and step\", \"Check what shipped and what the error logs say\"], \"steps\": [{\"icon\": \"chart\", \"name\": \"Query analytics\", \"detail\": \"checkout funnel, last 7 days vs prior 7\", \"duration\": 1.4}, {\"icon\": \"database\", \"name\": \"Run SQL\", \"detail\": \"conversion by browser and step\", \"duration\": 2.3}, {\"icon\": \"search\", \"name\": \"Search logs\", \"detail\": \"Wallet payment errors on Safari\", \"duration\": 1.1}, {\"icon\": \"book\", \"name\": \"Read 12 sources\", \"duration\": 3.2, \"sources\": [\"Checkout funnel\", \"Browser report\", \"Release 4.12\", \"PR #2186\", \"webkit.org\", \"developer.mozilla.org\", \"Payments runbook\", \"Error log\", \"Incident notes\", \"Wallet payments guide\", \"Support tickets\", \"Status page\"]}], \"answer\": \"## Wallet payments broke on Safari in release 4.12\\n\\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on Safari, 41% of checkouts [2].\\n\\n- Safari conversion halved, from 3.5% to 1.8%\\n- Chrome and Firefox held steady at 3.3%\\n- 4.12 moved the card form into an iframe without `allow=\\\"payment\\\"` [3]\\n\\n```tsx\\n<iframe\\n  src={cardFormUrl}\\n  allow=\\\"payment\\\"\\n/>\\n```\\n\\n**Fix:** add the attribute and ship 4.12.1 today.\"}"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark panel.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "The one accent color.", "default": "#2563eb"},
+    {"id": "compression", "type": "number", "role": "motion", "label": "Compression", "description": "How many real seconds one second of video stands for; sets the timer and the tool durations.", "default": 3, "min": 1, "max": 8, "step": 0.5},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Seed for the streaming bursts.", "default": 1, "min": 1, "max": 99, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Agent Run</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+
+        #root { background: var(--stage); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .ar-stage { position: absolute; inset: 0; }
+        .ar-panel { position: absolute; left: 50%; top: 50%; width: 800px; transform-origin: 0 0; }
+        .ar-card { position: relative; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; background: var(--panel); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); color: var(--fg); font-size: 16px; -webkit-font-smoothing: antialiased; }
+        .ar-head { height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 32px; border-bottom: 1px solid var(--divider); }
+        .ar-title { min-width: 0; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ar-timer { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+        .ar-time { min-width: 38px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+        .ar-view { position: relative; overflow: hidden; }
+        .ar-col { position: absolute; top: 0; left: 32px; width: 736px; padding: 24px 0 40px; box-sizing: border-box; }
+        .ar-bubble { display: flex; justify-content: flex-end; }
+        .ar-bubble > div { padding: 10px 16px; border-radius: 18px; background: var(--surface); font-size: 16px; line-height: 24px; }
+        .ar-status { margin-top: 20px; height: 24px; position: relative; font-size: 15px; font-weight: 500; line-height: 24px; white-space: pre; }
+        .ar-status > span { position: absolute; left: 0; top: 0; }
+        .ar-thought { color: var(--muted); }
+        .ar-plan { position: relative; margin-top: 8px; padding-left: 40px; font-size: 15px; line-height: 24px; color: var(--muted); }
+        .ar-rule { position: absolute; left: 0; top: 2px; bottom: 2px; width: 2px; border-radius: 1px; background: var(--track); }
+        .ar-item { position: relative; margin: 4px 0; }
+        .ar-num { position: absolute; left: -26px; color: var(--subtle); font-variant-numeric: tabular-nums; }
+        .ar-tools { margin-top: 20px; border: 1px solid var(--surfaceBorder); border-radius: 12px; background: var(--surface); overflow: hidden; }
+        .ar-row { box-sizing: border-box; overflow: hidden; }
+        .ar-row + .ar-row { border-top: 1px solid var(--divider); }
+        .ar-line { height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 14px; }
+        .ar-name { flex-shrink: 0; font-size: 15px; font-weight: 500; white-space: nowrap; }
+        .ar-detail { flex: 1; min-width: 0; font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ar-dur { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .ar-chips { display: flex; gap: 8px; height: 34px; padding: 0 14px 0 40px; overflow: hidden; }
+        .ar-chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 999px; border: 1px solid var(--surfaceBorder); background: var(--panel); font-size: 12px; color: var(--muted); white-space: nowrap; transform-origin: 0 50%; }
+        .ar-answer { margin-top: 24px; font-size: 16px; line-height: 26px; }
+        .ar-blk { margin-bottom: 12px; }
+        .ar-h { font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em; }
+        .ar-li { position: relative; padding-left: 22px; margin-bottom: 4px; }
+        .ar-li::before { content: ""; position: absolute; left: 7px; top: 11px; width: 5px; height: 5px; border-radius: 50%; background: var(--subtle); }
+        .ar-code { border: 1px solid var(--surfaceBorder); background: var(--codebg); border-radius: 10px; padding: 12px 16px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 14px; line-height: 22px; white-space: pre; overflow: hidden; }
+        .ar-lang { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--subtle); margin-bottom: 4px; }
+        .ar-ic { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em; background: var(--surface); border: 1px solid var(--surfaceBorder); border-radius: 5px; padding: 0 4px; }
+        .ar-b { font-weight: 600; }
+        .ar-cite { display: inline-block; min-width: 18px; text-align: center; font-size: 11px; line-height: 18px; font-weight: 600; border-radius: 9px; background: var(--accentTint); color: var(--accentText); vertical-align: 2px; margin: 0 1px; }
+      </style>
+
+      <div id="root" data-composition-id="agent-run" data-duration="10.433" data-fps="30">
+        <div id="ar-clip" class="ar-stage clip" data-start="0" data-duration="10.433" data-track-index="0">
+          <div class="ar-panel" id="ar-panel"><div class="ar-card" id="ar-card">
+            <div class="ar-head"><span class="ar-title" id="ar-title"></span><div class="ar-timer" id="ar-timer"><span id="ar-hspin"></span><span class="ar-time" id="ar-time">0.0s</span></div></div>
+            <div class="ar-view" id="ar-view"><div class="ar-col" id="ar-col">
+              <div class="ar-bubble" id="ar-bubble"><div id="ar-prompt"></div></div>
+              <div class="ar-status" id="ar-status"><span id="ar-thinking"></span><span class="ar-thought" id="ar-thought"></span></div>
+              <div class="ar-plan" id="ar-plan"><div class="ar-rule"></div></div>
+              <div class="ar-tools" id="ar-tools"></div>
+              <div class="ar-answer" id="ar-answer"></div>
+            </div></div>
+          </div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "agent-run";
+
+var root = document.getElementById("root");
+var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f; }
+function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+function col(v, f) { return typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v.trim()) ? v.trim() : f; }
+function bool(v, f) { return v === true || v === "true" ? true : v === false || v === "false" ? false : f; }
+var FPS = 30;
+var DUR = parseFloat(root.dataset.duration || "2");
+var TOTAL = Math.round(DUR * FPS);
+function lerp(a, b, t) { return a + (b - a) * t; }
+function cl(x, a, b) { return Math.min(b, Math.max(a, x)); }
+// interpolate(x, [in...], [out...], easing): clamped on both sides, easing applied per segment.
+function interp(x, inp, out, easing) {
+  if (x <= inp[0]) return out[0];
+  if (x >= inp[inp.length - 1]) return out[out.length - 1];
+  var i = 0;
+  while (x > inp[i + 1]) i++;
+  var t = (x - inp[i]) / (inp[i + 1] - inp[i]);
+  if (easing) t = easing(t);
+  return out[i] + (out[i + 1] - out[i]) * t;
+}
+function bez(x1, y1, x2, y2) {
+  return function (x) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    var t = x;
+    for (var i = 0; i < 8; i++) {
+      var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t - x;
+      var d = 3 * x1 * (1 - t) * (1 - t) - 6 * x1 * t * (1 - t) + 6 * x2 * t * (1 - t) - 3 * x2 * t * t + 3 * t * t;
+      if (Math.abs(cx) < 1e-6 || Math.abs(d) < 1e-6) break;
+      t -= cx / d;
+    }
+    t = cl(t, 0, 1);
+    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+  };
+}
+var E = {
+  lin: function (t) { return t; },
+  quad: function (t) { return t * t; },
+  cubic: function (t) { return t * t * t; },
+  sin: function (t) { return 1 - Math.cos((t * Math.PI) / 2); }
+};
+function eOut(f) { return function (t) { return 1 - f(1 - t); }; }
+function eInOut(f) { return function (t) { return t < 0.5 ? f(2 * t) / 2 : 1 - f(2 - 2 * t) / 2; }; }
+var outCubic = eOut(E.cubic), outQuad = eOut(E.quad), inCubic = E.cubic, inQuad = E.quad;
+var inOutCubic = eInOut(E.cubic), inOutQuad = eInOut(E.quad), inOutSin = eInOut(E.sin), outSin = eOut(E.sin);
+// Damped spring from 0 to 1 (rest at 1, no initial velocity), frames at 30 fps.
+function spring(frame, cfg) {
+  if (frame <= 0) return 0;
+  var m = cfg.mass || 1, k = cfg.stiffness, c = cfg.damping;
+  var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m)), t = frame / FPS;
+  if (z < 1) {
+    var wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+  }
+  if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+  return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+}
+// Seeded random: same string in, same number out.
+function rnd(seed) {
+  var sd = String(seed), h = 1779033703 ^ sd.length;
+  for (var i = 0; i < sd.length; i++) { h = Math.imul(h ^ sd.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+  var a = (h >>> 0);
+  a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rgb(h) {
+  h = h.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function mixc(a, b, t) {
+  var x = rgb(a), y = rgb(b);
+  return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")";
+}
+function rgba(h, a) { var x = rgb(h); return "rgba(" + x[0] + "," + x[1] + "," + x[2] + "," + a + ")"; }
+var SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function setA(e, attrs) { for (var k in attrs) e.setAttribute(k, attrs[k]); }
+// Drive draw(frame) from the timeline; frames run 0..frames over frames/30 seconds.
+function drive(draw, frames) {
+  var tl = gsap.timeline({ paused: true });
+  var clock = { frame: 0 };
+  tl.to(clock, { frame: frames, duration: frames / FPS, ease: "none", onUpdate: function () { draw(clock.frame); } }, 0);
+  draw(0);
+  return tl;
+}
+function finish(tl) {
+  if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+  tl.seek(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines[NAME] = tl;
+}
+
+
+var RUN_START = 16, THINK_LEAD = 14, THINK_TAIL = 8, TOOL_GAP = 5, TOOL_MIN = 12, TOOL_MAX = 120, ANSWER_GAP = 8, SETTLE = 16, HOLD = 45;
+function pickW(w, v) { var s = 0, i; for (i = 0; i < w.length; i++) s += w[i]; var t = v * s, a = 0; for (i = 0; i < w.length; i++) { a += w[i]; if (t < a) return i; } return w.length - 1; }
+// Streaming schedule: text arrives in bursts of a few words; every character gets the frame it appears on.
+function chunkArrivals(text, seed, salt) {
+  var arr = [], pos = 0, fr = 0, k = 0, last = 0, SIZES = [3, 6, 8, 10, 12, 15], SW = [8, 16, 22, 22, 17, 15], GW = [42, 33, 16, 9];
+  while (pos < text.length) {
+    var key = "agent-run-" + seed + "-" + salt + "-" + k;
+    var end = Math.min(text.length, pos + SIZES[pickW(SW, rnd(key + "-s"))]);
+    while (end < text.length && !/\s/.test(text.charAt(end - 1))) end++;
+    for (var i = pos; i < end; i++) arr[i] = fr;
+    last = fr;
+    fr += 1 + pickW(GW, rnd(key + "-g"));
+    if (rnd(key + "-p") < 0.06) fr += 4 + Math.floor(rnd(key + "-q") * 4);
+    pos = end; k++;
+  }
+  return { arr: arr, last: last };
+}
+function buildTimeline(run, seed, compression) {
+  var perFrame = compression / 30, planText = (run.plan || []).join("\n");
+  var pc = planText ? chunkArrivals(planText, seed, "plan") : { arr: [], last: 0 };
+  var planStart = RUN_START + THINK_LEAD, planEnd = planStart + pc.last, thinkEnd = planEnd + THINK_TAIL;
+  var segs = [], real = 0;
+  function push(kind, from, to, sec) { segs.push({ kind: kind, from: from, to: to, realFrom: real, real: sec }); real += sec; }
+  push("think", RUN_START, thinkEnd, (thinkEnd - RUN_START) * perFrame);
+  var thinkSeconds = real, tools = [], cursor = thinkEnd;
+  (run.steps || []).forEach(function (st, i) {
+    push("gap", cursor, cursor + TOOL_GAP, TOOL_GAP * perFrame); cursor += TOOL_GAP;
+    var dur = Math.max(0, Number(st.duration) || 0), span = cl(Math.round(dur / perFrame), TOOL_MIN, TOOL_MAX), rs = real;
+    push("tool", cursor, cursor + span, dur);
+    tools.push({ start: cursor, end: cursor + span, duration: dur, realStart: rs }); cursor += span;
+  });
+  push("gap", cursor, cursor + ANSWER_GAP, ANSWER_GAP * perFrame);
+  var answerStart = cursor + ANSWER_GAP, ac = chunkArrivals(run.answer || "", seed, "answer"), answerEnd = answerStart + ac.last;
+  push("answer", answerStart, answerEnd, (answerEnd - answerStart) * perFrame);
+  return { planStart: planStart, planEnd: planEnd, thinkEnd: thinkEnd, thinkSeconds: thinkSeconds, tools: tools, answerStart: answerStart, answerEnd: answerEnd, settled: answerEnd + SETTLE, total: answerEnd + SETTLE + HOLD, segs: segs, realTotal: real, plan: pc, answer: ac };
+}
+function elapsedAt(t, tl) {
+  if (!(t > RUN_START)) return 0;
+  for (var i = 0; i < tl.segs.length; i++) { var s = tl.segs[i]; if (s.to > s.from && t < s.to) return s.realFrom + ((t - s.from) / (s.to - s.from)) * s.real; }
+  return tl.realTotal;
+}
+
+var panelEl = document.getElementById("ar-panel"), card = document.getElementById("ar-card"), view = document.getElementById("ar-view"), colEl = document.getElementById("ar-col");
+var RUN_DEFAULT = {"title": "Checkout conversion drop", "prompt": "Why did checkout conversion drop last week?", "plan": ["Compare the checkout funnel with the week before", "Break the drop down by browser and step", "Check what shipped and what the error logs say"], "steps": [{"icon": "chart", "name": "Query analytics", "detail": "checkout funnel, last 7 days vs prior 7", "duration": 1.4}, {"icon": "database", "name": "Run SQL", "detail": "conversion by browser and step", "duration": 2.3}, {"icon": "search", "name": "Search logs", "detail": "Wallet payment errors on Safari", "duration": 1.1}, {"icon": "book", "name": "Read 12 sources", "duration": 3.2, "sources": ["Checkout funnel", "Browser report", "Release 4.12", "PR #2186", "webkit.org", "developer.mozilla.org", "Payments runbook", "Error log", "Incident notes", "Wallet payments guide", "Support tickets", "Status page"]}], "answer": "## Wallet payments broke on Safari in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on Safari, 41% of checkouts [2].\n\n- Safari conversion halved, from 3.5% to 1.8%\n- Chrome and Firefox held steady at 3.3%\n- 4.12 moved the card form into an iframe without `allow=\"payment\"` [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the attribute and ship 4.12.1 today."};
+var run = RUN_DEFAULT;
+try { var pr = typeof vars.run === "string" ? JSON.parse(vars.run) : vars.run; if (pr && typeof pr.prompt === "string" && typeof pr.answer === "string") run = pr; } catch (e) {}
+var dark = String(vars.theme) === "dark", accent = col_(vars.accent_color, "#2563eb");
+function col_(v, f) { return col(v, f); }
+var compression = num(vars.compression, 3, 1, 8), seed = Math.round(num(vars.seed, 1, 1, 99)), speed = num(vars.speed, 1, 0.25, 4);
+var T = { light: { panel: "#ffffff", border: "#e4e4e0", divider: "#ededea", fg: "#1c1c1a", muted: "#63635e", subtle: "#9a9a94", surface: "#f3f3f1", surfaceBorder: "#e7e7e3", codebg: "#f8f8f6", track: "#e3e3df", shadow: "0 1px 2px rgba(28, 28, 26, 0.06)", stage: "#ececea" },
+  dark: { panel: "#161616", border: "#2b2b2a", divider: "#232322", fg: "#ececea", muted: "#a2a29d", subtle: "#6d6d68", surface: "#212120", surfaceBorder: "#2e2e2d", codebg: "#1c1c1b", track: "#343433", shadow: "0 1px 2px rgba(0, 0, 0, 0.5)", stage: "#0c0c0c" } }[dark ? "dark" : "light"];
+for (var k0 in T) root.style.setProperty("--" + k0, T[k0]);
+root.style.setProperty("--accent", accent);
+root.style.setProperty("--accentTint", "color-mix(in srgb, " + accent + " " + (dark ? 22 : 12) + "%, transparent)");
+root.style.setProperty("--accentText", dark ? "color-mix(in srgb, " + accent + " 62%, #ffffff)" : accent);
+var W = root.clientWidth, H = root.clientHeight;
+var unit = Math.min(H / 720, W / 880), panelH = cl(H / unit - 80, 360, 960), viewport = panelH - 50;
+panelEl.style.height = panelH + "px"; panelEl.style.transform = "scale(" + unit + ") translate(-50%, -50%)";
+view.style.height = viewport + "px";
+var tl = buildTimeline(run, seed, compression), TOTALF = Math.ceil(tl.total / speed);
+function fmt(s) { s = Math.max(0, s); if (s < 60) return s.toFixed(1) + "s"; var m = Math.floor(s / 60), r = Math.floor(s - m * 60); return m + "m " + (r < 10 ? "0" : "") + r + "s"; }
+document.getElementById("ar-title").textContent = str(run.title, "Agent run");
+document.getElementById("ar-prompt").textContent = run.prompt;
+// Spinner: a ring with a turning arc that closes into a check.
+var CIRC = 2 * Math.PI * 6;
+function spinner(parent, size) {
+  var s = svgEl("svg", { width: size, height: size, viewBox: "0 0 16 16" }, parent);
+  var d = svgEl("circle", { cx: 8, cy: 8, r: 6, fill: "var(--accentTint)", opacity: 0 }, s);
+  svgEl("circle", { cx: 8, cy: 8, r: 6, fill: "none", stroke: "var(--track)", "stroke-width": 1.6 }, s);
+  var arc = svgEl("circle", { cx: 8, cy: 8, r: 6, fill: "none", stroke: "var(--accent)", "stroke-width": 1.6, "stroke-linecap": "round" }, s);
+  var ck = svgEl("path", { d: "M5 8.3 L7.1 10.4 L11 5.9", fill: "none", stroke: "var(--accent)", "stroke-width": 1.6, "stroke-linecap": "round", "stroke-linejoin": "round", pathLength: 1, "stroke-dasharray": 1, "stroke-dashoffset": 1 }, s);
+  return { d: d, arc: arc, ck: ck, svg: s };
+}
+function spinState(sp, time, start, end) {
+  var spinning = cl(time - start, 0, Math.max(0, end - start)), since = time - end, ARC = 0.28, SPIN = 12, RESOLVE = 8;
+  var settle = cl(since / RESOLVE, 0, 1), coast = SPIN * RESOLVE * (settle - (settle * settle) / 2);
+  var expo = settle >= 1 ? 1 : 1 - Math.pow(2, -10 * settle);
+  var arcLen = ARC + (1 - ARC) * expo, done = settle * settle * (3 - 2 * settle), check = outCubic(cl((since - 3) / 7, 0, 1));
+  setA(sp.arc, { "stroke-dasharray": arcLen * CIRC + " " + CIRC, transform: "rotate(" + (spinning * SPIN + coast - 90) + " 8 8)" });
+  sp.d.setAttribute("opacity", done); sp.ck.setAttribute("stroke-dashoffset", 1 - check);
+  sp.arc.setAttribute("opacity", time < start ? 0 : 1);
+}
+var hspin = spinner(document.getElementById("ar-hspin"), 14);
+// Streamed text: one span per burst, each fading in on the frame its burst arrives.
+var fades = [];
+function streamText(parent, text, base, arr, startFrame, cls) {
+  var cur = null, curArrive = -1;
+  for (var i = 0; i < text.length; i++) {
+    var a = startFrame + arr[base + i];
+    if (a !== curArrive || !cur) { cur = document.createElement("span"); if (cls) cur.className = cls; cur.style.opacity = 0; parent.appendChild(cur); fades.push({ el: cur, at: a }); curArrive = a; }
+    cur.textContent += text.charAt(i);
+  }
+}
+function inline(parent, text, base, arr, st) {
+  var re = /(\*\*[^*]+\*\*|`[^`]+`|\[\d+\])/g, m, last = 0;
+  while ((m = re.exec(text))) {
+    if (m.index > last) streamText(parent, text.slice(last, m.index), base + last, arr, st);
+    var tok = m[0], off = base + m.index;
+    if (tok.charAt(0) === "*") streamText(parent, tok.slice(2, -2), off + 2, arr, st, "ar-b");
+    else if (tok.charAt(0) === "`") streamText(parent, tok.slice(1, -1), off + 1, arr, st, "ar-ic");
+    else streamText(parent, tok, off, arr, st, "ar-cite");
+    last = m.index + tok.length;
+  }
+  if (last < text.length) streamText(parent, text.slice(last), base + last, arr, st);
+}
+var blocks = [];
+function addBlock(el, firstOffset, arr, st) { blocks.push({ el: el, at: st + arr[firstOffset] }); el.style.display = "none"; }
+// Plan.
+var planEl = document.getElementById("ar-plan"), planItems = [];
+var planOff = 0;
+(run.plan || []).forEach(function (line, i) {
+  var it = document.createElement("div"); it.className = "ar-item";
+  var n = document.createElement("span"); n.className = "ar-num"; n.textContent = (i + 1) + "."; n.style.opacity = 0; it.appendChild(n);
+  var sp = document.createElement("span"); it.appendChild(sp);
+  streamText(sp, line, planOff, tl.plan.arr, tl.planStart);
+  planItems.push({ num: n, at: tl.planStart + tl.plan.arr[planOff] });
+  planEl.appendChild(it); planOff += line.length + 1;
+});
+// Status line.
+var thinkingEl = document.getElementById("ar-thinking"), thoughtEl = document.getElementById("ar-thought");
+var thinkText = "Thinking", shim = [];
+for (var q = 0; q < thinkText.length; q++) { var sc = document.createElement("span"); sc.textContent = thinkText.charAt(q); thinkingEl.appendChild(sc); shim.push(sc); }
+thoughtEl.textContent = "Thought for " + fmt(tl.thinkSeconds);
+// Tools.
+var ICONS = { chart: '<path d="M3 13V8M8 13V3M13 13V6"/>', database: '<ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>', search: '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/>', book: '<path d="M3 3h4a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H3zM13 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h4z"/>', globe: '<circle cx="8" cy="8" r="6"/><ellipse cx="8" cy="8" rx="2.5" ry="6"/><path d="M2 8h12"/>', terminal: '<path d="M3 4l4 4-4 4M8 12h5"/>', file: '<path d="M4 2h5l3 3v9H4zM9 2v3h3"/>' };
+function icon(parent, name, size, color) { var s = svgEl("svg", { width: size, height: size, viewBox: "0 0 16 16", fill: "none", stroke: color, "stroke-width": 1.5, "stroke-linecap": "round", "stroke-linejoin": "round", style: "flex-shrink:0" }, parent); s.innerHTML = ICONS[name] || ICONS.terminal; return s; }
+var toolsEl = document.getElementById("ar-tools"), rows = [];
+function chipW(label) { return 38 + label.length * 6.4; }
+(run.steps || []).forEach(function (st, i) {
+  var tm = tl.tools[i], row = document.createElement("div"); row.className = "ar-row"; row.style.display = "none";
+  var line = document.createElement("div"); line.className = "ar-line"; row.appendChild(line);
+  icon(line, st.icon || "terminal", 16, "var(--muted)");
+  var nm = document.createElement("span"); nm.className = "ar-name"; nm.textContent = st.name; line.appendChild(nm);
+  var dt = document.createElement("span"); dt.className = "ar-detail"; dt.textContent = st.detail || ""; line.appendChild(dt);
+  var du = document.createElement("span"); du.className = "ar-dur"; line.appendChild(du);
+  var sp = spinner(line, 16);
+  var r = { row: row, du: du, sp: sp, tm: tm, chips: [], dur: st.duration };
+  if (st.sources && st.sources.length) {
+    var cw = document.createElement("div"); cw.className = "ar-chips"; row.appendChild(cw);
+    var avail = 736 - 54 - chipW("+99"), used = 0, shown = [];
+    for (var c = 0; c < st.sources.length; c++) { var w = chipW(st.sources[c]) + 8; if (used + w > avail) break; used += w; shown.push(st.sources[c]); }
+    shown.forEach(function (lab) {
+      var ch = document.createElement("span"); ch.className = "ar-chip"; ch.style.opacity = 0;
+      icon(ch, /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(lab) ? "globe" : "file", 12, "var(--subtle)");
+      ch.appendChild(document.createTextNode(lab)); cw.appendChild(ch); r.chips.push(ch);
+    });
+    if (st.sources.length > shown.length) { var mo = document.createElement("span"); mo.className = "ar-chip"; mo.style.opacity = 0; mo.style.padding = "0 9px"; mo.textContent = "+" + (st.sources.length - shown.length); cw.appendChild(mo); r.chips.push(mo); }
+  }
+  toolsEl.appendChild(row); rows.push(r);
+});
+toolsEl.style.display = "none";
+// Answer markdown: heading, paragraph, bullets, fenced code.
+var ansEl = document.getElementById("ar-answer"), ans = run.answer || "", ast = tl.answerStart, aarr = tl.answer.arr;
+(function () {
+  var lines = ans.split("\n"), off = 0, i = 0;
+  while (i < lines.length) {
+    var ln = lines[i];
+    if (/^```/.test(ln)) {
+      var lang = ln.slice(3).trim(), body = [], start = off + ln.length + 1, j = i + 1, o = start;
+      while (j < lines.length && !/^```/.test(lines[j])) { body.push({ t: lines[j], o: o }); o += lines[j].length + 1; j++; }
+      var cb = document.createElement("div"); cb.className = "ar-blk";
+      var code = document.createElement("div"); code.className = "ar-code";
+      if (lang) { var lg = document.createElement("div"); lg.className = "ar-lang"; lg.textContent = lang; code.appendChild(lg); }
+      body.forEach(function (b) { var l = document.createElement("div"); if (b.t.length) streamText(l, b.t, b.o, aarr, ast); else l.textContent = " "; code.appendChild(l); });
+      cb.appendChild(code); ansEl.appendChild(cb);
+      addBlock(cb, body.length ? body[0].o : start, aarr, ast);
+      for (var z = i; z <= j && z < lines.length; z++) off += lines[z].length + 1;
+      i = j + 1; continue;
+    }
+    if (!ln.trim()) { off += ln.length + 1; i++; continue; }
+    var d = document.createElement("div"), skip = 0;
+    var hm = /^(#{1,3})\s+/.exec(ln), lm = /^[-*]\s+/.exec(ln);
+    if (hm) { d.className = "ar-blk ar-h"; skip = hm[0].length; }
+    else if (lm) { d.className = "ar-li"; skip = lm[0].length; }
+    else d.className = "ar-blk";
+    inline(d, ln.slice(skip), off + skip, aarr, ast);
+    ansEl.appendChild(d); addBlock(d, off + skip, aarr, ast);
+    off += ln.length + 1; i++;
+  }
+})();
+var scrolls = null;
+function draw(frame, noScroll) {
+  var t = frame * speed;
+  var pIn = outCubic(cl(t / 14, 0, 1));
+  card.style.opacity = pIn; card.style.transform = "translateY(" + (1 - pIn) * 14 + "px)";
+  var bp = outCubic(cl((t - 4) / 10, 0, 1));
+  document.getElementById("ar-bubble").style.opacity = bp; document.getElementById("ar-bubble").style.transform = "translateY(" + (1 - bp) * 8 + "px)";
+  var started = t >= RUN_START, runEnd = tl.answerEnd;
+  document.getElementById("ar-timer").style.opacity = cl((t - RUN_START) / 6, 0, 1);
+  document.getElementById("ar-time").textContent = fmt(elapsedAt(t, tl));
+  spinState(hspin, t, RUN_START, runEnd);
+  var st = document.getElementById("ar-status"); st.style.opacity = cl((t - RUN_START) / 6, 0, 1);
+  var swap = outCubic(cl((t - tl.thinkEnd) / 8, 0, 1));
+  var cyc = (t - RUN_START) / 30, phase = cyc - Math.floor(cyc), center = -3 + phase * (thinkText.length + 6);
+  shim.forEach(function (s, i) { var dd = Math.abs(i + 0.5 - center) / 3, band = dd < 1 ? Math.pow(1 - dd * dd, 2) : 0; s.style.opacity = 0.45 + 0.55 * band; });
+  thinkingEl.style.opacity = 1 - swap; thoughtEl.style.opacity = swap; thoughtEl.style.transform = "translateY(" + (1 - swap) * 4 + "px)";
+  planEl.style.display = t >= tl.planStart && planItems.length ? "" : "none";
+  planItems.forEach(function (p) { p.num.style.opacity = outCubic(cl((t - p.at + 1) / 6, 0, 1)); });
+  var anyTool = false;
+  rows.forEach(function (r) {
+    var rt = t - r.tm.start, vis = rt >= 0; if (vis) anyTool = true;
+    r.row.style.display = vis ? "" : "none";
+    if (!vis) return;
+    r.row.style.opacity = outCubic(cl(rt / 8, 0, 1));
+    spinState(r.sp, t, r.tm.start, r.tm.end);
+    var span = r.tm.end - r.tm.start, real = cl(rt / span, 0, 1) * r.dur;
+    r.du.textContent = fmt(real); r.du.style.opacity = outCubic(cl((rt - 2) / 6, 0, 1));
+    var cs = r.tm.end - r.tm.start;
+    r.chips.forEach(function (ch, ci) {
+      var at = 4 + (ci / Math.max(1, r.chips.length)) * cs * 0.7, p2 = cl((rt - at) / 8, 0, 1), b = 1 + 1.7 * Math.pow(p2 - 1, 3) + 1.7 * Math.pow(p2 - 1, 2);
+      ch.style.opacity = p2 > 0 ? 1 : 0; ch.style.transform = "scale(" + (p2 > 0 ? 0.6 + 0.4 * Math.min(1.12, Math.max(0, b)) : 0.6) + ")";
+    });
+  });
+  toolsEl.style.display = anyTool ? "" : "none";
+  fades.forEach(function (f) { f.el.style.opacity = outCubic(cl((t - f.at + 1) / 5, 0, 1)); });
+  blocks.forEach(function (b) { b.el.style.display = t >= b.at ? "" : "none"; });
+  var sc = 0;
+  if (!noScroll && scrolls) { var f0 = Math.min(Math.round(frame), scrolls.length - 1); var s0 = 0, n0 = 0; for (var kk = 0; kk < 14; kk++) { var ff = f0 - kk; if (ff < 0) break; s0 += scrolls[ff]; n0++; } sc = n0 ? s0 / n0 : 0; }
+  colEl.style.transform = "translateY(" + -sc + "px)";
+}
+// Record how tall the column is at every frame, then scroll to keep the newest line in view.
+var heights = [];
+for (var f = 0; f <= TOTALF; f++) { draw(f, true); heights.push(Math.max(0, colEl.offsetHeight - viewport)); }
+scrolls = heights;
+finish(drive(function (fr) { draw(fr, false); }, TOTALF));
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

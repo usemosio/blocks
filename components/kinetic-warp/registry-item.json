@@ -1,0 +1,47 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "kinetic-warp",
+  "type": "hyperframes:component",
+  "title": "Kinetic Warp",
+  "description": "A coarse mesh warp bends a whole word in staccato beats, one axis moving per keyframe.",
+  "tags": [
+    "text-effects",
+    "warp",
+    "kinetic-type",
+    "beat",
+    "display",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A short, heavy display word needs a bold kinetic moment where the whole word bends and snaps instead of individual letters animating.",
+    "A rhythmic, beat-synced distortion: the mesh stops dead at every keyframe, so each pose lands like a drum hit."
+  ],
+  "avoidWhen": [
+    "You need a text entrance: the word is fully visible from frame 0 and only distorts. Use tracking-in or soft-blur-in.",
+    "The text is long or small: the mesh bends quarters of the frame, so use per-character-rise."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/kinetic-warp/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "kinetic-warp.html",
+      "target": "compositions/components/kinetic-warp.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short, heavy display word. Use a line break to stack two lines.", "default": "STU\nDIO" },
+    { "id": "text_color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the word.", "default": "#FFFFFF" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Type size at a 100 % layer scale, in px at 1080 high.", "default": 107.1, "min": 40, "max": 200, "step": 0.1, "unit": "px" },
+    { "id": "layer_scale", "type": "number", "role": "style", "label": "Layer scale", "description": "Scale of the text layer in percent.", "default": 480, "min": 100, "max": 800, "step": 1, "unit": "%" },
+    { "id": "keyframe_stride", "type": "number", "role": "motion", "label": "Keyframe stride", "description": "Frames between warp poses (30 fps). Tune it to the beat.", "default": 20, "min": 5, "max": 40, "step": 1, "unit": "frames" }
+  ]
+}

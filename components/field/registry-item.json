@@ -1,0 +1,139 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "field",
+  "type": "hyperframes:component",
+  "title": "Field",
+  "description": "A labelled form field: a label above, an input that focuses and types, helper text below, and a second filled field in the same group.",
+  "tags": [
+    "field",
+    "form",
+    "label",
+    "ui",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 3.5,
+  "useWhen": [
+    "A form needs consistent label, control and helper-text spacing, with one field being filled in.",
+    "A sign-up walkthrough shows several fields stacked."
+  ],
+  "avoidWhen": [
+    "A single bare field is enough: use input.",
+    "A multi-step flow with navigation: use signup-flow."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/field/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "field.html",
+      "target": "compositions/components/field.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Label of the animated field.",
+      "default": "Email"
+    },
+    {
+      "id": "description",
+      "type": "string",
+      "role": "content",
+      "label": "Description",
+      "description": "Helper text under the animated field.",
+      "default": "We will never share your email."
+    },
+    {
+      "id": "placeholder",
+      "type": "string",
+      "role": "content",
+      "label": "Placeholder",
+      "description": "Placeholder of the animated field.",
+      "default": "you@example.com"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "Text that types into the field.",
+      "default": "hello@example.com"
+    },
+    {
+      "id": "second_label",
+      "type": "string",
+      "role": "content",
+      "label": "Second label",
+      "description": "Label of the second, already filled field.",
+      "default": "Full name"
+    },
+    {
+      "id": "second_value",
+      "type": "string",
+      "role": "content",
+      "label": "Second value",
+      "description": "Value of the second field.",
+      "default": "Ada Lovelace"
+    },
+    {
+      "id": "gap",
+      "type": "number",
+      "role": "style",
+      "label": "Group gap",
+      "description": "Space between the two fields in design pixels.",
+      "default": 16,
+      "min": 4,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark (shadcn neutral tokens).",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the interaction. Above 1 it finishes early and holds the last state.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent background",
+      "description": "Skip the theme background so the control sits on your own scene.",
+      "default": false
+    }
+  ]
+}

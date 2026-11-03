@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "bauhaus-build",
+  "type": "hyperframes:component",
+  "title": "Bauhaus Build",
+  "description": "Geometric Bauhaus pieces tumble in, snap into a composition, then tumble away again.",
+  "tags": [
+    "bauhaus",
+    "geometric",
+    "shapes",
+    "build",
+    "tumble",
+    "remocn-port"
+  ],
+  "category": "shapes",
+  "duration": 5,
+  "useWhen": [
+    "A geometric intro, title card or section transition should feel built, with shapes that tumble in and lock together.",
+    "A bold, flat, poster-like look is wanted."
+  ],
+  "avoidWhen": [
+    "You need a soft or photographic style.",
+    "The composition must stay on screen: the pieces tumble away again."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/bauhaus-build/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "bauhaus-build.html",
+      "target": "compositions/components/bauhaus-build.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id":"scale","type":"number","role":"layout","label":"Scale","description":"Size of the composition relative to the frame.","default":1,"min":0.5,"max":1.25,"step":0.05},
+    {"id":"seed","type":"number","role":"motion","label":"Seed","description":"Picks the build order and the mirrored variant of the composition.","default":1,"min":1,"max":24,"step":1},
+    {"id":"ink_color","type":"color","role":"style","label":"Ink","description":"Primary shape color.","default":"#1c1a17"},
+    {"id":"accent_color","type":"color","role":"style","label":"Accent","description":"Accent shape color.","default":"#e4572e"},
+    {"id":"secondary_color","type":"color","role":"style","label":"Secondary","description":"Secondary shape color.","default":"#cbbc9f"},
+    {"id":"tertiary_color","type":"color","role":"style","label":"Tertiary","description":"Tertiary shape color.","default":"#7e776b"},
+    {"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":3,"step":0.05,"unit":"x"},
+    {"id":"loop","type":"boolean","role":"motion","label":"Loop","description":"Repeat the build continuously.","default":false}
+  ]
+}

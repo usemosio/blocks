@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "chat-flow",
+  "type": "hyperframes:component",
+  "title": "Chat Flow",
+  "description": "A messaging conversation: outgoing messages type into the composer and send, typing dots precede replies, and reactions pop onto bubbles.",
+  "tags": [
+    "ui",
+    "flow",
+    "chat",
+    "messaging",
+    "typing",
+    "reactions",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 12,
+  "useWhen": [
+    "A scene needs a messaging conversation that carries your own brand tokens instead of a real platform's chrome.",
+    "The whole beat should be scripted from a messages list: outgoing text types into the composer, dots precede replies, reactions pop in.",
+    "You want a conversation that reads as chat without naming any messenger."
+  ],
+  "avoidWhen": [
+    "The video must read as a specific messenger with its own bubble shapes and chrome.",
+    "You only need one message landing on a beat you time yourself: use message-bubble."
+  ],
+  "checkAt": [
+    2.2,
+    4.6,
+    7.0,
+    11.0
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/chat-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "chat-flow.html",
+      "target": "compositions/components/chat-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "messages", "type": "string", "role": "content", "label": "Messages", "description": "JSON array of {\"from\":\"me\"|\"them\",\"text\",\"reaction\"}. Three short messages fit the 12 second default; for a longer conversation lengthen the clip.", "default": "[{\"from\": \"me\", \"text\": \"Hey — ready for the demo?\"}, {\"from\": \"them\", \"text\": \"Yep, pushing it live now\", \"reaction\": \"🔥\"}, {\"from\": \"me\", \"text\": \"Perfect, sending the link over\", \"reaction\": \"👍\"}]"},
+    {"id": "contact_name", "type": "string", "role": "content", "label": "Contact name", "description": "Name in the header and on the avatar next to replies. Leave empty to hide the header.", "default": "Sam"},
+    {"id": "accent_color", "type": "string", "role": "style", "label": "Accent color", "description": "Optional CSS color for outgoing bubbles and the send button. Empty uses the theme primary.", "default": ""},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the control sits over your own scene.", "default": false}
+  ]
+}

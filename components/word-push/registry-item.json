@@ -1,0 +1,47 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-push",
+  "type": "hyperframes:component",
+  "title": "Word Push",
+  "description": "Words drive in from the right and push the line left into its new center.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "words",
+    "push",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A single tagline or closing phrase should build word by word with physical, push-driven motion.",
+    "The first word glides in to center and is shoved left as each next word arrives from the right."
+  ],
+  "avoidWhen": [
+    "Several phrases must play in sequence with cuts: use word-stream.",
+    "You want a calm, driftless word-by-word entrance: use per-word-crossfade."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/word-push/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "word-push.html",
+      "target": "compositions/components/word-push.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "A single phrase that builds word by word.", "default": "move at your own pace" },
+    { "id": "word_gap", "type": "number", "role": "motion", "label": "Word gap", "description": "Frames before the second word arrives (30 fps).", "default": 10, "min": 3, "max": 30, "step": 1, "unit": "frames" },
+    { "id": "accel", "type": "number", "role": "motion", "label": "Acceleration", "description": "Each gap is this fraction of the previous one: below 1 the words speed up.", "default": 0.8, "min": 0.5, "max": 1, "step": 0.05 },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 160, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}] }
+  ]
+}
