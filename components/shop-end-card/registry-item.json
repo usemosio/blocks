@@ -1,0 +1,140 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shop-end-card",
+  "type": "hyperframes:component",
+  "title": "Shop End Card",
+  "description": "The closing card of a small-shop video: a colour floods the frame, then a logo tile, the shop name, a tagline, address, opening hours, a contact line and a call-to-action button settle in and hold still.",
+  "tags": [
+    "end-card",
+    "cta",
+    "shop",
+    "contact",
+    "opening-hours",
+    "outro",
+    "mosio-recipe"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "The last seconds of a video for a shop, stall or service that needs name, address, hours and a way to order.",
+    "A call to action should land clearly and then stay readable."
+  ],
+  "avoidWhen": [
+    "You only need a single line or a URL: use a text block.",
+    "The ending should be a product shot or a big offer: put it in the scene before this card."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": [
+      "menu-board",
+      "flash-sale",
+      "angka-capaian",
+      "product-hero"
+    ]
+  },
+  "files": [
+    {
+      "path": "shop-end-card.html",
+      "target": "compositions/components/shop-end-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop_name",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Name of the shop, set large.",
+      "default": "Dapur Lumer"
+    },
+    {
+      "id": "tagline",
+      "type": "string",
+      "role": "content",
+      "label": "Tagline",
+      "description": "One short line under the name. Leave empty to hide it.",
+      "default": "Kue rumahan, pesan dari HP"
+    },
+    {
+      "id": "address",
+      "type": "string",
+      "role": "content",
+      "label": "Address",
+      "description": "Short address. Leave empty to hide the row.",
+      "default": "Jl. Kenanga No. 8, Malang"
+    },
+    {
+      "id": "hours",
+      "type": "string",
+      "role": "content",
+      "label": "Opening hours",
+      "description": "Opening hours. Leave empty to hide the row.",
+      "default": "Buka setiap hari 10.00–21.00"
+    },
+    {
+      "id": "contact",
+      "type": "string",
+      "role": "content",
+      "label": "Contact",
+      "description": "Contact line, for example a chat number. Leave empty to hide the row.",
+      "default": "Kontak 0812-3456-7890"
+    },
+    {
+      "id": "cta",
+      "type": "string",
+      "role": "content",
+      "label": "Call to action",
+      "description": "Text of the button. Leave empty to hide it.",
+      "default": "Pesan sekarang"
+    },
+    {
+      "id": "show_logo",
+      "type": "boolean",
+      "role": "style",
+      "label": "Logo tile",
+      "description": "Show the drawn shop-front logo tile above the name.",
+      "default": true
+    },
+    {
+      "id": "primary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "description": "The colour that floods the frame.",
+      "default": "#e8457a"
+    },
+    {
+      "id": "on_primary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text on card",
+      "description": "Text and icons on the card colour.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "dark_color",
+      "type": "color",
+      "role": "style",
+      "label": "Dark",
+      "description": "The ground before the flood and the button.",
+      "default": "#0c081b"
+    },
+    {
+      "id": "surface_color",
+      "type": "color",
+      "role": "style",
+      "label": "Light surface",
+      "description": "Logo tile and contact pill.",
+      "default": "#ffffff"
+    }
+  ],
+  "checkAt": [
+    0.5,
+    1.4,
+    2.6,
+    5.4
+  ]
+}

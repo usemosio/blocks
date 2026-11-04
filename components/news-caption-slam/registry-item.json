@@ -1,0 +1,241 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "news-caption-slam",
+  "type": "hyperframes:component",
+  "title": "News Caption Slam",
+  "description": "Captions-first social news on a plain or gradient backdrop: a kicker and a huge number in a yellow block that rolls up, then caption words slammed in one by one, a keyword wiped onto a block, a source tag and a second rolling number.",
+  "tags": [
+    "caption",
+    "news",
+    "kinetic-type",
+    "numbers",
+    "lower-third",
+    "source-tag",
+    "mosio-recipe"
+  ],
+  "category": "commerce",
+  "duration": 8,
+  "useWhen": [
+    "A fact, a figure or a short announcement should land as big slammed captions, in the style of social news clips.",
+    "A small business, creator or class wants a stat with a source line, without needing footage."
+  ],
+  "avoidWhen": [
+    "The captions must follow a spoken transcript word for word: use the caption-* blocks.",
+    "The tone is soft or premium: slammed type on a yellow block is loud on purpose."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "caption-news"
+  },
+  "files": [
+    {
+      "path": "news-caption-slam.html",
+      "target": "compositions/components/news-caption-slam.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "kicker",
+      "type": "string",
+      "role": "content",
+      "label": "Kicker",
+      "description": "Short line before the big number.",
+      "default": "Dalam 3 hari,"
+    },
+    {
+      "id": "number",
+      "type": "number",
+      "role": "content",
+      "label": "Big number",
+      "description": "Number in the yellow block; it rolls up to this value.",
+      "default": 3240,
+      "min": 0,
+      "max": 999999999,
+      "step": 1
+    },
+    {
+      "id": "unit",
+      "type": "string",
+      "role": "content",
+      "label": "Unit",
+      "description": "Word inside the block after the number.",
+      "default": "porsi"
+    },
+    {
+      "id": "subject",
+      "type": "string",
+      "role": "content",
+      "label": "Subject",
+      "description": "Word slammed beside the block.",
+      "default": "terjual"
+    },
+    {
+      "id": "subline",
+      "type": "string",
+      "role": "content",
+      "label": "Small line",
+      "description": "Small line under the first scene.",
+      "default": "dari satu dapur rumahan di Malang"
+    },
+    {
+      "id": "caption",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Caption of the second scene. Its words are slammed in one by one.",
+      "default": "Hampir separuh pembeli balik lagi"
+    },
+    {
+      "id": "keyword",
+      "type": "string",
+      "role": "content",
+      "label": "Keyword",
+      "description": "Words of the caption that get the yellow block. Must appear in the caption, otherwise the last word is used.",
+      "default": "separuh"
+    },
+    {
+      "id": "caption_sub",
+      "type": "string",
+      "role": "content",
+      "label": "Caption second line",
+      "description": "Small line under the caption.",
+      "default": "Pelanggan lama memesan ulang dalam sebulan"
+    },
+    {
+      "id": "stat",
+      "type": "number",
+      "role": "content",
+      "label": "Rolling number",
+      "description": "Second number of the second scene.",
+      "default": 48,
+      "min": 0,
+      "max": 999999999,
+      "step": 1
+    },
+    {
+      "id": "stat_suffix",
+      "type": "string",
+      "role": "content",
+      "label": "Rolling number suffix",
+      "description": "Written after the second number.",
+      "default": "%"
+    },
+    {
+      "id": "stat_label",
+      "type": "string",
+      "role": "content",
+      "label": "Rolling number label",
+      "description": "Small label under the second number.",
+      "default": "pembeli kembali"
+    },
+    {
+      "id": "channel",
+      "type": "string",
+      "role": "content",
+      "label": "Channel",
+      "description": "Name in the channel bug at the top left of the second scene.",
+      "default": "Kabar Dapur"
+    },
+    {
+      "id": "channel_tag",
+      "type": "string",
+      "role": "content",
+      "label": "Channel tag",
+      "description": "Small block in front of the channel name.",
+      "default": "BERITA"
+    },
+    {
+      "id": "source",
+      "type": "string",
+      "role": "content",
+      "label": "Source",
+      "description": "Source line under the channel bug. Leave empty to hide the tag.",
+      "default": "Catatan penjualan toko, Okt 2026"
+    },
+    {
+      "id": "source_label",
+      "type": "string",
+      "role": "content",
+      "label": "Source label",
+      "description": "Small word before the source.",
+      "default": "SUMBER"
+    },
+    {
+      "id": "backdrop",
+      "type": "enum",
+      "role": "style",
+      "label": "Backdrop",
+      "description": "Plain colour or a soft gradient.",
+      "default": "gradient",
+      "options": [
+        {
+          "value": "gradient",
+          "label": "Gradient"
+        },
+        {
+          "value": "plain",
+          "label": "Plain"
+        }
+      ]
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "description": "Main backdrop colour.",
+      "default": "#0e0e0c"
+    },
+    {
+      "id": "bg2_color",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop glow",
+      "description": "Second backdrop colour for the gradient and the chart-style panels.",
+      "default": "#1d1c18"
+    },
+    {
+      "id": "primary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Block colour",
+      "description": "The yellow block behind the number and the keyword.",
+      "default": "#ffc21a"
+    },
+    {
+      "id": "on_primary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text on block",
+      "description": "Text colour on the block.",
+      "default": "#0e0e0c"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The source tag edge.",
+      "default": "#ff4a3d"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text",
+      "description": "Caption text.",
+      "default": "#f7f5ef"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted text",
+      "description": "Small labels.",
+      "default": "#a9a69c"
+    }
+  ]
+}

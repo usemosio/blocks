@@ -1,0 +1,160 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stat-count-up-bars",
+  "type": "hyperframes:component",
+  "title": "Stat Count-up With Bars",
+  "description": "A dim label and a giant figure counting up in the main colour with a bold unit under it, then a bar chart whose bars grow while their values count (the last one highlighted), then a percent ring that draws itself with its figure and a few words beside it.",
+  "tags": [
+    "mosio-recipe",
+    "stats",
+    "counter",
+    "bar-chart",
+    "ring",
+    "milestone",
+    "data"
+  ],
+  "category": "commerce",
+  "duration": 9,
+  "useWhen": [
+    "A business milestone, a channel's numbers or a data-led lesson with one headline figure, a short trend and one percentage.",
+    "Figures that should be read in order: total first, trend second, share last."
+  ],
+  "avoidWhen": [
+    "Only one number: use a plain counter block.",
+    "More than six data points or exact axes: use a real chart block.",
+    "Several milestones as a list: use milestone-counter-list."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "angka-capaian"
+  },
+  "files": [
+    {
+      "path": "stat-count-up-bars.html",
+      "target": "compositions/components/stat-count-up-bars.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Dim line above the big number.",
+      "default": "Bulan ini kami mencuci"
+    },
+    {
+      "id": "number",
+      "type": "number",
+      "role": "content",
+      "label": "Big number",
+      "description": "The number the headline counts up to.",
+      "default": 12000,
+      "min": 0,
+      "max": 999999999,
+      "step": 1
+    },
+    {
+      "id": "number_suffix",
+      "type": "string",
+      "role": "content",
+      "label": "Number suffix",
+      "description": "Text right after the big number, e.g. + or rb.",
+      "default": "+"
+    },
+    {
+      "id": "unit",
+      "type": "string",
+      "role": "content",
+      "label": "Unit",
+      "description": "Bold line under the big number.",
+      "default": "kg pakaian pelanggan"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "One bar per line, \"Label|Value\" (2 to 6 bars, decimals with a comma). The last bar is highlighted.",
+      "default": "Jul|4,1\nAgu|6,3\nSep|8,6\nOkt|12"
+    },
+    {
+      "id": "bar_suffix",
+      "type": "string",
+      "role": "content",
+      "label": "Bar value suffix",
+      "description": "Text after each bar value, e.g. t or rb.",
+      "default": "t"
+    },
+    {
+      "id": "percent",
+      "type": "number",
+      "role": "content",
+      "label": "Percent",
+      "description": "What the ring fills to, 0 to 100.",
+      "default": 98,
+      "min": 0,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "id": "percent_label",
+      "type": "string",
+      "role": "content",
+      "label": "Percent label",
+      "description": "Words beside the ring.",
+      "default": "pelanggan puas dan langganan lagi"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#061a2b"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Big number, glow and bars.",
+      "default": "#22c3ee"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Highlighted last bar and the ring.",
+      "default": "#a3e635"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Unit, bar values and axis.",
+      "default": "#eaf6ff"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Label and bar names.",
+      "default": "#b8c6d0"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear.",
+      "default": false
+    }
+  ]
+}

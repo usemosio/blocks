@@ -1,0 +1,316 @@
+<!doctype html>
+<!--
+  Stat Count-up With Bars
+
+  A big number counting up, bars growing and a percent ring filling: milestone stats.
+
+  Extracted from the Mosio recipe angka-capaian by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="stat-count-up-bars"
+  data-composition-duration="9"
+  data-composition-variables='[
+  {
+    "id": "label",
+    "type": "string",
+    "role": "content",
+    "label": "Label",
+    "description": "Dim line above the big number.",
+    "default": "Bulan ini kami mencuci"
+  },
+  {
+    "id": "number",
+    "type": "number",
+    "role": "content",
+    "label": "Big number",
+    "description": "The number the headline counts up to.",
+    "default": 12000,
+    "min": 0,
+    "max": 999999999,
+    "step": 1
+  },
+  {
+    "id": "number_suffix",
+    "type": "string",
+    "role": "content",
+    "label": "Number suffix",
+    "description": "Text right after the big number, e.g. + or rb.",
+    "default": "+"
+  },
+  {
+    "id": "unit",
+    "type": "string",
+    "role": "content",
+    "label": "Unit",
+    "description": "Bold line under the big number.",
+    "default": "kg pakaian pelanggan"
+  },
+  {
+    "id": "bars",
+    "type": "string",
+    "role": "content",
+    "label": "Bars",
+    "description": "One bar per line, \"Label|Value\" (2 to 6 bars, decimals with a comma). The last bar is highlighted.",
+    "default": "Jul|4,1\nAgu|6,3\nSep|8,6\nOkt|12"
+  },
+  {
+    "id": "bar_suffix",
+    "type": "string",
+    "role": "content",
+    "label": "Bar value suffix",
+    "description": "Text after each bar value, e.g. t or rb.",
+    "default": "t"
+  },
+  {
+    "id": "percent",
+    "type": "number",
+    "role": "content",
+    "label": "Percent",
+    "description": "What the ring fills to, 0 to 100.",
+    "default": 98,
+    "min": 0,
+    "max": 100,
+    "step": 1
+  },
+  {
+    "id": "percent_label",
+    "type": "string",
+    "role": "content",
+    "label": "Percent label",
+    "description": "Words beside the ring.",
+    "default": "pelanggan puas dan langganan lagi"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#061a2b"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "Big number, glow and bars.",
+    "default": "#22c3ee"
+  },
+  {
+    "id": "accent_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "Highlighted last bar and the ring.",
+    "default": "#a3e635"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Unit, bar values and axis.",
+    "default": "#eaf6ff"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Label and bar names.",
+    "default": "#b8c6d0"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stat Count-up With Bars</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .sc-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { background: var(--sc-bg); color: var(--sc-text); font-family: "Space Grotesk", "Noto Sans", system-ui, sans-serif; }
+        .sc-glow { position: absolute; left: 50%; top: 48%; width: 120cqmin; height: 120cqmin; margin: -60cqmin 0 0 -60cqmin; border-radius: 50%; will-change: transform;
+          background: radial-gradient(circle, color-mix(in oklab, var(--sc-main) 26%, transparent), transparent 60%); }
+        .sc-grid { position: absolute; inset: 0; padding: 0 calc(var(--u) * 90); display: grid; align-content: center; gap: calc(var(--u) * 60); grid-template-columns: minmax(0, 1fr);
+          grid-template-areas: "hero" "chart" "ring"; }
+        .sc-hero { grid-area: hero; }
+        .sc-label { font-size: calc(var(--u) * 52); font-weight: 500; color: var(--sc-muted); line-height: 1.2; }
+        .sc-bigw { display: flex; justify-content: flex-start; margin-top: calc(var(--u) * 6); }
+        .sc-big { display: inline-block; white-space: nowrap; font-weight: 700; font-size: calc(var(--u) * 240); line-height: 1.02; letter-spacing: calc(var(--u) * -8); color: var(--sc-main); font-variant-numeric: tabular-nums; transform-origin: 0 50%; }
+        .sc-unit { font-size: calc(var(--u) * 62); font-weight: 700; margin-top: calc(var(--u) * 6); line-height: 1.2; }
+        .sc-chart { grid-area: chart; position: relative; height: calc(var(--u) * 520); margin: calc(var(--u) * 70) 0 calc(var(--u) * 70); display: flex; align-items: flex-end; gap: calc(var(--u) * 36); border-bottom: calc(var(--u) * 4) solid color-mix(in oklab, var(--sc-text) 35%, transparent); }
+        .sc-bar { flex: 1 1 0; position: relative; height: 100%; display: flex; align-items: flex-end; }
+        .sc-fill { width: 100%; border-radius: calc(var(--u) * 22) calc(var(--u) * 22) 0 0; background: color-mix(in oklab, var(--sc-main) 55%, transparent); transform-origin: 50% 100%; }
+        .sc-bar.top .sc-fill { background: var(--sc-accent); }
+        .sc-val { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); text-align: center; font-size: calc(var(--u) * 44); font-weight: 700; white-space: nowrap; }
+        .sc-nm { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); bottom: calc(var(--u) * -62); text-align: center; font-size: calc(var(--u) * 38); color: var(--sc-muted); white-space: nowrap; }
+        .sc-ringrow { grid-area: ring; display: flex; align-items: center; gap: calc(var(--u) * 36); }
+        .sc-ring { width: calc(var(--u) * 230); height: calc(var(--u) * 230); flex-shrink: 0; }
+        .sc-ring .track { stroke: color-mix(in oklab, var(--sc-text) 18%, transparent); }
+        .sc-ring .arc { stroke: var(--sc-accent); }
+        .sc-rtxt { min-width: 0; }
+        .sc-pct { display: block; font-size: calc(var(--u) * 96); font-weight: 700; line-height: 1; color: var(--sc-accent); font-variant-numeric: tabular-nums; }
+        .sc-plab { display: block; font-size: calc(var(--u) * 44); line-height: 1.25; margin-top: calc(var(--u) * 6); }
+        @container (aspect-ratio > 1) {
+          .sc-grid { padding: 0 calc(var(--u) * 140); column-gap: calc(var(--u) * 120); row-gap: calc(var(--u) * 50); grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-areas: "hero chart" "ring chart"; align-items: center; }
+          .sc-big { font-size: calc(var(--u) * 230); }
+          .sc-chart { height: calc(var(--u) * 600); margin: 0; }
+          .sc-ring { width: calc(var(--u) * 200); height: calc(var(--u) * 200); }
+          .sc-pct { font-size: calc(var(--u) * 84); } .sc-plab { font-size: calc(var(--u) * 38); }
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="stat-count-up-bars" data-duration="9" data-fps="30">
+        <div id="sc-clip" class="sc-stage clip" data-start="0" data-duration="9" data-track-index="0">
+          <div id="sc-glow" class="sc-glow"></div>
+          <div class="sc-grid">
+            <div class="sc-hero" id="sc-hero">
+              <div class="sc-label" id="sc-label"></div>
+              <div class="sc-bigw" id="sc-bigw"><span class="sc-big" id="sc-big"></span></div>
+              <div class="sc-unit" id="sc-unit"></div>
+            </div>
+            <div class="sc-chart" id="sc-chart"></div>
+            <div class="sc-ringrow" id="sc-ringrow">
+              <svg class="sc-ring" id="sc-ring" viewBox="0 0 100 100">
+                <circle class="track" cx="50" cy="50" r="42" fill="none" stroke-width="12" />
+                <circle class="arc" id="sc-arc" cx="50" cy="50" r="42" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" transform="rotate(-90 50 50)" />
+              </svg>
+              <div class="sc-rtxt" id="sc-rtxt"><span class="sc-pct" id="sc-pct"></span><span class="sc-plab" id="sc-plab"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ink(c, thr) {
+              var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+              if (!m) return "#14161a";
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+              return 0.299 * r + 0.587 * g + 0.114 * b > (thr || 150) ? "#14161a" : "#ffffff";
+            }
+            function setColors(p, list) {
+              list.forEach(function (c) { root.style.setProperty("--" + p + "-" + c[0], colr(vars[c[1]], c[2])); });
+            }
+            // Shrink a one-line element's wrapper (flex, centred) when its content is wider than the wrapper.
+            var fitList = [];
+            function fit(wrap) { fitList.push(wrap); refit(); }
+            function refit() {
+              fitList.forEach(function (w) {
+                w.style.transform = "";
+                var c = w.firstElementChild, cw = c ? c.offsetWidth : 0, aw = w.clientWidth;
+                if (cw > aw && aw > 0) w.style.transform = "scale(" + (aw / cw).toFixed(4) + ")";
+              });
+            }
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            setColors("sc", [["bg", "bg_color", "#061a2b"], ["main", "main_color", "#22c3ee"], ["accent", "accent_color", "#a3e635"],
+              ["text", "text_color", "#eaf6ff"], ["muted", "muted_color", "#b8c6d0"]]);
+            var label = typeof vars.label === "string" ? vars.label : "Bulan ini kami mencuci";
+            var bigN = num(vars.number, 12000, 0, 999999999);
+            var suffix = typeof vars.number_suffix === "string" ? vars.number_suffix : "+";
+            var unit = typeof vars.unit === "string" ? vars.unit : "kg pakaian pelanggan";
+            var barSuffix = typeof vars.bar_suffix === "string" ? vars.bar_suffix : "t";
+            var pctN = num(vars.percent, 98, 0, 100);
+            var plab = typeof vars.percent_label === "string" ? vars.percent_label : "pelanggan puas dan langganan lagi";
+            var defBars = "Jul|4,1\nAgu|6,3\nSep|8,6\nOkt|12";
+            var bars = String(typeof vars.bars === "string" && vars.bars.trim() ? vars.bars : defBars).split(/\r?\n/).map(function (l) {
+              var p = l.split("|"), raw = (p[1] || "").trim(), v = parseFloat(raw.replace(/\./g, "").replace(",", "."));
+              var decimals = /,/.test(raw) ? raw.split(",")[1].length : 0;
+              return { name: p[0].trim(), v: Number.isFinite(v) ? Math.max(0, v) : 0, dec: decimals };
+            }).filter(function (b) { return b.name; }).slice(0, 6);
+            if (bars.length < 2) bars = defBars.split("\n").map(function (l) { var p = l.split("|"); return { name: p[0], v: parseFloat(p[1].replace(",", ".")), dec: p[1].indexOf(",") >= 0 ? 1 : 0 }; });
+            var maxV = Math.max.apply(null, bars.map(function (b) { return b.v; })) || 1;
+            function fmtBar(v, dec) { var s = v.toFixed(dec); var parts = s.split("."); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); return parts.join(","); }
+
+            var lab = document.getElementById("sc-label"); lab.textContent = label; if (!label) lab.style.display = "none";
+            var unitEl = document.getElementById("sc-unit"); unitEl.textContent = unit; if (!unit) unitEl.style.display = "none";
+            var big = document.getElementById("sc-big");
+            big.textContent = dots(bigN) + suffix;
+            fit(document.getElementById("sc-bigw"));
+            var chart = document.getElementById("sc-chart");
+            bars.forEach(function (b, i) {
+              var bar = el("div", "sc-bar" + (i === bars.length - 1 ? " top" : ""), chart);
+              var h = Math.max(4, b.v / maxV * 100);
+              var fill = el("div", "sc-fill", bar); fill.style.height = h + "%";
+              var val = el("div", "sc-val", bar); val.style.bottom = "calc(" + h + "% + " + (14 * U) + "px)";
+              val.textContent = fmtBar(b.v, b.dec) + barSuffix;
+              el("div", "sc-nm", bar).textContent = b.name;
+              bar._val = val; bar._v = b;
+            });
+            var barEls = chart.querySelectorAll(".sc-bar");
+            var plabEl = document.getElementById("sc-plab"); plabEl.textContent = plab; if (!plab) plabEl.style.display = "none";
+            var pctEl = document.getElementById("sc-pct"); pctEl.textContent = Math.round(pctN) + "%";
+            var C = 264;
+
+            var bigC = { v: 0 }, pctC = { v: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#sc-glow", { scale: 0.8 }, { scale: 1.15, duration: 8, ease: "sine.inOut" }, 0);
+            tl.fromTo("#sc-label", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.2);
+            tl.fromTo("#sc-big", { y: 80 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.4);
+            tl.fromTo(bigC, { v: 0 }, { v: bigN, duration: 2, ease: "power3.out", onUpdate: function () { big.textContent = dots(bigC.v) + suffix; } }, 0.4);
+            tl.fromTo("#sc-unit", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.2);
+            var bs = Math.min(0.2, 1.2 / bars.length), B0 = 2.4;
+            barEls.forEach(function (bar, i) {
+              var at = B0 + i * bs, v = bar._v, c = { v: 0 }, valEl = bar._val;
+              tl.fromTo(bar.querySelector(".sc-fill"), { scaleY: 0 }, { scaleY: 1, duration: 0.8, ease: "expo.out" }, at);
+              tl.fromTo(valEl, { opacity: 0, y: 30 * U }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, at + 0.3);
+              tl.fromTo(c, { v: 0 }, { v: v.v, duration: 0.8, ease: "power2.out", onUpdate: function () { valEl.textContent = fmtBar(c.v, v.dec) + barSuffix; } }, at + 0.1);
+              tl.fromTo(bar.querySelector(".sc-nm"), { opacity: 0 }, { opacity: 1, duration: 0.4 }, at + 0.1);
+            });
+            var BT = B0 + bars.length * bs + 0.3;
+            tl.to(chart.querySelector(".top .sc-fill"), { scaleY: 1.04, duration: 0.35, yoyo: true, repeat: 3, ease: "sine.inOut" }, BT + 0.8);
+            var R0 = BT + 1.4;
+            tl.fromTo("#sc-ring", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, R0);
+            tl.fromTo("#sc-arc", { attr: { "stroke-dashoffset": C } }, { attr: { "stroke-dashoffset": C * (1 - pctN / 100) }, duration: 1.4, ease: "power2.out" }, R0 + 0.2);
+            tl.fromTo(pctC, { v: 0 }, { v: pctN, duration: 1.4, ease: "power2.out", onUpdate: function () { pctEl.textContent = Math.round(pctC.v) + "%"; } }, R0 + 0.2);
+            tl.fromTo("#sc-pct", { opacity: 0 }, { opacity: 1, duration: 0.3 }, R0 + 0.2);
+            tl.fromTo("#sc-plab", { x: 40 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, R0 + 0.6);
+
+            var total = parseFloat(root.dataset.duration || "9");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["stat-count-up-bars"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

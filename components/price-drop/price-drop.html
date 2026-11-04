@@ -1,0 +1,266 @@
+<!doctype html>
+<!--
+  Price Drop
+
+  A product name rises, the old price is struck through, and the new price counts up with a stamped saving label.
+
+  Extracted from the Mosio recipe product-hero by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="price-drop"
+  data-composition-duration="5"
+  data-composition-variables='[
+  {
+    "id": "eyebrow",
+    "type": "string",
+    "role": "content",
+    "label": "Eyebrow",
+    "description": "Short line above the product name.",
+    "default": "Pedasnya nampol, wanginya juara"
+  },
+  {
+    "id": "product",
+    "type": "string",
+    "role": "content",
+    "label": "Product name",
+    "description": "Product name, one line.",
+    "default": "Sambal Bawang"
+  },
+  {
+    "id": "old_price",
+    "type": "string",
+    "role": "content",
+    "label": "Old price",
+    "description": "Price that is struck through.",
+    "default": "Rp35.000"
+  },
+  {
+    "id": "new_price",
+    "type": "string",
+    "role": "content",
+    "label": "New price",
+    "description": "Price that counts up. Digits are counted with dots as thousands separators; a prefix such as Rp and a suffix such as /pcs are kept.",
+    "default": "Rp25.000"
+  },
+  {
+    "id": "label",
+    "type": "string",
+    "role": "content",
+    "label": "Label",
+    "description": "Pill stamped under the price, e.g. a saving. Leave empty to hide it.",
+    "default": "Hemat 28%"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Dark edge of the background.",
+    "default": "#2a0a0a"
+  },
+  {
+    "id": "bg_glow_color",
+    "type": "color",
+    "role": "style",
+    "label": "Glow",
+    "description": "Lighter pool of colour behind the price.",
+    "default": "#5c1010"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "New price, eyebrow, rays and label pill.",
+    "default": "#ffc93c"
+  },
+  {
+    "id": "strike_color",
+    "type": "color",
+    "role": "style",
+    "label": "Strike colour",
+    "description": "Line through the old price.",
+    "default": "#ff3b30"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Product name.",
+    "default": "#fff6ee"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Old price text.",
+    "default": "#c7b0aa"
+  },
+  {
+    "id": "show_rays",
+    "type": "boolean",
+    "role": "style",
+    "label": "Rays",
+    "description": "Slowly turning rays behind the price.",
+    "default": true
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the price sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Price Drop</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Poppins:wght@500;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .pd-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { color: var(--pd-text); font-family: Poppins, "Noto Sans", system-ui, sans-serif;
+          background: radial-gradient(120% 70% at 50% 45%, var(--pd-glow), var(--pd-bg) 70%); }
+        .pd-rays { position: absolute; left: 50%; top: 50%; width: 200cqmax; height: 200cqmax; margin: -100cqmax 0 0 -100cqmax; opacity: 0.5; will-change: transform;
+          background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--pd-main) 16%, transparent) 0deg 8deg, transparent 8deg 22deg);
+          -webkit-mask-image: radial-gradient(circle, black 0%, transparent 32%); mask-image: radial-gradient(circle, black 0%, transparent 32%); }
+        .pd-col { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 30); padding: 0 5cqw; }
+        .pd-fitw { width: 100%; display: flex; justify-content: center; }
+        .pd-eyebrow { display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 46); font-weight: 500; color: var(--pd-main); }
+        .pd-mask { display: block; overflow: hidden; }
+        .pd-name { display: inline-block; white-space: nowrap; font-family: "Archivo Black", "Noto Sans", sans-serif; font-size: calc(var(--u) * 100); line-height: 1.15; letter-spacing: calc(var(--u) * -2); }
+        .pd-price { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 4); margin-top: calc(var(--u) * 30); }
+        .pd-old { position: relative; display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 70); font-weight: 500; color: var(--pd-muted); }
+        .pd-old i { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); top: 52%; height: calc(var(--u) * 7); border-radius: calc(var(--u) * 4); background: var(--pd-strike); transform-origin: 0 50%; }
+        .pd-new { display: inline-block; white-space: nowrap; font-family: "Archivo Black", "Noto Sans", sans-serif; font-size: calc(var(--u) * 170); line-height: 1.05; color: var(--pd-main); font-variant-numeric: tabular-nums; }
+        .pd-label { display: inline-block; margin-top: calc(var(--u) * 20); padding: calc(var(--u) * 16) calc(var(--u) * 46); border-radius: calc(var(--u) * 80); white-space: nowrap; font-size: calc(var(--u) * 54); font-weight: 800; background: var(--pd-main); color: var(--pd-ink); }
+        @container (aspect-ratio > 1) {
+          .pd-col { gap: calc(var(--u) * 16); }
+          .pd-name { font-size: calc(var(--u) * 84); }
+          .pd-new { font-size: calc(var(--u) * 190); }
+          .pd-old { font-size: calc(var(--u) * 60); }
+          .pd-price { margin-top: calc(var(--u) * 16); }
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="price-drop" data-duration="5" data-fps="30">
+        <div id="pd-clip" class="pd-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="pd-rays" class="pd-rays"></div>
+          <div class="pd-col">
+            <div class="pd-fitw" id="pd-fit1"><span class="pd-eyebrow" id="pd-eyebrow"></span></div>
+            <div class="pd-fitw" id="pd-fit2"><span class="pd-mask"><span class="pd-name" id="pd-name"></span></span></div>
+            <div class="pd-price">
+              <div class="pd-fitw" id="pd-fit3"><span class="pd-old" id="pd-old"><span id="pd-old-t"></span><i id="pd-strike"></i></span></div>
+              <div class="pd-fitw" id="pd-fit4"><span class="pd-new" id="pd-new"></span></div>
+            </div>
+            <span class="pd-label" id="pd-label"></span>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ink(c, thr) {
+              var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+              if (!m) return "#14161a";
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+              return 0.299 * r + 0.587 * g + 0.114 * b > (thr || 150) ? "#14161a" : "#ffffff";
+            }
+            function setColors(p, list) {
+              list.forEach(function (c) { root.style.setProperty("--" + p + "-" + c[0], colr(vars[c[1]], c[2])); });
+            }
+            // Shrink a one-line element's wrapper (flex, centred) when its content is wider than the wrapper.
+            var fitList = [];
+            function fit(wrap) { fitList.push(wrap); refit(); }
+            function refit() {
+              fitList.forEach(function (w) {
+                w.style.transform = "";
+                var c = w.firstElementChild, cw = c ? c.offsetWidth : 0, aw = w.clientWidth;
+                if (cw > aw && aw > 0) w.style.transform = "scale(" + (aw / cw).toFixed(4) + ")";
+              });
+            }
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            var eyebrow = str(vars.eyebrow, "Pedasnya nampol, wanginya juara");
+            var product = str(vars.product, "Sambal Bawang");
+            var oldP = str(vars.old_price, "Rp35.000");
+            var newP = str(vars.new_price, "Rp25.000");
+            var label = typeof vars.label === "string" ? vars.label.trim() : "Hemat 28%";
+            var main = colr(vars.main_color, "#ffc93c");
+            setColors("pd", [["bg", "bg_color", "#2a0a0a"], ["glow", "bg_glow_color", "#5c1010"], ["main", "main_color", "#ffc93c"],
+              ["strike", "strike_color", "#ff3b30"], ["text", "text_color", "#fff6ee"], ["muted", "muted_color", "#c7b0aa"]]);
+            root.style.setProperty("--pd-ink", ink(main));
+            var rays = document.getElementById("pd-rays");
+            if (!bool(vars.show_rays, true)) rays.style.display = "none";
+            document.getElementById("pd-eyebrow").textContent = eyebrow;
+            document.getElementById("pd-name").textContent = product;
+            document.getElementById("pd-old-t").textContent = oldP;
+            var lab = document.getElementById("pd-label");
+            lab.textContent = label;
+            if (!label) lab.style.display = "none";
+            var newEl = document.getElementById("pd-new");
+            newEl.textContent = newP;
+            ["pd-fit1", "pd-fit2", "pd-fit3", "pd-fit4"].forEach(function (id) { fit(document.getElementById(id)); });
+
+            // The new price counts up when it has digits: "Rp25.000" counts 0 to 25000 in steps.
+            var m = /^(\D*)(\d[\d.,]*)(.*)$/.exec(newP);
+            var value = m ? parseInt(m[2].replace(/[.,]/g, ""), 10) : NaN;
+            var step = value >= 10000 ? 1000 : value >= 1000 ? 100 : 1;
+            var counter = { v: 0 };
+            function show(v) { newEl.textContent = !m || v >= value ? newP : m[1] + dots(Math.round(v / step) * step) + m[3]; }
+
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo(rays, { rotation: 0, scale: 0.6 }, { rotation: 40, scale: 1, duration: 5, ease: "none" }, 0);
+            tl.fromTo("#pd-eyebrow", { y: -30 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.15);
+            tl.fromTo("#pd-name", { yPercent: 115 }, { yPercent: 0, duration: 0.7, ease: "expo.out" }, 0.3);
+            tl.fromTo("#pd-old", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.9);
+            tl.fromTo("#pd-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, 1.5);
+            tl.fromTo("#pd-new", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, 1.9);
+            tl.fromTo(counter, { v: 0 }, { v: value || 0, duration: 1, ease: "power2.out", onUpdate: function () { show(counter.v); } }, 1.9);
+            tl.to("#pd-new", { scale: 1.1, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, 3.0);
+            tl.fromTo("#pd-label", { scale: 1.8, rotation: -8, opacity: 0 }, { scale: 1, rotation: -3, opacity: 1, duration: 0.45, ease: "expo.out" }, 3.3);
+            tl.to("#pd-label", { scale: 1.06, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut" }, 3.9);
+            show(0);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["price-drop"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

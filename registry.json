@@ -31,6 +31,22 @@
       ]
     },
     {
+      "name": "ads-dashboard",
+      "type": "hyperframes:component",
+      "title": "Ads Dashboard",
+      "description": "A dark metrics dashboard: an alert drops in and the key metric falls in red, then cards pop in, the numbers recover and count up, and a chart line draws itself.",
+      "category": "commerce",
+      "tags": [
+        "dashboard",
+        "metrics",
+        "analytics",
+        "count-up",
+        "chart",
+        "dark",
+        "mosio-recipe"
+      ]
+    },
+    {
       "name": "agent-run",
       "type": "hyperframes:component",
       "title": "Agent Run",
@@ -872,6 +888,22 @@
       ]
     },
     {
+      "name": "chat-review-typed",
+      "type": "hyperframes:component",
+      "title": "Chat Review Typed",
+      "description": "A headline with the shop name in handwriting, a customer's avatar and name, an incoming bubble with typing dots that then writes the review letter by letter, a tinted reply bubble sliding in from the right, five stars popping in with a score line, and a call-to-action pill.",
+      "category": "commerce",
+      "tags": [
+        "mosio-recipe",
+        "chat",
+        "testimonial",
+        "review",
+        "typing",
+        "stars",
+        "social-proof"
+      ]
+    },
+    {
       "name": "chat-to-preview-layout",
       "type": "hyperframes:component",
       "title": "Chat to Preview Layout",
@@ -1301,6 +1333,21 @@
       "webgl": true
     },
     {
+      "name": "event-countdown-clock",
+      "type": "hyperframes:component",
+      "title": "Event Countdown Clock",
+      "description": "A broadcast-style T− clock in four cells (days, hours, minutes, seconds) under a title plate that wipes in. The days and hours race down, the last five seconds tick in real time with a ten-segment bar emptying each second, then a warm flash, the clock turns colour and flips to T+, and a short \"now\" line takes the title's place.",
+      "category": "commerce",
+      "tags": [
+        "mosio-recipe",
+        "countdown",
+        "clock",
+        "event",
+        "launch",
+        "lemo-opuscar"
+      ]
+    },
+    {
       "name": "exploded-view",
       "type": "hyperframes:component",
       "title": "Exploded View",
@@ -1355,6 +1402,22 @@
         "label",
         "ui",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "flash-sale-burst",
+      "type": "hyperframes:component",
+      "title": "Flash Sale Burst",
+      "description": "A colour flash and a two-word headline slam in, a big percent figure bursts out of a starburst and shakes, two crossed ribbons run their text in opposite directions and clear away, then the deadline is stamped with a small flash.",
+      "category": "commerce",
+      "tags": [
+        "mosio-recipe",
+        "sale",
+        "promo",
+        "percent",
+        "ribbon",
+        "deadline",
+        "kinetic-type"
       ]
     },
     {
@@ -3402,6 +3465,21 @@
       ]
     },
     {
+      "name": "menu-price-board",
+      "type": "hyperframes:component",
+      "title": "Menu Price Board",
+      "description": "A cafe-style board: the title rises through a mask and a pen stroke underlines it, then each item slides in with its dotted leader and price popping in at the end, a handwritten note sticks on at a slant and the shop details rise at the bottom. Items come from one variable, one per line as \"Name|Price\".",
+      "category": "commerce",
+      "tags": [
+        "mosio-recipe",
+        "menu",
+        "price-list",
+        "list",
+        "handwritten",
+        "product"
+      ]
+    },
+    {
       "name": "message-bubble",
       "type": "hyperframes:component",
       "title": "Message Bubble",
@@ -3488,6 +3566,22 @@
         "glow",
         "retro",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "news-caption-slam",
+      "type": "hyperframes:component",
+      "title": "News Caption Slam",
+      "description": "Captions-first social news on a plain or gradient backdrop: a kicker and a huge number in a yellow block that rolls up, then caption words slammed in one by one, a keyword wiped onto a block, a source tag and a second rolling number.",
+      "category": "commerce",
+      "tags": [
+        "caption",
+        "news",
+        "kinetic-type",
+        "numbers",
+        "lower-third",
+        "source-tag",
+        "mosio-recipe"
       ]
     },
     {
@@ -3771,6 +3865,23 @@
       ]
     },
     {
+      "name": "phone-showcase",
+      "type": "hyperframes:component",
+      "title": "Phone Showcase",
+      "description": "One phone on a pastel field in a single take: the camera dives into the screen, a product card lifts out and is tapped into the cart, order notifications drop in and a count-up lands on a dark card.",
+      "category": "commerce",
+      "tags": [
+        "phone",
+        "mockup",
+        "product",
+        "shop",
+        "notifications",
+        "count-up",
+        "camera",
+        "mosio-recipe"
+      ]
+    },
+    {
       "name": "phyllotaxis",
       "type": "hyperframes:component",
       "title": "Phyllotaxis",
@@ -3847,6 +3958,21 @@
       ]
     },
     {
+      "name": "price-drop",
+      "type": "hyperframes:component",
+      "title": "Price Drop",
+      "description": "A product name rises through a mask, the old price is struck through, the new price counts up to its value and a saving label (like \"Hemat 28%\") is stamped under it, over slowly turning rays.",
+      "category": "commerce",
+      "tags": [
+        "mosio-recipe",
+        "price",
+        "sale",
+        "promo",
+        "counter",
+        "product"
+      ]
+    },
+    {
       "name": "profile-follow-card",
       "type": "hyperframes:component",
       "title": "Profile Follow Card",
@@ -3874,6 +4000,23 @@
         "loading",
         "bar",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "prompt-to-products",
+      "type": "hyperframes:component",
+      "title": "Prompt To Products",
+      "description": "A request is typed into a chat bar and sent; three product cards answer, the chosen price gets a marker highlight and a check, and the total counts up. Ends on the products and a price.",
+      "category": "commerce",
+      "tags": [
+        "chat",
+        "prompt",
+        "typing",
+        "product-cards",
+        "price",
+        "highlight",
+        "camera",
+        "mosio-recipe"
       ]
     },
     {
@@ -5357,6 +5500,22 @@
       ]
     },
     {
+      "name": "shop-end-card",
+      "type": "hyperframes:component",
+      "title": "Shop End Card",
+      "description": "The closing card of a small-shop video: a colour floods the frame, then a logo tile, the shop name, a tagline, address, opening hours, a contact line and a call-to-action button settle in and hold still.",
+      "category": "commerce",
+      "tags": [
+        "end-card",
+        "cta",
+        "shop",
+        "contact",
+        "opening-hours",
+        "outro",
+        "mosio-recipe"
+      ]
+    },
+    {
       "name": "short-slide-down",
       "type": "hyperframes:component",
       "title": "Short Slide Down",
@@ -5647,6 +5806,22 @@
       ]
     },
     {
+      "name": "stat-count-up-bars",
+      "type": "hyperframes:component",
+      "title": "Stat Count-up With Bars",
+      "description": "A dim label and a giant figure counting up in the main colour with a bold unit under it, then a bar chart whose bars grow while their values count (the last one highlighted), then a percent ring that draws itself with its figure and a few words beside it.",
+      "category": "commerce",
+      "tags": [
+        "mosio-recipe",
+        "stats",
+        "counter",
+        "bar-chart",
+        "ring",
+        "milestone",
+        "data"
+      ]
+    },
+    {
       "name": "stepper",
       "type": "hyperframes:component",
       "title": "Stepper",
@@ -5658,6 +5833,22 @@
         "progress",
         "steps",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "sticker-pop",
+      "type": "hyperframes:component",
+      "title": "Sticker Pop",
+      "description": "Flat bright field with thick-outlined paper stickers popping in with overshoot: a price tag that counts up, a BARU burst, a PROMO pill, small chips and a mascot sidekick with a speech sticker.",
+      "category": "commerce",
+      "tags": [
+        "stickers",
+        "price",
+        "promo",
+        "mascot",
+        "playful",
+        "pop",
+        "mosio-recipe"
       ]
     },
     {

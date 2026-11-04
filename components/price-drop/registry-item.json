@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "price-drop",
+  "type": "hyperframes:component",
+  "title": "Price Drop",
+  "description": "A product name rises through a mask, the old price is struck through, the new price counts up to its value and a saving label (like \"Hemat 28%\") is stamped under it, over slowly turning rays.",
+  "tags": [
+    "mosio-recipe",
+    "price",
+    "sale",
+    "promo",
+    "counter",
+    "product"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "One product has a lower price and the old and new price should be seen side by side.",
+    "A shop promo, a menu item or a class fee that dropped."
+  ],
+  "avoidWhen": [
+    "Several products with prices in a list: use menu-price-board.",
+    "A time-limited sale with a deadline: use flash-sale-burst.",
+    "The price is not a number to count up (it only fades in then)."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "product-hero"
+  },
+  "files": [
+    {
+      "path": "price-drop.html",
+      "target": "compositions/components/price-drop.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "eyebrow",
+      "type": "string",
+      "role": "content",
+      "label": "Eyebrow",
+      "description": "Short line above the product name.",
+      "default": "Pedasnya nampol, wanginya juara"
+    },
+    {
+      "id": "product",
+      "type": "string",
+      "role": "content",
+      "label": "Product name",
+      "description": "Product name, one line.",
+      "default": "Sambal Bawang"
+    },
+    {
+      "id": "old_price",
+      "type": "string",
+      "role": "content",
+      "label": "Old price",
+      "description": "Price that is struck through.",
+      "default": "Rp35.000"
+    },
+    {
+      "id": "new_price",
+      "type": "string",
+      "role": "content",
+      "label": "New price",
+      "description": "Price that counts up. Digits are counted with dots as thousands separators; a prefix such as Rp and a suffix such as /pcs are kept.",
+      "default": "Rp25.000"
+    },
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Pill stamped under the price, e.g. a saving. Leave empty to hide it.",
+      "default": "Hemat 28%"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Dark edge of the background.",
+      "default": "#2a0a0a"
+    },
+    {
+      "id": "bg_glow_color",
+      "type": "color",
+      "role": "style",
+      "label": "Glow",
+      "description": "Lighter pool of colour behind the price.",
+      "default": "#5c1010"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "New price, eyebrow, rays and label pill.",
+      "default": "#ffc93c"
+    },
+    {
+      "id": "strike_color",
+      "type": "color",
+      "role": "style",
+      "label": "Strike colour",
+      "description": "Line through the old price.",
+      "default": "#ff3b30"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Product name.",
+      "default": "#fff6ee"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Old price text.",
+      "default": "#c7b0aa"
+    },
+    {
+      "id": "show_rays",
+      "type": "boolean",
+      "role": "style",
+      "label": "Rays",
+      "description": "Slowly turning rays behind the price.",
+      "default": true
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the price sits over your own scene.",
+      "default": false
+    }
+  ]
+}

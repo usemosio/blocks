@@ -1,0 +1,369 @@
+<!doctype html>
+<!--
+  Event Countdown Clock
+
+  A ticking T− clock with days, hours, minutes and seconds cells counting down to an event, ending on a short "now" moment.
+
+  Extracted from the Mosio recipe countdown by usemosio/blocks.
+  Adapted from the lemo-opuscar film style "countdown" (https://github.com/lemomo-ai/lemo-opuscar, styles/countdown/STYLE.md at commit 413a6bd6d78ebd3bdd5abaec9538a26867f890df), MIT.
+  The clock, the ten-segment second bar, the title plate wipe, the warm zero flash and the clock turning orange-on-dark at zero follow that style; the cells and the layout are this block's own.
+
+  MIT License
+
+  Copyright (c) 2026 LemoLab
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="event-countdown-clock"
+  data-composition-duration="9.5"
+  data-composition-variables='[
+  {
+    "id": "event_title",
+    "type": "string",
+    "role": "content",
+    "label": "Event title",
+    "description": "Headline on the title plate.",
+    "default": "Grand Opening"
+  },
+  {
+    "id": "event_subtitle",
+    "type": "string",
+    "role": "content",
+    "label": "Event subtitle",
+    "description": "Spaced line under the title: place, date or occasion.",
+    "default": "Kopi Senja · Jl. Melati 12"
+  },
+  {
+    "id": "panel_label",
+    "type": "string",
+    "role": "content",
+    "label": "Clock label",
+    "description": "Small label next to the T− sign.",
+    "default": "Menuju buka"
+  },
+  {
+    "id": "days",
+    "type": "number",
+    "role": "content",
+    "label": "Days left",
+    "description": "Days on the clock when it starts.",
+    "default": 2,
+    "min": 0,
+    "max": 999,
+    "step": 1
+  },
+  {
+    "id": "hours",
+    "type": "number",
+    "role": "content",
+    "label": "Hours left",
+    "description": "Hours on the clock when it starts.",
+    "default": 3,
+    "min": 0,
+    "max": 23,
+    "step": 1
+  },
+  {
+    "id": "minutes",
+    "type": "number",
+    "role": "content",
+    "label": "Minutes left",
+    "description": "Minutes on the clock when it starts.",
+    "default": 14,
+    "min": 0,
+    "max": 59,
+    "step": 1
+  },
+  {
+    "id": "seconds",
+    "type": "number",
+    "role": "content",
+    "label": "Seconds left",
+    "description": "Seconds on the clock when it starts.",
+    "default": 8,
+    "min": 0,
+    "max": 59,
+    "step": 1
+  },
+  {
+    "id": "unit_labels",
+    "type": "string",
+    "role": "content",
+    "label": "Unit labels",
+    "description": "Four labels separated by |: days, hours, minutes, seconds.",
+    "default": "Hari|Jam|Menit|Detik"
+  },
+  {
+    "id": "now_text",
+    "type": "string",
+    "role": "content",
+    "label": "Moment at zero",
+    "description": "Short line that replaces the title when the clock reaches zero.",
+    "default": "Kami buka sekarang!"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Ground behind the clock.",
+    "default": "#06080a"
+  },
+  {
+    "id": "panel_color",
+    "type": "color",
+    "role": "style",
+    "label": "Panel",
+    "description": "Clock panel surface.",
+    "default": "#0b0e11"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "T− sign, labels, rule and the inverted clock after zero.",
+    "default": "#ff5b1f"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Digits and title.",
+    "default": "#f2f5f7"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Unit labels and the subtitle.",
+    "default": "#7c878d"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the ground clear so the clock sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Event Countdown Clock</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&amp;family=Inter:wght@600;800&amp;family=IBM+Plex+Mono:wght@600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .cd-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { background: var(--cd-bg); color: var(--cd-text); font-family: Inter, "Noto Sans", system-ui, sans-serif; }
+        .cd-col { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 90); padding: 0 calc(var(--u) * 60); }
+        .cd-head { display: grid; width: 100%; max-width: calc(var(--u) * 1700); }
+        .cd-head > * { grid-area: 1 / 1; }
+        .cd-title { display: flex; align-items: stretch; gap: calc(var(--u) * 26); }
+        .cd-rule { width: calc(var(--u) * 6); flex-shrink: 0; background: var(--cd-main); }
+        .cd-h1 { font-family: Oswald, "Noto Sans", sans-serif; font-weight: 700; font-size: calc(var(--u) * 100); line-height: 1.05; text-transform: uppercase; }
+        .cd-sub { margin-top: calc(var(--u) * 14); font-family: Oswald, sans-serif; font-weight: 500; font-size: calc(var(--u) * 28); letter-spacing: 0.24em; text-transform: uppercase; color: var(--cd-main); }
+        .cd-now { align-self: center; font-family: Oswald, "Noto Sans", sans-serif; font-weight: 700; font-size: calc(var(--u) * 110); line-height: 1.05; text-transform: uppercase; color: var(--cd-main); }
+        .cd-panel { position: relative; width: 100%; max-width: calc(var(--u) * 1700); padding: calc(var(--u) * 36) calc(var(--u) * 36) calc(var(--u) * 52); background: var(--cd-panel); border: calc(var(--u) * 1) solid color-mix(in oklab, var(--cd-text) 16%, transparent); overflow: hidden; }
+        .cd-fill { position: absolute; inset: 0; background: var(--cd-main); opacity: 0; }
+        .cd-top { position: relative; display: flex; align-items: baseline; gap: calc(var(--u) * 22); margin-bottom: calc(var(--u) * 14); }
+        .cd-sign { font-family: Oswald, sans-serif; font-weight: 500; font-size: calc(var(--u) * 76); line-height: 1; color: var(--cd-main); }
+        .cd-hint { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; font-size: calc(var(--u) * 24); letter-spacing: 0.12em; text-transform: uppercase; color: var(--cd-muted); }
+        .cd-cells { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 0; }
+        .cd-cell { flex: 1 1 0; min-width: 0; text-align: center; }
+        .cd-num { display: inline-flex; font-family: Oswald, "Noto Sans", sans-serif; font-weight: 500; font-size: calc(var(--u) * 170); line-height: 1.1; color: var(--cd-text); }
+        .cd-d { display: inline-block; width: 0.5em; text-align: center; }
+        .cd-lab { margin-top: calc(var(--u) * 4); font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; font-size: calc(var(--u) * 24); letter-spacing: 0.12em; text-transform: uppercase; color: var(--cd-muted); }
+        .cd-colon { flex: 0 0 auto; font-family: Oswald, sans-serif; font-weight: 500; font-size: calc(var(--u) * 170); line-height: 1.1; color: var(--cd-muted); }
+        .cd-seg { position: absolute; left: calc(var(--u) * 36); right: calc(var(--u) * 36); bottom: calc(var(--u) * 22); height: calc(var(--u) * 8); display: grid; grid-template-columns: repeat(10, 1fr); gap: calc(var(--u) * 8); }
+        .cd-seg i { background: color-mix(in oklab, var(--cd-text) 14%, transparent); }
+        .cd-seg i.on { background: var(--cd-main); }
+        .cd-flash { position: absolute; inset: 0; background: #fff8ec; opacity: 0; }
+        @container (aspect-ratio > 1) {
+          .cd-col { gap: calc(var(--u) * 100); }
+          .cd-h1 { font-size: calc(var(--u) * 130); } .cd-sub { font-size: calc(var(--u) * 34); } .cd-now { font-size: calc(var(--u) * 150); }
+          .cd-num, .cd-colon { font-size: calc(var(--u) * 250); }
+          .cd-sign { font-size: calc(var(--u) * 90); } .cd-hint, .cd-lab { font-size: calc(var(--u) * 28); }
+          .cd-panel { padding: calc(var(--u) * 44) calc(var(--u) * 52) calc(var(--u) * 64); } .cd-seg { left: calc(var(--u) * 52); right: calc(var(--u) * 52); bottom: calc(var(--u) * 28); }
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="event-countdown-clock" data-duration="9.5" data-fps="30">
+        <div id="cd-clip" class="cd-stage clip" data-start="0" data-duration="9.5" data-track-index="0">
+          <div class="cd-col">
+            <div class="cd-head" id="cd-head">
+              <div class="cd-title" id="cd-title"><div class="cd-rule"></div><div><div class="cd-h1" id="cd-h1"></div><div class="cd-sub" id="cd-sub"></div></div></div>
+              <div class="cd-now" id="cd-now"></div>
+            </div>
+            <div class="cd-panel" id="cd-panel">
+              <div class="cd-fill" id="cd-fill"></div>
+              <div class="cd-top"><span class="cd-sign" id="cd-sign">T−</span><span class="cd-hint" id="cd-hint"></span></div>
+              <div class="cd-cells" id="cd-cells"></div>
+              <div class="cd-seg" id="cd-seg"></div>
+            </div>
+          </div>
+          <div class="cd-flash" id="cd-flash"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ink(c, thr) {
+              var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+              if (!m) return "#14161a";
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+              return 0.299 * r + 0.587 * g + 0.114 * b > (thr || 150) ? "#14161a" : "#ffffff";
+            }
+            function setColors(p, list) {
+              list.forEach(function (c) { root.style.setProperty("--" + p + "-" + c[0], colr(vars[c[1]], c[2])); });
+            }
+            // Shrink a one-line element's wrapper (flex, centred) when its content is wider than the wrapper.
+            var fitList = [];
+            function fit(wrap) { fitList.push(wrap); refit(); }
+            function refit() {
+              fitList.forEach(function (w) {
+                w.style.transform = "";
+                var c = w.firstElementChild, cw = c ? c.offsetWidth : 0, aw = w.clientWidth;
+                if (cw > aw && aw > 0) w.style.transform = "scale(" + (aw / cw).toFixed(4) + ")";
+              });
+            }
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            var main = colr(vars.main_color, "#ff5b1f");
+            setColors("cd", [["bg", "bg_color", "#06080a"], ["panel", "panel_color", "#0b0e11"], ["main", "main_color", "#ff5b1f"],
+              ["text", "text_color", "#f2f5f7"], ["muted", "muted_color", "#7c878d"]]);
+            var inkMain = ink(main, 120);
+            document.getElementById("cd-h1").textContent = str(vars.event_title, "Grand Opening");
+            var subT = typeof vars.event_subtitle === "string" ? vars.event_subtitle : "Kopi Senja · Jl. Melati 12";
+            document.getElementById("cd-sub").textContent = subT; if (!subT) document.getElementById("cd-sub").style.display = "none";
+            document.getElementById("cd-hint").textContent = typeof vars.panel_label === "string" ? vars.panel_label : "Menuju buka";
+            document.getElementById("cd-now").textContent = str(vars.now_text, "Kami buka sekarang!");
+            var labs = str(vars.unit_labels, "Hari|Jam|Menit|Detik").split("|").map(function (s) { return s.trim(); });
+            var def = ["Hari", "Jam", "Menit", "Detik"];
+            for (var q = 0; q < 4; q++) if (!labs[q]) labs[q] = def[q];
+            var d0 = Math.round(num(vars.days, 2, 0, 999)), h0 = Math.round(num(vars.hours, 3, 0, 23)), m0 = Math.round(num(vars.minutes, 14, 0, 59)), s0 = Math.round(num(vars.seconds, 8, 0, 59));
+            var START = Math.max(6, ((d0 * 24 + h0) * 60 + m0) * 60 + s0);
+            var dayDigits = Math.max(2, String(Math.floor(START / 86400)).length);
+
+            // Cells: days, hours, minutes, seconds. Digits sit in fixed slots so the clock never jitters.
+            var cellsEl = document.getElementById("cd-cells"), cells = [], nums = [];
+            [dayDigits, 2, 2, 2].forEach(function (n, i) {
+              if (i) el("span", "cd-colon", cellsEl, ":");
+              var c = el("div", "cd-cell", cellsEl), num_ = el("div", "cd-num", c), slots = [];
+              for (var k = 0; k < n; k++) slots.push(el("span", "cd-d", num_, "0"));
+              el("div", "cd-lab", c).textContent = labs[i];
+              cells.push(slots); nums.push(num_);
+            });
+            var segEl = document.getElementById("cd-seg"), segs = [];
+            for (var s = 0; s < 10; s++) segs.push(el("i", "", segEl));
+            var sign = document.getElementById("cd-sign");
+
+            // One mapping for the whole piece: zero is at Z. The last five seconds run in real time,
+            // before that the days and hours race down (an eased time-lapse), after zero the clock counts up.
+            var Z = 7.0, TR = Z - 5, TC = 0.8;
+            function cubic(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+            function remaining(t) {
+              if (t >= Z) return -(t - Z);
+              if (t >= TR) return Z - t;
+              if (t <= TC) return START;
+              return 5 + (START - 5) * (1 - cubic((t - TC) / (TR - TC)));
+            }
+            var lastKey = "";
+            function draw(t) {
+              var rem = remaining(t), whole, lit, since;
+              if (rem > 0) {
+                whole = Math.ceil(rem - 1e-9);
+                since = t >= TR ? whole - rem : 1;
+                lit = t >= TR ? Math.ceil((rem - (whole - 1)) * 10 - 1e-9) : 10;
+              } else {
+                var el_ = t - Z; whole = Math.floor(el_); since = el_ - whole; lit = Math.min(10, Math.ceil(since * 10));
+              }
+              var vals = [Math.floor(whole / 86400), Math.floor(whole % 86400 / 3600), Math.floor(whole % 3600 / 60), whole % 60];
+              vals.forEach(function (v, i) {
+                var str_ = String(v); while (str_.length < cells[i].length) str_ = "0" + str_;
+                cells[i].forEach(function (slot, k) { var ch = str_.charAt(str_.length - cells[i].length + k) || "0"; if (slot.textContent !== ch) slot.textContent = ch; });
+              });
+              var dropY = -14 * U * (1 - Math.min(1, since / 0.12)) * (1 - Math.min(1, since / 0.12));
+              nums[3].style.transform = "translateY(" + dropY.toFixed(2) + "px)";
+              var key = lit + "|" + (rem > 0 ? "m" : "p");
+              if (key !== lastKey) { segs.forEach(function (e, i) { e.className = i < lit ? "on" : ""; }); lastKey = key; }
+              var txt_ = rem > 0 ? "T−" : "T+";
+              if (sign.textContent !== txt_) sign.textContent = txt_;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: 9.5, duration: 9.5, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            tl.fromTo("#cd-title", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power2.out" }, 0.2);
+            tl.fromTo("#cd-panel", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.1);
+            tl.to("#cd-title", { x: -120 * U, opacity: 0, duration: 0.3, ease: "power2.in" }, Z - 0.5);
+            // Zero: a warm flash, the clock turns main-coloured with dark digits, the "now" line takes the title's place.
+            tl.fromTo("#cd-flash", { opacity: 0 }, { opacity: 0.7, duration: 0.16, ease: "power2.in", immediateRender: false }, Z + 0.05);
+            tl.to("#cd-flash", { opacity: 0, duration: 0.4, ease: "power2.out" }, Z + 0.21);
+            tl.to("#cd-fill", { opacity: 1, duration: 0.2, ease: "none" }, Z);
+            tl.to([".cd-num", ".cd-sign"], { color: inkMain, duration: 0.2, ease: "none" }, Z);
+            tl.to([".cd-lab", ".cd-colon"], { color: inkMain, opacity: 0.75, duration: 0.2, ease: "none" }, Z);
+            tl.to(".cd-hint", { opacity: 0, duration: 0.2, ease: "none" }, Z);
+            tl.to(segs, { backgroundColor: inkMain, duration: 0.2, ease: "none" }, Z);
+            tl.fromTo("#cd-now", { y: 50 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.6)", immediateRender: true }, Z + 0.25);
+            tl.fromTo("#cd-panel", { scale: 1 }, { scale: 1.03, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out", immediateRender: false }, Z);
+            draw(0);
+
+            var total = parseFloat(root.dataset.duration || "9.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["event-countdown-clock"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<!--
+  Prompt To Products
+
+  A request is typed into a chat bar and sent; the answer is three product cards with the chosen price
+  highlighted and a total that counts up. Warm paper, one camera that leans in.
+
+  Extracted from the Mosio recipe ketik-jadi-produk by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="prompt-to-products"
+  data-composition-duration="9"
+  data-composition-variables='[
+    {"id": "to_label", "type": "string", "role": "content", "label": "Recipient", "description": "Line above the typed request, next to the small colour tile.", "default": "Chat ke Dapur Sekar"},
+    {"id": "request", "type": "string", "role": "content", "label": "Request", "description": "The sentence that is typed and sent.", "default": "Hampers lebaran isi 3 toples, budget 300 ribu, kirim tgl 28"},
+    {"id": "attach_label", "type": "string", "role": "content", "label": "Attach chip", "description": "Small chip at the bottom left of the bar.", "default": "+ Foto contoh"},
+    {"id": "answer_title", "type": "string", "role": "content", "label": "Answer title", "description": "Line above the product cards.", "default": "3 pilihan pas di budget"},
+    {"id": "products", "type": "string", "role": "content", "label": "Products", "description": "Exactly three entries separated by semicolons, each \"Name|Description|Price\".", "default": "Toples Nastar|500 gr, selai nanas asli|Rp110rb; Kastengel Keju|500 gr, keju edam|Rp95rb; Putri Salju|400 gr, gula halus|Rp90rb"},
+    {"id": "pick", "type": "number", "role": "content", "label": "Chosen product", "description": "Which card (1 to 3) gets the highlighted price and the check mark.", "default": 2, "min": 1, "max": 3, "step": 1},
+    {"id": "total_label", "type": "string", "role": "content", "label": "Total label", "description": "Label inside the dark total pill.", "default": "Total hampers"},
+    {"id": "total_value", "type": "number", "role": "content", "label": "Total", "description": "Amount the total counts up to.", "default": 295000, "min": 0, "max": 999999999999, "step": 1},
+    {"id": "total_prefix", "type": "string", "role": "content", "label": "Total prefix", "description": "Text before the amount.", "default": "Rp"},
+    {"id": "bg_color", "type": "color", "role": "style", "label": "Paper", "description": "Background.", "default": "#f6f3ee"},
+    {"id": "surface_color", "type": "color", "role": "style", "label": "Cards", "description": "Bar and product cards.", "default": "#ffffff"},
+    {"id": "primary_color", "type": "color", "role": "style", "label": "Main colour", "description": "Caret, tiles, the check mark.", "default": "#d9643a"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Highlighter", "description": "The marker bar behind the chosen price.", "default": "#ffc44d"},
+    {"id": "text_color", "type": "color", "role": "style", "label": "Text", "description": "Main text, send button and total pill.", "default": "#1d1a1f"},
+    {"id": "muted_color", "type": "color", "role": "style", "label": "Muted text", "description": "Secondary lines.", "default": "#8f8984"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Prompt To Products</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;display=block" />
+      <style>
+        #root {
+          --pp-bg: #f6f3ee; --pp-surface: #ffffff; --pp-primary: #d9643a; --pp-accent: #ffc44d; --pp-text: #1d1a1f; --pp-muted: #8f8984;
+          --pp-line: color-mix(in oklab, var(--pp-text) 6%, var(--pp-bg));
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--pp-bg); color: var(--pp-text);
+          font-family: "Space Grotesk", system-ui, sans-serif; font-weight: 500;
+        }
+        #root * { box-sizing: border-box; }
+        #pp-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+        .pp-world { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+        .pp-prompt { position: absolute; left: -460px; top: -200px; width: 920px; padding: 44px 48px 36px; border-radius: 48px; background: var(--pp-surface);
+          border: 2px solid var(--pp-line); box-shadow: 0 24px 60px -20px color-mix(in oklab, var(--pp-text) 18%, transparent); }
+        .pp-to { display: flex; align-items: center; gap: 18px; font-size: 34px; color: var(--pp-muted); }
+        .pp-to i { width: 44px; height: 44px; border-radius: 14px; background: var(--pp-primary); flex: none; }
+        .pp-text { margin-top: 30px; min-height: 216px; font-size: 56px; line-height: 1.28; letter-spacing: -1px; }
+        .pp-caret { display: inline-block; width: 5px; height: 60px; margin-left: 4px; vertical-align: -8px; background: var(--pp-primary); }
+        .pp-bottom { position: relative; margin-top: 26px; display: flex; align-items: center; justify-content: space-between; }
+        .pp-chip { padding: 16px 30px; border-radius: 60px; border: 2px solid var(--pp-line); font-size: 32px; color: var(--pp-muted); white-space: nowrap; }
+        .pp-send { width: 104px; height: 104px; border-radius: 50%; background: var(--pp-text); display: grid; place-items: center; flex: none; }
+        .pp-send svg { width: 46px; height: 46px; fill: none; stroke: var(--pp-bg); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+        .pp-cursor { position: absolute; left: 0; top: 0; width: 70px; height: 86px; z-index: 6; }
+        .pp-cursor path { fill: var(--pp-text); stroke: var(--pp-surface); stroke-width: 3; stroke-linejoin: round; }
+        .pp-title { position: absolute; left: -460px; top: -340px; font-size: 40px; color: var(--pp-muted); white-space: nowrap; }
+        .pp-prods { position: absolute; left: -460px; top: -270px; width: 920px; display: flex; flex-direction: column; gap: 24px; }
+        .pp-prod { position: relative; height: 236px; border-radius: 40px; background: var(--pp-surface); border: 2px solid var(--pp-line);
+          box-shadow: 0 18px 44px -24px color-mix(in oklab, var(--pp-text) 16%, transparent); display: flex; align-items: center; gap: 34px; padding: 0 40px; }
+        .pp-thumb { position: relative; flex: none; width: 156px; height: 156px; border-radius: 32px; overflow: hidden; background: color-mix(in oklab, var(--c) 24%, var(--pp-surface)); }
+        .pp-info { min-width: 0; }
+        .pp-info b { display: block; font-size: 46px; font-weight: 700; letter-spacing: -1px; white-space: nowrap; }
+        .pp-info span { display: block; margin-top: 6px; font-size: 32px; color: var(--pp-muted); white-space: nowrap; }
+        .pp-price { position: relative; margin-left: auto; font-size: 46px; font-weight: 700; letter-spacing: -1px; white-space: nowrap; }
+        .pp-mark { position: absolute; left: -14px; right: -14px; top: 6px; bottom: 2px; border-radius: 12px; background: color-mix(in oklab, var(--pp-accent) 55%, var(--pp-surface)); transform-origin: 0 50%; transform: scaleX(0); }
+        .pp-price span { position: relative; }
+        .pp-check { position: absolute; right: -22px; top: -22px; width: 76px; height: 76px; border-radius: 50%; background: var(--pp-primary); display: grid; place-items: center; opacity: 0; }
+        .pp-check svg { width: 40px; height: 40px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .pp-total { position: absolute; left: -460px; top: 540px; width: 920px; height: 150px; border-radius: 75px; background: var(--pp-text); color: var(--pp-bg);
+          display: flex; align-items: center; justify-content: space-between; padding: 0 56px; }
+        .pp-total span { font-size: 38px; opacity: 0.7; }
+        .pp-total b { font-size: 64px; font-weight: 700; letter-spacing: -2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        /* Drawn thumbnails: three simple shapes in the product colour. */
+        .pp-dot { position: absolute; width: 38%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--c) 55%, #fff), var(--c) 70%); }
+        .pp-bar { position: absolute; width: 62%; height: 19%; border-radius: 10px; background: linear-gradient(color-mix(in oklab, var(--c) 55%, #fff), var(--c)); transform: rotate(-18deg); }
+        .pp-ring { position: absolute; width: 48%; aspect-ratio: 1; border-radius: 50%; border: 14px solid color-mix(in oklab, var(--c) 70%, #000); border-left-color: transparent; border-bottom-color: transparent; transform: rotate(-30deg); }
+        /* Landscape: prompt on top, the three cards side by side. */
+        #pp-stage.pp-land .pp-prompt { left: -600px; width: 1200px; top: -120px; padding: 36px 44px 30px; border-radius: 44px; }
+        #pp-stage.pp-land .pp-text { font-size: 48px; min-height: 130px; margin-top: 22px; }
+        #pp-stage.pp-land .pp-caret { height: 50px; }
+        #pp-stage.pp-land .pp-send { width: 88px; height: 88px; }
+        #pp-stage.pp-land .pp-title { left: -840px; top: -140px; }
+        #pp-stage.pp-land .pp-prods { left: -840px; width: 1680px; top: -70px; flex-direction: row; gap: 30px; }
+        #pp-stage.pp-land .pp-prod { flex: 1; min-width: 0; height: 380px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 18px; padding: 0 36px; }
+        #pp-stage.pp-land .pp-price { margin-left: 0; margin-top: 4px; }
+        #pp-stage.pp-land .pp-check { right: 26px; top: 26px; }
+        #pp-stage.pp-land .pp-total { left: -460px; top: 390px; width: 920px; height: 120px; border-radius: 60px; }
+        #pp-stage.pp-land .pp-total b { font-size: 54px; }
+        #pp-stage.pp-land .pp-total span { font-size: 32px; }
+      </style>
+
+      <div id="root" data-composition-id="prompt-to-products" data-duration="9" data-fps="30">
+        <div id="pp-clip" class="clip" data-start="0" data-duration="9" data-track-index="0" style="position:absolute;inset:0">
+          <div id="pp-stage">
+            <div class="pp-world" id="pp-world">
+              <div class="pp-prompt" id="pp-prompt">
+                <div class="pp-to"><i></i><span id="pp-to"></span></div>
+                <div class="pp-text"><span id="pp-typed"></span><i class="pp-caret" id="pp-caret"></i></div>
+                <div class="pp-bottom" id="pp-bottom">
+                  <span class="pp-chip" id="pp-chip"></span>
+                  <span class="pp-send" id="pp-send"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" /></svg></span>
+                </div>
+              </div>
+              <div class="pp-title" id="pp-title"></div>
+              <div class="pp-prods" id="pp-prods"></div>
+              <div class="pp-total" id="pp-total"><span id="pp-tlabel"></span><b id="pp-tval"></b></div>
+              <svg class="pp-cursor" id="pp-cursor" viewBox="0 0 37 45"><path d="M2 2 L2 36 L11 28 L17 42 L23 39 L17 26 L30 26 Z" /></svg>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var $ = function (id) { return document.getElementById(id); };
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v.trim() : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function mk(tag, cls, parent) { var e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
+            [["bg_color", "--pp-bg", "#f6f3ee"], ["surface_color", "--pp-surface", "#ffffff"], ["primary_color", "--pp-primary", "#d9643a"], ["accent_color", "--pp-accent", "#ffc44d"], ["text_color", "--pp-text", "#1d1a1f"], ["muted_color", "--pp-muted", "#8f8984"]]
+              .forEach(function (c) { root.style.setProperty(c[1], colr(vars[c[0]], c[2])); });
+
+            var stage = $("pp-stage"), W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var land = W > H * 1.05, RW, RH, k;
+            if (land) { RH = 1080; RW = Math.round(1080 * W / H); k = H / RH; stage.classList.add("pp-land"); } else { RW = 1080; RH = Math.round(1080 * H / W); k = W / RW; }
+            stage.style.width = RW + "px"; stage.style.height = RH + "px"; stage.style.transform = "scale(" + k + ")";
+            // Offset of an element inside the world anchor, ignoring transforms.
+            function posIn(el, anc) { var x = 0, y = 0, e = el; while (e && e !== anc) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; } return { x: x, y: y }; }
+
+            $("pp-to").textContent = str(vars.to_label, "Chat ke Dapur Sekar");
+            $("pp-chip").textContent = str(vars.attach_label, "+ Foto contoh");
+            $("pp-title").textContent = str(vars.answer_title, "3 pilihan pas di budget");
+            $("pp-tlabel").textContent = str(vars.total_label, "Total hampers");
+            var request = str(vars.request, "Hampers lebaran isi 3 toples, budget 300 ribu, kirim tgl 28");
+            var defP = "Toples Nastar|500 gr, selai nanas asli|Rp110rb; Kastengel Keju|500 gr, keju edam|Rp95rb; Putri Salju|400 gr, gula halus|Rp90rb";
+            function parse(v) { return String(v).split(";").map(function (s) { return s.trim().split("|").map(function (x) { return x.trim(); }); }).filter(function (r) { return r[0]; }); }
+            var items = parse(str(vars.products, defP)); if (items.length < 3) items = parse(defP); items = items.slice(0, 3);
+            var pick = Math.round(num(vars.pick, 2, 1, 3)) - 1;
+            var cols = ["#d68f2d", "#d9a043", "#b99a78"], shapes = [
+              '<i class="pp-dot" style="left:12%;top:16%"></i><i class="pp-dot" style="left:50%;top:30%"></i><i class="pp-dot" style="left:22%;top:56%"></i>',
+              '<i class="pp-bar" style="left:18%;top:26%"></i><i class="pp-bar" style="left:22%;top:56%"></i>',
+              '<i class="pp-ring" style="left:10%;top:12%"></i><i class="pp-ring" style="left:44%;top:42%"></i>'];
+            var prods = $("pp-prods"), cards = [];
+            items.forEach(function (it, i) {
+              var c = mk("div", "pp-prod", prods); cards.push(c);
+              var th = mk("div", "pp-thumb", c); th.style.setProperty("--c", cols[i]); th.innerHTML = shapes[i];
+              var inf = mk("div", "pp-info", c); mk("b", "", inf).textContent = it[0]; mk("span", "", inf).textContent = it[1] || "";
+              var pr = mk("div", "pp-price", c);
+              if (i === pick) { mk("i", "pp-mark", pr).id = "pp-mark"; }
+              mk("span", "", pr).textContent = it[2] || "";
+              if (i === pick) { var ck = mk("div", "pp-check", c); ck.id = "pp-check"; ck.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; }
+            });
+            var prefix = typeof vars.total_prefix === "string" ? vars.total_prefix : "Rp", tv = Math.round(num(vars.total_value, 295000, 0, 999999999999));
+            function fmt(n) { return prefix + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            $("pp-tval").textContent = fmt(0);
+
+            // Geometry for the camera and the pointer.
+            var world = $("pp-world"), send = posIn($("pp-send"), world), sendW = $("pp-send").offsetWidth;
+            var sx = send.x + sendW / 2 - 8, sy = send.y + sendW / 2 - 8;
+            var pc = posIn(cards[pick], world), pcx = pc.x + cards[pick].offsetWidth / 2, pcy = pc.y + cards[pick].offsetHeight / 2;
+            function cam(s, x, y) { return { scale: s, x: -x * s, y: -y * s }; }
+            var promptBox = $("pp-prompt"), pcy0 = promptBox.offsetTop + promptBox.offsetHeight / 2, pcx0 = 0;
+
+            var tl = gsap.timeline({ paused: true });
+            gsap.set("#pp-prompt", { opacity: 0 });
+            gsap.set([".pp-prod", "#pp-title", "#pp-total"], { opacity: 0 });
+            gsap.set("#pp-cursor", { x: RW / 2 + 40, y: RH / 2 + 60 });
+            // 1. the bar rises, the request types itself, the camera leans in
+            tl.fromTo("#pp-prompt", { opacity: 0, y: 60, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 0.15)
+              .fromTo("#pp-caret", { opacity: 1 }, { opacity: 0, duration: 0.5, ease: "steps(1)", repeat: 8, yoyo: true }, 0.2)
+              .fromTo(world, cam(1, 0, 0), Object.assign(cam(1.14, 0, pcy0 * 0.5), { duration: 2.7, ease: "sine.out" }), 0.3);
+            var o = { n: 0 };
+            tl.to(o, { n: request.length, duration: 2.2, ease: "none", onUpdate: function () { $("pp-typed").textContent = request.slice(0, Math.round(o.n)); } }, 0.6);
+            // pointer presses send
+            tl.to("#pp-cursor", { x: sx, y: sy, duration: 0.55, ease: "power2.out" }, 2.65)
+              .to("#pp-cursor", { scale: 0.86, duration: 0.12, yoyo: true, repeat: 1, ease: "power1.inOut" }, 3.25)
+              .to("#pp-send", { scale: 0.88, duration: 0.12, yoyo: true, repeat: 1, ease: "power1.inOut" }, 3.25)
+              .to("#pp-cursor", { opacity: 0, duration: 0.25 }, 3.5)
+              .set("#pp-caret", { display: "none" }, 3.35);
+            // 2. the sent request shrinks to a bubble, the cards answer
+            var up = land ? -300 : -560, sc = land ? 0.5 : 0.6;
+            tl.to(world, Object.assign(cam(1, 0, 0), { duration: 0.55, ease: "sine.inOut" }), 3.5)
+              .to("#pp-prompt", { y: up, scale: sc, duration: 0.6, ease: "power2.inOut" }, 3.5)
+              .fromTo("#pp-title", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 3.9)
+              .fromTo(".pp-prod", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.12 }, 4.0);
+            // push to the chosen card: marker sweep, check mark
+            tl.to(world, Object.assign(cam(land ? 1.1 : 1.1, 0, pcy * 0.7), { duration: 0.65, ease: "sine.inOut" }), 4.8)
+              .fromTo("#pp-mark", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out" }, 5.3)
+              .fromTo("#pp-check", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "circ.out" }, 5.5)
+              .to(world, Object.assign(cam(land ? 1 : 0.97, 0, land ? 40 : 100), { duration: 0.6, ease: "sine.inOut" }), 6.1)
+              .fromTo("#pp-total", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 6.35);
+            var acc = { v: 0 };
+            tl.to(acc, { v: tv, duration: 0.9, ease: "power3.out", onUpdate: function () { $("pp-tval").textContent = fmt(acc.v); } }, 6.5);
+            var total = parseFloat(root.dataset.duration || "9");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["prompt-to-products"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

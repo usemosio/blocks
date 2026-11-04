@@ -1,0 +1,313 @@
+<!doctype html>
+<!--
+  Menu Price Board
+
+  A menu or price list that fills in row by row: name, dotted leader, price, with a handwritten note.
+
+  Extracted from the Mosio recipe menu-board by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="menu-price-board"
+  data-composition-duration="8"
+  data-composition-variables='[
+  {
+    "id": "kicker",
+    "type": "string",
+    "role": "content",
+    "label": "Kicker",
+    "description": "Small italic line above the title.",
+    "default": "Dari dapur kami,"
+  },
+  {
+    "id": "title",
+    "type": "string",
+    "role": "content",
+    "label": "Title",
+    "description": "Board title, one line.",
+    "default": "Menu Hari Ini"
+  },
+  {
+    "id": "items",
+    "type": "string",
+    "role": "content",
+    "label": "Items",
+    "description": "One item per line, \"Name|Price\" or \"Name|Price|Short note\". Up to 8 lines.",
+    "default": "Nasi Ayam Bakar|Rp25.000|sambal matah, lalapan\nSoto Betawi|Rp28.000|kuah santan gurih\nMie Goreng Jawa|Rp22.000|pakai telur bebek\nEs Teh Serai|Rp8.000|segar, tidak terlalu manis"
+  },
+  {
+    "id": "note",
+    "type": "string",
+    "role": "content",
+    "label": "Handwritten note",
+    "description": "Note stuck on at a slant, in handwriting. Leave empty to hide it.",
+    "default": "favorit!"
+  },
+  {
+    "id": "footer_name",
+    "type": "string",
+    "role": "content",
+    "label": "Footer name",
+    "description": "Shop name at the bottom. Leave empty to hide the footer.",
+    "default": "Dapur Mama Ika"
+  },
+  {
+    "id": "footer_line",
+    "type": "string",
+    "role": "content",
+    "label": "Footer line",
+    "description": "Opening hours or address under the shop name.",
+    "default": "Buka setiap hari 10.00–21.00"
+  },
+  {
+    "id": "footer_button",
+    "type": "string",
+    "role": "content",
+    "label": "Footer button",
+    "description": "Pill with how to order.",
+    "default": "Pesan: 0812-3456-7890"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Board background.",
+    "default": "#f6eee3"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "Kicker, prices, pen stroke and blobs.",
+    "default": "#b5532a"
+  },
+  {
+    "id": "accent_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "Handwritten note, footer button and blobs.",
+    "default": "#3f6b4a"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Title, item names and frame.",
+    "default": "#2b1d14"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Short notes under item names.",
+    "default": "#72665c"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Menu Price Board</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&amp;family=Poppins:wght@500&amp;family=Caveat:wght@700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .mb-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { background: var(--mb-bg); color: var(--mb-text); font-family: Poppins, "Noto Sans", system-ui, sans-serif; }
+        .mb-blob { position: absolute; border-radius: 50%; }
+        .mb-b1 { width: calc(var(--u) * 760); height: calc(var(--u) * 760); right: calc(var(--u) * -300); top: calc(var(--u) * -220); background: color-mix(in oklab, var(--mb-main) 18%, transparent); }
+        .mb-b2 { width: calc(var(--u) * 600); height: calc(var(--u) * 600); left: calc(var(--u) * -260); bottom: calc(var(--u) * -140); background: color-mix(in oklab, var(--mb-accent) 16%, transparent); }
+        .mb-frame { position: absolute; inset: calc(var(--u) * 5.5); inset: calc(var(--u) * 60); border: calc(var(--u) * 3) solid color-mix(in oklab, var(--mb-text) 30%, transparent); border-radius: calc(var(--u) * 40); }
+        .mb-col { position: absolute; left: calc(var(--u) * 110); right: calc(var(--u) * 110); top: calc(var(--u) * 130); bottom: calc(var(--u) * 130); display: flex; flex-direction: column; }
+        .mb-kicker { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; font-size: calc(var(--u) * 60); color: var(--mb-main); line-height: 1.2; }
+        .mb-titlew { position: relative; display: flex; align-items: flex-start; overflow: hidden; padding-bottom: calc(var(--u) * 8); }
+        .mb-title { display: inline-block; white-space: nowrap; font-family: "Playfair Display", serif; font-weight: 700; font-size: calc(var(--u) * 116); line-height: 1.12; }
+        .mb-pen { width: calc(var(--u) * 560); height: calc(var(--u) * 60); margin-top: calc(var(--u) * -8); flex-shrink: 0; overflow: visible; }
+        .mb-pen path { fill: none; stroke: var(--mb-main); stroke-width: 10; stroke-linecap: round; }
+        .mb-list { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-evenly; margin: calc(var(--u) * 20) 0; }
+        .mb-item { display: flex; align-items: baseline; gap: calc(var(--u) * 20); }
+        .mb-left { min-width: 0; }
+        .mb-name { font-weight: 500; white-space: nowrap; line-height: 1.15; }
+        .mb-note-s { display: block; color: var(--mb-muted); margin-top: calc(var(--u) * 2); white-space: nowrap; }
+        .mb-dots { flex: 1; min-width: calc(var(--u) * 40); position: relative; top: -0.25em; border-bottom: calc(var(--u) * 5) dotted color-mix(in oklab, var(--mb-text) 40%, transparent); transform-origin: 0 50%; }
+        .mb-price { font-family: "Playfair Display", serif; font-weight: 700; color: var(--mb-main); white-space: nowrap; }
+        .mb-hand { position: absolute; right: calc(var(--u) * 30); top: calc(var(--u) * 130); font-family: Caveat, cursive; font-weight: 700; font-size: calc(var(--u) * 80); color: color-mix(in oklab, var(--mb-accent) 85%, var(--mb-text)); white-space: nowrap; z-index: 2; }
+        .mb-foot { text-align: center; }
+        .mb-fname { font-family: "Playfair Display", serif; font-weight: 700; font-size: calc(var(--u) * 66); line-height: 1.2; }
+        .mb-fline { margin-top: calc(var(--u) * 8); font-size: calc(var(--u) * 38); }
+        .mb-fbtn { display: inline-block; margin-top: calc(var(--u) * 18); padding: calc(var(--u) * 18) calc(var(--u) * 46); border-radius: calc(var(--u) * 60); background: var(--mb-accent); color: var(--mb-ink); font-size: calc(var(--u) * 40); font-weight: 500; white-space: nowrap; }
+        @container (aspect-ratio > 1) {
+          .mb-col { left: calc(var(--u) * 200); right: calc(var(--u) * 200); top: calc(var(--u) * 100); bottom: calc(var(--u) * 90); }
+          .mb-kicker { font-size: calc(var(--u) * 44); }
+          .mb-title { font-size: calc(var(--u) * 92); }
+          .mb-pen { width: calc(var(--u) * 440); height: calc(var(--u) * 48); margin-top: calc(var(--u) * -6); }
+          .mb-hand { right: calc(var(--u) * 230); top: calc(var(--u) * 60); font-size: calc(var(--u) * 68); }
+          .mb-fname { font-size: calc(var(--u) * 48); } .mb-fline { font-size: calc(var(--u) * 30); margin-top: calc(var(--u) * 2); }
+          .mb-fbtn { margin-top: calc(var(--u) * 10); padding: calc(var(--u) * 12) calc(var(--u) * 36); font-size: calc(var(--u) * 32); }
+          .mb-list { margin: calc(var(--u) * 10) 0; }
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="menu-price-board" data-duration="8" data-fps="30">
+        <div id="mb-clip" class="mb-stage clip" data-start="0" data-duration="8" data-track-index="0">
+          <div id="mb-b1" class="mb-blob mb-b1"></div>
+          <div id="mb-b2" class="mb-blob mb-b2"></div>
+          <div id="mb-frame" class="mb-frame"></div>
+          <div class="mb-col">
+            <div class="mb-kicker" id="mb-kicker"></div>
+            <div class="mb-titlew" id="mb-titlew"><span class="mb-title" id="mb-title"></span></div>
+            <svg class="mb-pen" viewBox="0 0 560 60"><path id="mb-pen" d="M6 40 C 140 10, 300 58, 554 22" stroke-dasharray="600" stroke-dashoffset="0" /></svg>
+            <div class="mb-list" id="mb-list"></div>
+            <div class="mb-foot" id="mb-foot"><div class="mb-fname" id="mb-fname"></div><div class="mb-fline" id="mb-fline"></div><span class="mb-fbtn" id="mb-fbtn"></span></div>
+          </div>
+          <div class="mb-hand" id="mb-hand"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ink(c, thr) {
+              var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+              if (!m) return "#14161a";
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+              return 0.299 * r + 0.587 * g + 0.114 * b > (thr || 150) ? "#14161a" : "#ffffff";
+            }
+            function setColors(p, list) {
+              list.forEach(function (c) { root.style.setProperty("--" + p + "-" + c[0], colr(vars[c[1]], c[2])); });
+            }
+            // Shrink a one-line element's wrapper (flex, centred) when its content is wider than the wrapper.
+            var fitList = [];
+            function fit(wrap) { fitList.push(wrap); refit(); }
+            function refit() {
+              fitList.forEach(function (w) {
+                w.style.transform = "";
+                var c = w.firstElementChild, cw = c ? c.offsetWidth : 0, aw = w.clientWidth;
+                if (cw > aw && aw > 0) w.style.transform = "scale(" + (aw / cw).toFixed(4) + ")";
+              });
+            }
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            setColors("mb", [["bg", "bg_color", "#f6eee3"], ["main", "main_color", "#b5532a"], ["accent", "accent_color", "#3f6b4a"],
+              ["text", "text_color", "#2b1d14"], ["muted", "muted_color", "#72665c"]]);
+            root.style.setProperty("--mb-ink", ink(colr(vars.accent_color, "#3f6b4a")));
+            var kicker = typeof vars.kicker === "string" ? vars.kicker : "Dari dapur kami,";
+            var title = str(vars.title, "Menu Hari Ini");
+            var def = "Nasi Ayam Bakar|Rp25.000|sambal matah, lalapan\nSoto Betawi|Rp28.000|kuah santan gurih\nMie Goreng Jawa|Rp22.000|pakai telur bebek\nEs Teh Serai|Rp8.000|segar, tidak terlalu manis";
+            var rows = String(typeof vars.items === "string" && vars.items.trim() ? vars.items : def).split(/\r?\n/).map(function (l) {
+              var p = l.split("|"); return { name: p[0].trim(), price: (p[1] || "").trim(), note: (p[2] || "").trim() };
+            }).filter(function (r) { return r.name; }).slice(0, 8);
+            var note = typeof vars.note === "string" ? vars.note.trim() : "favorit!";
+            var fname = typeof vars.footer_name === "string" ? vars.footer_name.trim() : "Dapur Mama Ika";
+            var fline = typeof vars.footer_line === "string" ? vars.footer_line.trim() : "";
+            var fbtn = typeof vars.footer_button === "string" ? vars.footer_button.trim() : "";
+            var N = rows.length;
+
+            document.getElementById("mb-kicker").textContent = kicker;
+            if (!kicker) document.getElementById("mb-kicker").style.display = "none";
+            document.getElementById("mb-title").textContent = title;
+            var list = document.getElementById("mb-list");
+            rows.forEach(function (r, i) {
+              var it = el("div", "mb-item", list);
+              it.id = "mb-item-" + i;
+              var left = el("div", "mb-left", it);
+              el("div", "mb-name", left).textContent = r.name;
+              if (r.note) el("span", "mb-note-s", left).textContent = r.note;
+              el("div", "mb-dots", it);
+              el("div", "mb-price", it).textContent = r.price;
+            });
+            var foot = document.getElementById("mb-foot");
+            document.getElementById("mb-fname").textContent = fname;
+            document.getElementById("mb-fline").textContent = fline;
+            document.getElementById("mb-fbtn").textContent = fbtn;
+            if (!fline) document.getElementById("mb-fline").style.display = "none";
+            if (!fbtn) document.getElementById("mb-fbtn").style.display = "none";
+            if (!fname && !fline && !fbtn) foot.style.display = "none";
+            var hand = document.getElementById("mb-hand");
+            hand.textContent = note; if (!note) hand.style.display = "none";
+
+            // Item size follows the room each row gets, so 3 or 8 items both fill the board.
+            function sizeRows() {
+              var h = list.clientHeight, rowH = h / Math.max(1, N);
+              var fs = Math.max(26, Math.min(66 * U, rowH * (rows.some(function (r) { return r.note; }) && rowH > 110 * U ? 0.38 : 0.5)));
+              var hasNote = rows.some(function (r) { return r.note; }) && rowH > 110 * U;
+              list.querySelectorAll(".mb-name").forEach(function (e) { e.style.fontSize = fs + "px"; });
+              list.querySelectorAll(".mb-price").forEach(function (e) { e.style.fontSize = fs * 1.07 + "px"; });
+              list.querySelectorAll(".mb-note-s").forEach(function (e) { e.style.fontSize = fs * 0.58 + "px"; e.style.display = hasNote ? "block" : "none"; });
+            }
+            sizeRows();
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeRows);
+            fit(document.getElementById("mb-titlew"));
+
+            var step = Math.min(0.55, 3.2 / Math.max(1, N));
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#mb-b1", { scale: 0.9, rotation: 0 }, { scale: 1.08, rotation: 20, duration: 8, ease: "sine.inOut" }, 0);
+            tl.fromTo("#mb-b2", { scale: 1.05 }, { scale: 0.92, duration: 8, ease: "sine.inOut" }, 0);
+            tl.fromTo("#mb-frame", { scale: 1.06, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power3.out" }, 0);
+            tl.fromTo("#mb-kicker", { x: -60 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.3);
+            tl.fromTo("#mb-title", { yPercent: 115 }, { yPercent: 0, duration: 0.8, ease: "expo.out" }, 0.5);
+            tl.fromTo("#mb-pen", { attr: { "stroke-dashoffset": 600 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.7, ease: "power2.inOut" }, 1.1);
+            var t0 = 1.6;
+            rows.forEach(function (r, i) {
+              var at = t0 + i * step, it = "#mb-item-" + i;
+              tl.fromTo(it, { x: -80 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, at);
+              tl.fromTo(it + " .mb-dots", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out" }, at + 0.2);
+              tl.fromTo(it + " .mb-price", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2)", transformOrigin: "100% 60%" }, at + 0.45);
+            });
+            var done = t0 + (N - 1) * step + 0.9;
+            tl.fromTo("#mb-hand", { scale: 0, rotation: -40 }, { scale: 1, rotation: -8, duration: 0.5, ease: "back.out(2.4)" }, done);
+            tl.to("#mb-hand", { rotation: -2, duration: 0.6, yoyo: true, repeat: 3, ease: "sine.inOut" }, done + 0.5);
+            tl.fromTo("#mb-foot > *", { y: 60 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out", stagger: 0.18 }, done + 0.3);
+            // A light sweep along the prices keeps the board alive while it is held.
+            var sw = done + 1.6, sstep = Math.min(0.3, 1.5 / Math.max(1, N));
+            rows.forEach(function (r, i) {
+              tl.to("#mb-item-" + i + " .mb-price", { scale: 1.18, duration: 0.25, yoyo: true, repeat: 1, ease: "power2.inOut", transformOrigin: "100% 60%" }, sw + i * sstep);
+            });
+
+            var total = parseFloat(root.dataset.duration || "8");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["menu-price-board"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

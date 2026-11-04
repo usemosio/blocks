@@ -1,0 +1,300 @@
+<!doctype html>
+<!--
+  Phone Showcase
+
+  One phone on a pastel field, filmed in a single take: the camera pushes into the screen and scrolls the
+  catalogue, a product card lifts out of it and is tapped into the cart, order notifications drop in above the
+  phone and a count-up lands on a dark card.
+
+  Extracted from the Mosio recipe etalase-hp by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="phone-showcase"
+  data-composition-duration="10"
+  data-composition-variables='[
+    {"id": "headline", "type": "string", "role": "content", "label": "Headline", "description": "Two lines separated by a vertical bar; the second line is set in the main colour.", "default": "Kue rumahan,|sekali geser."},
+    {"id": "shop_name", "type": "string", "role": "content", "label": "Shop name", "description": "Name shown at the top of the phone screen.", "default": "Dapur Lumer"},
+    {"id": "greeting", "type": "string", "role": "content", "label": "Greeting", "description": "Small line above the shop name on the screen.", "default": "Halo, mau kue apa?"},
+    {"id": "search_hint", "type": "string", "role": "content", "label": "Search hint", "description": "Placeholder text in the screen search bar.", "default": "Cari brownies, nastar…"},
+    {"id": "products", "type": "string", "role": "content", "label": "Products", "description": "Semicolon-separated entries \"Name|Description|Price\" (3 to 6). The third one is picked, lifts out of the screen and goes into the cart.", "default": "Bolu pandan|Lembut, wangi daun asli|Rp45.000; Lapis legit|18 lapis, mentega pilihan|Rp120.000; Brownies lumer|Cokelat leleh di tengah|Rp55.000; Nastar keju|Toples 500 gram|Rp85.000; Bolu stroberi|Krim segar, tanpa pengawet|Rp60.000"},
+    {"id": "tag", "type": "string", "role": "content", "label": "Tag", "description": "Small badge on the lifted card.", "default": "Terlaris"},
+    {"id": "button_label", "type": "string", "role": "content", "label": "Button label", "description": "Label of the add-to-cart button on the lifted card.", "default": "+ Keranjang"},
+    {"id": "notifications", "type": "string", "role": "content", "label": "Notifications", "description": "Semicolon-separated entries \"Title|Detail|Amount\" (up to 3) that drop in above the phone.", "default": "Pesanan baru|Bu Rina · 2 item|Rp110rb; Pesanan baru|Mas Dimas · 1 item|Rp55rb; Pesanan baru|Kak Sinta · 3 item|Rp205rb"},
+    {"id": "count_label", "type": "string", "role": "content", "label": "Count label", "description": "Caption of the dark count-up card.", "default": "Pesanan hari ini"},
+    {"id": "count_value", "type": "number", "role": "content", "label": "Count value", "description": "Number the card counts up to.", "default": 1250000, "min": 0, "max": 999999999999, "step": 1},
+    {"id": "count_prefix", "type": "string", "role": "content", "label": "Count prefix", "description": "Text before the number, for example Rp.", "default": "Rp"},
+    {"id": "count_growth", "type": "string", "role": "content", "label": "Growth badge", "description": "Small badge on the count card. Leave empty to hide it.", "default": "+38%"},
+    {"id": "bg_color", "type": "color", "role": "style", "label": "Field", "description": "Lightest tint of the pastel background.", "default": "#fbf1ec"},
+    {"id": "surface_color", "type": "color", "role": "style", "label": "Cards", "description": "Cards, list items and the phone screen.", "default": "#ffffff"},
+    {"id": "primary_color", "type": "color", "role": "style", "label": "Main colour", "description": "Prices, active chip, buttons, the selection ring, notification icons and chart bars.", "default": "#e8457a"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "The small tag and one soft background blob.", "default": "#ffb547"},
+    {"id": "text_color", "type": "color", "role": "style", "label": "Text", "description": "Headline and screen text; also the dark count card.", "default": "#23182b"},
+    {"id": "muted_color", "type": "color", "role": "style", "label": "Muted text", "description": "Secondary lines.", "default": "#8a7d90"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Phone Showcase</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&amp;display=block" />
+      <style>
+        #root {
+          --ps-bg: #fbf1ec; --ps-surface: #ffffff; --ps-primary: #e8457a; --ps-accent: #ffb547; --ps-text: #23182b; --ps-muted: #8a7d90;
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          font-family: Poppins, system-ui, sans-serif; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--ps-text);
+          background: linear-gradient(170deg, var(--ps-bg) 0%, color-mix(in oklab, var(--ps-bg) 95%, var(--ps-text)) 100%);
+        }
+        #root * { box-sizing: border-box; }
+        #ps-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+        .ps-blob { position: absolute; border-radius: 50%; }
+        .ps-b1 { width: 1000px; height: 1000px; left: -380px; bottom: 60px;
+          background: radial-gradient(circle closest-side, color-mix(in oklab, var(--ps-primary) 26%, transparent) 52%, color-mix(in oklab, var(--ps-primary) 13%, transparent) 76%, transparent 100%); }
+        .ps-b2 { width: 880px; height: 880px; right: -360px; top: 100px;
+          background: radial-gradient(circle closest-side, color-mix(in oklab, var(--ps-accent) 30%, transparent) 45%, color-mix(in oklab, var(--ps-accent) 15%, transparent) 73%, transparent 100%); }
+        .ps-headline { position: absolute; z-index: 2; left: 70px; right: 70px; top: 200px; text-align: center; font-size: 104px; font-weight: 800; letter-spacing: -4px; line-height: 1.04; }
+        .ps-headline .ps-w { display: inline-block; }
+        .ps-headline .ps-hot { color: var(--ps-primary); }
+        .ps-world { position: absolute; left: 50%; top: 61.5%; width: 0; height: 0; }
+        .ps-phonebox { position: absolute; left: -290px; top: -610px; width: 580px; height: 1220px; transform-origin: 50% 50%; }
+        .ps-phone { position: absolute; inset: 0; border-radius: 86px; background: #15101a; padding: 18px;
+          box-shadow: 0 0 0 3px color-mix(in oklab, var(--ps-primary) 40%, #15101a), 0 70px 120px -40px color-mix(in oklab, var(--ps-text) 55%, transparent); }
+        .ps-screen { position: relative; width: 100%; height: 100%; border-radius: 70px; overflow: hidden; background: color-mix(in oklab, var(--ps-bg) 45%, var(--ps-surface)); }
+        .ps-island { position: absolute; left: 50%; top: 22px; width: 150px; height: 42px; margin-left: -75px; border-radius: 30px; background: #15101a; z-index: 5; }
+        .ps-status { height: 84px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 44px 6px; font-size: 22px; font-weight: 800; }
+        .ps-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 34px 8px; }
+        .ps-hi { font-size: 22px; color: var(--ps-muted); }
+        .ps-nm { font-size: 38px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+        .ps-cart { position: relative; width: 74px; height: 74px; border-radius: 24px; background: var(--ps-text); display: grid; place-items: center; flex: none; }
+        .ps-cart svg { width: 40px; height: 40px; fill: none; stroke: var(--ps-surface); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+        .ps-badge { position: absolute; right: -10px; top: -10px; min-width: 38px; height: 38px; border-radius: 20px; background: var(--ps-primary); color: #fff;
+          font-size: 22px; font-weight: 800; display: grid; place-items: center; border: 4px solid color-mix(in oklab, var(--ps-bg) 45%, var(--ps-surface)); }
+        .ps-search { margin: 14px 34px 0; height: 66px; border-radius: 34px; background: color-mix(in oklab, var(--ps-text) 3%, var(--ps-bg)); display: flex; align-items: center; padding: 0 28px; gap: 14px; font-size: 22px; color: var(--ps-muted); white-space: nowrap; overflow: hidden; }
+        .ps-search i { width: 24px; height: 24px; border: 4px solid var(--ps-muted); border-radius: 50%; flex: none; }
+        .ps-chips { display: flex; gap: 12px; padding: 20px 34px 6px; }
+        .ps-chips span { padding: 10px 22px; border-radius: 30px; background: color-mix(in oklab, var(--ps-text) 3%, var(--ps-bg)); font-size: 20px; }
+        .ps-chips span.ps-on { background: var(--ps-primary); color: #fff; }
+        .ps-feedwrap { position: absolute; left: 0; right: 0; top: 404px; bottom: 0; overflow: hidden; }
+        .ps-feed { padding: 8px 26px; display: flex; flex-direction: column; gap: 18px; }
+        .ps-item { position: relative; height: 196px; border-radius: 34px; background: var(--ps-surface); display: flex; align-items: center; gap: 22px; padding: 18px;
+          box-shadow: 0 10px 28px -14px color-mix(in oklab, var(--ps-text) 30%, transparent); }
+        .ps-item .ps-pic { width: 160px; height: 160px; flex: none; }
+        .ps-item b { display: block; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; }
+        .ps-item small { display: block; font-size: 20px; color: var(--ps-muted); margin-top: 4px; }
+        .ps-item .ps-rp { display: block; font-size: 26px; font-weight: 800; color: var(--ps-primary); margin-top: 10px; }
+        .ps-ring { position: absolute; inset: -2px; border-radius: 36px; border: 5px solid var(--ps-primary); opacity: 0; }
+        /* Drawn products: a tinted tile with a baked shape, the colour comes from --c. */
+        .ps-pic { position: relative; overflow: hidden; border-radius: 26px; background: color-mix(in oklab, var(--c, #e9a43b) 22%, var(--ps-surface)); }
+        .ps-pic::before { content: ""; position: absolute; left: 14%; right: 14%; top: 33%; height: 48%; border-radius: 40px 40px 14px 14px; background: linear-gradient(var(--c, #e9a43b), color-mix(in oklab, var(--c, #e9a43b) 75%, #000)); }
+        .ps-pic::after { content: ""; position: absolute; left: 38%; top: 22%; width: 17%; height: 17%; border-radius: 50%; background: var(--ps-surface); box-shadow: 0 0 0 2px color-mix(in oklab, var(--c, #e9a43b) 60%, #000); }
+        .ps-pic.ps-k1::before { border-radius: 14px; }
+        .ps-pic.ps-k1::after { display: none; }
+        .ps-pic.ps-k2::before { left: 20%; right: 20%; top: 20%; height: 60%; border-radius: 50%; background: none; border: 26px solid var(--c); }
+        .ps-pic.ps-k2::after { display: none; }
+        .ps-pic.ps-k3::before { border-radius: 12px; background: repeating-linear-gradient(var(--c) 0 12px, color-mix(in oklab, var(--c) 35%, #fff) 12px 23px); }
+        .ps-pic.ps-k3::after { display: none; }
+        .ps-pic.ps-k4::before { border-radius: 50% 50% 16px 16px / 60% 60% 16px 16px; }
+        .ps-lift { position: absolute; left: -250px; top: -220px; width: 520px; border-radius: 44px; background: var(--ps-surface); padding: 24px; opacity: 0;
+          box-shadow: 0 60px 110px -40px color-mix(in oklab, var(--ps-text) 60%, transparent), 0 0 0 2px color-mix(in oklab, var(--ps-primary) 25%, transparent); transform-origin: 50% 50%; }
+        .ps-lift .ps-pic { height: 300px; width: 100%; border-radius: 32px; }
+        .ps-lift .ps-tag { position: absolute; left: 22px; top: 22px; z-index: 2; padding: 8px 18px; border-radius: 20px; background: var(--ps-accent); font-size: 22px; font-weight: 800; color: #14161a; }
+        .ps-lift h3 { margin-top: 22px; font-size: 42px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+        .ps-lift p { margin-top: 6px; font-size: 24px; color: var(--ps-muted); }
+        .ps-row { display: flex; align-items: center; justify-content: space-between; margin-top: 22px; gap: 12px; }
+        .ps-lift .ps-rp { font-size: 46px; font-weight: 800; letter-spacing: -1px; white-space: nowrap; }
+        .ps-btn { position: relative; padding: 20px 30px; border-radius: 40px; background: var(--ps-primary); color: #fff; font-size: 26px; font-weight: 800; overflow: hidden; white-space: nowrap; }
+        .ps-ripple { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: #fff; opacity: 0; }
+        .ps-tap { position: absolute; left: 130px; top: 250px; width: 86px; height: 86px; border-radius: 50%; background: color-mix(in oklab, var(--ps-text) 35%, transparent); border: 5px solid var(--ps-surface); opacity: 0; }
+        .ps-notes { position: absolute; left: -390px; top: -1100px; width: 780px; display: flex; flex-direction: column; gap: 18px; }
+        .ps-note { height: 128px; border-radius: 40px; display: flex; align-items: center; gap: 22px; padding: 0 28px; background: var(--ps-surface);
+          box-shadow: 0 24px 50px -24px color-mix(in oklab, var(--ps-text) 45%, transparent); }
+        .ps-note .ps-ic { width: 76px; height: 76px; border-radius: 22px; background: var(--ps-primary); flex: none; display: grid; place-items: center; }
+        .ps-note .ps-ic svg { width: 40px; height: 40px; fill: none; stroke: #fff; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+        .ps-note div { flex: 1; min-width: 0; }
+        .ps-note b { display: block; font-size: 28px; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+        .ps-note small { display: block; font-size: 23px; color: var(--ps-muted); white-space: nowrap; }
+        .ps-note em { font-style: normal; font-size: 28px; font-weight: 800; color: var(--ps-primary); white-space: nowrap; }
+        .ps-stat { position: absolute; left: -410px; top: 200px; width: 820px; height: 250px; border-radius: 48px; padding: 36px 44px;
+          background: var(--ps-text); color: var(--ps-surface); box-shadow: 0 50px 90px -40px color-mix(in oklab, var(--ps-text) 80%, transparent); }
+        .ps-stat span { font-size: 28px; opacity: 0.7; }
+        .ps-stat b { display: block; font-size: 92px; font-weight: 800; letter-spacing: -3px; line-height: 1.15; white-space: nowrap; }
+        .ps-stat i { position: absolute; right: 44px; top: 40px; padding: 8px 18px; border-radius: 20px; background: var(--ps-accent); color: #14161a; font-style: normal; font-size: 24px; font-weight: 800; }
+        .ps-bars { position: absolute; right: 48px; bottom: 44px; display: flex; gap: 10px; align-items: flex-end; height: 90px; }
+        .ps-bars u { width: 22px; border-radius: 8px; background: var(--ps-primary); transform-origin: 50% 100%; }
+        /* Landscape: the headline moves to the left, notifications and the count card sit beside the phone. */
+        #ps-stage.ps-land .ps-world { top: 50%; }
+        #ps-stage.ps-land .ps-headline { left: 90px; right: auto; width: 600px; top: 50%; transform: translateY(-50%); text-align: left; font-size: 78px; letter-spacing: -3px; }
+        #ps-stage.ps-land .ps-notes { left: 330px; top: -340px; width: 560px; }
+        #ps-stage.ps-land .ps-note { padding: 0 22px; gap: 16px; }
+        #ps-stage.ps-land .ps-stat { left: -960px; top: 60px; width: 560px; }
+        #ps-stage.ps-land .ps-stat b { font-size: 70px; letter-spacing: -2px; }
+      </style>
+
+      <div id="root" data-composition-id="phone-showcase" data-duration="10" data-fps="30">
+        <div id="ps-clip" class="clip" data-start="0" data-duration="10" data-track-index="0" style="position:absolute;inset:0">
+          <div id="ps-stage">
+            <div class="ps-blob ps-b1" id="ps-b1"></div>
+            <div class="ps-blob ps-b2" id="ps-b2"></div>
+            <div class="ps-headline" id="ps-headline"></div>
+            <div class="ps-world" id="ps-world">
+              <div class="ps-phonebox" id="ps-phonebox">
+                <div class="ps-phone" id="ps-phone">
+                  <div class="ps-screen">
+                    <i class="ps-island"></i>
+                    <div class="ps-status"><span>09.41</span><span>●●● 5G</span></div>
+                    <div class="ps-head">
+                      <div><div class="ps-hi" id="ps-hi"></div><div class="ps-nm" id="ps-nm"></div></div>
+                      <div class="ps-cart" id="ps-cart">
+                        <svg viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10h-11z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
+                        <span class="ps-badge" id="ps-badge">1</span>
+                      </div>
+                    </div>
+                    <div class="ps-search"><i></i><span id="ps-search"></span></div>
+                    <div class="ps-chips"><span class="ps-on">Terlaris</span><span>Kue kering</span><span>Bolu</span></div>
+                    <div class="ps-feedwrap"><div class="ps-feed" id="ps-feed"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="ps-lift" id="ps-lift">
+                <div class="ps-pic" id="ps-liftpic"><span class="ps-tag" id="ps-tag"></span></div>
+                <h3 id="ps-lname"></h3>
+                <p id="ps-lnote"></p>
+                <div class="ps-row"><span class="ps-rp" id="ps-lrp"></span><span class="ps-btn" id="ps-btn"><i class="ps-ripple" id="ps-ripple"></i><span id="ps-btntxt"></span></span></div>
+              </div>
+              <div class="ps-tap" id="ps-tap"></div>
+              <div class="ps-notes" id="ps-notes"></div>
+              <div class="ps-stat" id="ps-stat">
+                <span id="ps-clabel"></span><b id="ps-count"></b><i id="ps-growth"></i>
+                <div class="ps-bars"><u style="height:34px"></u><u style="height:52px"></u><u style="height:44px"></u><u style="height:70px"></u><u style="height:90px"></u></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var $ = function (id) { return document.getElementById(id); };
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v.trim() : d; }
+            function txt(v, d) { return typeof v === "string" ? v.trim() : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function mk(tag, cls, parent) { var e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
+            function rows(v, d, n) {
+              var out = str(v, d).split(";").map(function (s) { return s.trim(); }).filter(Boolean).map(function (r) { return r.split("|").map(function (x) { return x.trim(); }); });
+              return out.length ? out : rows(d, d, n);
+            }
+
+            [["bg_color", "--ps-bg", "#fbf1ec"], ["surface_color", "--ps-surface", "#ffffff"], ["primary_color", "--ps-primary", "#e8457a"], ["accent_color", "--ps-accent", "#ffb547"], ["text_color", "--ps-text", "#23182b"], ["muted_color", "--ps-muted", "#8a7d90"]]
+              .forEach(function (c) { root.style.setProperty(c[1], colr(vars[c[0]], c[2])); });
+
+            // Stage: design units with a 1080 short side, scaled to fill the host frame.
+            var stage = $("ps-stage"), W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var land = W > H * 1.05, RW, RH, k;
+            if (land) { RH = 1080; RW = Math.round(1080 * W / H); k = H / RH; stage.classList.add("ps-land"); } else { RW = 1080; RH = Math.round(1080 * H / W); k = W / RW; }
+            stage.style.width = RW + "px"; stage.style.height = RH + "px"; stage.style.transform = "scale(" + k + ")";
+            var base = land ? 0.8 : Math.min(1, RH / 1920);
+            if (!land) $("ps-world").style.top = Math.round(RH * 0.615) + "px";
+
+            // Content
+            var lines = str(vars.headline, "Kue rumahan,|sekali geser.").split("|");
+            var hl = $("ps-headline");
+            lines.slice(0, 2).forEach(function (line, li) {
+              if (li) hl.appendChild(document.createElement("br"));
+              line.trim().split(/\s+/).forEach(function (w, wi, arr) {
+                var s = mk("span", "ps-w" + (li ? " ps-hot" : ""), hl); s.textContent = w;
+                if (wi < arr.length - 1 || li === 0) hl.appendChild(document.createTextNode(" "));
+              });
+            });
+            $("ps-nm").textContent = str(vars.shop_name, "Dapur Lumer");
+            $("ps-hi").textContent = str(vars.greeting, "Halo, mau kue apa?");
+            $("ps-search").textContent = str(vars.search_hint, "Cari brownies, nastar…");
+            var defProducts = "Bolu pandan|Lembut, wangi daun asli|Rp45.000; Lapis legit|18 lapis, mentega pilihan|Rp120.000; Brownies lumer|Cokelat leleh di tengah|Rp55.000; Nastar keju|Toples 500 gram|Rp85.000; Bolu stroberi|Krim segar, tanpa pengawet|Rp60.000";
+            var products = rows(vars.products, defProducts).slice(0, 6);
+            while (products.length < 3) products.push(products[products.length - 1]);
+            var colors = ["#8fcf6b", "#b24a2c", "#6b3a26", "#e9a43b", "#e8457a", "#c78a4e"], kinds = ["", "ps-k3", "ps-k1", "ps-k2", "ps-k4", ""];
+            var feed = $("ps-feed"), target = null;
+            products.forEach(function (p, i) {
+              var it = mk("div", "ps-item", feed);
+              if (i === 2) { target = it; var ring = mk("i", "ps-ring", it); ring.id = "ps-ring"; }
+              var pic = mk("div", "ps-pic " + kinds[i % 6], it); pic.style.setProperty("--c", colors[i % 6]);
+              var d = mk("div", "", it);
+              mk("b", "", d).textContent = p[0] || ""; mk("small", "", d).textContent = p[1] || ""; mk("span", "ps-rp", d).textContent = p[2] || "";
+            });
+            var pk = products[2];
+            $("ps-liftpic").className = "ps-pic " + kinds[2]; $("ps-liftpic").style.setProperty("--c", colors[2]);
+            $("ps-lname").textContent = pk[0] || ""; $("ps-lnote").textContent = pk[1] || ""; $("ps-lrp").textContent = pk[2] || "";
+            $("ps-tag").textContent = str(vars.tag, "Terlaris");
+            $("ps-btntxt").textContent = str(vars.button_label, "+ Keranjang");
+            var notes = rows(vars.notifications, "Pesanan baru|Bu Rina · 2 item|Rp110rb; Pesanan baru|Mas Dimas · 1 item|Rp55rb; Pesanan baru|Kak Sinta · 3 item|Rp205rb").slice(0, 3);
+            var nb = $("ps-notes");
+            notes.forEach(function (n) {
+              var e = mk("div", "ps-note", nb);
+              e.innerHTML = '<span class="ps-ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b></b><small></small></div><em></em>';
+              e.querySelector("b").textContent = n[0] || ""; e.querySelector("small").textContent = n[1] || ""; e.querySelector("em").textContent = n[2] || "";
+            });
+            $("ps-clabel").textContent = str(vars.count_label, "Pesanan hari ini");
+            var growth = txt(vars.count_growth, "+38%"); $("ps-growth").textContent = growth; if (!growth) $("ps-growth").style.display = "none";
+            var cv = Math.round(num(vars.count_value, 1250000, 0, 999999999999)), prefix = txt(vars.count_prefix, "Rp");
+            function fmt(n) { return prefix + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            $("ps-count").textContent = fmt(0);
+
+            // Timeline. Camera = the world wrapper, origin at the phone centre; the headline lives in screen space.
+            var tl = gsap.timeline({ paused: true });
+            var cam = "#ps-world";
+            gsap.set(cam, { scale: base, transformOrigin: "0px 0px" });
+            gsap.set("#ps-phonebox", { scale: land ? 1 : 1 });
+            gsap.set("#ps-badge", { scale: 0 });
+            gsap.set(".ps-note, #ps-stat", { opacity: 0 });
+            tl.fromTo("#ps-b1", { x: 0, y: 0 }, { x: 120, y: -140, duration: 10, ease: "sine.inOut" }, 0)
+              .fromTo("#ps-b2", { x: 0, y: 0 }, { x: -100, y: 160, duration: 10, ease: "sine.inOut" }, 0);
+            // 1. headline blurs in word by word, phone rises, camera pushes 1.12x
+            tl.fromTo("#ps-headline .ps-w", { opacity: 0, y: 24, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "circ.out", stagger: 0.09 }, 0.15)
+              .from("#ps-phone", { y: 900, rotation: 8, scale: 0.9, duration: 1.15, ease: "circ.out" }, 0.25)
+              .fromTo(cam, { scale: base }, { scale: base * 1.12, duration: 2.0, ease: "circ.out" }, 0.3)
+              .to("#ps-headline .ps-w", { opacity: 0, y: -30, filter: "blur(10px)", duration: 0.35, ease: "power1.in", stagger: 0.04 }, 2.15);
+            // 2. dive 1.5x into the screen, catalogue scrolls to the target
+            tl.to(cam, { scale: base * 1.55, y: 330 * base, duration: 0.8, ease: "power2.inOut" }, 2.4)
+              .to("#ps-feed", { y: -428, duration: 1.1, ease: "power2.inOut" }, 3.25)
+              .to(cam, { y: 200 * base, duration: 1.1, ease: "power2.inOut" }, 3.25)
+              .fromTo("#ps-ring", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.25, ease: "circ.out" }, 4.4);
+            // The card lifts out, the phone defocuses behind it
+            tl.to(cam, { scale: base * 0.92, y: 0, duration: 0.65, ease: "sine.out" }, 4.75)
+              .to("#ps-phone", { filter: "blur(5px)", opacity: 0.55, duration: 0.5, ease: "sine.out" }, 4.85)
+              .fromTo("#ps-lift", { opacity: 0, x: -40, y: 80, scale: 0.7, rotation: 0 }, { opacity: 1, x: 0, y: 0, scale: 1.18, rotation: -4, duration: 0.7, ease: "circ.out" }, 4.8)
+              .to("#ps-lift", { y: -16, rotation: -3, duration: 1.05, ease: "sine.inOut" }, 5.5);
+            // Tap the button
+            tl.fromTo("#ps-tap", { opacity: 0, scale: 1.6, x: 60, y: 120 }, { opacity: 1, scale: 1, x: 0, y: 0, duration: 0.4, ease: "power2.out" }, 5.7)
+              .to("#ps-tap", { scale: 0.8, duration: 0.1, yoyo: true, repeat: 1, ease: "power1.inOut" }, 6.1)
+              .to("#ps-btn", { scale: 0.93, duration: 0.1, yoyo: true, repeat: 1, ease: "power1.inOut" }, 6.1)
+              .fromTo("#ps-ripple", { opacity: 0.6, scale: 0 }, { opacity: 0, scale: 9, duration: 0.5, ease: "circ.out" }, 6.15)
+              .to("#ps-tap", { opacity: 0, duration: 0.2 }, 6.45);
+            // The card flies into the cart, the badge bounces
+            tl.to("#ps-lift", { x: 200, y: -360, scale: 0.12, rotation: 12, opacity: 0, duration: 0.55, ease: "power2.in" }, 6.55)
+              .to("#ps-phone", { filter: "blur(0px)", opacity: 1, duration: 0.45, ease: "sine.out" }, 6.6)
+              .to(cam, { scale: base, duration: 0.6, ease: "power2.inOut" }, 6.6)
+              .to("#ps-badge", { scale: 1, duration: 0.4, ease: "back.out(3)" }, 7.05)
+              .to("#ps-cart", { scale: 1.15, duration: 0.12, yoyo: true, repeat: 1, ease: "power1.inOut" }, 7.05);
+            // 3. notifications drop in, the dark count card rises and counts up
+            tl.fromTo(".ps-note", { opacity: 0, y: -90, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "circ.out", stagger: 0.16 }, 7.2)
+              .to(cam, { scale: base * 0.94, y: -30 * base, duration: 0.9, ease: "sine.out" }, 7.2)
+              .fromTo("#ps-stat", { opacity: 0, y: 140, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "circ.out" }, 8.0)
+              .from(".ps-bars u", { scaleY: 0, duration: 0.45, ease: "circ.out", stagger: 0.07 }, 8.3);
+            var acc = { v: 0 };
+            tl.to(acc, { v: cv, duration: 1.1, ease: "power3.out", onUpdate: function () { $("ps-count").textContent = fmt(acc.v); } }, 8.25);
+            var total = parseFloat(root.dataset.duration || "10");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["phone-showcase"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

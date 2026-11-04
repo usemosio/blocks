@@ -1,0 +1,169 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "chat-review-typed",
+  "type": "hyperframes:component",
+  "title": "Chat Review Typed",
+  "description": "A headline with the shop name in handwriting, a customer's avatar and name, an incoming bubble with typing dots that then writes the review letter by letter, a tinted reply bubble sliding in from the right, five stars popping in with a score line, and a call-to-action pill.",
+  "tags": [
+    "mosio-recipe",
+    "chat",
+    "testimonial",
+    "review",
+    "typing",
+    "stars",
+    "social-proof"
+  ],
+  "category": "commerce",
+  "duration": 10,
+  "useWhen": [
+    "A customer review, a viewer comment or a student message should be shown as proof.",
+    "A short message (up to about 110 characters) that is worth reading as it is typed."
+  ],
+  "avoidWhen": [
+    "A long text or several reviews: use one block per review, or a testimonial card layout.",
+    "You need the look of a specific messaging app: this is a generic bubble chat."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "chat-testimoni"
+  },
+  "files": [
+    {
+      "path": "chat-review-typed.html",
+      "target": "compositions/components/chat-review-typed.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "headline_lead",
+      "type": "string",
+      "role": "content",
+      "label": "Headline lead",
+      "description": "Plain words before the subject name.",
+      "default": "Kata mereka tentang"
+    },
+    {
+      "id": "subject",
+      "type": "string",
+      "role": "content",
+      "label": "Subject",
+      "description": "Shop or product name, written by hand in the main colour.",
+      "default": "Kue Rumahan Bunda"
+    },
+    {
+      "id": "customer_name",
+      "type": "string",
+      "role": "content",
+      "label": "Customer name",
+      "description": "Name above the review. Its first letter fills the avatar.",
+      "default": "Bu Sari"
+    },
+    {
+      "id": "customer_note",
+      "type": "string",
+      "role": "content",
+      "label": "Customer note",
+      "description": "Small line under the name.",
+      "default": "pelanggan sejak 2023"
+    },
+    {
+      "id": "review",
+      "type": "string",
+      "role": "content",
+      "label": "Review",
+      "description": "The message typed letter by letter. About 60 to 110 characters reads best.",
+      "default": "Kue lapisnya lembut banget, anak-anak sampai rebutan. Minggu depan pesan lagi ya!"
+    },
+    {
+      "id": "reply",
+      "type": "string",
+      "role": "content",
+      "label": "Reply",
+      "description": "The shop's reply bubble. Leave empty to skip it.",
+      "default": "Terima kasih, Bu Sari! Ditunggu pesanannya"
+    },
+    {
+      "id": "score_text",
+      "type": "string",
+      "role": "content",
+      "label": "Score line",
+      "description": "Line under the stars. Leave empty to hide the stars and the line.",
+      "default": "4,9 dari 1.200+ ulasan"
+    },
+    {
+      "id": "cta",
+      "type": "string",
+      "role": "content",
+      "label": "Call to action",
+      "description": "Pill at the end.",
+      "default": "Pesan: 0812-3456-7890"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background (blended toward the main colour).",
+      "default": "#fde7ef"
+    },
+    {
+      "id": "surface_color",
+      "type": "color",
+      "role": "style",
+      "label": "Bubble colour",
+      "description": "Incoming bubble.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Subject name, avatar, reply bubble tint and call to action.",
+      "default": "#e0457b"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Decorative dots.",
+      "default": "#ff7aa8"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Headline and bubbles.",
+      "default": "#2a1720"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Customer note.",
+      "default": "#7e6a73"
+    },
+    {
+      "id": "star_color",
+      "type": "color",
+      "role": "style",
+      "label": "Star colour",
+      "description": "Rating stars.",
+      "default": "#ffb400"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear.",
+      "default": false
+    }
+  ]
+}

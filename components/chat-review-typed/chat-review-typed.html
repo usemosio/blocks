@@ -1,0 +1,322 @@
+<!doctype html>
+<!--
+  Chat Review Typed
+
+  A customer review typed letter by letter in a chat bubble, a reply, then star rating and a call to action.
+
+  Extracted from the Mosio recipe chat-testimoni by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="chat-review-typed"
+  data-composition-duration="10"
+  data-composition-variables='[
+  {
+    "id": "headline_lead",
+    "type": "string",
+    "role": "content",
+    "label": "Headline lead",
+    "description": "Plain words before the subject name.",
+    "default": "Kata mereka tentang"
+  },
+  {
+    "id": "subject",
+    "type": "string",
+    "role": "content",
+    "label": "Subject",
+    "description": "Shop or product name, written by hand in the main colour.",
+    "default": "Kue Rumahan Bunda"
+  },
+  {
+    "id": "customer_name",
+    "type": "string",
+    "role": "content",
+    "label": "Customer name",
+    "description": "Name above the review. Its first letter fills the avatar.",
+    "default": "Bu Sari"
+  },
+  {
+    "id": "customer_note",
+    "type": "string",
+    "role": "content",
+    "label": "Customer note",
+    "description": "Small line under the name.",
+    "default": "pelanggan sejak 2023"
+  },
+  {
+    "id": "review",
+    "type": "string",
+    "role": "content",
+    "label": "Review",
+    "description": "The message typed letter by letter. About 60 to 110 characters reads best.",
+    "default": "Kue lapisnya lembut banget, anak-anak sampai rebutan. Minggu depan pesan lagi ya!"
+  },
+  {
+    "id": "reply",
+    "type": "string",
+    "role": "content",
+    "label": "Reply",
+    "description": "The shop&#39;s reply bubble. Leave empty to skip it.",
+    "default": "Terima kasih, Bu Sari! Ditunggu pesanannya"
+  },
+  {
+    "id": "score_text",
+    "type": "string",
+    "role": "content",
+    "label": "Score line",
+    "description": "Line under the stars. Leave empty to hide the stars and the line.",
+    "default": "4,9 dari 1.200+ ulasan"
+  },
+  {
+    "id": "cta",
+    "type": "string",
+    "role": "content",
+    "label": "Call to action",
+    "description": "Pill at the end.",
+    "default": "Pesan: 0812-3456-7890"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background (blended toward the main colour).",
+    "default": "#fde7ef"
+  },
+  {
+    "id": "surface_color",
+    "type": "color",
+    "role": "style",
+    "label": "Bubble colour",
+    "description": "Incoming bubble.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "Subject name, avatar, reply bubble tint and call to action.",
+    "default": "#e0457b"
+  },
+  {
+    "id": "accent_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "Decorative dots.",
+    "default": "#ff7aa8"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Headline and bubbles.",
+    "default": "#2a1720"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Customer note.",
+    "default": "#7e6a73"
+  },
+  {
+    "id": "star_color",
+    "type": "color",
+    "role": "style",
+    "label": "Star colour",
+    "description": "Rating stars.",
+    "default": "#ffb400"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat Review Typed</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&amp;family=Caveat:wght@700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .ct-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { color: var(--ct-text); font-family: Poppins, "Noto Sans", system-ui, sans-serif;
+          background: linear-gradient(160deg, var(--ct-bg), color-mix(in oklab, var(--ct-main) 22%, var(--ct-bg))); }
+        .ct-dot { position: absolute; border-radius: 50%; background: color-mix(in oklab, var(--ct-main) 25%, transparent); }
+        .ct-dot.alt { background: color-mix(in oklab, var(--ct-accent) 30%, transparent); }
+        .ct-grid { position: absolute; inset: 0; padding: 0 calc(var(--u) * 90); display: grid; align-content: center; justify-items: stretch; gap: calc(var(--u) * 50);
+          grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "chat" "rating" "cta"; }
+        .ct-head { grid-area: head; font-size: calc(var(--u) * 76); font-weight: 800; line-height: 1.12; }
+        .ct-head em { display: block; font-family: Caveat, cursive; font-style: normal; font-weight: 700; font-size: 1.28em; color: var(--ct-main); line-height: 1.05; }
+        .ct-chat { grid-area: chat; }
+        .ct-who { display: flex; align-items: center; gap: calc(var(--u) * 24); margin-bottom: calc(var(--u) * 30); }
+        .ct-ava { width: calc(var(--u) * 110); height: calc(var(--u) * 110); flex-shrink: 0; border-radius: 50%; background: var(--ct-main); color: var(--ct-ink); font-weight: 800; font-size: calc(var(--u) * 54); display: flex; align-items: center; justify-content: center; }
+        .ct-who b { display: block; font-size: calc(var(--u) * 48); line-height: 1.2; }
+        .ct-who span { font-size: calc(var(--u) * 34); color: var(--ct-muted); }
+        .ct-bub { position: relative; max-width: calc(var(--u) * 860); padding: calc(var(--u) * 34) calc(var(--u) * 44); border-radius: calc(var(--u) * 48); font-size: calc(var(--u) * 46); line-height: 1.35; background: var(--ct-surface); box-shadow: 0 calc(var(--u) * 16) calc(var(--u) * 40) color-mix(in oklab, var(--ct-text) 12%, transparent); margin-bottom: calc(var(--u) * 30); }
+        .ct-in { border-top-left-radius: calc(var(--u) * 12); }
+        .ct-out { margin-left: auto; border-top-right-radius: calc(var(--u) * 12); background: color-mix(in oklab, var(--ct-main) 24%, var(--ct-surface)); }
+        .ct-typing { position: absolute; left: 0; top: 0; display: flex; gap: calc(var(--u) * 14); padding: calc(var(--u) * 40) calc(var(--u) * 44); }
+        .ct-typing i { width: calc(var(--u) * 22); height: calc(var(--u) * 22); border-radius: 50%; background: color-mix(in oklab, var(--ct-text) 45%, transparent); }
+        .ct-nw { white-space: nowrap; }
+        .ct-rating { grid-area: rating; text-align: center; }
+        .ct-stars { display: flex; justify-content: center; gap: calc(var(--u) * 18); }
+        .ct-stars svg { width: calc(var(--u) * 104); height: calc(var(--u) * 104); }
+        .ct-stars path { fill: var(--ct-star); }
+        .ct-score { margin-top: calc(var(--u) * 20); font-size: calc(var(--u) * 48); font-weight: 500; }
+        .ct-ctaw { grid-area: cta; display: flex; justify-content: center; }
+        .ct-cta { display: inline-block; max-width: 100%; padding: calc(var(--u) * 34) calc(var(--u) * 64); border-radius: calc(var(--u) * 90); background: var(--ct-main); color: var(--ct-ink); font-size: calc(var(--u) * 44); font-weight: 800; text-align: center; }
+        @container (aspect-ratio > 1) {
+          .ct-grid { padding: 0 calc(var(--u) * 120); column-gap: calc(var(--u) * 100); row-gap: calc(var(--u) * 40); grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+            grid-template-rows: auto auto auto; grid-template-areas: "head chat" "rating chat" "cta chat"; align-content: center; align-items: center; }
+          .ct-head { font-size: calc(var(--u) * 72); }
+          .ct-rating { text-align: left; } .ct-stars { justify-content: flex-start; }
+          .ct-ctaw { justify-content: flex-start; }
+          .ct-cta { font-size: calc(var(--u) * 34); padding: calc(var(--u) * 26) calc(var(--u) * 44); white-space: nowrap; }
+          .ct-stars svg { width: calc(var(--u) * 90); height: calc(var(--u) * 90); }
+        }
+
+      </style>
+
+      <div id="root" data-composition-id="chat-review-typed" data-duration="10" data-fps="30">
+        <div id="ct-clip" class="ct-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <div class="ct-dot" id="ct-d1" style="width: 28cqmin; height: 28cqmin; left: -7cqmin; bottom: 4%"></div>
+          <div class="ct-dot alt" id="ct-d2" style="width: 18cqmin; height: 18cqmin; right: -4cqmin; top: 8%"></div>
+          <div class="ct-grid">
+            <div class="ct-head" id="ct-head"><span id="ct-lead"></span><em id="ct-subject"></em></div>
+            <div class="ct-chat" id="ct-chat">
+              <div class="ct-who" id="ct-who"><div class="ct-ava" id="ct-ava"></div><div><b id="ct-name"></b><span id="ct-note"></span></div></div>
+              <div class="ct-bub ct-in" id="ct-b1"><div class="ct-typing" id="ct-typing"><i></i><i></i><i></i></div><span id="ct-t1"></span></div>
+              <div class="ct-bub ct-out" id="ct-b2"></div>
+            </div>
+            <div class="ct-rating" id="ct-rating"><div class="ct-stars" id="ct-stars"></div><div class="ct-score" id="ct-score"></div></div>
+            <div class="ct-ctaw"><span class="ct-cta" id="ct-cta"></span></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ink(c, thr) {
+              var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+              if (!m) return "#14161a";
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+              return 0.299 * r + 0.587 * g + 0.114 * b > (thr || 150) ? "#14161a" : "#ffffff";
+            }
+            function setColors(p, list) {
+              list.forEach(function (c) { root.style.setProperty("--" + p + "-" + c[0], colr(vars[c[1]], c[2])); });
+            }
+            // Shrink a one-line element's wrapper (flex, centred) when its content is wider than the wrapper.
+            var fitList = [];
+            function fit(wrap) { fitList.push(wrap); refit(); }
+            function refit() {
+              fitList.forEach(function (w) {
+                w.style.transform = "";
+                var c = w.firstElementChild, cw = c ? c.offsetWidth : 0, aw = w.clientWidth;
+                if (cw > aw && aw > 0) w.style.transform = "scale(" + (aw / cw).toFixed(4) + ")";
+              });
+            }
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            setColors("ct", [["bg", "bg_color", "#fde7ef"], ["surface", "surface_color", "#ffffff"], ["main", "main_color", "#e0457b"], ["accent", "accent_color", "#ff7aa8"],
+              ["text", "text_color", "#2a1720"], ["muted", "muted_color", "#7e6a73"], ["star", "star_color", "#ffb400"]]);
+            root.style.setProperty("--ct-ink", ink(colr(vars.main_color, "#e0457b")));
+            var lead = typeof vars.headline_lead === "string" ? vars.headline_lead : "Kata mereka tentang";
+            var subject = str(vars.subject, "Kue Rumahan Bunda");
+            var name = str(vars.customer_name, "Bu Sari");
+            var note = typeof vars.customer_note === "string" ? vars.customer_note : "pelanggan sejak 2023";
+            var review = str(vars.review, "Kue lapisnya lembut banget, anak-anak sampai rebutan. Minggu depan pesan lagi ya!");
+            var reply = typeof vars.reply === "string" ? vars.reply.trim() : "Terima kasih, Bu Sari! Ditunggu pesanannya";
+            var score = typeof vars.score_text === "string" ? vars.score_text.trim() : "4,9 dari 1.200+ ulasan";
+            var cta = typeof vars.cta === "string" ? vars.cta.trim() : "Pesan: 0812-3456-7890";
+            document.getElementById("ct-lead").textContent = lead;
+            document.getElementById("ct-subject").textContent = subject;
+            document.getElementById("ct-ava").textContent = Array.from(name)[0].toUpperCase();
+            document.getElementById("ct-name").textContent = name;
+            document.getElementById("ct-note").textContent = note;
+            var b2 = document.getElementById("ct-b2"); b2.textContent = reply; if (!reply) b2.style.display = "none";
+            var ctaEl = document.getElementById("ct-cta"); ctaEl.textContent = cta; if (!cta) ctaEl.style.display = "none";
+            var sc = document.getElementById("ct-score"); sc.textContent = score;
+            var STAR = "M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z";
+            var stars = document.getElementById("ct-stars");
+            for (var s = 0; s < 5; s++) stars.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24"><path d="' + STAR + '"/></svg>');
+            if (!score) document.getElementById("ct-rating").style.display = "none";
+
+            // The review is typed letter by letter: every letter is a span, words stay whole at line breaks.
+            var t1 = document.getElementById("ct-t1");
+            t1.innerHTML = review.split(" ").map(function (w) {
+              return '<span class="ct-nw">' + Array.from(w).map(function (c) { return '<span class="ct-ch">' + esc(c) + "</span>"; }).join("") + "</span>";
+            }).join(" ");
+            var chars = t1.querySelectorAll(".ct-ch");
+            var per = Math.min(0.035, 3.2 / Math.max(1, chars.length));
+
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#ct-d1", { y: 0 }, { y: -160 * U, duration: 10, ease: "sine.inOut" }, 0);
+            tl.fromTo("#ct-d2", { y: 0 }, { y: 120 * U, duration: 10, ease: "sine.inOut" }, 0);
+            tl.fromTo("#ct-head", { y: 60 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.2);
+            tl.fromTo("#ct-who", { x: -60 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.8);
+            tl.fromTo("#ct-b1", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.8)", transformOrigin: "0% 0%" }, 1.1);
+            tl.to("#ct-typing i", { y: -14 * U, duration: 0.2, yoyo: true, repeat: 5, ease: "sine.inOut", stagger: 0.1 }, 1.3);
+            tl.to("#ct-typing", { opacity: 0, duration: 0.15 }, 2.5);
+            var T0 = 2.55;
+            chars.forEach(function (c, i) {
+              tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.01, ease: "none", immediateRender: true }, T0 + i * per);
+            });
+            var T1 = T0 + chars.length * per;
+            if (reply) tl.fromTo("#ct-b2", { x: 120 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "back.out(1.6)", immediateRender: true }, T1 + 0.5);
+            var TS = T1 + (reply ? 1.5 : 0.7);
+            if (score) {
+              tl.fromTo("#ct-stars svg", { scale: 0, rotation: -120 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2.5)", stagger: 0.14 }, TS);
+              tl.fromTo("#ct-score", { y: 30 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, TS + 0.9);
+              tl.to("#ct-stars svg", { y: -16 * U, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.out", stagger: 0.08 }, TS + 2.2);
+            }
+            var TC = TS + (score ? 1.4 : 0);
+            if (cta) {
+              tl.fromTo("#ct-cta", { y: 200 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, TC);
+              tl.to("#ct-cta", { scale: 1.04, duration: 0.5, yoyo: true, repeat: 3, ease: "sine.inOut" }, TC + 0.9);
+            }
+
+            var total = parseFloat(root.dataset.duration || "10");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["chat-review-typed"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

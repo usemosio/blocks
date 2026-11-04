@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "menu-price-board",
+  "type": "hyperframes:component",
+  "title": "Menu Price Board",
+  "description": "A cafe-style board: the title rises through a mask and a pen stroke underlines it, then each item slides in with its dotted leader and price popping in at the end, a handwritten note sticks on at a slant and the shop details rise at the bottom. Items come from one variable, one per line as \"Name|Price\".",
+  "tags": [
+    "mosio-recipe",
+    "menu",
+    "price-list",
+    "list",
+    "handwritten",
+    "product"
+  ],
+  "category": "commerce",
+  "duration": 8,
+  "useWhen": [
+    "A food or drink menu, a service price list or a class schedule with prices.",
+    "Three to eight short lines that should be read one by one."
+  ],
+  "avoidWhen": [
+    "A single product with an old and a new price: use price-drop.",
+    "More than eight items: split them over several boards.",
+    "Long descriptions per item: the rows are made for a name, a price and a few words."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "menu-board"
+  },
+  "files": [
+    {
+      "path": "menu-price-board.html",
+      "target": "compositions/components/menu-price-board.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "kicker",
+      "type": "string",
+      "role": "content",
+      "label": "Kicker",
+      "description": "Small italic line above the title.",
+      "default": "Dari dapur kami,"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Board title, one line.",
+      "default": "Menu Hari Ini"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Items",
+      "description": "One item per line, \"Name|Price\" or \"Name|Price|Short note\". Up to 8 lines.",
+      "default": "Nasi Ayam Bakar|Rp25.000|sambal matah, lalapan\nSoto Betawi|Rp28.000|kuah santan gurih\nMie Goreng Jawa|Rp22.000|pakai telur bebek\nEs Teh Serai|Rp8.000|segar, tidak terlalu manis"
+    },
+    {
+      "id": "note",
+      "type": "string",
+      "role": "content",
+      "label": "Handwritten note",
+      "description": "Note stuck on at a slant, in handwriting. Leave empty to hide it.",
+      "default": "favorit!"
+    },
+    {
+      "id": "footer_name",
+      "type": "string",
+      "role": "content",
+      "label": "Footer name",
+      "description": "Shop name at the bottom. Leave empty to hide the footer.",
+      "default": "Dapur Mama Ika"
+    },
+    {
+      "id": "footer_line",
+      "type": "string",
+      "role": "content",
+      "label": "Footer line",
+      "description": "Opening hours or address under the shop name.",
+      "default": "Buka setiap hari 10.00–21.00"
+    },
+    {
+      "id": "footer_button",
+      "type": "string",
+      "role": "content",
+      "label": "Footer button",
+      "description": "Pill with how to order.",
+      "default": "Pesan: 0812-3456-7890"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Board background.",
+      "default": "#f6eee3"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Kicker, prices, pen stroke and blobs.",
+      "default": "#b5532a"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Handwritten note, footer button and blobs.",
+      "default": "#3f6b4a"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Title, item names and frame.",
+      "default": "#2b1d14"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Short notes under item names.",
+      "default": "#72665c"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear.",
+      "default": false
+    }
+  ]
+}

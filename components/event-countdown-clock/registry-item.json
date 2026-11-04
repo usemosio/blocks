@@ -1,0 +1,176 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "event-countdown-clock",
+  "type": "hyperframes:component",
+  "title": "Event Countdown Clock",
+  "description": "A broadcast-style T− clock in four cells (days, hours, minutes, seconds) under a title plate that wipes in. The days and hours race down, the last five seconds tick in real time with a ten-segment bar emptying each second, then a warm flash, the clock turns colour and flips to T+, and a short \"now\" line takes the title's place.",
+  "tags": [
+    "mosio-recipe",
+    "countdown",
+    "clock",
+    "event",
+    "launch",
+    "lemo-opuscar"
+  ],
+  "category": "commerce",
+  "duration": 9.5,
+  "useWhen": [
+    "A launch, shop opening, premiere or graduation with a known moment to build up to.",
+    "The video should end on the moment itself (\"Kami buka sekarang!\")."
+  ],
+  "avoidWhen": [
+    "A sale deadline stated as a date: use flash-sale-burst, it stays true whenever watched.",
+    "A real-time countdown longer than a few seconds: this one races the days and hours as a time-lapse."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "countdown",
+    "repo": "https://github.com/lemomo-ai/lemo-opuscar",
+    "path": "styles/countdown/STYLE.md",
+    "commit": "413a6bd6d78ebd3bdd5abaec9538a26867f890df",
+    "license": "MIT"
+  },
+  "files": [
+    {
+      "path": "event-countdown-clock.html",
+      "target": "compositions/components/event-countdown-clock.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "event_title",
+      "type": "string",
+      "role": "content",
+      "label": "Event title",
+      "description": "Headline on the title plate.",
+      "default": "Grand Opening"
+    },
+    {
+      "id": "event_subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Event subtitle",
+      "description": "Spaced line under the title: place, date or occasion.",
+      "default": "Kopi Senja · Jl. Melati 12"
+    },
+    {
+      "id": "panel_label",
+      "type": "string",
+      "role": "content",
+      "label": "Clock label",
+      "description": "Small label next to the T− sign.",
+      "default": "Menuju buka"
+    },
+    {
+      "id": "days",
+      "type": "number",
+      "role": "content",
+      "label": "Days left",
+      "description": "Days on the clock when it starts.",
+      "default": 2,
+      "min": 0,
+      "max": 999,
+      "step": 1
+    },
+    {
+      "id": "hours",
+      "type": "number",
+      "role": "content",
+      "label": "Hours left",
+      "description": "Hours on the clock when it starts.",
+      "default": 3,
+      "min": 0,
+      "max": 23,
+      "step": 1
+    },
+    {
+      "id": "minutes",
+      "type": "number",
+      "role": "content",
+      "label": "Minutes left",
+      "description": "Minutes on the clock when it starts.",
+      "default": 14,
+      "min": 0,
+      "max": 59,
+      "step": 1
+    },
+    {
+      "id": "seconds",
+      "type": "number",
+      "role": "content",
+      "label": "Seconds left",
+      "description": "Seconds on the clock when it starts.",
+      "default": 8,
+      "min": 0,
+      "max": 59,
+      "step": 1
+    },
+    {
+      "id": "unit_labels",
+      "type": "string",
+      "role": "content",
+      "label": "Unit labels",
+      "description": "Four labels separated by |: days, hours, minutes, seconds.",
+      "default": "Hari|Jam|Menit|Detik"
+    },
+    {
+      "id": "now_text",
+      "type": "string",
+      "role": "content",
+      "label": "Moment at zero",
+      "description": "Short line that replaces the title when the clock reaches zero.",
+      "default": "Kami buka sekarang!"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Ground behind the clock.",
+      "default": "#06080a"
+    },
+    {
+      "id": "panel_color",
+      "type": "color",
+      "role": "style",
+      "label": "Panel",
+      "description": "Clock panel surface.",
+      "default": "#0b0e11"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "T− sign, labels, rule and the inverted clock after zero.",
+      "default": "#ff5b1f"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Digits and title.",
+      "default": "#f2f5f7"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Unit labels and the subtitle.",
+      "default": "#7c878d"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the ground clear so the clock sits over your own scene.",
+      "default": false
+    }
+  ]
+}

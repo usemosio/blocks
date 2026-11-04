@@ -1,0 +1,189 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "phone-showcase",
+  "type": "hyperframes:component",
+  "title": "Phone Showcase",
+  "description": "One phone on a pastel field in a single take: the camera dives into the screen, a product card lifts out and is tapped into the cart, order notifications drop in and a count-up lands on a dark card.",
+  "tags": [
+    "phone",
+    "mockup",
+    "product",
+    "shop",
+    "notifications",
+    "count-up",
+    "camera",
+    "mosio-recipe"
+  ],
+  "category": "commerce",
+  "duration": 10,
+  "useWhen": [
+    "A small shop, app or creator should show how easy ordering from a phone is, in the brand colours.",
+    "The scene needs proof: a product picked, orders arriving, a number that climbs."
+  ],
+  "avoidWhen": [
+    "You need a screen recording or the user's own screenshots in a device frame: this phone draws its own flat UI.",
+    "The message is a plain feature list: use a text block instead of a phone."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "etalase-hp"
+  },
+  "files": [
+    {
+      "path": "phone-showcase.html",
+      "target": "compositions/components/phone-showcase.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Headline",
+      "description": "Two lines separated by a vertical bar; the second line is set in the main colour.",
+      "default": "Kue rumahan,|sekali geser."
+    },
+    {
+      "id": "shop_name",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Name shown at the top of the phone screen.",
+      "default": "Dapur Lumer"
+    },
+    {
+      "id": "greeting",
+      "type": "string",
+      "role": "content",
+      "label": "Greeting",
+      "description": "Small line above the shop name on the screen.",
+      "default": "Halo, mau kue apa?"
+    },
+    {
+      "id": "search_hint",
+      "type": "string",
+      "role": "content",
+      "label": "Search hint",
+      "description": "Placeholder text in the screen search bar.",
+      "default": "Cari brownies, nastar…"
+    },
+    {
+      "id": "products",
+      "type": "string",
+      "role": "content",
+      "label": "Products",
+      "description": "Semicolon-separated entries \"Name|Description|Price\" (3 to 6). The third one is picked, lifts out of the screen and goes into the cart.",
+      "default": "Bolu pandan|Lembut, wangi daun asli|Rp45.000; Lapis legit|18 lapis, mentega pilihan|Rp120.000; Brownies lumer|Cokelat leleh di tengah|Rp55.000; Nastar keju|Toples 500 gram|Rp85.000; Bolu stroberi|Krim segar, tanpa pengawet|Rp60.000"
+    },
+    {
+      "id": "tag",
+      "type": "string",
+      "role": "content",
+      "label": "Tag",
+      "description": "Small badge on the lifted card.",
+      "default": "Terlaris"
+    },
+    {
+      "id": "button_label",
+      "type": "string",
+      "role": "content",
+      "label": "Button label",
+      "description": "Label of the add-to-cart button on the lifted card.",
+      "default": "+ Keranjang"
+    },
+    {
+      "id": "notifications",
+      "type": "string",
+      "role": "content",
+      "label": "Notifications",
+      "description": "Semicolon-separated entries \"Title|Detail|Amount\" (up to 3) that drop in above the phone.",
+      "default": "Pesanan baru|Bu Rina · 2 item|Rp110rb; Pesanan baru|Mas Dimas · 1 item|Rp55rb; Pesanan baru|Kak Sinta · 3 item|Rp205rb"
+    },
+    {
+      "id": "count_label",
+      "type": "string",
+      "role": "content",
+      "label": "Count label",
+      "description": "Caption of the dark count-up card.",
+      "default": "Pesanan hari ini"
+    },
+    {
+      "id": "count_value",
+      "type": "number",
+      "role": "content",
+      "label": "Count value",
+      "description": "Number the card counts up to.",
+      "default": 1250000,
+      "min": 0,
+      "max": 999999999999,
+      "step": 1
+    },
+    {
+      "id": "count_prefix",
+      "type": "string",
+      "role": "content",
+      "label": "Count prefix",
+      "description": "Text before the number, for example Rp.",
+      "default": "Rp"
+    },
+    {
+      "id": "count_growth",
+      "type": "string",
+      "role": "content",
+      "label": "Growth badge",
+      "description": "Small badge on the count card. Leave empty to hide it.",
+      "default": "+38%"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Field",
+      "description": "Lightest tint of the pastel background.",
+      "default": "#fbf1ec"
+    },
+    {
+      "id": "surface_color",
+      "type": "color",
+      "role": "style",
+      "label": "Cards",
+      "description": "Cards, list items and the phone screen.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "primary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Prices, active chip, buttons, the selection ring, notification icons and chart bars.",
+      "default": "#e8457a"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The small tag and one soft background blob.",
+      "default": "#ffb547"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text",
+      "description": "Headline and screen text; also the dark count card.",
+      "default": "#23182b"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted text",
+      "description": "Secondary lines.",
+      "default": "#8a7d90"
+    }
+  ]
+}

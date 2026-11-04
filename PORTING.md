@@ -122,6 +122,15 @@ the look stays the shader's own. Template to copy: `components/shader-mesh-gradi
   circle) by default. Never bundle image files.
 - `registry-item.json`: `"webgl": true` and the tag `webgl`.
 
+## Blocks from Mosio recipes
+
+Some blocks are taken from Mosio's own video recipes (a recipe is a whole look: `recipes/<id>/example.html`
+and `STYLE.md` in the Mosio repository). Such a block keeps the recipe's motion and look for one component,
+turns the recipe's brand tokens into colour variables with the recipe's colours as defaults, uses Indonesian
+sample text with Rupiah prices, and carries `"tags": [..., "mosio-recipe"]`, `"category": "commerce"`,
+`"author": "Mosio"` and `"source": {"recipe": "<id>"}`. A recipe adapted from someone else's work passes its
+licence notice on to the block.
+
 ## Components that copy a real product
 
 A remocn component that recreates a real product's interface (a chat app, a code host, a social network)

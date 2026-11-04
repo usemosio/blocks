@@ -1,0 +1,146 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "flash-sale-burst",
+  "type": "hyperframes:component",
+  "title": "Flash Sale Burst",
+  "description": "A colour flash and a two-word headline slam in, a big percent figure bursts out of a starburst and shakes, two crossed ribbons run their text in opposite directions and clear away, then the deadline is stamped with a small flash.",
+  "tags": [
+    "mosio-recipe",
+    "sale",
+    "promo",
+    "percent",
+    "ribbon",
+    "deadline",
+    "kinetic-type"
+  ],
+  "category": "commerce",
+  "duration": 6.5,
+  "useWhen": [
+    "A time-limited discount, a merch drop or a class closing soon where the percent is the headline.",
+    "The deadline must be stated as plain text so it stays true whenever the video is watched."
+  ],
+  "avoidWhen": [
+    "One product with an old and a new price: use price-drop.",
+    "A live clock counting to a moment: use event-countdown-clock.",
+    "Calm, premium tone: the shake and flashes are loud."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "recipe": "flash-sale"
+  },
+  "files": [
+    {
+      "path": "flash-sale-burst.html",
+      "target": "compositions/components/flash-sale-burst.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "word_1",
+      "type": "string",
+      "role": "content",
+      "label": "First word",
+      "description": "First headline word.",
+      "default": "Flash"
+    },
+    {
+      "id": "word_2",
+      "type": "string",
+      "role": "content",
+      "label": "Second word",
+      "description": "Second headline word, in the main colour.",
+      "default": "Sale!"
+    },
+    {
+      "id": "percent",
+      "type": "string",
+      "role": "content",
+      "label": "Percent",
+      "description": "The bursting figure, e.g. 50% or Rp5rb.",
+      "default": "50%"
+    },
+    {
+      "id": "percent_suffix",
+      "type": "string",
+      "role": "content",
+      "label": "Word after the figure",
+      "description": "Short word under the figure. Leave empty to hide it.",
+      "default": "OFF"
+    },
+    {
+      "id": "ribbon_1",
+      "type": "string",
+      "role": "content",
+      "label": "Ribbon 1",
+      "description": "Text that runs along the first ribbon.",
+      "default": "SEMUA MENU DISKON"
+    },
+    {
+      "id": "ribbon_2",
+      "type": "string",
+      "role": "content",
+      "label": "Ribbon 2",
+      "description": "Text that runs along the second ribbon.",
+      "default": "SAMPAI MINGGU"
+    },
+    {
+      "id": "deadline_label",
+      "type": "string",
+      "role": "content",
+      "label": "Deadline label",
+      "description": "Small spaced line above the stamped deadline.",
+      "default": "Berakhir"
+    },
+    {
+      "id": "deadline",
+      "type": "string",
+      "role": "content",
+      "label": "Deadline",
+      "description": "The stamped deadline, written as text.",
+      "default": "Minggu, 23.59 WIB"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background and grid.",
+      "default": "#0d0d12"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Second headline word, first ribbon, deadline stamp and flash.",
+      "default": "#d7ff3a"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Percent figure, burst and second ribbon.",
+      "default": "#ff2e88"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "First headline word and grid.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear (the opening flash and grid stay).",
+      "default": false
+    }
+  ]
+}

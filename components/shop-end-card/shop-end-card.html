@@ -1,0 +1,146 @@
+<!doctype html>
+<!--
+  Shop End Card
+
+  The closing card of a small-shop video: a colour floods the frame, then a logo tile, the shop name, a short
+  tagline, address, opening hours and contact line, and a call-to-action button settle in and hold still.
+
+  Extracted from the Mosio recipes menu-board, flash-sale, angka-capaian and product-hero by usemosio/blocks.
+-->
+<html
+  lang="en"
+  data-composition-id="shop-end-card"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "shop_name", "type": "string", "role": "content", "label": "Shop name", "description": "Name of the shop, set large.", "default": "Dapur Lumer"},
+    {"id": "tagline", "type": "string", "role": "content", "label": "Tagline", "description": "One short line under the name. Leave empty to hide it.", "default": "Kue rumahan, pesan dari HP"},
+    {"id": "address", "type": "string", "role": "content", "label": "Address", "description": "Short address. Leave empty to hide the row.", "default": "Jl. Kenanga No. 8, Malang"},
+    {"id": "hours", "type": "string", "role": "content", "label": "Opening hours", "description": "Opening hours. Leave empty to hide the row.", "default": "Buka setiap hari 10.00–21.00"},
+    {"id": "contact", "type": "string", "role": "content", "label": "Contact", "description": "Contact line, for example a chat number. Leave empty to hide the row.", "default": "Kontak 0812-3456-7890"},
+    {"id": "cta", "type": "string", "role": "content", "label": "Call to action", "description": "Text of the button. Leave empty to hide it.", "default": "Pesan sekarang"},
+    {"id": "show_logo", "type": "boolean", "role": "style", "label": "Logo tile", "description": "Show the drawn shop-front logo tile above the name.", "default": true},
+    {"id": "primary_color", "type": "color", "role": "style", "label": "Card colour", "description": "The colour that floods the frame.", "default": "#e8457a"},
+    {"id": "on_primary_color", "type": "color", "role": "style", "label": "Text on card", "description": "Text and icons on the card colour.", "default": "#ffffff"},
+    {"id": "dark_color", "type": "color", "role": "style", "label": "Dark", "description": "The ground before the flood and the button.", "default": "#0c081b"},
+    {"id": "surface_color", "type": "color", "role": "style", "label": "Light surface", "description": "Logo tile and contact pill.", "default": "#ffffff"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shop End Card</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&amp;display=block" />
+      <style>
+        #root {
+          --se-primary: #e8457a; --se-on: #ffffff; --se-dark: #0c081b; --se-surface: #ffffff;
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--se-dark); color: var(--se-on);
+          font-family: Poppins, system-ui, sans-serif; font-weight: 500;
+        }
+        #root * { box-sizing: border-box; }
+        #se-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+        .se-flood { position: absolute; inset: 0; background: radial-gradient(circle at 50% 38%, color-mix(in oklab, var(--se-primary) 82%, #fff) 0%, var(--se-primary) 60%); clip-path: circle(0% at 50% 42%); }
+        .se-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 90px; gap: 70px; transform-origin: 50% 50%; }
+        .se-top, .se-bottom { display: flex; flex-direction: column; align-items: center; }
+        .se-logo { position: relative; width: 170px; height: 170px; border-radius: 48px; background: var(--se-surface); display: grid; place-items: center; box-shadow: 0 18px 0 color-mix(in oklab, var(--se-dark) 28%, transparent); margin-bottom: 44px; }
+        .se-logo svg { width: 104px; height: 104px; fill: none; stroke: var(--se-primary); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+        .se-name { font-size: 132px; font-weight: 800; letter-spacing: -5px; line-height: 1.02; }
+        .se-tag { margin-top: 26px; font-size: 46px; opacity: 0.9; }
+        .se-rows { display: flex; flex-direction: column; gap: 22px; align-items: flex-start; }
+        .se-row { display: flex; align-items: center; gap: 26px; font-size: 44px; line-height: 1.2; text-align: left; }
+        .se-ic { width: 76px; height: 76px; border-radius: 50%; flex: none; display: grid; place-items: center; background: color-mix(in oklab, var(--se-on) 20%, transparent); }
+        .se-ic svg { width: 40px; height: 40px; fill: none; stroke: var(--se-on); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .se-cta { margin-top: 60px; padding: 30px 74px; border-radius: 90px; background: var(--se-dark); color: var(--se-primary); color: color-mix(in oklab, var(--se-primary) 55%, #fff); font-size: 56px; font-weight: 800; white-space: nowrap; box-shadow: 0 14px 0 color-mix(in oklab, var(--se-dark) 30%, transparent); }
+        /* Landscape: name and tagline on the left, details and button on the right. */
+        #se-stage.se-land .se-inner { flex-direction: row; gap: 130px; padding: 0 110px; }
+        #se-stage.se-land .se-top { align-items: flex-start; text-align: left; flex: 1 1 0; min-width: 0; }
+        #se-stage.se-land .se-bottom { align-items: flex-start; flex: 0 0 auto; }
+        #se-stage.se-land .se-name { font-size: 120px; }
+        #se-stage.se-land .se-tag { font-size: 42px; }
+        #se-stage.se-land .se-row { font-size: 40px; }
+        #se-stage.se-land .se-cta { margin-top: 44px; font-size: 50px; }
+      </style>
+
+      <div id="root" data-composition-id="shop-end-card" data-duration="6" data-fps="30">
+        <div id="se-clip" class="clip" data-start="0" data-duration="6" data-track-index="0" style="position:absolute;inset:0">
+          <div id="se-stage">
+            <div class="se-flood" id="se-flood"></div>
+            <div class="se-inner" id="se-inner">
+              <div class="se-top">
+                <div class="se-logo" id="se-logo"><svg viewBox="0 0 24 24"><path d="M4 9.5 5.5 4h13L20 9.5" /><path d="M4 9.5a2.67 2.67 0 0 0 5.33 0 2.67 2.67 0 0 0 5.34 0 2.67 2.67 0 0 0 5.33 0" /><path d="M5.5 12.5V20h13v-7.5" /><path d="M10 20v-4.5h4V20" /></svg></div>
+                <div class="se-name" id="se-name"></div>
+                <div class="se-tag" id="se-tag"></div>
+              </div>
+              <div class="se-bottom">
+                <div class="se-rows" id="se-rows"></div>
+                <div class="se-cta" id="se-cta"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var $ = function (id) { return document.getElementById(id); };
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function str(v, d) { return typeof v === "string" && v.trim() ? v.trim() : d; }
+            function txt(v, d) { return typeof v === "string" ? v.trim() : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            [["primary_color", "--se-primary", "#e8457a"], ["on_primary_color", "--se-on", "#ffffff"], ["dark_color", "--se-dark", "#0c081b"], ["surface_color", "--se-surface", "#ffffff"]]
+              .forEach(function (c) { root.style.setProperty(c[1], colr(vars[c[0]], c[2])); });
+
+            var stage = $("se-stage"), W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var land = W > H * 1.05, RW, RH, k;
+            if (land) { RH = 1080; RW = Math.round(1080 * W / H); k = H / RH; stage.classList.add("se-land"); } else { RW = 1080; RH = Math.round(1080 * H / W); k = W / RW; }
+            stage.style.width = RW + "px"; stage.style.height = RH + "px"; stage.style.transform = "scale(" + k + ")";
+
+            $("se-name").textContent = str(vars.shop_name, "Dapur Lumer");
+            var tag = txt(vars.tagline, "Kue rumahan, pesan dari HP"); $("se-tag").textContent = tag; if (!tag) $("se-tag").style.display = "none";
+            if (!bool(vars.show_logo, true)) $("se-logo").style.display = "none";
+            var icons = {
+              pin: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>',
+              clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+              chat: '<path d="M5 5h14a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 16h-7l-4.5 3.5V16H5a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 5 5z"/>'
+            };
+            var rows = $("se-rows"), n = 0;
+            [["pin", txt(vars.address, "Jl. Kenanga No. 8, Malang")], ["clock", txt(vars.hours, "Buka setiap hari 10.00–21.00")], ["chat", txt(vars.contact, "Kontak 0812-3456-7890")]].forEach(function (r) {
+              if (!r[1]) return; n++;
+              var d = document.createElement("div"); d.className = "se-row";
+              d.innerHTML = '<span class="se-ic"><svg viewBox="0 0 24 24">' + icons[r[0]] + '</svg></span><span></span>';
+              d.lastChild.textContent = r[1]; rows.appendChild(d);
+            });
+            if (!n) rows.style.display = "none";
+            var cta = txt(vars.cta, "Pesan sekarang"); $("se-cta").textContent = cta; if (!cta) $("se-cta").style.display = "none";
+            // Fit a long name: scale the type down until it needs at most two lines.
+            var nm = $("se-name"), avail = (land ? RW * 0.42 : RW - 180), size = parseFloat(getComputedStyle(nm).fontSize) || 132;
+            while (nm.scrollHeight > size * 1.02 * 2.05 && size > 56) { size -= 6; nm.style.fontSize = size + "px"; }
+            nm.style.maxWidth = avail + "px";
+
+            var tl = gsap.timeline({ paused: true });
+            var items = ["#se-logo", "#se-name", "#se-tag", ".se-row", "#se-cta"].filter(function (s) { return document.querySelector(s) && getComputedStyle(document.querySelector(s)).display !== "none"; });
+            // The colour floods from the middle (a circle wipe), then the content rises one piece at a time.
+            tl.fromTo("#se-flood", { clipPath: "circle(0% at 50% 42%)" }, { clipPath: "circle(80% at 50% 42%)", duration: 0.8, ease: "expo.inOut" }, 0.1);
+            if (items.indexOf("#se-logo") >= 0) tl.fromTo("#se-logo", { scale: 0.4, rotation: -14, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.6, ease: "back.out(1.8)" }, 0.55);
+            var rest = items.filter(function (s) { return s !== "#se-logo"; });
+            rest.forEach(function (s, i) {
+              tl.fromTo(s, { y: 60, opacity: 0, filter: "blur(8px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "circ.out", stagger: 0.12 }, 0.7 + i * (s === ".se-row" ? 0.18 : 0.14));
+            });
+            tl.fromTo("#se-inner", { scale: 1.06 }, { scale: 1, duration: 3.6, ease: "sine.out" }, 0.55);
+            // The button pulses three times, then everything holds still.
+            if (items.indexOf("#se-cta") >= 0) tl.to("#se-cta", { scale: 1.05, duration: 0.45, yoyo: true, repeat: 5, ease: "sine.inOut" }, 2.3);
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shop-end-card"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
