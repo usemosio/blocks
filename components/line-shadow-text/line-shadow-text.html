@@ -1,0 +1,178 @@
+<!doctype html>
+<!--
+  Line Shadow Text
+
+  A bold headline with a hatched drop shadow: fine diagonal lines fill the shadow and slide slowly through it.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/line-shadow-text.tsx
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="line-shadow-text"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text_before", "type": "string", "role": "content", "label": "Lead-in", "description": "Plain text before the shadowed word. Leave empty to show only the shadowed word.", "default": "Ship"},
+    {"id": "text", "type": "string", "role": "content", "label": "Shadowed text", "description": "The word with the hatched shadow, set in italic.", "default": "Fast"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 160, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text colour", "description": "Colour of the letters.", "default": "#0a0a0a"},
+    {"id": "shadow_color", "type": "color", "role": "style", "label": "Shadow colour", "description": "Colour of the hatch lines.", "default": "#000000"},
+    {"id": "cycle_seconds", "type": "number", "role": "motion", "label": "Cycle", "description": "Seconds the hatch takes to slide across the text (the source uses 15).", "default": 15, "min": 2, "max": 60, "step": 1, "unit": "s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Line Shadow Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,600;0,700;1,600;1,700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .lst-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .lst-line { font-family: var(--font-display, Geist, system-ui, sans-serif); font-weight: 600; letter-spacing: -0.05em; line-height: 1; white-space: pre; }
+        .lst-word { position: relative; z-index: 0; display: inline-flex; font-style: italic; isolation: isolate; }
+        .lst-shadow {
+          position: absolute;
+          top: 0.04em;
+          left: 0.04em;
+          z-index: -1;
+          white-space: pre;
+          background-size: 0.06em 0.06em;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+        }
+      </style>
+
+      <div id="root" data-composition-id="line-shadow-text" data-duration="4" data-fps="30">
+        <div id="lst-clip" class="lst-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <span id="lst-line" class="lst-line"><span id="lst-before"></span><span id="lst-word" class="lst-word"><span id="lst-main"></span><span id="lst-shadow" class="lst-shadow" aria-hidden="true"></span></span></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "lst";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "4");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["line-shadow-text"] = tl;
+            }
+
+            var line = document.getElementById("lst-line");
+            var before = document.getElementById("lst-before");
+            var main = document.getElementById("lst-main");
+            var shadow = document.getElementById("lst-shadow");
+            var lead = typeof vars.text_before === "string" ? vars.text_before : "Ship";
+            var word = str(vars.text, "Fast");
+            var ink = col(vars.color, "#0a0a0a");
+            var sh = col(vars.shadow_color, "#000000");
+            before.textContent = lead ? lead + " " : "";
+            line.style.color = ink;
+            main.textContent = word;
+            shadow.textContent = word;
+            shadow.style.backgroundImage = "linear-gradient(45deg, transparent 45%, " + sh + " 45%, " + sh + " 55%, transparent 0)";
+            var size = fit(line, num(vars.font_size, 160, 24, 400), 0.9);
+            var cycle = num(vars.cycle_seconds, 15, 2, 60);
+            var total = parseFloat(root.dataset.duration || "4");
+            var tile = 0.06 * size;
+            var clock = { t: 0 };
+            // The source slides background-position from 0 0 to 100% -100%: percentages of
+            // (box - tile), so the hatch travels the box width right and the box height up.
+            function draw(t) {
+              var f = Math.min(1, t / cycle);
+              var x = f * (shadow.offsetWidth - tile);
+              var y = -f * (shadow.offsetHeight - tile);
+              shadow.style.backgroundPosition = x.toFixed(2) + "px " + y.toFixed(2) + "px";
+            }
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

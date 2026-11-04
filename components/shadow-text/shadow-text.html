@@ -1,0 +1,170 @@
+<!doctype html>
+<!--
+  Shadow Text
+
+  Every letter casts a long, soft shadow like a sundial; the sun crosses the sky and the shadows swing from one side to the other.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/kokonut-labs/kokonutui/blob/4d497b7b03f02ffd07225e638c0b9ace3f892dbb/components/kokonutui/shadow-text.tsx
+
+  MIT License
+
+  Copyright (c) 2025 kokonutUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="shadow-text"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short headline. It wraps onto lines when it is wider than the frame.", "default": "Golden hour, every day."},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 110, "min": 24, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the letters.", "default": "#18181b"},
+    {"id": "shadow_color", "type": "color", "role": "style", "label": "Shadow color", "description": "Color of the cast shadows.", "default": "#18181b"},
+    {"id": "shadow_strength", "type": "number", "role": "style", "label": "Shadow strength", "description": "How dark the shadows get, 0 to 2.", "default": 1, "min": 0, "max": 2, "step": 0.05},
+    {"id": "reach", "type": "number", "role": "motion", "label": "Reach", "description": "The longest a shadow gets, in em.", "default": 1.1, "min": 0.2, "max": 2.5, "step": 0.05, "unit": "em"},
+    {"id": "from_hour", "type": "number", "role": "motion", "label": "Start hour", "description": "Time of day the sun starts at (6 is sunrise on the left, 13 is noon, 20 is sunset on the right).", "default": 6.5, "min": 0, "max": 24, "step": 0.25, "unit": "h"},
+    {"id": "to_hour", "type": "number", "role": "motion", "label": "End hour", "description": "Time of day the sun ends at.", "default": 19.5, "min": 0, "max": 24, "step": 0.25, "unit": "h"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shadow Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+        #root { color: var(--st-color, #18181b); font-family: var(--font-display, Geist, system-ui, sans-serif); }
+        .st-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .st-line { max-width: 88%; text-align: center; line-height: 1.05; letter-spacing: -0.04em; text-wrap: balance; }
+        .st-word { display: inline-block; white-space: nowrap; }
+        .st-letter { display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="shadow-text" data-duration="5" data-fps="30">
+        <div id="st-clip" class="st-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <p id="st-line" class="st-line" role="img"></p>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, a, b) { var x = Number(v); return Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+
+            var line = document.getElementById("st-line");
+            var text = str(vars.text, "Golden hour, every day.");
+            var size = num(vars.font_size, 110, 24, 260);
+            var reach = num(vars.reach, 1.1, 0.2, 2.5);
+            var strength = num(vars.shadow_strength, 1, 0, 2);
+            var fromH = num(vars.from_hour, 6.5, 0, 24), toH = num(vars.to_hour, 19.5, 0, 24);
+            var weight = ["500", "600", "700"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "600";
+            root.style.setProperty("--st-color", col(vars.color, "#18181b"));
+            function rgbOf(hex) {
+              var h = String(hex || "").replace("#", "");
+              if (h.length === 3) h = h.replace(/(.)/g, "$1$1");
+              var n = parseInt(h, 16);
+              return Number.isFinite(n) && h.length === 6 ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : [24, 24, 27];
+            }
+            var rgb = rgbOf(vars.shadow_color);
+            line.style.fontSize = size + "px";
+            line.style.fontWeight = weight;
+            line.setAttribute("aria-label", text);
+
+            var letters = [];
+            text.split(" ").forEach(function (word, w, all) {
+              var ws = document.createElement("span");
+              ws.className = "st-word";
+              Array.from(word).forEach(function (ch) {
+                var s = document.createElement("span");
+                s.className = "st-letter";
+                s.textContent = ch;
+                ws.appendChild(s);
+                letters.push(s);
+              });
+              line.appendChild(ws);
+              if (w < all.length - 1) line.appendChild(document.createTextNode(" "));
+            });
+
+            // Where the sun stands for an hour of the day: left at 6, overhead at 13, right at 20.
+            function sunAt(hours) {
+              var t = (hours - 6) / 14;
+              if (t < 0 || t > 1) return { x: 0.5, height: 0.7, strength: 0.35 };
+              return { x: t, height: Math.sin(Math.PI * t), strength: 1 };
+            }
+            // A long, soft shadow as one stack of text shadows.
+            function cast(dx, dy, s) {
+              var length = Math.hypot(dx, dy);
+              if (length < 0.5 || s < 0.01) return "none";
+              var steps = Math.round(Math.min(26, Math.max(6, length / 3)));
+              var spacing = length / steps, parts = [];
+              for (var i = 1; i <= steps; i++) {
+                var f = i / steps;
+                var blur = Math.max(spacing * 1.15, 0.3 + f * length * 0.08);
+                var a = s * strength * (3.6 / steps) * Math.pow(1 - f, 1.6);
+                parts.push((dx * f).toFixed(1) + "px " + (dy * f).toFixed(1) + "px " + blur.toFixed(1) + "px rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a.toFixed(3) + ")");
+              }
+              return parts.join(",");
+            }
+            var box = root.getBoundingClientRect();
+            var scaleX = box.width / (root.offsetWidth || box.width);
+            var centers = letters.map(function (el) {
+              var r = el.getBoundingClientRect();
+              return { x: (r.left - box.left + r.width / 2) / scaleX, y: (r.top - box.top + r.height * 0.6) / scaleX };
+            });
+            var W = root.offsetWidth, H = root.offsetHeight;
+            function draw(p) {
+              var sun = sunAt(fromH + (toH - fromH) * p);
+              var longest = reach * size;
+              var lx = W * (sun.x * 1.6 - 0.3), ly = -H * 3;
+              var len = longest * (0.18 + (1 - sun.height) * 0.82);
+              for (var i = 0; i < letters.length; i++) {
+                var dx = centers[i].x - lx, dy = centers[i].y - ly, d = Math.hypot(dx, dy);
+                letters[i].style.textShadow = cast((dx / d) * len, (dy / d) * len, sun.strength);
+              }
+            }
+            var tl = gsap.timeline({ paused: true });
+            var clock = { p: 0 };
+            var sweep = Math.max(1, parseFloat(root.dataset.duration || "5") - 0.5);
+            tl.to(clock, { p: 1, duration: sweep, ease: "power1.inOut", onUpdate: function () { draw(clock.p); } }, 0.25);
+            draw(0);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shadow-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

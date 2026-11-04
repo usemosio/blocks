@@ -1,0 +1,118 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-scale-bounce",
+  "type": "hyperframes:component",
+  "title": "Word Roller Scale Bounce",
+  "description": "A light lead-in beside a heavy word that pops in from nothing with a bouncy spring, shrinks away before the next, and the last one stays at full size.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "bounce",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A friendly, energetic call to action where one verb changes (build, ship, scale, grow).",
+    "A clean title card where each word should pop."
+  ],
+  "avoidWhen": [
+    "The words should slide or roll: use inline-word-roll or word-roller-fade-slide.",
+    "A calm or formal tone."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/RollerScaleBounce.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-scale-bounce.html",
+      "target": "compositions/components/word-roller-scale-bounce.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words in order, separated by commas. The last one is where it settles.",
+      "default": "Build, Ship, Scale, Grow"
+    },
+    {
+      "id": "prefix",
+      "type": "string",
+      "role": "content",
+      "label": "Prefix",
+      "description": "Fixed text before the word.",
+      "default": "Let's"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the word in pixels. A wide line shrinks to fit the frame.",
+      "default": 80,
+      "min": 16,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Word color",
+      "description": "Color of the word.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "prefix_color",
+      "type": "color",
+      "role": "style",
+      "label": "Prefix color",
+      "description": "Color of the prefix.",
+      "default": "#737373"
+    },
+    {
+      "id": "cycle_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per word",
+      "description": "How long each word is shown, in 30 fps frames.",
+      "default": 25,
+      "min": 12,
+      "max": 120,
+      "step": 1,
+      "unit": "f"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

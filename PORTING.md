@@ -122,6 +122,30 @@ the look stays the shader's own. Template to copy: `components/shader-mesh-gradi
   circle) by default. Never bundle image files.
 - `registry-item.json`: `"webgl": true` and the tag `webgl`.
 
+## Ports from other MIT libraries
+
+Text effects also come from other MIT libraries: React UI kits built on Motion (Framer Motion) and
+Remotion component kits. Local copies of the sources are in `~/.cache/textlibs/<library>/` (the commit of
+each is in its `.git`). The same rules hold, plus:
+
+- Header: title, description, "Ported to an HTML + GSAP sub-composition by usemosio/blocks from:" with the
+  source URL at the commit (`https://github.com/<owner>/<repo>/blob/<commit>/<path>`), then that library's
+  full licence text with its own copyright line, copied from its LICENSE file.
+- `registry-item.json`: `tags` has `<library>-port` (for example `fancy-port`) instead of `remocn-port`;
+  `author`, `authorUrl`, `license` and `source` (`repo`, `path`, `commit`) name that library.
+- A web effect that waits for hover, scroll, a click or the element coming into view becomes a timed
+  sequence: it plays as if triggered at a moment on the timeline (usually near the start), and a loop or
+  an effect that repeats on hover repeats a fixed number of times within the block's duration. Choose a
+  duration that shows the effect well, usually 2 to 6 seconds.
+- Motion's springs and keyframes become GSAP tweens (sample a spring into a `CustomEase` or drive it from
+  `onUpdate`); `Math.random()` becomes a seeded generator.
+- Third-party runtime libraries a component imports (rough-notation, matter-js, number-flow, three, …) are
+  not loaded: write the effect with GSAP, SVG, CSS or Canvas 2D, or skip the component.
+- Keep the upstream name when it is free. When the name is taken in `components/` or the Hyperframes
+  registry by a different effect, choose a descriptive name that is free. Names and sample text never
+  carry product names (no "instagram", "imessage", …).
+- When a component does the same as a block that already exists, skip it and say which block covers it.
+
 ## Blocks from Mosio recipes
 
 Some blocks are taken from Mosio's own video recipes (a recipe is a whole look: `recipes/<id>/example.html`

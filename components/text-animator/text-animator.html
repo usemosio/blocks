@@ -1,0 +1,608 @@
+<!doctype html>
+<!--
+  Text Animator
+
+  After Effects text animator: a range selector drives per-character, per-word or per-line properties.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/text-animator.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="text-animator"
+  data-composition-duration="4"
+  data-composition-variables='[
+    [
+      {
+        "id": "text",
+        "type": "string",
+        "role": "content",
+        "label": "Text",
+        "description": "The text. A line break starts a new line.",
+        "default": "Animate every letter."
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Text size in pixels.",
+        "default": 84,
+        "min": 24,
+        "max": 260,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "color",
+        "type": "color",
+        "role": "style",
+        "label": "Color",
+        "description": "Text color.",
+        "default": "#f4f4f5"
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the text.",
+        "default": 700,
+        "min": 100,
+        "max": 900,
+        "step": 100
+      },
+      {
+        "id": "font",
+        "type": "enum",
+        "role": "style",
+        "label": "Font",
+        "description": "Typeface.",
+        "default": "geist",
+        "options": [
+          {
+            "value": "geist",
+            "label": "Geist"
+          },
+          {
+            "value": "poppins",
+            "label": "Poppins"
+          },
+          {
+            "value": "playfair",
+            "label": "Playfair Display"
+          },
+          {
+            "value": "grotesk",
+            "label": "Space Grotesk"
+          }
+        ]
+      },
+      {
+        "id": "based_on",
+        "type": "enum",
+        "role": "motion",
+        "label": "Based on",
+        "description": "What the selector counts: characters, words or lines.",
+        "default": "characters",
+        "options": [
+          {
+            "value": "characters",
+            "label": "Characters"
+          },
+          {
+            "value": "words",
+            "label": "Words"
+          },
+          {
+            "value": "lines",
+            "label": "Lines"
+          }
+        ]
+      },
+      {
+        "id": "position_x",
+        "type": "number",
+        "role": "motion",
+        "label": "Position X",
+        "description": "Horizontal offset of a selected unit, in em.",
+        "default": 0,
+        "min": -3,
+        "max": 3,
+        "step": 0.05,
+        "unit": "em"
+      },
+      {
+        "id": "position_y",
+        "type": "number",
+        "role": "motion",
+        "label": "Position Y",
+        "description": "Vertical offset of a selected unit, in em.",
+        "default": 0.5,
+        "min": -3,
+        "max": 3,
+        "step": 0.05,
+        "unit": "em"
+      },
+      {
+        "id": "scale",
+        "type": "number",
+        "role": "motion",
+        "label": "Scale",
+        "description": "Scale of a selected unit (1 is unchanged).",
+        "default": 0.8,
+        "min": 0,
+        "max": 3,
+        "step": 0.05
+      },
+      {
+        "id": "rotation",
+        "type": "number",
+        "role": "motion",
+        "label": "Rotation",
+        "description": "Rotation of a selected unit in degrees.",
+        "default": 0,
+        "min": -360,
+        "max": 360,
+        "step": 1,
+        "unit": "deg"
+      },
+      {
+        "id": "skew",
+        "type": "number",
+        "role": "motion",
+        "label": "Skew",
+        "description": "Horizontal skew of a selected unit in degrees.",
+        "default": 0,
+        "min": -60,
+        "max": 60,
+        "step": 1,
+        "unit": "deg"
+      },
+      {
+        "id": "opacity",
+        "type": "number",
+        "role": "motion",
+        "label": "Opacity",
+        "description": "Opacity of a selected unit (0 to 1).",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      },
+      {
+        "id": "blur",
+        "type": "number",
+        "role": "motion",
+        "label": "Blur",
+        "description": "Blur of a selected unit in pixels.",
+        "default": 10,
+        "min": 0,
+        "max": 60,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "tracking",
+        "type": "number",
+        "role": "motion",
+        "label": "Tracking",
+        "description": "Extra spacing after a selected unit, in em.",
+        "default": 0,
+        "min": -1,
+        "max": 3,
+        "step": 0.02,
+        "unit": "em"
+      },
+      {
+        "id": "fill_color",
+        "type": "color",
+        "role": "style",
+        "label": "Fill color",
+        "description": "Colour a selected unit takes while the selector covers it.",
+        "default": "#7dd3fc"
+      },
+      {
+        "id": "use_fill",
+        "type": "boolean",
+        "role": "style",
+        "label": "Use fill color",
+        "description": "Tint selected units with the fill colour.",
+        "default": true
+      },
+      {
+        "id": "shape",
+        "type": "enum",
+        "role": "motion",
+        "label": "Selector shape",
+        "description": "Shape of the selector window.",
+        "default": "square",
+        "options": [
+          {
+            "value": "square",
+            "label": "Square"
+          },
+          {
+            "value": "ramp-up",
+            "label": "Ramp up"
+          },
+          {
+            "value": "ramp-down",
+            "label": "Ramp down"
+          },
+          {
+            "value": "triangle",
+            "label": "Triangle"
+          },
+          {
+            "value": "round",
+            "label": "Round"
+          },
+          {
+            "value": "smooth",
+            "label": "Smooth"
+          }
+        ]
+      },
+      {
+        "id": "smoothness",
+        "type": "number",
+        "role": "motion",
+        "label": "Smoothness",
+        "description": "Square shape only: 1 fades units across their slot, 0 switches them on and off hard.",
+        "default": 1,
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      },
+      {
+        "id": "start",
+        "type": "number",
+        "role": "motion",
+        "label": "Start",
+        "description": "Start of the selector window, in percent of the text.",
+        "default": 0,
+        "min": -100,
+        "max": 200,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "id": "end",
+        "type": "number",
+        "role": "motion",
+        "label": "End",
+        "description": "End of the selector window, in percent of the text.",
+        "default": 100,
+        "min": -100,
+        "max": 200,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "id": "offset_from",
+        "type": "number",
+        "role": "motion",
+        "label": "Offset from",
+        "description": "Where the window sits when the sweep starts, as a percent shift.",
+        "default": 0,
+        "min": -200,
+        "max": 200,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "id": "offset_to",
+        "type": "number",
+        "role": "motion",
+        "label": "Offset to",
+        "description": "Where the window sits when the sweep ends.",
+        "default": 100,
+        "min": -200,
+        "max": 200,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "id": "random_order",
+        "type": "boolean",
+        "role": "motion",
+        "label": "Random order",
+        "description": "Shuffle which unit sits where in the selector.",
+        "default": false
+      },
+      {
+        "id": "seed",
+        "type": "number",
+        "role": "motion",
+        "label": "Seed",
+        "description": "Seed of the shuffle.",
+        "default": 1,
+        "min": 0,
+        "max": 999,
+        "step": 1
+      },
+      {
+        "id": "delay_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Delay",
+        "description": "Frames (30 per second) before the sweep starts.",
+        "default": 8,
+        "min": 0,
+        "max": 300,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "sweep_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Sweep",
+        "description": "Frames the window takes to travel from Offset from to Offset to.",
+        "default": 60,
+        "min": 4,
+        "max": 300,
+        "step": 1,
+        "unit": "frames"
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Animator</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #f4f4f5; }
+        .tan-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .tan-text { display: inline-flex; flex-direction: column; align-items: center; text-align: center; max-width: 90%; line-height: 1.12; letter-spacing: -0.02em; }
+        .tan-line { display: block; white-space: normal; }
+        .tan-word { display: inline-block; white-space: nowrap; }
+        .tan-unit { display: inline-block; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="text-animator" data-duration="4" data-fps="30">
+        <div id="tan-clip" class="tan-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <span id="tan-text" class="tan-text" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "4");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            // ---- Split text into lines, words and units (characters, words or lines), staggered like remotion-ui's useSplitText ----
+            var ENTER = bez(0.16, 1, 0.3, 1);
+            function EXIT(t) { return t * t * t; }
+            function splitText(text, mode) {
+              var lines = [], units = [];
+              String(text).split(/\r?\n/).forEach(function (raw) {
+                var words = [];
+                var rawWords = mode === "lines" ? [raw.trim()].filter(Boolean) : raw.split(/\s+/).filter(Boolean);
+                rawWords.forEach(function (w) {
+                  var pieces = mode === "chars" ? Array.from(w) : [w];
+                  var us = pieces.map(function (p) { var u = { text: p, index: units.length }; units.push(u); return u; });
+                  words.push({ units: us });
+                });
+                lines.push({ words: words });
+              });
+              return { lines: lines, units: units };
+            }
+            function staggerRanks(total, order, seed) {
+              var idx = [], i, mid = (total - 1) / 2;
+              for (i = 0; i < total; i++) idx.push(i);
+              if (order === "end") return idx.map(function (k) { return total - 1 - k; });
+              if (order === "center") return idx.map(function (k) { return Math.round(Math.abs(k - mid)); });
+              if (order === "edges") return idx.map(function (k) { return Math.round(mid - Math.abs(k - mid)); });
+              if (order === "random") {
+                var rng = mulberry32(seed || 1), keys = idx.map(function () { return rng(); });
+                var sorted = idx.slice().sort(function (a, b) { return keys[a] - keys[b]; });
+                var out = new Array(total);
+                sorted.forEach(function (orig, rank) { out[orig] = rank; });
+                return out;
+              }
+              return idx;
+            }
+            // o: stagger, duration, delay (frames), order, seed, exit (bool), exitFrames
+            function makeTiming(split, o) {
+              var rk = staggerRanks(split.units.length, o.order, o.seed);
+              var maxRank = rk.length ? Math.max.apply(null, rk) : 0;
+              var lastEnter = o.delay + maxRank * o.stagger + o.duration;
+              var exitFrames = Math.max(1, Math.round(o.exitFrames || Math.max(6, Math.round(o.duration * 0.7))));
+              var exitStart = null;
+              if (o.exit) exitStart = Math.max(TOTAL * 30 - exitFrames - maxRank * o.stagger, lastEnter);
+              return { ranks: rk, o: o, exitFrames: exitFrames, exitStart: exitStart, lastEnter: lastEnter };
+            }
+            function unitState(frame, T, u) {
+              var rank = T.ranks[u.index], o = T.o;
+              var start = o.delay + rank * o.stagger;
+              var et = clamp01((frame - start) / o.duration);
+              var enter = ENTER(et), eo = clamp01(et / 0.55);
+              if (T.exitStart === null) return { enter: enter, exit: 0, displace: 1 - enter, opacity: eo, value: enter };
+              var us = T.exitStart + rank * o.stagger;
+              var xt = clamp01((frame - us) / T.exitFrames);
+              var ex = EXIT(xt), xo = 1 - clamp01(xt / 0.7);
+              return { enter: enter, exit: ex, displace: ex > 0 ? ex : 1 - enter, opacity: eo * xo, value: enter * (1 - ex) };
+            }
+            // Builds lines > words > unit spans into parent. fill(unitEl, u) fills each unit.
+            function buildSplit(parent, split, pre, wordGap, fill) {
+              split.lines.forEach(function (line) {
+                var lineEl = mk("span", parent, pre + "-line");
+                line.words.forEach(function (word, wi) {
+                  var wordEl = mk("span", lineEl, pre + "-word");
+                  if (wi < line.words.length - 1) wordEl.style.marginRight = wordGap + "em";
+                  word.units.forEach(function (u) {
+                    u.el = mk("span", wordEl, pre + "-unit");
+                    fill(u.el, u);
+                  });
+                });
+              });
+            }
+            function splitCss(pre) {
+              return "." + pre + "-text { display: inline-flex; flex-direction: column; align-items: center; text-align: center; max-width: 90%; line-height: 1.15; }\n" +
+                "." + pre + "-line { display: block; white-space: normal; }\n" +
+                "." + pre + "-word { display: inline-block; }\n" +
+                "." + pre + "-unit { display: inline-block; white-space: pre; }\n";
+            }
+
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "geist");
+            root.style.fontFamily = FONTS[fontKey];
+            var text = str(vars.text, "Animate every letter.");
+            var basis = pick(vars.based_on, ["characters", "words", "lines"], "characters");
+            var el = document.getElementById("tan-text");
+            el.style.fontSize = num(vars.font_size, 84, 24, 260) + "px";
+            el.style.fontWeight = String(num(vars.font_weight, 700, 100, 900));
+            var baseColor = str(vars.color, "#f4f4f5");
+            el.style.color = baseColor;
+            el.setAttribute("aria-label", text);
+            var P = { x: num(vars.position_x, 0, -3, 3), y: num(vars.position_y, 0.5, -3, 3), scale: num(vars.scale, 0.8, 0, 3), rot: num(vars.rotation, 0, -360, 360), skew: num(vars.skew, 0, -60, 60),
+              opacity: num(vars.opacity, 0, 0, 1), blur: num(vars.blur, 10, 0, 60), tracking: num(vars.tracking, 0, -1, 3) };
+            var fill = bool(vars.use_fill, true) ? str(vars.fill_color, "#7dd3fc") : null;
+            var shape = pick(vars.shape, ["square", "ramp-up", "ramp-down", "triangle", "round", "smooth"], "square");
+            var smooth = num(vars.smoothness, 1, 0, 1), start0 = num(vars.start, 0, -100, 200) / 100, end0 = num(vars.end, 100, -100, 200) / 100;
+            var offFrom = num(vars.offset_from, 0, -200, 200) / 100, offTo = num(vars.offset_to, 100, -200, 200) / 100;
+            var delay = num(vars.delay_frames, 8, 0, 300), sweep = num(vars.sweep_frames, 60, 4, 300);
+            var sweepEase = bez(0.4, 0, 0.2, 1);
+            function mixColor(a, b, t) { return "color-mix(in srgb, " + b + " " + (Math.round(clamp01(t) * 10000) / 100) + "%, " + a + ")"; }
+            // ---- Layout: lines > words > characters; the selector acts on the chosen group.
+            var lines = [], words = [], chars = [], charCount = 0;
+            text.split(/\r?\n/).forEach(function (raw, li) {
+              var lineEl = mk("span", el, "tan-line"), lw = [];
+              raw.split(/\s+/).filter(Boolean).forEach(function (w, wi) {
+                var wordEl = mk("span", lineEl, "tan-word");
+                if (wi > 0) wordEl.style.marginLeft = "0.26em";
+                var wobj = { el: wordEl };
+                words.push(wobj); lw.push(wobj);
+                if (wi > 0) charCount += 1; // a space counts as a character in the selector
+                Array.from(w).forEach(function (ch) {
+                  var c = mk("span", wordEl, "tan-unit", ch);
+                  chars.push({ el: c, index: charCount }); charCount += 1;
+                });
+              });
+              lines.push({ el: lineEl });
+              charCount += 1; // a line break counts too
+            });
+            var groups = basis === "words" ? words : basis === "lines" ? lines : chars;
+            var total = basis === "characters" ? Math.max(1, charCount - 1) : groups.length;
+            groups.forEach(function (g, i) { if (basis !== "characters") g.index = i; });
+            if (basis !== "characters") { groups.forEach(function (g) { g.el.style.display = "inline-block"; }); }
+            var ranks = null;
+            if (bool(vars.random_order, false)) {
+              var rng = mulberry32(num(vars.seed, 1, 0, 999)), keys = groups.map(function () { return rng(); });
+              var sorted = groups.map(function (g, i) { return i; }).sort(function (a, b) { return keys[a] - keys[b]; });
+              ranks = new Array(groups.length); sorted.forEach(function (orig, rank) { ranks[orig] = rank; });
+            }
+            function shapeValue(t) {
+              if (shape === "ramp-up") return clamp01(t);
+              if (shape === "ramp-down") return clamp01(1 - t);
+              if (t < 0 || t > 1) return 0;
+              if (shape === "triangle") return 1 - Math.abs(t * 2 - 1);
+              if (shape === "round") return Math.sqrt(Math.max(0, 1 - (t * 2 - 1) * (t * 2 - 1)));
+              if (shape === "smooth") return (1 - Math.cos(t * Math.PI * 2)) / 2;
+              return 1;
+            }
+            // Range selector, in percent units: how much each unit is selected (0 to 1) at this offset.
+            function selection(offset, i) {
+              var start = start0 + offset, end = end0 + offset, tmp;
+              if (start > end) { tmp = start; start = end; end = tmp; }
+              var slot = ranks ? ranks[i] : i, lo = slot / total, hi = (slot + 1) / total, centre = (lo + hi) / 2;
+              if (shape === "square") {
+                var hard = centre >= start && centre < end ? 1 : 0;
+                var covered = clamp01(Math.max(0, Math.min(hi, end) - Math.max(lo, start)) * total);
+                return hard + (covered - hard) * smooth;
+              }
+              var span = end - start, t = span <= 1e-9 ? (centre >= start ? 1.0001 : -0.0001) : (centre - start) / span;
+              return shapeValue(t);
+            }
+            function draw(frame) {
+              var offset = lerp(offFrom, offTo, sweepEase(clamp01((frame - delay) / sweep)));
+              groups.forEach(function (g, i) {
+                var a = selection(offset, g.index), st = g.el.style;
+                if (a === 0) { st.transform = ""; st.opacity = ""; st.filter = ""; st.color = ""; st.marginRight = ""; return; }
+                var sc = 1 + (P.scale - 1) * a;
+                st.transform = "translate(" + (P.x * a).toFixed(4) + "em, " + (P.y * a).toFixed(4) + "em) rotate(" + (P.rot * a).toFixed(3) + "deg) skewX(" + (P.skew * a).toFixed(3) + "deg) scale(" + sc.toFixed(4) + ")";
+                st.opacity = String(clamp01(1 + (P.opacity - 1) * a));
+                st.filter = P.blur * a > 0.05 ? "blur(" + (P.blur * a).toFixed(2) + "px)" : "";
+                st.marginRight = P.tracking ? (P.tracking * a).toFixed(4) + "em" : "";
+                if (fill) st.color = mixColor(baseColor, fill, clamp01(a));
+              });
+            }
+            drive("text-animator", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

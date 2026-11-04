@@ -1,0 +1,161 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "roll-text",
+  "type": "hyperframes:component",
+  "title": "Roll Text",
+  "description": "Each letter sits in a one-line window and rolls up to an identical copy, one after another, so the word seems to turn over like a split-flap or a barrel; it replays like a re-hover.",
+  "tags": [
+    "text-effects",
+    "roll",
+    "letters",
+    "hover",
+    "stagger",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A label or nav item should roll over letter by letter as an attention beat.",
+    "A word needs a tidy, in-place motion that leaves it exactly as it was."
+  ],
+  "avoidWhen": [
+    "The word must change into a different word: use inline-word-roll or slot-machine-roll.",
+    "Several lines of text."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/roll-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "roll-text.html",
+      "target": "compositions/components/roll-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Label that rolls.",
+      "default": "Team member"
+    },
+    {
+      "id": "stagger",
+      "type": "enum",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Roll the whole label at once, word by word, or letter by letter.",
+      "default": "character",
+      "options": [
+        {
+          "value": "none",
+          "label": "Whole label"
+        },
+        {
+          "value": "word",
+          "label": "Word"
+        },
+        {
+          "value": "character",
+          "label": "Letter"
+        }
+      ]
+    },
+    {
+      "id": "stagger_ms",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger step",
+      "description": "Milliseconds between units.",
+      "default": 32,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "ms"
+    },
+    {
+      "id": "duration_ms",
+      "type": "number",
+      "role": "motion",
+      "label": "Roll time",
+      "description": "Milliseconds each unit takes to roll.",
+      "default": 250,
+      "min": 60,
+      "max": 1500,
+      "step": 10,
+      "unit": "ms"
+    },
+    {
+      "id": "plays",
+      "type": "number",
+      "role": "motion",
+      "label": "Plays",
+      "description": "How many times the roll repeats within the block.",
+      "default": 3,
+      "min": 1,
+      "max": 6,
+      "step": 1
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 120,
+      "min": 12,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "500",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

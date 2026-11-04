@@ -3,7 +3,7 @@
   "name": "chat-review-typed",
   "type": "hyperframes:component",
   "title": "Chat Review Typed",
-  "description": "A headline with the shop name in handwriting, a customer's avatar and name, an incoming bubble with typing dots that then writes the review letter by letter, a tinted reply bubble sliding in from the right, five stars popping in with a score line, and a call-to-action pill.",
+  "description": "A headline with the shop name on its own line, a customer's avatar and name, an incoming bubble with typing dots that then writes the review letter by letter, a dark reply bubble sliding in from the right, five stars with a score line, and a call-to-action pill. White page, hairline bubbles.",
   "tags": [
     "mosio-recipe",
     "chat",
@@ -50,7 +50,7 @@
       "type": "string",
       "role": "content",
       "label": "Subject",
-      "description": "Shop or product name, written by hand in the main colour.",
+      "description": "Shop or product name, on its own line under the lead.",
       "default": "Kue Rumahan Bunda"
     },
     {
@@ -106,48 +106,40 @@
       "type": "color",
       "role": "style",
       "label": "Background",
-      "description": "Background (blended toward the main colour).",
-      "default": "#fde7ef"
+      "description": "Background.",
+      "default": "#ffffff"
     },
     {
       "id": "surface_color",
       "type": "color",
       "role": "style",
       "label": "Bubble colour",
-      "description": "Incoming bubble.",
-      "default": "#ffffff"
+      "description": "Incoming bubble and avatar.",
+      "default": "#fafafa"
     },
     {
       "id": "main_color",
       "type": "color",
       "role": "style",
       "label": "Main colour",
-      "description": "Subject name, avatar, reply bubble tint and call to action.",
-      "default": "#e0457b"
-    },
-    {
-      "id": "accent_color",
-      "type": "color",
-      "role": "style",
-      "label": "Accent",
-      "description": "Decorative dots.",
-      "default": "#ff7aa8"
+      "description": "Call to action: the one accent.",
+      "default": "#2563eb"
     },
     {
       "id": "text_color",
       "type": "color",
       "role": "style",
       "label": "Text colour",
-      "description": "Headline and bubbles.",
-      "default": "#2a1720"
+      "description": "Headline, subject, reply bubble.",
+      "default": "#0a0a0a"
     },
     {
       "id": "muted_color",
       "type": "color",
       "role": "style",
       "label": "Muted colour",
-      "description": "Customer note.",
-      "default": "#7e6a73"
+      "description": "Headline lead and customer note.",
+      "default": "#737373"
     },
     {
       "id": "star_color",
@@ -155,7 +147,7 @@
       "role": "style",
       "label": "Star colour",
       "description": "Rating stars.",
-      "default": "#ffb400"
+      "default": "#f59e0b"
     },
     {
       "id": "transparent",

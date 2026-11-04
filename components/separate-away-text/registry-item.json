@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "separate-away-text",
+  "type": "hyperframes:component",
+  "title": "Separate Away Text",
+  "description": "Two stacked lines fade in together while drifting slightly apart, the top one up and the bottom one down, opening a small gap between them.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "fade",
+    "two-lines",
+    "spacing",
+    "eldoraui-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A two-line title should settle in softly with the lines breathing apart.",
+    "A gentle, premium entrance for a heading and subheading."
+  ],
+  "avoidWhen": [
+    "A dramatic entrance: the drift is small by design; use multi-direction-slide-text.",
+    "A single line."
+  ],
+  "author": "Eldora UI",
+  "authorUrl": "https://www.eldoraui.site",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/karthikmudunuri/eldoraui",
+    "path": "apps/www/registry/eldoraui/seperate-away-text.tsx",
+    "commit": "6bb8fd211ecbdfa983f5780bead27d9f3890f20a"
+  },
+  "files": [
+    {
+      "path": "separate-away-text.html",
+      "target": "compositions/components/separate-away-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text_top", "type": "string", "role": "content", "label": "Top line", "description": "Line that drifts up.", "default": "Separate"},
+    {"id": "text_bottom", "type": "string", "role": "content", "label": "Bottom line", "description": "Line that drifts down.", "default": "Away"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Time", "description": "Seconds the fade and drift take.", "default": 1.5, "min": 0.3, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Drift", "description": "How far each line moves from the centre. Scales with font size (72px = source).", "default": 5, "min": 0, "max": 60, "step": 1, "unit": "px"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the fade.", "default": 0.2, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 130, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

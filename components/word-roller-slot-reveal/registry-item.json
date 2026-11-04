@@ -1,0 +1,107 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-slot-reveal",
+  "type": "hyperframes:component",
+  "title": "Word Roller Slot Reveal",
+  "description": "A list of ten words scrolls through a masked window beside a fixed prefix: slow start, a fast stretch, then a very long, gentle slowdown onto the last word, which lands larger in the accent colour.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "slot",
+    "reveal",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A reveal where a long list of options spins past and settles on one chosen word (new feature, new future).",
+    "A product or campaign name that should be the payoff of a spin."
+  ],
+  "avoidWhen": [
+    "Only two or three words: use inline-word-roll.",
+    "The final word should not be emphasised: it is always larger and in the accent colour."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/RollerSlotReveal.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-slot-reveal.html",
+      "target": "compositions/components/word-roller-slot-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words in order, separated by commas (up to 14). The last one is where it settles.",
+      "default": "Feature, Product, Design, Service, Solution, Platform, Experience, Vision, Future, Beginning"
+    },
+    {
+      "id": "prefix",
+      "type": "string",
+      "role": "content",
+      "label": "Prefix",
+      "description": "Fixed text before the roller.",
+      "default": "New"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the rolling words in pixels. A wide line shrinks to fit the frame.",
+      "default": 64,
+      "min": 16,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Word color",
+      "description": "Color of the words while they roll.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Final color",
+      "description": "Color of the last word.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

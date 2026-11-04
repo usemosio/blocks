@@ -1,0 +1,139 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "cradle-text",
+  "type": "hyperframes:component",
+  "title": "Cradle Text",
+  "description": "Letters hang from a rail like a Newton's cradle: the first is pulled out and released, the knock runs through the row and the last letter swings out.",
+  "tags": [
+    "text-effects",
+    "physics",
+    "pendulum",
+    "letters",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A short word should behave like a desk toy: physical, playful, with a clear cause and effect.",
+    "A title needs a satisfying ball-and-string beat."
+  ],
+  "avoidWhen": [
+    "Long text: the cradle needs a single short line.",
+    "A calm, premium entrance: use per-character-rise."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/cradle-text.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "cradle-text.html",
+      "target": "compositions/components/cradle-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "One short line of letters hung from the rail.",
+      "default": "Momentum"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 120,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Color of the letters.",
+      "default": "#18181b"
+    },
+    {
+      "id": "rail_color",
+      "type": "color",
+      "role": "style",
+      "label": "Rail color",
+      "description": "Color of the rail and the threads.",
+      "default": "#a1a1aa"
+    },
+    {
+      "id": "bounce",
+      "type": "number",
+      "role": "motion",
+      "label": "Bounce",
+      "description": "How much speed a collision keeps, 0 to 1. Steel is about 0.95.",
+      "default": 0.97,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "pull_angle",
+      "type": "number",
+      "role": "motion",
+      "label": "Pull angle",
+      "description": "How far the first letter is pulled out, in radians.",
+      "default": 0.62,
+      "min": 0.1,
+      "max": 1.1,
+      "step": 0.01
+    },
+    {
+      "id": "release_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Pull at",
+      "description": "Second the first letter is pulled out.",
+      "default": 0.4,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    }
+  ],
+  "checkAt": [
+    0.8,
+    1.3,
+    2.0,
+    3.5
+  ]
+}

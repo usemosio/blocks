@@ -1,0 +1,177 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-3d-flip",
+  "type": "hyperframes:component",
+  "title": "Text 3D Flip",
+  "description": "Every letter is a small rotating prism: the letters roll over one after another with a spring, a second identical face coming round to the front.",
+  "tags": [
+    "text-effects",
+    "3d",
+    "flip",
+    "kinetic-type",
+    "letters",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A short line should get an attention-drawing, tactile roll-over, once or a few times.",
+    "A title needs a playful 3D accent that ends exactly where it began."
+  ],
+  "avoidWhen": [
+    "The letters should change into different letters: use slot-machine-roll or caption-split-flap.",
+    "The text is long: the rolling reads as noise."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/text-3d-flip.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "text-3d-flip.html",
+      "target": "compositions/components/text-3d-flip.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The line that rolls over.",
+      "default": "Stay curious, stay kind"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text wraps and shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Colour",
+      "description": "Colour of the front face.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "flip_color",
+      "type": "color",
+      "role": "style",
+      "label": "Flip colour",
+      "description": "Colour of the face that rolls in.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Which edge the letters roll over.",
+      "default": "top",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ]
+    },
+    {
+      "id": "stagger_from",
+      "type": "enum",
+      "role": "motion",
+      "label": "Stagger from",
+      "description": "Where the roll starts.",
+      "default": "first",
+      "options": [
+        {
+          "value": "first",
+          "label": "First letter"
+        },
+        {
+          "value": "last",
+          "label": "Last letter"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        }
+      ]
+    },
+    {
+      "id": "stagger",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Seconds between neighbouring letters (the source uses 0.05).",
+      "default": 0.03,
+      "min": 0,
+      "max": 0.3,
+      "step": 0.01,
+      "unit": "s"
+    },
+    {
+      "id": "stiffness",
+      "type": "number",
+      "role": "motion",
+      "label": "Spring stiffness",
+      "description": "Spring stiffness of the roll.",
+      "default": 160,
+      "min": 50,
+      "max": 600,
+      "step": 5
+    },
+    {
+      "id": "damping",
+      "type": "number",
+      "role": "motion",
+      "label": "Spring damping",
+      "description": "Spring damping of the roll.",
+      "default": 25,
+      "min": 5,
+      "max": 80,
+      "step": 1
+    },
+    {
+      "id": "flips",
+      "type": "number",
+      "role": "motion",
+      "label": "Rolls",
+      "description": "How many times the whole line rolls within the block.",
+      "default": 2,
+      "min": 1,
+      "max": 4,
+      "step": 1
+    }
+  ],
+  "checkAt": [
+    0.55,
+    0.8,
+    1.2,
+    3.0
+  ]
+}

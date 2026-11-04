@@ -1,0 +1,146 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shadow-text",
+  "type": "hyperframes:component",
+  "title": "Shadow Text",
+  "description": "Every letter casts a long, soft shadow that swings across the line as the sun crosses the sky, long and low at the edges, short at noon.",
+  "tags": [
+    "text-effects",
+    "shadow",
+    "light",
+    "letters",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A headline should feel lit by a moving light: warm, physical, editorial.",
+    "A short phrase needs a slow, calm motion that is not an entrance."
+  ],
+  "avoidWhen": [
+    "The text must be stamped or cut out hard: use shadow-sweep-text.",
+    "Many lines of small text: the shadows blur the letters."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/shadow-text.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "shadow-text.html",
+      "target": "compositions/components/shadow-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Short headline. It wraps onto lines when it is wider than the frame.",
+      "default": "Golden hour, every day."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 110,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Color of the letters.",
+      "default": "#18181b"
+    },
+    {
+      "id": "shadow_color",
+      "type": "color",
+      "role": "style",
+      "label": "Shadow color",
+      "description": "Color of the cast shadows.",
+      "default": "#18181b"
+    },
+    {
+      "id": "shadow_strength",
+      "type": "number",
+      "role": "style",
+      "label": "Shadow strength",
+      "description": "How dark the shadows get, 0 to 2.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "reach",
+      "type": "number",
+      "role": "motion",
+      "label": "Reach",
+      "description": "The longest a shadow gets, in em.",
+      "default": 1.1,
+      "min": 0.2,
+      "max": 2.5,
+      "step": 0.05,
+      "unit": "em"
+    },
+    {
+      "id": "from_hour",
+      "type": "number",
+      "role": "motion",
+      "label": "Start hour",
+      "description": "Time of day the sun starts at (6 is sunrise on the left, 13 is noon, 20 is sunset on the right).",
+      "default": 6.5,
+      "min": 0,
+      "max": 24,
+      "step": 0.25,
+      "unit": "h"
+    },
+    {
+      "id": "to_hour",
+      "type": "number",
+      "role": "motion",
+      "label": "End hour",
+      "description": "Time of day the sun ends at.",
+      "default": 19.5,
+      "min": 0,
+      "max": 24,
+      "step": 0.25,
+      "unit": "h"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    }
+  ]
+}

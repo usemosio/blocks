@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-roll",
+  "type": "hyperframes:component",
+  "title": "Text Roll",
+  "description": "Every letter rolls over like a rotating drum: the front face tips away on the X axis while the same letter swings in from below, one letter after another, then the roll repeats.",
+  "tags": [
+    "text-effects",
+    "3d",
+    "letters",
+    "roll",
+    "flip",
+    "motion-primitives-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A word or short phrase should flip letter by letter with a physical, ticker-like roll.",
+    "A button or label style flourish for one line of text."
+  ],
+  "avoidWhen": [
+    "The text should be replaced by different text: use slot-machine-roll or text-loop.",
+    "A flat, quiet entrance: use per-character-rise."
+  ],
+  "author": "ibelick",
+  "authorUrl": "https://motion-primitives.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/ibelick/motion-primitives",
+    "path": "components/core/text-roll.tsx",
+    "commit": "120f64f6ca60348e251f929e9c81f11ccbe45eda"
+  },
+  "files": [
+    {
+      "path": "text-roll.html",
+      "target": "compositions/components/text-roll.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase that rolls.", "default": "Roll the text"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Roll time", "description": "Seconds each half-turn takes.", "default": 0.5, "min": 0.1, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between one letter and the next.", "default": 0.1, "min": 0.02, "max": 0.5, "step": 0.01, "unit": "s"},
+    {"id": "exit_offset", "type": "number", "role": "motion", "label": "Exit offset", "description": "Seconds the incoming face waits after the outgoing one starts.", "default": 0.2, "min": 0, "max": 1, "step": 0.05, "unit": "s"},
+    {"id": "repeats", "type": "number", "role": "motion", "label": "Rolls", "description": "How many times the roll plays.", "default": 2, "min": 1, "max": 6, "step": 1},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first roll.", "default": 0.3, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 110, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "moving-pen",
+  "type": "hyperframes:component",
+  "title": "Moving Pen",
+  "description": "A glowing pen-tip dot glides across the frame on a curve, drawing a luminous trail while a handwritten line fades in beneath its passing.",
+  "tags": [
+    "text-effects",
+    "pen",
+    "trail",
+    "handwriting",
+    "glow",
+    "onda-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A line of text should be introduced by a moving graphic: a pen, a spark, a cursor drawing a wave.",
+    "A title beat needs a soft, premium glow on a dark background."
+  ],
+  "avoidWhen": [
+    "The text itself must be drawn stroke by stroke: use handwrite or outline-trace.",
+    "A light background: the glow reads best on dark."
+  ],
+  "author": "Onda",
+  "authorUrl": "https://onda.video",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/degueba/onda",
+    "path": "www/src/components/hero/MovingPenScene.tsx",
+    "commit": "3c814051269597b31fee1603bef7ccfb93d091b6"
+  },
+  "files": [
+    {
+      "path": "moving-pen.html",
+      "target": "compositions/components/moving-pen.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Short line of handwriting that appears as the pen passes.",
+      "default": "Hello, there!"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 130,
+      "min": 24,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Color of the line of text.",
+      "default": "#f2f2f4"
+    },
+    {
+      "id": "pen_color",
+      "type": "color",
+      "role": "style",
+      "label": "Pen color",
+      "description": "Color of the pen tip, its trail and the glow.",
+      "default": "#d96b82"
+    },
+    {
+      "id": "trail_width",
+      "type": "number",
+      "role": "style",
+      "label": "Trail width",
+      "description": "Thickness of the trail in pixels.",
+      "default": 3,
+      "min": 1,
+      "max": 14,
+      "step": 0.5,
+      "unit": "px"
+    },
+    {
+      "id": "swing",
+      "type": "number",
+      "role": "motion",
+      "label": "Swing",
+      "description": "How far the path bends away from the centre line, as a share of the frame (0 is a straight line).",
+      "default": 0.18,
+      "min": 0,
+      "max": 0.35,
+      "step": 0.01
+    },
+    {
+      "id": "travel",
+      "type": "number",
+      "role": "motion",
+      "label": "Travel time",
+      "description": "Seconds the pen takes to cross the frame.",
+      "default": 4.3,
+      "min": 1.5,
+      "max": 5,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the scene (empty keeps it transparent).",
+      "default": ""
+    }
+  ],
+  "checkAt": [
+    0.6,
+    2.8,
+    5.3,
+    5.8
+  ]
+}

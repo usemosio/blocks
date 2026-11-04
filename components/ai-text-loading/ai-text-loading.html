@@ -1,0 +1,169 @@
+<!doctype html>
+<!--
+  AI Text Loading
+
+  A status word that cycles through a list (Thinking, Processing, Analyzing...): each word's letters blur in one after another while a soft brightness wave runs through them, then the word lifts away.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/kokonut-labs/kokonutui/blob/4d497b7b03f02ffd07225e638c0b9ace3f892dbb/components/kokonutui/ai-text-loading.tsx
+
+  MIT License
+
+  Copyright (c) 2025 kokonutUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="ai-text-loading"
+  data-composition-duration="7.5"
+  data-composition-variables='[
+    {"id": "texts", "type": "string", "role": "content", "label": "Words", "description": "Status words separated by |. Each one is shown in turn.", "default": "Thinking...|Processing...|Analyzing...|Computing...|Almost..."},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds each word stays up. The block lasts 5 words at the default 1.5 s.", "default": 1.5, "min": 0.6, "max": 4, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. Long words shrink to fit the frame.", "default": 64, "min": 16, "max": 200, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#0a0a0a"},
+    {"id": "show_elapsed", "type": "boolean", "role": "content", "label": "Show elapsed", "description": "Show the seconds spent so far next to the word.", "default": false},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI Text Loading</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@600;700;800&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+        #root { color: var(--atl-color, #0a0a0a); font-family: var(--font-display, Geist, system-ui, sans-serif); }
+        .atl-stage { position: absolute; inset: 0; display: flex; align-items: baseline; justify-content: center; gap: 0.5em; align-content: center; }
+        .atl-words { position: relative; display: grid; justify-items: center; align-items: center; }
+        .atl-word { grid-area: 1 / 1; display: flex; justify-content: center; white-space: pre; line-height: 1.15; letter-spacing: -0.02em; }
+        .atl-letter { display: inline-block; opacity: 0; }
+        .atl-wave { display: inline-block; }
+        .atl-elapsed { font-size: 0.5em; font-weight: 500; opacity: 0.4; font-variant-numeric: tabular-nums; }
+      </style>
+
+      <div id="root" data-composition-id="ai-text-loading" data-duration="7.5" data-fps="30">
+        <div id="atl-clip" class="atl-stage clip" data-start="0" data-duration="7.5" data-track-index="0" style="align-items:center">
+          <span id="atl-words" class="atl-words" role="status" aria-live="polite"></span>
+          <span id="atl-elapsed" class="atl-elapsed" aria-hidden="true"></span>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, a, b) { var x = Number(v); return Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+
+            var holder = document.getElementById("atl-words");
+            var elapsedEl = document.getElementById("atl-elapsed");
+            var words = str(vars.texts, "Thinking...|Processing...|Analyzing...|Computing...|Almost...").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!words.length) words = ["Thinking..."];
+            var interval = num(vars.interval, 1.5, 0.6, 4);
+            var showElapsed = vars.show_elapsed === true || vars.show_elapsed === "true";
+            var weight = ["600", "700", "800"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "700";
+            root.style.setProperty("--atl-color", col(vars.color, "#0a0a0a"));
+            elapsedEl.style.display = showElapsed ? "" : "none";
+            holder.style.fontWeight = weight;
+            var size = num(vars.font_size, 64, 16, 200);
+            holder.style.fontSize = size + "px";
+
+            gsap.registerPlugin(CustomEase);
+            // cubic-bezier(0.23, 1, 0.32, 1), the source's ease-out.
+            var easeOut = CustomEase.create("atl-out", "M0,0 C0.23,1 0.32,1 1,1");
+
+            // Every word is built once; only the active one is visible.
+            var entries = words.map(function (w, wi) {
+              var el = document.createElement("span");
+              el.className = "atl-word";
+              el.setAttribute("aria-hidden", "true");
+              var letters = Array.from(w).map(function (ch) {
+                var outer = document.createElement("span");
+                outer.className = "atl-letter";
+                var inner = document.createElement("span");
+                inner.className = "atl-wave";
+                inner.textContent = ch;
+                outer.appendChild(inner);
+                el.appendChild(outer);
+                return { outer: outer, inner: inner };
+              });
+              holder.appendChild(el);
+              return { el: el, letters: letters, start: wi * interval };
+            });
+            // Shrink to 88 % of the frame width when the widest word is wider.
+            var widest = 0;
+            entries.forEach(function (e) { widest = Math.max(widest, e.el.scrollWidth); });
+            var avail = root.clientWidth * 0.88 - (showElapsed ? size * 1.6 : 0);
+            if (widest > avail) { size = Math.max(16, size * avail / widest); holder.style.fontSize = size + "px"; }
+
+            var tl = gsap.timeline({ paused: true });
+            entries.forEach(function (e, wi) {
+              var t0 = e.start;
+              var last = wi === entries.length - 1;
+              e.el.style.visibility = "hidden";
+              tl.set(e.el, { visibility: "visible" }, t0);
+              e.letters.forEach(function (l, i) {
+                // 0.018 s between letters, 0.28 s each: opacity, lift and blur settle together.
+                tl.fromTo(l.outer, { opacity: 0, y: 8, filter: "blur(4px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.28, ease: easeOut, immediateRender: false }, t0 + i * 0.018);
+              });
+              if (!last) {
+                var tx = t0 + interval;
+                tl.to(e.el, { opacity: 0, y: -6, filter: "blur(3px)", duration: 0.15, ease: easeOut }, tx);
+                tl.set(e.el, { visibility: "hidden" }, tx + 0.15);
+              }
+            });
+            // The brightness wave: each letter dips to 30 % and back every 1.6 s, 0.07 s behind its neighbour.
+            var clock = { t: 0 };
+            function draw(t) {
+              entries.forEach(function (e, wi) {
+                if (t < e.start || (wi < entries.length - 1 && t > e.start + interval + 0.2)) return;
+                var local = t - e.start;
+                e.letters.forEach(function (l, i) {
+                  var ph = (local - i * 0.07) / 1.6;
+                  var o = 1;
+                  if (ph > 0) { var f = ph - Math.floor(ph); o = 0.65 + 0.35 * Math.cos(2 * Math.PI * f); }
+                  l.inner.style.opacity = o.toFixed(3);
+                });
+              });
+              if (showElapsed) elapsedEl.textContent = Math.floor(t) + "s";
+            }
+            tl.to(clock, { t: parseFloat(root.dataset.duration || "7.5"), duration: parseFloat(root.dataset.duration || "7.5"), ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            var total = parseFloat(root.dataset.duration || "7.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["ai-text-loading"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

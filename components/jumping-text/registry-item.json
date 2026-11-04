@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "jumping-text",
+  "type": "hyperframes:component",
+  "title": "Jumping Text",
+  "description": "Words (or letters) hop in from below, tilted, and spring upright one after another with a little overshoot.",
+  "tags": [
+    "text-effects",
+    "spring",
+    "bounce",
+    "reveal",
+    "words",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A sentence should pop in word by word with a playful, bouncy feel.",
+    "Captions or hooks for social-style videos that want a lively entrance."
+  ],
+  "avoidWhen": [
+    "The tone is calm or formal: use a blur or fade reveal.",
+    "A crisp, rigid entrance is wanted: use per-character-rise."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/jumping-text-instagram.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "jumping-text.html",
+      "target": "compositions/components/jumping-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Sentence that jumps in.",
+      "default": "This is a jumping text effect"
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "motion",
+      "label": "Mode",
+      "description": "Jump word by word or letter by letter.",
+      "default": "word",
+      "options": [
+        {
+          "value": "word",
+          "label": "Word"
+        },
+        {
+          "value": "character",
+          "label": "Character"
+        }
+      ]
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 88,
+      "min": 12,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "stagger_ms",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Milliseconds between units. 0 uses the original: 50 per word, 10 per letter.",
+      "default": 0,
+      "min": 0,
+      "max": 300,
+      "step": 1,
+      "unit": "ms"
+    },
+    {
+      "id": "damping",
+      "type": "number",
+      "role": "motion",
+      "label": "Damping",
+      "description": "Spring damping: lower is bouncier.",
+      "default": 10,
+      "min": 2,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

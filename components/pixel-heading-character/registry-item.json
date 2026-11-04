@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "pixel-heading-character",
+  "type": "hyperframes:component",
+  "title": "Pixel Heading Character",
+  "description": "A heading whose letters each take a pixel typeface of their own and keep changing on a staggered clock: all five faces mixed, a travelling wave, pseudo-random picks, or one face for the whole line.",
+  "tags": [
+    "text-effects",
+    "pixel",
+    "font-swap",
+    "retro",
+    "letters",
+    "cult-ui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A title should shimmer through pixel styles letter by letter, with a wave or a scatter.",
+    "A retro, glitchy or arcade headline."
+  ],
+  "avoidWhen": [
+    "Body copy or long sentences.",
+    "A calm entrance: use per-character-rise."
+  ],
+  "author": "Cult UI",
+  "authorUrl": "https://www.cult-ui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/nolly-studio/cult-ui",
+    "path": "apps/www/registry/default/ui/pixel-heading-character.tsx",
+    "commit": "d71b1428b811c2779d46ea41b7ef8c9f9c9991c2"
+  },
+  "files": [
+    {
+      "path": "pixel-heading-character.html",
+      "target": "compositions/components/pixel-heading-character.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Heading text.", "default": "Pixel Heading"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "How the faces are spread across the letters.", "default": "multi", "options": [{"value": "multi", "label": "Multi (golden-ratio spread)"}, {"value": "wave", "label": "Wave"}, {"value": "random", "label": "Random"}, {"value": "uniform", "label": "Uniform"}]},
+    {"id": "cycle_interval", "type": "number", "role": "motion", "label": "Cycle interval", "description": "Milliseconds between face changes.", "default": 150, "min": 50, "max": 1000, "step": 10, "unit": "ms"},
+    {"id": "stagger_delay", "type": "number", "role": "motion", "label": "Stagger", "description": "Milliseconds between one letter starting and the next.", "default": 50, "min": 0, "max": 300, "step": 5, "unit": "ms"},
+    {"id": "default_font", "type": "enum", "role": "style", "label": "Starting face", "description": "Face used by the uniform mode at the start.", "default": "square", "options": [{"value": "square", "label": "Square (Geist Pixel)"}, {"value": "grid", "label": "Grid (Pixelify Sans)"}, {"value": "circle", "label": "Circle (Silkscreen)"}, {"value": "triangle", "label": "Triangle (Jersey 10)"}, {"value": "line", "label": "Line (Tiny5)"}]},
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Optional word before the heading that stays put.", "default": ""},
+    {"id": "prefix_font", "type": "enum", "role": "style", "label": "Prefix face", "description": "Pixel face for the prefix, or the heading font.", "default": "none", "options": [{"value": "none", "label": "Heading font"}, {"value": "square", "label": "Square (Geist Pixel)"}, {"value": "grid", "label": "Grid (Pixelify Sans)"}, {"value": "circle", "label": "Circle (Silkscreen)"}, {"value": "triangle", "label": "Triangle (Jersey 10)"}, {"value": "line", "label": "Line (Tiny5)"}]},
+    {"id": "hover_at", "type": "number", "role": "motion", "label": "Pointer enters", "description": "Seconds before the pointer rests on the heading.", "default": 0.5, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hover_until", "type": "number", "role": "motion", "label": "Pointer leaves", "description": "Seconds when the pointer leaves again.", "default": 3.5, "min": 0.5, "max": 8, "step": 0.1, "unit": "s"},
+    {"id": "show_label", "type": "boolean", "role": "style", "label": "Show mode label", "description": "Show the mode name under the heading.", "default": true},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 120, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"}
+  ]
+}

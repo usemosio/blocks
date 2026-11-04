@@ -2,7 +2,7 @@
 <!--
   Menu Price Board
 
-  A menu or price list that fills in row by row: name, dotted leader, price, with a handwritten note.
+  A menu or price list that fills in row by row: name, dotted leader, price, with a short note.
 
   Extracted from the Mosio recipe menu-board by usemosio/blocks.
 -->
@@ -16,7 +16,7 @@
     "type": "string",
     "role": "content",
     "label": "Kicker",
-    "description": "Small italic line above the title.",
+    "description": "Small muted line above the title.",
     "default": "Dari dapur kami,"
   },
   {
@@ -39,8 +39,8 @@
     "id": "note",
     "type": "string",
     "role": "content",
-    "label": "Handwritten note",
-    "description": "Note stuck on at a slant, in handwriting. Leave empty to hide it.",
+    "label": "Note",
+    "description": "Short italic note in the accent colour, top right. Leave empty to hide it.",
     "default": "favorit!"
   },
   {
@@ -73,39 +73,31 @@
     "role": "style",
     "label": "Background",
     "description": "Board background.",
-    "default": "#f6eee3"
-  },
-  {
-    "id": "main_color",
-    "type": "color",
-    "role": "style",
-    "label": "Main colour",
-    "description": "Kicker, prices, pen stroke and blobs.",
-    "default": "#b5532a"
+    "default": "#ffffff"
   },
   {
     "id": "accent_color",
     "type": "color",
     "role": "style",
     "label": "Accent",
-    "description": "Handwritten note, footer button and blobs.",
-    "default": "#3f6b4a"
+    "description": "Note and footer button: the one accent.",
+    "default": "#2563eb"
   },
   {
     "id": "text_color",
     "type": "color",
     "role": "style",
     "label": "Text colour",
-    "description": "Title, item names and frame.",
-    "default": "#2b1d14"
+    "description": "Title, item names and prices.",
+    "default": "#0a0a0a"
   },
   {
     "id": "muted_color",
     "type": "color",
     "role": "style",
     "label": "Muted colour",
-    "description": "Short notes under item names.",
-    "default": "#72665c"
+    "description": "Kicker, short notes under item names and the footer line.",
+    "default": "#737373"
   },
   {
     "id": "transparent",
@@ -125,7 +117,7 @@
     <template>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&amp;family=Poppins:wght@500&amp;family=Caveat:wght@700&amp;display=block"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
       />
       <style>
         #root {
@@ -135,36 +127,29 @@
         #root * { box-sizing: border-box; }
         .mb-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
 
-        #root { background: var(--mb-bg); color: var(--mb-text); font-family: Poppins, "Noto Sans", system-ui, sans-serif; }
-        .mb-blob { position: absolute; border-radius: 50%; }
-        .mb-b1 { width: calc(var(--u) * 760); height: calc(var(--u) * 760); right: calc(var(--u) * -300); top: calc(var(--u) * -220); background: color-mix(in oklab, var(--mb-main) 18%, transparent); }
-        .mb-b2 { width: calc(var(--u) * 600); height: calc(var(--u) * 600); left: calc(var(--u) * -260); bottom: calc(var(--u) * -140); background: color-mix(in oklab, var(--mb-accent) 16%, transparent); }
-        .mb-frame { position: absolute; inset: calc(var(--u) * 5.5); inset: calc(var(--u) * 60); border: calc(var(--u) * 3) solid color-mix(in oklab, var(--mb-text) 30%, transparent); border-radius: calc(var(--u) * 40); }
+        #root { background: var(--mb-bg); color: var(--mb-text); font-family: Geist, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
         .mb-col { position: absolute; left: calc(var(--u) * 110); right: calc(var(--u) * 110); top: calc(var(--u) * 130); bottom: calc(var(--u) * 130); display: flex; flex-direction: column; }
-        .mb-kicker { font-family: "Playfair Display", serif; font-style: italic; font-weight: 400; font-size: calc(var(--u) * 60); color: var(--mb-main); line-height: 1.2; }
-        .mb-titlew { position: relative; display: flex; align-items: flex-start; overflow: hidden; padding-bottom: calc(var(--u) * 8); }
-        .mb-title { display: inline-block; white-space: nowrap; font-family: "Playfair Display", serif; font-weight: 700; font-size: calc(var(--u) * 116); line-height: 1.12; }
-        .mb-pen { width: calc(var(--u) * 560); height: calc(var(--u) * 60); margin-top: calc(var(--u) * -8); flex-shrink: 0; overflow: visible; }
-        .mb-pen path { fill: none; stroke: var(--mb-main); stroke-width: 10; stroke-linecap: round; }
+        .mb-kicker { font-size: calc(var(--u) * 44); font-weight: 500; color: var(--mb-muted); line-height: 1.2; letter-spacing: -0.01em; }
+        .mb-titlew { position: relative; display: flex; align-items: flex-start; overflow: hidden; padding-bottom: calc(var(--u) * 8); margin-top: calc(var(--u) * 8); }
+        .mb-title { display: inline-block; white-space: nowrap; font-weight: 600; font-size: calc(var(--u) * 120); line-height: 1.12; letter-spacing: -0.05em; }
         .mb-list { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-evenly; margin: calc(var(--u) * 20) 0; }
         .mb-item { display: flex; align-items: baseline; gap: calc(var(--u) * 20); }
         .mb-left { min-width: 0; }
-        .mb-name { font-weight: 500; white-space: nowrap; line-height: 1.15; }
+        .mb-name { font-weight: 500; letter-spacing: -0.02em; white-space: nowrap; line-height: 1.15; }
         .mb-note-s { display: block; color: var(--mb-muted); margin-top: calc(var(--u) * 2); white-space: nowrap; }
-        .mb-dots { flex: 1; min-width: calc(var(--u) * 40); position: relative; top: -0.25em; border-bottom: calc(var(--u) * 5) dotted color-mix(in oklab, var(--mb-text) 40%, transparent); transform-origin: 0 50%; }
-        .mb-price { font-family: "Playfair Display", serif; font-weight: 700; color: var(--mb-main); white-space: nowrap; }
-        .mb-hand { position: absolute; right: calc(var(--u) * 30); top: calc(var(--u) * 130); font-family: Caveat, cursive; font-weight: 700; font-size: calc(var(--u) * 80); color: color-mix(in oklab, var(--mb-accent) 85%, var(--mb-text)); white-space: nowrap; z-index: 2; }
+        .mb-dots { flex: 1; min-width: calc(var(--u) * 40); position: relative; top: -0.25em; border-bottom: calc(var(--u) * 3) dotted color-mix(in oklab, var(--mb-text) 28%, transparent); transform-origin: 0 50%; }
+        .mb-price { font-weight: 600; letter-spacing: -0.02em; color: var(--mb-text); white-space: nowrap; }
+        .mb-hand { position: absolute; right: calc(var(--u) * 110); top: calc(var(--u) * 136); font-style: italic; font-weight: 500; font-size: calc(var(--u) * 40); color: var(--mb-accent); white-space: nowrap; z-index: 2; }
         .mb-foot { text-align: center; }
-        .mb-fname { font-family: "Playfair Display", serif; font-weight: 700; font-size: calc(var(--u) * 66); line-height: 1.2; }
-        .mb-fline { margin-top: calc(var(--u) * 8); font-size: calc(var(--u) * 38); }
-        .mb-fbtn { display: inline-block; margin-top: calc(var(--u) * 18); padding: calc(var(--u) * 18) calc(var(--u) * 46); border-radius: calc(var(--u) * 60); background: var(--mb-accent); color: var(--mb-ink); font-size: calc(var(--u) * 40); font-weight: 500; white-space: nowrap; }
+        .mb-fname { font-weight: 600; font-size: calc(var(--u) * 60); letter-spacing: -0.04em; line-height: 1.2; }
+        .mb-fline { margin-top: calc(var(--u) * 8); font-size: calc(var(--u) * 36); color: var(--mb-muted); }
+        .mb-fbtn { display: inline-block; margin-top: calc(var(--u) * 18); padding: calc(var(--u) * 18) calc(var(--u) * 46); border-radius: calc(var(--u) * 60); background: var(--mb-accent); color: var(--mb-ink); font-size: calc(var(--u) * 38); font-weight: 600; white-space: nowrap; }
         @container (aspect-ratio > 1) {
           .mb-col { left: calc(var(--u) * 200); right: calc(var(--u) * 200); top: calc(var(--u) * 100); bottom: calc(var(--u) * 90); }
-          .mb-kicker { font-size: calc(var(--u) * 44); }
+          .mb-kicker { font-size: calc(var(--u) * 36); }
           .mb-title { font-size: calc(var(--u) * 92); }
-          .mb-pen { width: calc(var(--u) * 440); height: calc(var(--u) * 48); margin-top: calc(var(--u) * -6); }
-          .mb-hand { right: calc(var(--u) * 230); top: calc(var(--u) * 60); font-size: calc(var(--u) * 68); }
-          .mb-fname { font-size: calc(var(--u) * 48); } .mb-fline { font-size: calc(var(--u) * 30); margin-top: calc(var(--u) * 2); }
+          .mb-hand { right: calc(var(--u) * 200); top: calc(var(--u) * 106); font-size: calc(var(--u) * 34); }
+          .mb-fname { font-size: calc(var(--u) * 44); } .mb-fline { font-size: calc(var(--u) * 30); margin-top: calc(var(--u) * 2); }
           .mb-fbtn { margin-top: calc(var(--u) * 10); padding: calc(var(--u) * 12) calc(var(--u) * 36); font-size: calc(var(--u) * 32); }
           .mb-list { margin: calc(var(--u) * 10) 0; }
         }
@@ -173,13 +158,9 @@
 
       <div id="root" data-composition-id="menu-price-board" data-duration="8" data-fps="30">
         <div id="mb-clip" class="mb-stage clip" data-start="0" data-duration="8" data-track-index="0">
-          <div id="mb-b1" class="mb-blob mb-b1"></div>
-          <div id="mb-b2" class="mb-blob mb-b2"></div>
-          <div id="mb-frame" class="mb-frame"></div>
           <div class="mb-col">
             <div class="mb-kicker" id="mb-kicker"></div>
             <div class="mb-titlew" id="mb-titlew"><span class="mb-title" id="mb-title"></span></div>
-            <svg class="mb-pen" viewBox="0 0 560 60"><path id="mb-pen" d="M6 40 C 140 10, 300 58, 554 22" stroke-dasharray="600" stroke-dashoffset="0" /></svg>
             <div class="mb-list" id="mb-list"></div>
             <div class="mb-foot" id="mb-foot"><div class="mb-fname" id="mb-fname"></div><div class="mb-fline" id="mb-fline"></div><span class="mb-fbtn" id="mb-fbtn"></span></div>
           </div>
@@ -224,9 +205,9 @@
             if (bool(vars.transparent, false)) root.style.background = "transparent";
 
 
-            setColors("mb", [["bg", "bg_color", "#f6eee3"], ["main", "main_color", "#b5532a"], ["accent", "accent_color", "#3f6b4a"],
-              ["text", "text_color", "#2b1d14"], ["muted", "muted_color", "#72665c"]]);
-            root.style.setProperty("--mb-ink", ink(colr(vars.accent_color, "#3f6b4a")));
+            setColors("mb", [["bg", "bg_color", "#ffffff"], ["accent", "accent_color", "#2563eb"],
+              ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"]]);
+            root.style.setProperty("--mb-ink", ink(colr(vars.accent_color, "#2563eb")));
             var kicker = typeof vars.kicker === "string" ? vars.kicker : "Dari dapur kami,";
             var title = str(vars.title, "Menu Hari Ini");
             var def = "Nasi Ayam Bakar|Rp25.000|sambal matah, lalapan\nSoto Betawi|Rp28.000|kuah santan gurih\nMie Goreng Jawa|Rp22.000|pakai telur bebek\nEs Teh Serai|Rp8.000|segar, tidak terlalu manis";
@@ -277,27 +258,22 @@
 
             var step = Math.min(0.55, 3.2 / Math.max(1, N));
             var tl = gsap.timeline({ paused: true });
-            tl.fromTo("#mb-b1", { scale: 0.9, rotation: 0 }, { scale: 1.08, rotation: 20, duration: 8, ease: "sine.inOut" }, 0);
-            tl.fromTo("#mb-b2", { scale: 1.05 }, { scale: 0.92, duration: 8, ease: "sine.inOut" }, 0);
-            tl.fromTo("#mb-frame", { scale: 1.06, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "power3.out" }, 0);
-            tl.fromTo("#mb-kicker", { x: -60 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.3);
+            tl.fromTo("#mb-kicker", { y: -20 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.3);
             tl.fromTo("#mb-title", { yPercent: 115 }, { yPercent: 0, duration: 0.8, ease: "expo.out" }, 0.5);
-            tl.fromTo("#mb-pen", { attr: { "stroke-dashoffset": 600 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.7, ease: "power2.inOut" }, 1.1);
             var t0 = 1.6;
             rows.forEach(function (r, i) {
               var at = t0 + i * step, it = "#mb-item-" + i;
               tl.fromTo(it, { x: -80 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, at);
               tl.fromTo(it + " .mb-dots", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out" }, at + 0.2);
-              tl.fromTo(it + " .mb-price", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2)", transformOrigin: "100% 60%" }, at + 0.45);
+              tl.fromTo(it + " .mb-price", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out", transformOrigin: "100% 60%" }, at + 0.45);
             });
             var done = t0 + (N - 1) * step + 0.9;
-            tl.fromTo("#mb-hand", { scale: 0, rotation: -40 }, { scale: 1, rotation: -8, duration: 0.5, ease: "back.out(2.4)" }, done);
-            tl.to("#mb-hand", { rotation: -2, duration: 0.6, yoyo: true, repeat: 3, ease: "sine.inOut" }, done + 0.5);
+            tl.fromTo("#mb-hand", { y: 16 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, done);
             tl.fromTo("#mb-foot > *", { y: 60 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out", stagger: 0.18 }, done + 0.3);
             // A light sweep along the prices keeps the board alive while it is held.
             var sw = done + 1.6, sstep = Math.min(0.3, 1.5 / Math.max(1, N));
             rows.forEach(function (r, i) {
-              tl.to("#mb-item-" + i + " .mb-price", { scale: 1.18, duration: 0.25, yoyo: true, repeat: 1, ease: "power2.inOut", transformOrigin: "100% 60%" }, sw + i * sstep);
+              tl.to("#mb-item-" + i + " .mb-price", { scale: 1.08, duration: 0.25, yoyo: true, repeat: 1, ease: "power2.inOut", transformOrigin: "100% 60%" }, sw + i * sstep);
             });
 
             var total = parseFloat(root.dataset.duration || "8");

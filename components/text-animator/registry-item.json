@@ -1,0 +1,375 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-animator",
+  "type": "hyperframes:component",
+  "title": "Text Animator",
+  "description": "After Effects style text animator: a range selector sweeps across the characters, words or lines and drives position, scale, rotation, skew, opacity, blur, tracking and fill colour of what it covers.",
+  "tags": [
+    "text-effects",
+    "text-animator",
+    "range-selector",
+    "kinetic-type",
+    "per-character",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "You want an After Effects style animator: one selector window sliding across the text, with the properties of your choice applied to what it covers.",
+    "A flexible per-character, per-word or per-line reveal where position, scale, rotation, blur, tracking and colour can be mixed."
+  ],
+  "avoidWhen": [
+    "A plain staggered entrance is enough: use split-text-chars.",
+    "You need a wiggly (noise) selector or per-glyph character substitution: this port has the range selector only."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/text-animator.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "text-animator.html",
+      "target": "compositions/components/text-animator.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. A line break starts a new line.",
+      "default": "Animate every letter."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 84,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": 700,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    },
+    {
+      "id": "based_on",
+      "type": "enum",
+      "role": "motion",
+      "label": "Based on",
+      "description": "What the selector counts: characters, words or lines.",
+      "default": "characters",
+      "options": [
+        {
+          "value": "characters",
+          "label": "Characters"
+        },
+        {
+          "value": "words",
+          "label": "Words"
+        },
+        {
+          "value": "lines",
+          "label": "Lines"
+        }
+      ]
+    },
+    {
+      "id": "position_x",
+      "type": "number",
+      "role": "motion",
+      "label": "Position X",
+      "description": "Horizontal offset of a selected unit, in em.",
+      "default": 0,
+      "min": -3,
+      "max": 3,
+      "step": 0.05,
+      "unit": "em"
+    },
+    {
+      "id": "position_y",
+      "type": "number",
+      "role": "motion",
+      "label": "Position Y",
+      "description": "Vertical offset of a selected unit, in em.",
+      "default": 0.5,
+      "min": -3,
+      "max": 3,
+      "step": 0.05,
+      "unit": "em"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "motion",
+      "label": "Scale",
+      "description": "Scale of a selected unit (1 is unchanged).",
+      "default": 0.8,
+      "min": 0,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "motion",
+      "label": "Rotation",
+      "description": "Rotation of a selected unit in degrees.",
+      "default": 0,
+      "min": -360,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "skew",
+      "type": "number",
+      "role": "motion",
+      "label": "Skew",
+      "description": "Horizontal skew of a selected unit in degrees.",
+      "default": 0,
+      "min": -60,
+      "max": 60,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "opacity",
+      "type": "number",
+      "role": "motion",
+      "label": "Opacity",
+      "description": "Opacity of a selected unit (0 to 1).",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Blur of a selected unit in pixels.",
+      "default": 10,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "tracking",
+      "type": "number",
+      "role": "motion",
+      "label": "Tracking",
+      "description": "Extra spacing after a selected unit, in em.",
+      "default": 0,
+      "min": -1,
+      "max": 3,
+      "step": 0.02,
+      "unit": "em"
+    },
+    {
+      "id": "fill_color",
+      "type": "color",
+      "role": "style",
+      "label": "Fill color",
+      "description": "Colour a selected unit takes while the selector covers it.",
+      "default": "#7dd3fc"
+    },
+    {
+      "id": "use_fill",
+      "type": "boolean",
+      "role": "style",
+      "label": "Use fill color",
+      "description": "Tint selected units with the fill colour.",
+      "default": true
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "motion",
+      "label": "Selector shape",
+      "description": "Shape of the selector window.",
+      "default": "square",
+      "options": [
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "ramp-up",
+          "label": "Ramp up"
+        },
+        {
+          "value": "ramp-down",
+          "label": "Ramp down"
+        },
+        {
+          "value": "triangle",
+          "label": "Triangle"
+        },
+        {
+          "value": "round",
+          "label": "Round"
+        },
+        {
+          "value": "smooth",
+          "label": "Smooth"
+        }
+      ]
+    },
+    {
+      "id": "smoothness",
+      "type": "number",
+      "role": "motion",
+      "label": "Smoothness",
+      "description": "Square shape only: 1 fades units across their slot, 0 switches them on and off hard.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "start",
+      "type": "number",
+      "role": "motion",
+      "label": "Start",
+      "description": "Start of the selector window, in percent of the text.",
+      "default": 0,
+      "min": -100,
+      "max": 200,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "end",
+      "type": "number",
+      "role": "motion",
+      "label": "End",
+      "description": "End of the selector window, in percent of the text.",
+      "default": 100,
+      "min": -100,
+      "max": 200,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "offset_from",
+      "type": "number",
+      "role": "motion",
+      "label": "Offset from",
+      "description": "Where the window sits when the sweep starts, as a percent shift.",
+      "default": 0,
+      "min": -200,
+      "max": 200,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "offset_to",
+      "type": "number",
+      "role": "motion",
+      "label": "Offset to",
+      "description": "Where the window sits when the sweep ends.",
+      "default": 100,
+      "min": -200,
+      "max": 200,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "random_order",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Random order",
+      "description": "Shuffle which unit sits where in the selector.",
+      "default": false
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Seed of the shuffle.",
+      "default": 1,
+      "min": 0,
+      "max": 999,
+      "step": 1
+    },
+    {
+      "id": "delay_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frames (30 per second) before the sweep starts.",
+      "default": 8,
+      "min": 0,
+      "max": 300,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "sweep_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Sweep",
+      "description": "Frames the window takes to travel from Offset from to Offset to.",
+      "default": 60,
+      "min": 4,
+      "max": 300,
+      "step": 1,
+      "unit": "frames"
+    }
+  ]
+}

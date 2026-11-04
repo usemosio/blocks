@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "font-weight-text",
+  "type": "hyperframes:component",
+  "title": "Font Weight Text",
+  "description": "Letters breathe through a variable font weight, thin to heavy and back, each on its own phase so a wave of weight rolls along the word from the middle outward.",
+  "tags": [
+    "text-effects",
+    "variable-font",
+    "weight",
+    "breathing",
+    "loop",
+    "eldoraui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A headline should feel alive without moving: weight swells and relaxes letter by letter.",
+    "A calm, looping title or call to action."
+  ],
+  "avoidWhen": [
+    "The layout must not shift: the letters change width as the weight changes; use caption-weight for a no-shift swell.",
+    "A one-shot entrance."
+  ],
+  "author": "Eldora UI",
+  "authorUrl": "https://www.eldoraui.site",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/karthikmudunuri/eldoraui",
+    "path": "apps/www/registry/eldoraui/font-weight-text.tsx",
+    "commit": "6bb8fd211ecbdfa983f5780bead27d9f3890f20a"
+  },
+  "files": [
+    {
+      "path": "font-weight-text.html",
+      "target": "compositions/components/font-weight-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The word or phrase that breathes.", "default": "Get Started"},
+    {"id": "min_weight", "type": "number", "role": "style", "label": "Minimum weight", "description": "Lightest weight of the cycle (the font floors it at 100).", "default": 100, "min": 100, "max": 1000, "step": 10},
+    {"id": "max_weight", "type": "number", "role": "style", "label": "Maximum weight", "description": "Heaviest weight of the cycle.", "default": 840, "min": 100, "max": 1000, "step": 10},
+    {"id": "animation_duration", "type": "number", "role": "motion", "label": "Breath time", "description": "Seconds from light to heavy.", "default": 1.5, "min": 0.4, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "delay_multiplier", "type": "number", "role": "motion", "label": "Phase offset", "description": "Seconds of phase between neighbouring letters.", "default": 0.25, "min": 0, "max": 1, "step": 0.01, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 150, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#0e7490"}
+  ]
+}

@@ -1,0 +1,375 @@
+<!doctype html>
+<!--
+  Text Mask Video
+
+  An animated gradient inside the letterforms, with a wipe reveal.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/text-mask-video.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="text-mask-video"
+  data-composition-duration="5"
+  data-composition-variables='[
+    [
+      {
+        "id": "text",
+        "type": "string",
+        "role": "content",
+        "label": "Text",
+        "description": "The text. A line break starts a new line.",
+        "default": "MOTION\nIN TYPE"
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Text size in pixels.",
+        "default": 190,
+        "min": 40,
+        "max": 400,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the text (heavy reads best).",
+        "default": 900,
+        "min": 100,
+        "max": 900,
+        "step": 100
+      },
+      {
+        "id": "line_height",
+        "type": "number",
+        "role": "style",
+        "label": "Line height",
+        "description": "Line height as a multiple of the font size.",
+        "default": 0.98,
+        "min": 0.7,
+        "max": 1.6,
+        "step": 0.02
+      },
+      {
+        "id": "letter_spacing",
+        "type": "number",
+        "role": "style",
+        "label": "Letter spacing",
+        "description": "Extra spacing between letters, in pixels.",
+        "default": 0,
+        "min": -20,
+        "max": 60,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "color_1",
+        "type": "color",
+        "role": "style",
+        "label": "Gradient color 1",
+        "description": "First colour of the fill gradient.",
+        "default": "#e8b86d"
+      },
+      {
+        "id": "color_2",
+        "type": "color",
+        "role": "style",
+        "label": "Gradient color 2",
+        "description": "Second colour of the fill gradient.",
+        "default": "#f472b6"
+      },
+      {
+        "id": "color_3",
+        "type": "color",
+        "role": "style",
+        "label": "Gradient color 3",
+        "description": "Third colour of the fill gradient.",
+        "default": "#2dd4bf"
+      },
+      {
+        "id": "gradient_angle",
+        "type": "number",
+        "role": "style",
+        "label": "Gradient angle",
+        "description": "Angle of the fill gradient in degrees.",
+        "default": 115,
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "unit": "deg"
+      },
+      {
+        "id": "reveal",
+        "type": "enum",
+        "role": "motion",
+        "label": "Reveal",
+        "description": "Direction of the wipe that reveals the fill.",
+        "default": "left",
+        "options": [
+          {
+            "value": "left",
+            "label": "Left to right"
+          },
+          {
+            "value": "right",
+            "label": "Right to left"
+          },
+          {
+            "value": "up",
+            "label": "Bottom to top"
+          },
+          {
+            "value": "down",
+            "label": "Top to bottom"
+          },
+          {
+            "value": "none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "id": "drift",
+        "type": "number",
+        "role": "motion",
+        "label": "Drift",
+        "description": "How far the fill pans behind the letters, in pixels.",
+        "default": 26,
+        "min": 0,
+        "max": 200,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "zoom",
+        "type": "number",
+        "role": "motion",
+        "label": "Zoom",
+        "description": "How much the fill breathes in scale.",
+        "default": 0.12,
+        "min": 0,
+        "max": 0.6,
+        "step": 0.01
+      },
+      {
+        "id": "duration_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Reveal duration",
+        "description": "Frames (30 per second) the wipe takes.",
+        "default": 30,
+        "min": 4,
+        "max": 120,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "delay_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Delay",
+        "description": "Frames before the wipe starts.",
+        "default": 6,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "exit",
+        "type": "boolean",
+        "role": "motion",
+        "label": "Exit",
+        "description": "Unwind the wipe at the end of the clip.",
+        "default": false
+      },
+      {
+        "id": "font",
+        "type": "enum",
+        "role": "style",
+        "label": "Font",
+        "description": "Typeface.",
+        "default": "poppins",
+        "options": [
+          {
+            "value": "geist",
+            "label": "Geist"
+          },
+          {
+            "value": "poppins",
+            "label": "Poppins"
+          },
+          {
+            "value": "playfair",
+            "label": "Playfair Display"
+          },
+          {
+            "value": "grotesk",
+            "label": "Space Grotesk"
+          }
+        ]
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Mask Video</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #f4f4f5; }
+        .tmv-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .tmv-fill { position: absolute; inset: 0; }
+        .tmv-fill > * { position: absolute; inset: -8%; width: 116%; height: 116%; object-fit: cover; }
+        .tmv-mask { position: absolute; inset: 0; }
+      </style>
+
+      <div id="root" data-composition-id="text-mask-video" data-duration="5" data-fps="30">
+        <div id="tmv-clip" class="tmv-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="tmv-shape" clipPathUnits="userSpaceOnUse"></clipPath></defs></svg>
+          <div id="tmv-mask" class="tmv-mask"><div id="tmv-reveal" class="tmv-fill"><div id="tmv-pan" class="tmv-fill"></div></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "5");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "poppins");
+            root.style.fontFamily = FONTS[fontKey];
+            var ARRIVE = bez(0.33, 1, 0.68, 1), ENTER = bez(0.16, 1, 0.3, 1);
+            function EXIT(t) { return t * t * t; }
+            // Enter/exit contract of remotion-ui's motion primitives: light leads the move (opacity done 55 % in), an exit is shorter and accelerates away.
+            function enterExit(frame, o) {
+              var et = clamp01((frame - o.delay) / o.duration);
+              var motion = ARRIVE(et), opacity = ENTER(clamp01(et / 0.55));
+              if (!o.exit) return { motion: motion, opacity: opacity, exiting: false, exitProgress: 0 };
+              var exitFrames = Math.max(6, Math.round(o.duration * 0.7));
+              var exitStart = Math.max(TOTAL * 30 - exitFrames, o.delay + o.duration);
+              var xt = clamp01((frame - exitStart) / exitFrames), xp = EXIT(xt);
+              var exiting = frame >= exitStart;
+              return { motion: exiting ? 1 - xp : motion, opacity: opacity * EXIT(1 - clamp01(xt / 0.7)), exiting: exiting, exitProgress: xp };
+            }
+
+            var text = str(vars.text, "MOTION\nIN TYPE");
+            var lines = text.split(/\r?\n/);
+            var fontSize = num(vars.font_size, 190, 40, 400), weight = num(vars.font_weight, 900, 100, 900), lh = num(vars.line_height, 0.98, 0.7, 1.6), ls = num(vars.letter_spacing, 0, -20, 60);
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, NS = "http://www.w3.org/2000/svg";
+            var clip = document.getElementById("tmv-shape");
+            var blockH = (lines.length - 1) * fontSize * lh, firstY = H / 2 - blockH / 2;
+            var family = getComputedStyle(root).fontFamily;
+            lines.forEach(function (line, i) {
+              var t = document.createElementNS(NS, "text");
+              t.setAttribute("x", String(W / 2)); t.setAttribute("y", String(firstY + i * fontSize * lh));
+              t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "central");
+              t.setAttribute("font-size", String(fontSize)); t.setAttribute("font-weight", String(weight)); t.setAttribute("letter-spacing", String(ls));
+              t.setAttribute("font-family", family);
+              t.textContent = line;
+              clip.appendChild(t);
+            });
+            var mask = document.getElementById("tmv-mask"), revealEl = document.getElementById("tmv-reveal"), pan = document.getElementById("tmv-pan");
+            mask.style.clipPath = "url(#tmv-shape)"; mask.style.webkitClipPath = "url(#tmv-shape)";
+            mask.setAttribute("role", "img"); mask.setAttribute("aria-label", text);
+            // Fill: an animated gradient inside the letters.
+            var fillEl = mk("div", pan);
+            var c1 = str(vars.color_1, "#e8b86d"), c2 = str(vars.color_2, "#f472b6"), c3 = str(vars.color_3, "#2dd4bf"), ang = num(vars.gradient_angle, 115, 0, 360);
+            fillEl.style.background = "linear-gradient(" + ang + "deg, " + c1 + " 0%, " + c2 + " 25%, " + c3 + " 50%, " + c2 + " 75%, " + c1 + " 100%)";
+            fillEl.style.backgroundSize = "200% 200%";
+            var reveal = pick(vars.reveal, ["left", "right", "up", "down", "none"], "left");
+            var drift = num(vars.drift, 26, 0, 200), zoom = num(vars.zoom, 0.12, 0, 0.6);
+            var o = { duration: num(vars.duration_frames, 30, 4, 120), delay: num(vars.delay_frames, 6, 0, 120), exit: bool(vars.exit, false) };
+            var INSET = { left: function (h) { return "inset(0 " + h + "% 0 0)"; }, right: function (h) { return "inset(0 0 0 " + h + "%)"; }, up: function (h) { return "inset(0 0 " + h + "% 0)"; }, down: function (h) { return "inset(" + h + "% 0 0 0)"; } };
+            function draw(frame) {
+              var s = enterExit(frame, o);
+              var revealed = reveal === "none" ? 1 : s.motion * (1 - (o.exit ? s.exitProgress : 0));
+              var hidden = Math.max(0, Math.min(100, (1 - revealed) * 100));
+              mask.style.opacity = String(s.opacity);
+              revealEl.style.clipPath = reveal === "none" ? "" : INSET[reveal](hidden.toFixed(2));
+              // Pan and zoom are sines, not ramps: a linear pan runs off the edge of a long shot.
+              var sec = frame / 30, px = Math.sin(sec * 0.62) * drift, sc = 1 + zoom * (0.5 + 0.5 * Math.sin(sec * 0.44 + 1.1));
+              pan.style.transform = "translateX(" + (-px).toFixed(2) + "px) scale(" + sc.toFixed(4) + ")";
+              pan.firstChild.style.backgroundPosition = (50 + 50 * Math.sin(sec * 0.9)).toFixed(2) + "% " + (50 + 50 * Math.cos(sec * 0.7)).toFixed(2) + "%";
+            }
+            drive("text-mask-video", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<!--
+  Text Highlighter
+
+  Marked phrases in a paragraph get a highlighter fill that wipes across them (left to right, right to left, top down or bottom up), one phrase after another, wrapping correctly across lines.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/danielpetho/fancy/blob/f9f62c61207b2dd3210476dd98af3c9a5be24094/src/fancy/components/text/text-highlighter.tsx
+
+  MIT License
+
+  Copyright (c) 2024 Daniel Petho
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="text-highlighter"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Paragraph. Wrap each phrase to highlight in double square brackets, like [[this]].", "default": "Typefaces are the voice of a page. [[A good headline is chosen, not defaulted]], and the best ones disappear into the message. Spacing does as much work as shape: [[the room between letters and lines]] decides how easily a reader moves through the text. [[Test it at the size people will actually see.]]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 54, "min": 16, "max": 160, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Paragraph text color.", "default": "#111111"},
+    {"id": "highlight_color", "type": "color", "role": "style", "label": "Highlight color", "description": "Color of the highlighter fill.", "default": "#f2ad91"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Direction the highlight wipes in.", "default": "ltr", "options": [{"value": "ltr", "label": "Left to right"}, {"value": "rtl", "label": "Right to left"}, {"value": "ttb", "label": "Top to bottom"}, {"value": "btt", "label": "Bottom to top"}]},
+    {"id": "line_height", "type": "number", "role": "style", "label": "Line height", "description": "Line height as a multiple of the font size.", "default": 1.5, "min": 1, "max": 2.5, "step": 0.05},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first highlight starts.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between one highlight and the next.", "default": 0.7, "min": 0, "max": 3, "step": 0.05, "unit": "s"},
+    {"id": "wipe_duration", "type": "number", "role": "motion", "label": "Wipe duration", "description": "Perceived duration of each highlight&#39;s spring.", "default": 1, "min": 0.2, "max": 3, "step": 0.05, "unit": "s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Highlighter</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #111111; font-family: Geist, system-ui, sans-serif; }
+        .th-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .th-text { width: min(84cqw, 1100px); white-space: pre-wrap; }
+        .th-mark { display: inline; border-radius: 0.3em; padding: 0 1px; background-repeat: no-repeat; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+      </style>
+
+      <div id="root" data-composition-id="text-highlighter" data-duration="5" data-fps="30">
+        <div id="th-clip" class="th-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <p id="th-text" class="th-text"></p>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var DEFS = [{"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Paragraph. Wrap each phrase to highlight in double square brackets, like [[this]].", "default": "Typefaces are the voice of a page. [[A good headline is chosen, not defaulted]], and the best ones disappear into the message. Spacing does as much work as shape: [[the room between letters and lines]] decides how easily a reader moves through the text. [[Test it at the size people will actually see.]]"}, {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 54, "min": 16, "max": 160, "step": 1, "unit": "px"}, {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}]}, {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Paragraph text color.", "default": "#111111"}, {"id": "highlight_color", "type": "color", "role": "style", "label": "Highlight color", "description": "Color of the highlighter fill.", "default": "#f2ad91"}, {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Direction the highlight wipes in.", "default": "ltr", "options": [{"value": "ltr", "label": "Left to right"}, {"value": "rtl", "label": "Right to left"}, {"value": "ttb", "label": "Top to bottom"}, {"value": "btt", "label": "Bottom to top"}]}, {"id": "line_height", "type": "number", "role": "style", "label": "Line height", "description": "Line height as a multiple of the font size.", "default": 1.5, "min": 1, "max": 2.5, "step": 0.05}, {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first highlight starts.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"}, {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between one highlight and the next.", "default": 0.7, "min": 0, "max": 3, "step": 0.05, "unit": "s"}, {"id": "wipe_duration", "type": "number", "role": "motion", "label": "Wipe duration", "description": "Perceived duration of each highlight's spring.", "default": 1, "min": 0.2, "max": 3, "step": 0.05, "unit": "s"}];
+            var root = document.getElementById("root");
+            var raw = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var D = parseFloat(root.dataset.duration || "5");
+            function V(id) {
+              var d = null;
+              for (var i = 0; i < DEFS.length; i++) if (DEFS[i].id === id) d = DEFS[i];
+              var v = raw[id];
+              if (v === undefined || v === null || (v === "" && d.type !== "string")) return d.default;
+              if (d.type === "number") { var n = Number(v); return Number.isFinite(n) ? Math.min(d.max, Math.max(d.min, n)) : d.default; }
+              if (d.type === "boolean") return v === true || v === "true";
+              if (d.type === "enum") { for (var j = 0; j < d.options.length; j++) if (String(d.options[j].value) === String(v)) return d.options[j].value; return d.default; }
+              if (d.type === "string") return typeof v === "string" ? v : d.default;
+              return typeof v === "string" && v ? v : d.default;
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function hash3(a, b, c) { return mulberry32((a * 7919 + b * 104729 + c * 1299709) | 0)(); }
+            // Stagger delays in seconds: "first", "last", "center", "random" (seeded shuffle) or an index.
+            function stagger(n, from, step, seed) {
+              var out = [], i;
+              if (from === "random") {
+                var rng = mulberry32(seed || 7), idx = [];
+                for (i = 0; i < n; i++) idx.push(i);
+                for (i = n - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp; }
+                for (i = 0; i < n; i++) out[idx[i]] = i * step;
+                return out;
+              }
+              for (i = 0; i < n; i++) {
+                var k = from === "last" ? n - 1 - i : from === "center" ? Math.abs(Math.floor(n / 2) - i) : typeof from === "number" ? Math.abs(from - i) : i;
+                out.push(k * step);
+              }
+              return out;
+            }
+            // Damped spring from 0 to 1 (stiffness/damping/mass or duration/bounce, as Motion defines them).
+            function spring(o) {
+              var m = o.mass || 1, k, c;
+              if (o.duration !== undefined) { var w = (2 * Math.PI) / o.duration; k = w * w * m; c = 2 * (1 - (o.bounce || 0)) * Math.sqrt(k * m); }
+              else { k = o.stiffness; c = o.damping; }
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              function at(t) {
+                if (t <= 0) return 0;
+                if (Math.abs(z - 1) < 1e-6) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+                if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t)); }
+                var s = Math.sqrt(z * z - 1), r1 = -w0 * (z - s), r2 = -w0 * (z + s);
+                return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+              }
+              var settle = 6;
+              for (var t = 0.02; t < 6; t += 0.02) {
+                var ok = true;
+                for (var u = t; u < Math.min(t + 0.3, 6); u += 0.05) if (Math.abs(1 - at(u)) > 0.002) { ok = false; break; }
+                if (ok) { settle = t; break; }
+              }
+              return { at: at, duration: settle };
+            }
+            function fitText(text) { return Array.from(text); }
+
+            var el = document.getElementById("th-text");
+            var text = V("text") || "[[Highlighted]] text";
+            el.style.fontSize = V("font_size") + "px"; el.style.fontWeight = V("font_weight");
+            el.style.lineHeight = V("line_height"); el.style.color = V("color");
+            var color = V("highlight_color"), dir = V("direction");
+            var marks = [];
+            var parts = text.split(/\[\[|\]\]/);
+            parts.forEach(function (part, i) {
+              if (i % 2 === 0) { el.appendChild(document.createTextNode(part)); return; }
+              var m = document.createElement("span"); m.className = "th-mark"; m.id = "th-mark-" + marks.length;
+              m.textContent = part;
+              m.style.backgroundImage = "linear-gradient(" + color + ", " + color + ")";
+              m.style.backgroundPosition = dir === "rtl" ? "100% 0%" : dir === "btt" ? "0% 100%" : "0% 0%";
+              el.appendChild(m); marks.push(m);
+            });
+            var sp = spring({ duration: V("wipe_duration"), bounce: 0 });
+            var start = V("start"), gap = V("stagger");
+            var tl = gsap.timeline({ paused: true });
+            function draw(t) {
+              for (var i = 0; i < marks.length; i++) {
+                var p = Math.max(0, Math.min(1, sp.at(t - start - i * gap))) * 100;
+                marks[i].style.backgroundSize = dir === "ttb" || dir === "btt" ? "100% " + p.toFixed(2) + "%" : p.toFixed(2) + "% 100%";
+              }
+            }
+
+            var clock = { t: 0 };
+            tl.to(clock, { t: D, duration: D, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["text-highlighter"] = tl;
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

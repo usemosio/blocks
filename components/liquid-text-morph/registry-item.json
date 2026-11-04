@@ -1,0 +1,179 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "liquid-text-morph",
+  "type": "hyperframes:component",
+  "title": "Liquid Text Morph",
+  "description": "Melts one word into the next through a gooey blur-and-threshold filter: letters arrive squat and wide and tighten as the words trade places.",
+  "tags": [
+    "text-effects",
+    "morph",
+    "liquid",
+    "goo",
+    "word-swap",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A rotating headline or a list of words should melt from one to the next.",
+    "A playful, fluid brand voice."
+  ],
+  "avoidWhen": [
+    "Small text: the goo filter blurs fine detail, keep it large.",
+    "Gooey bars fly in and become a word: use gooey-morph."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/liquid-text-morph.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "liquid-text-morph.html",
+      "target": "compositions/components/liquid-text-morph.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "The words or phrases to cycle through, one per line.",
+      "default": "Create\nAnimate\nShare"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 96,
+      "min": 24,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": 700,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    },
+    {
+      "id": "hold_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Hold",
+      "description": "Frames (30 per second) a word rests before it melts.",
+      "default": 12,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "morph_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Morph",
+      "description": "Frames one word takes to melt into the next.",
+      "default": 22,
+      "min": 4,
+      "max": 90,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "loop",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Loop",
+      "description": "Return to the first word after the last. Off holds on the last word.",
+      "default": true
+    },
+    {
+      "id": "goo_strength",
+      "type": "number",
+      "role": "style",
+      "label": "Goo strength",
+      "description": "Blur radius of the filter as a share of the font size.",
+      "default": 0.045,
+      "min": 0.005,
+      "max": 0.2,
+      "step": 0.005
+    },
+    {
+      "id": "goo_contrast",
+      "type": "number",
+      "role": "style",
+      "label": "Goo contrast",
+      "description": "Alpha contrast of the threshold. Higher gives a harder edge.",
+      "default": 18,
+      "min": 4,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "stagger_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Frames between one letter and the next.",
+      "default": 2,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "frames"
+    }
+  ],
+  "checkAt": [
+    0.7,
+    1.0,
+    1.9,
+    3.0
+  ]
+}

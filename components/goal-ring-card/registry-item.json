@@ -1,0 +1,168 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "goal-ring-card",
+  "type": "hyperframes:component",
+  "title": "Goal Ring Card",
+  "description": "A day-summary card: a ring fills to the share of a daily goal while the figure inside counts up, above a bar that restates the goal.",
+  "tags": [
+    "stat",
+    "progress",
+    "ring",
+    "card",
+    "goal",
+    "widget",
+    "animata-port"
+  ],
+  "category": "data",
+  "duration": 4,
+  "useWhen": [
+    "A single daily figure against a goal (steps, calories, sales, minutes) should fill a ring.",
+    "A fitness or habit style summary card in a vertical video."
+  ],
+  "avoidWhen": [
+    "Several metrics at once: use a chart or dashboard block.",
+    "A ring alone with no card: use conic-progress-ring."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/widget/calorie-counter.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "goal-ring-card.html",
+      "target": "compositions/components/goal-ring-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "weekday",
+      "type": "string",
+      "role": "content",
+      "label": "Weekday",
+      "description": "Small grey line at the top left.",
+      "default": "Monday"
+    },
+    {
+      "id": "date_label",
+      "type": "string",
+      "role": "content",
+      "label": "Date",
+      "description": "Date line under the weekday.",
+      "default": "25 October"
+    },
+    {
+      "id": "initials",
+      "type": "string",
+      "role": "content",
+      "label": "Initials",
+      "description": "Letters in the round badge at the top right.",
+      "default": "AB"
+    },
+    {
+      "id": "today_label",
+      "type": "string",
+      "role": "content",
+      "label": "Ring label",
+      "description": "Small label above the figure inside the ring.",
+      "default": "Today"
+    },
+    {
+      "id": "goal_label",
+      "type": "string",
+      "role": "content",
+      "label": "Goal label",
+      "description": "Label on the bar at the bottom.",
+      "default": "Your goal"
+    },
+    {
+      "id": "unit",
+      "type": "string",
+      "role": "content",
+      "label": "Unit",
+      "description": "Unit written after the figures.",
+      "default": "Cal"
+    },
+    {
+      "id": "goal",
+      "type": "number",
+      "role": "content",
+      "label": "Goal",
+      "description": "Daily goal.",
+      "default": 4000,
+      "min": 1,
+      "max": 1000000,
+      "step": 1
+    },
+    {
+      "id": "fulfilled",
+      "type": "number",
+      "role": "content",
+      "label": "Done so far",
+      "description": "Amount reached today.",
+      "default": 2600,
+      "min": 0,
+      "max": 1000000,
+      "step": 1
+    },
+    {
+      "id": "ring_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Fill time",
+      "description": "Seconds the ring takes to fill.",
+      "default": 1.4,
+      "min": 0.3,
+      "max": 4,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Card scale",
+      "description": "Scale of the card (1 is 288 × 384 px); it never grows past the frame.",
+      "default": 2.4,
+      "min": 0.5,
+      "max": 5,
+      "step": 0.1
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Ring color",
+      "description": "Colour of the filled ring.",
+      "default": "#4ade80"
+    },
+    {
+      "id": "goal_color",
+      "type": "color",
+      "role": "style",
+      "label": "Goal color",
+      "description": "Colour of the goal figure.",
+      "default": "#fdba74"
+    },
+    {
+      "id": "card_background",
+      "type": "color",
+      "role": "style",
+      "label": "Card color",
+      "description": "Card fill.",
+      "default": "#f3f4f6"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Main text colour.",
+      "default": "#111827"
+    }
+  ]
+}

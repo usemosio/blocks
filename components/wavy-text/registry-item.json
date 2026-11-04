@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "wavy-text",
+  "type": "hyperframes:component",
+  "title": "Wavy Text",
+  "description": "Letters bob up and down in a continuous wave, each starting a beat after the one before, like a ripple running along the word.",
+  "tags": [
+    "text-effects",
+    "loop",
+    "wave",
+    "letters",
+    "bounce",
+    "eldoraui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A playful word or title should keep gently moving while it is on screen.",
+    "A looping accent for a short label."
+  ],
+  "avoidWhen": [
+    "A one-shot reveal: use per-character-rise.",
+    "Serious or dense copy."
+  ],
+  "author": "Eldora UI",
+  "authorUrl": "https://www.eldoraui.site",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/karthikmudunuri/eldoraui",
+    "path": "apps/www/registry/eldoraui/wavy-text.tsx",
+    "commit": "6bb8fd211ecbdfa983f5780bead27d9f3890f20a"
+  },
+  "files": [
+    {
+      "path": "wavy-text.html",
+      "target": "compositions/components/wavy-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase.", "default": "Wavy Text"},
+    {"id": "amplitude", "type": "number", "role": "motion", "label": "Amplitude", "description": "How far each letter travels up and down from centre. Scales with font size (72px = source).", "default": 10, "min": 0, "max": 80, "step": 1, "unit": "px"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Half-wave time", "description": "Seconds for a letter to go from bottom to top.", "default": 0.5, "min": 0.15, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between one letter and the next.", "default": 0.2, "min": 0.02, "max": 0.6, "step": 0.01, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 120, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

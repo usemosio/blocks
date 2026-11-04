@@ -1,0 +1,202 @@
+<!doctype html>
+<!--
+  Typing Animation
+
+  Words are typed out one after another with a blinking cursor, each deleted faster than it was typed before the next begins.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/typing-animation.tsx
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="typing-animation"
+  data-composition-duration="8"
+  data-composition-variables='[
+    {"id": "words", "type": "string", "role": "content", "label": "Words", "description": "The phrases in order, separated by | .", "default": "Fast typing|Slow delete"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 96, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Colour", "description": "Text and cursor colour.", "default": "#0a0a0a"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]},
+    {"id": "cursor_style", "type": "enum", "role": "style", "label": "Cursor", "description": "Cursor shape.", "default": "line", "options": [{"value": "line", "label": "Line"}, {"value": "block", "label": "Block"}, {"value": "underscore", "label": "Underscore"}]},
+    {"id": "blink", "type": "enum", "role": "style", "label": "Cursor blink", "description": "Whether the cursor blinks.", "default": "yes", "options": [{"value": "yes", "label": "Blink"}, {"value": "no", "label": "Steady"}]},
+    {"id": "type_speed", "type": "number", "role": "motion", "label": "Type speed", "description": "Milliseconds per typed character (the source uses 100).", "default": 100, "min": 20, "max": 400, "step": 5, "unit": "ms"},
+    {"id": "delete_speed", "type": "number", "role": "motion", "label": "Delete speed", "description": "Milliseconds per deleted character; 0 means half the type speed (as the source).", "default": 50, "min": 0, "max": 400, "step": 5, "unit": "ms"},
+    {"id": "pause", "type": "number", "role": "motion", "label": "Pause", "description": "Milliseconds a finished phrase stays before it is deleted (the source uses 1000).", "default": 1000, "min": 0, "max": 5000, "step": 50, "unit": "ms"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Milliseconds before typing starts.", "default": 300, "min": 0, "max": 3000, "step": 50, "unit": "ms"},
+    {"id": "loop", "type": "enum", "role": "motion", "label": "Loop", "description": "Whether the last phrase is also deleted and the list starts over.", "default": "no", "options": [{"value": "no", "label": "Stop on the last phrase"}, {"value": "yes", "label": "Loop"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Typing Animation</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .tpa-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .tpa-line { font-family: var(--font-display, Geist, system-ui, sans-serif); letter-spacing: -0.02em; line-height: 1.2; white-space: pre; display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="typing-animation" data-duration="8" data-fps="30">
+        <div id="tpa-clip" class="tpa-stage clip" data-start="0" data-duration="8" data-track-index="0">
+          <div id="tpa-line" class="tpa-line"><span id="tpa-text"></span><span id="tpa-cursor"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "tpa";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "8");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["typing-animation"] = tl;
+            }
+
+            var line = document.getElementById("tpa-line");
+            var textEl = document.getElementById("tpa-text");
+            var cur = document.getElementById("tpa-cursor");
+            var words = str(vars.words, "Fast typing|Slow delete").split("|").map(function (w) { return w.trim(); }).filter(Boolean);
+            if (!words.length) words = ["Fast typing"];
+            var typeMs = num(vars.type_speed, 100, 20, 400);
+            var delMs = num(vars.delete_speed, 50, 0, 400) || typeMs / 2;
+            var pauseMs = num(vars.pause, 1000, 0, 5000);
+            var delayMs = num(vars.delay, 300, 0, 3000);
+            var loop = String(vars.loop) === "yes";
+            var blink = String(vars.blink) !== "no";
+            var total = parseFloat(root.dataset.duration || "8");
+            line.style.color = col(vars.color, "#0a0a0a");
+            line.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700", "800"], "600");
+            cur.textContent = { block: "\u258C", underscore: "_", line: "|" }[pick(vars.cursor_style, ["line", "block", "underscore"], "line")];
+            cur.style.display = "inline-block";
+            var many = words.length > 1;
+            // Same state machine as the source (type, pause, delete), as a list of timed text states.
+            var events = [{ t: 0, text: "", cursor: true }];
+            var t = delayMs / 1000, wi = 0, done = false, guard = 0;
+            var first = true;
+            while (!done && t < total + 1 && guard++ < 5000) {
+              var chars = Array.from(words[wi]);
+              for (var i = 1; i <= chars.length; i++) {
+                if (!(first && i === 1 && delayMs > 0)) t += typeMs / 1000;
+                events.push({ t: t, text: chars.slice(0, i).join(""), cursor: true });
+              }
+              first = false;
+              var last = wi === words.length - 1;
+              if (many || loop) {
+                if (last && !loop) { done = true; events.push({ t: t + 0.0001, text: words[wi], cursor: false }); break; }
+                t += pauseMs / 1000;
+                for (var k = chars.length - 1; k >= 0; k--) {
+                  t += delMs / 1000;
+                  events.push({ t: t, text: chars.slice(0, k).join(""), cursor: true });
+                }
+                t += delMs / 1000;
+                wi = (wi + 1) % words.length;
+              } else {
+                done = true;
+                events.push({ t: t + 0.0001, text: words[wi], cursor: false });
+              }
+            }
+            // Fit to the widest phrase.
+            var size = num(vars.font_size, 96, 12, 240);
+            line.style.fontSize = size + "px";
+            var widest = 1;
+            words.forEach(function (w) { textEl.textContent = w; widest = Math.max(widest, line.scrollWidth); });
+            if (widest > root.clientWidth * 0.9) { size = Math.max(12, size * root.clientWidth * 0.9 / widest); line.style.fontSize = size + "px"; }
+            var clock = { t: 0 };
+            function draw(now) {
+              var e = events[0];
+              for (var q = 0; q < events.length; q++) { if (events[q].t <= now) e = events[q]; else break; }
+              textEl.textContent = e.text;
+              var on = true;
+              if (blink) on = (now % 1.2) < 0.6; // blink-cursor 1.2 s, step-end
+              cur.style.visibility = e.cursor && on ? "visible" : "hidden";
+            }
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

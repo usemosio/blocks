@@ -1,0 +1,242 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rotate-in",
+  "type": "hyperframes:component",
+  "title": "Rotate In",
+  "description": "Text swings into place: spinning in plane (z) or hinged in depth on the x or y axis, with a small scale-up and a fade that leads the move.",
+  "tags": [
+    "text-effects",
+    "rotate",
+    "hinge",
+    "3d",
+    "entrance",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A headline, badge or title card should arrive with a rotation: a spin for marks, a hinge for panels.",
+    "One short phrase needs an entrance with more character than a fade."
+  ],
+  "avoidWhen": [
+    "You want per-letter motion: use split-text-chars or per-character-rise.",
+    "Several lines should reveal one after another: use mask-reveal-up."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/rotate-in.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "rotate-in.html",
+      "target": "compositions/components/rotate-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. A line break starts a new line.",
+      "default": "Swing into place."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 84,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": 700,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    },
+    {
+      "id": "degrees",
+      "type": "number",
+      "role": "motion",
+      "label": "Angle",
+      "description": "Angle the text starts at, in degrees. Negative tilts anticlockwise.",
+      "default": -12,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "axis",
+      "type": "enum",
+      "role": "motion",
+      "label": "Axis",
+      "description": "z spins in plane; x and y hinge in depth.",
+      "default": "z",
+      "options": [
+        {
+          "value": "z",
+          "label": "In plane (z)"
+        },
+        {
+          "value": "x",
+          "label": "Hinge on x"
+        },
+        {
+          "value": "y",
+          "label": "Hinge on y"
+        }
+      ]
+    },
+    {
+      "id": "perspective",
+      "type": "number",
+      "role": "motion",
+      "label": "Perspective",
+      "description": "Depth of the 3D projection for the x and y axes, in pixels.",
+      "default": 1200,
+      "min": 200,
+      "max": 4000,
+      "step": 50,
+      "unit": "px"
+    },
+    {
+      "id": "scale_from",
+      "type": "number",
+      "role": "motion",
+      "label": "Scale from",
+      "description": "Scale at the start; a rotation that also grows reads as one gesture.",
+      "default": 0.96,
+      "min": 0.2,
+      "max": 1.5,
+      "step": 0.01
+    },
+    {
+      "id": "origin",
+      "type": "enum",
+      "role": "motion",
+      "label": "Pivot",
+      "description": "Point the rotation pivots around.",
+      "default": "center",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "top left",
+          "label": "Top left"
+        },
+        {
+          "value": "top right",
+          "label": "Top right"
+        },
+        {
+          "value": "bottom left",
+          "label": "Bottom left"
+        },
+        {
+          "value": "bottom right",
+          "label": "Bottom right"
+        }
+      ]
+    },
+    {
+      "id": "duration_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Duration",
+      "description": "Frames (30 per second) the entrance takes.",
+      "default": 30,
+      "min": 4,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "delay_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frames before the entrance starts.",
+      "default": 6,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "exit",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Exit",
+      "description": "Play an exit at the end of the clip.",
+      "default": true
+    }
+  ]
+}

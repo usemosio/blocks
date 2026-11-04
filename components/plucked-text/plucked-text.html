@@ -1,0 +1,213 @@
+<!doctype html>
+<!--
+  Plucked Text
+
+  A line of text rides on a taut string pinned at both ends: the string is pulled and let go, and it rings, carrying the letters up and down and tilting them with its slope until the sound dies away.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/kokonut-labs/kokonutui/blob/4d497b7b03f02ffd07225e638c0b9ace3f892dbb/components/kokonutui/plucked-text.tsx
+
+  MIT License
+
+  Copyright (c) 2025 kokonutUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="plucked-text"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "One short line that sits on the string.", "default": "Good vibrations"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 110, "min": 24, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the letters.", "default": "#18181b"},
+    {"id": "string_color", "type": "color", "role": "style", "label": "String color", "description": "Color of the string and its end pins.", "default": "#a1a1aa"},
+    {"id": "tension", "type": "number", "role": "motion", "label": "Tension", "description": "How taut the string is. Higher rings faster and settles sooner.", "default": 1, "min": 0.3, "max": 3, "step": 0.05},
+    {"id": "pluck_at", "type": "number", "role": "motion", "label": "First pluck", "description": "Second the first pluck starts.", "default": 0.5, "min": 0, "max": 3, "step": 0.1, "unit": "s"},
+    {"id": "second_pluck", "type": "boolean", "role": "motion", "label": "Second pluck", "description": "Pluck the string a second time from the other side.", "default": true},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Plucked Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+        #root { font-family: var(--font-display, Geist, system-ui, sans-serif); color: var(--pl-color, #18181b); }
+        .pl-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .pl-box { position: relative; padding: 0.7em 0.5em; line-height: 1; letter-spacing: -0.02em; }
+        .pl-letters { position: relative; display: block; white-space: pre; }
+        .pl-letter { display: inline-block; transform-origin: 50% 100%; }
+        .pl-svg { position: absolute; overflow: visible; pointer-events: none; color: var(--pl-string, #a1a1aa); }
+        .pl-pin { position: absolute; width: 0.12em; height: 0.12em; border-radius: 50%; background: var(--pl-string, #a1a1aa); transform: translate(-50%, -50%); }
+        .pl-finger { position: absolute; width: 0.2em; height: 0.2em; border-radius: 50%; border: 2px solid var(--pl-string, #a1a1aa); background: rgba(161,161,170,0.25); transform: translate(-50%, -50%); opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="plucked-text" data-duration="6" data-fps="30">
+        <div id="pl-clip" class="pl-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="pl-box" class="pl-box" role="img">
+            <span id="pl-letters" class="pl-letters" aria-hidden="true"></span>
+            <svg id="pl-svg" class="pl-svg" aria-hidden="true" height="1">
+              <path id="pl-ghost" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"></path>
+              <path id="pl-path" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+            </svg>
+            <span id="pl-pin-a" class="pl-pin"></span><span id="pl-pin-b" class="pl-pin"></span>
+            <span id="pl-finger" class="pl-finger"></span>
+          </div>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, a, b) { var x = Number(v); return Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+
+            var box = document.getElementById("pl-box");
+            var lettersEl = document.getElementById("pl-letters");
+            var svg = document.getElementById("pl-svg");
+            var pathEl = document.getElementById("pl-path"), ghostEl = document.getElementById("pl-ghost");
+            var pinA = document.getElementById("pl-pin-a"), pinB = document.getElementById("pl-pin-b"), finger = document.getElementById("pl-finger");
+            var text = str(vars.text, "Good vibrations");
+            var size = num(vars.font_size, 110, 24, 240);
+            var tension = num(vars.tension, 1, 0.3, 3);
+            var pluckAt = num(vars.pluck_at, 0.5, 0, 3);
+            var second = !(vars.second_pluck === false || vars.second_pluck === "false");
+            var weight = ["500", "600", "700"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "600";
+            root.style.setProperty("--pl-color", col(vars.color, "#18181b"));
+            root.style.setProperty("--pl-string", col(vars.string_color, "#a1a1aa"));
+            box.style.fontWeight = weight;
+            box.style.fontSize = size + "px";
+            box.setAttribute("aria-label", text);
+            var letters = Array.from(text).map(function (ch) {
+              var s = document.createElement("span");
+              s.className = "pl-letter";
+              s.textContent = ch;
+              lettersEl.appendChild(s);
+              return s;
+            });
+            var probe = document.createElement("span");
+            probe.style.cssText = "display:inline-block;width:0;height:0";
+            lettersEl.appendChild(probe);
+            var maxW = root.clientWidth * 0.92;
+            if (box.offsetWidth > maxW) { size = Math.max(24, size * maxW / box.offsetWidth); box.style.fontSize = size + "px"; }
+
+            // Geometry, in unscaled px relative to the box.
+            var bb = box.getBoundingClientRect();
+            var kk = box.offsetWidth / (bb.width || box.offsetWidth);
+            var em = parseFloat(getComputedStyle(box).fontSize);
+            var baseY = (probe.getBoundingClientRect().bottom - bb.top) * kk;
+            var pinPad = em * 0.25;
+            var length = box.offsetWidth - pinPad * 2;
+            svg.style.left = pinPad + "px"; svg.style.top = baseY + "px"; svg.setAttribute("width", length);
+            pinA.style.left = pinPad + "px"; pinA.style.top = baseY + "px";
+            pinB.style.left = (pinPad + length) + "px"; pinB.style.top = baseY + "px";
+            var swing = em * 0.6;
+            var letterX = letters.map(function (el) { var r = el.getBoundingClientRect(); return (r.left - bb.left + r.width / 2) * kk - pinPad; });
+
+            // The string as a sum of its standing waves, each a damped oscillator solved exactly.
+            var WAVE_SPEED = 1500, MAX_MODES = 24, MAX_HZ = 22, DAMP_BASE = 0.9, DAMP_HIGH = 0.012, TILT = 0.85, STEP = 6;
+            var f0 = WAVE_SPEED * tension / (2 * length);
+            var count = Math.max(4, Math.min(MAX_MODES, Math.floor(MAX_HZ / f0)));
+            var modes = [];
+            for (var n = 1; n <= count; n++) {
+              var omega = 2 * Math.PI * f0 * n, gamma = (DAMP_BASE + DAMP_HIGH * n * n) * Math.sqrt(tension);
+              modes.push({ omega: omega, gamma: gamma, d: Math.sqrt(Math.max(omega * omega - gamma * gamma, 1)) });
+            }
+            function soften(x, max) { return max * Math.tanh(x / max); }
+            // The string pulled into a V with its apex at x = apex and height h, as standing-wave amplitudes.
+            function tri(apex, h) {
+              var d = Math.min(Math.max(apex, 1), length - 1);
+              return modes.map(function (m, i) { var k = i + 1; return (2 * h * length * length) / (k * k * Math.PI * Math.PI * d * (length - d)) * Math.sin(k * Math.PI * d / length); });
+            }
+            // Pluck events: pull the string down to a point over 0.28 s, hold a beat, let go.
+            var plucks = [{ t: pluckAt, apex: length * 0.3, h: swing * 1.3 }];
+            if (second) plucks.push({ t: pluckAt + 2.7, apex: length * 0.72, h: -swing * 1.1 });
+            var PULL = 0.28, HOLD = 0.08;
+            plucks.forEach(function (p) { p.q = tri(p.apex, p.h); });
+            // Amplitudes of every mode at time t.
+            function qAt(t) {
+              var ev = null;
+              for (var i = 0; i < plucks.length; i++) if (t >= plucks[i].t) ev = plucks[i];
+              var out = new Array(count);
+              if (!ev) { for (var a = 0; a < count; a++) out[a] = 0; return { q: out, grab: null }; }
+              var tau = t - ev.t;
+              if (tau < PULL + HOLD) {
+                var u = Math.min(1, tau / PULL), e = 1 - Math.pow(1 - u, 3);
+                for (var b = 0; b < count; b++) out[b] = ev.q[b] * e;
+                return { q: out, grab: { apex: ev.apex, h: ev.h * e, on: Math.min(1, tau / 0.1) } };
+              }
+              var r = tau - PULL - HOLD;
+              for (var c = 0; c < count; c++) {
+                var m = modes[c], dec = Math.exp(-m.gamma * r), q0 = ev.q[c];
+                out[c] = dec * (q0 * Math.cos(m.d * r) + (m.gamma * q0 / m.d) * Math.sin(m.d * r));
+              }
+              var fade = 0;
+              return { q: out, grab: { apex: ev.apex, h: 0, on: Math.max(0, 1 - r / 0.15) } };
+            }
+            function sum(q, x) { var y = 0; for (var i = 0; i < count; i++) y += q[i] * Math.sin((i + 1) * Math.PI * x / length); return y; }
+            function slopeAt(q, x) { var y = 0; for (var i = 0; i < count; i++) { var kx = (i + 1) * Math.PI / length; y += q[i] * kx * Math.cos(kx * x); } return y; }
+            function shape(q) {
+              var d = "";
+              for (var i = 0; i <= Math.ceil(length / STEP); i++) { var x = Math.min(i * STEP, length); d += (i ? "L" : "M") + x.toFixed(1) + " " + soften(sum(q, x), swing).toFixed(2); }
+              return d;
+            }
+            function draw(t) {
+              var st = qAt(t), q = st.q;
+              pathEl.setAttribute("d", shape(q));
+              ghostEl.setAttribute("d", shape(qAt(Math.max(0, t - 1 / 20)).q));
+              for (var i = 0; i < letters.length; i++) {
+                var raw = sum(q, letterX[i]), y = soften(raw, swing), th = Math.tanh(raw / swing);
+                var slope = slopeAt(q, letterX[i]) * (1 - th * th);
+                letters[i].style.transform = "translate(0," + y.toFixed(2) + "px) rotate(" + (Math.atan(slope) * TILT).toFixed(4) + "rad)";
+              }
+              if (st.grab && st.grab.on > 0) {
+                finger.style.opacity = st.grab.on.toFixed(2);
+                finger.style.left = (pinPad + st.grab.apex) + "px";
+                finger.style.top = (baseY + soften(st.grab.h, swing)) + "px";
+              } else finger.style.opacity = 0;
+            }
+            var dur = parseFloat(root.dataset.duration || "6");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: dur, duration: dur, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["plucked-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

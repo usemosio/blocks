@@ -1,0 +1,110 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dynamic-text",
+  "type": "hyperframes:component",
+  "title": "Dynamic Text",
+  "description": "Word-to-word morph where letters are physical: shared letters glide to their new spot on a spring arc, others fall away, new ones drop in and land with a squash.",
+  "tags": [
+    "text-effects",
+    "morph",
+    "physics",
+    "kinetic-type",
+    "letters",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 7.2,
+  "useWhen": [
+    "A headline word should change into another while keeping the letters they share, so the change reads as one object transforming.",
+    "A counter or a short list of words (Create, Iterate, Repeat, Ship) needs a physical, tactile swap."
+  ],
+  "avoidWhen": [
+    "The two words share almost no letters and a plain swap is enough: use slide-swap or per-word-crossfade.",
+    "A whole sentence changes: use kinetic-morph-text."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/dynamic-text.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "dynamic-text.html",
+      "target": "compositions/components/dynamic-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "texts",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words separated by |. The text morphs from each one to the next. Digits roll like a counter.",
+      "default": "Create|Iterate|Repeat|Ship"
+    },
+    {
+      "id": "interval",
+      "type": "number",
+      "role": "motion",
+      "label": "Interval",
+      "description": "Seconds each word holds before the morph to the next.",
+      "default": 1.8,
+      "min": 0.8,
+      "max": 4,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Wide words shrink to fit the frame.",
+      "default": 120,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#18181b"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    }
+  ],
+  "checkAt": [
+    0.5,
+    2.0,
+    3.9,
+    5.5
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "media-between-text",
+  "type": "hyperframes:component",
+  "title": "Media Between Text",
+  "description": "A sentence with a gap in the middle: a rounded media tile springs open between the two halves, pushing the words apart, then closes again. The tile is a drawn gradient by default, or your own image.",
+  "tags": [
+    "text-effects",
+    "media",
+    "inline",
+    "layout",
+    "reveal",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 4.5,
+  "useWhen": [
+    "A line of text should open a gap and show a picture, clip or swatch inline, as part of the sentence.",
+    "A headline needs an image tucked between its words, appearing with a spring."
+  ],
+  "avoidWhen": [
+    "The picture should fill the frame or sit in a separate layout: use a scene or panel block.",
+    "The text must not shift while the media appears."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/blocks/media-between-text.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "media-between-text.html",
+      "target": "compositions/components/media-between-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "checkAt": [
+    0.3,
+    1.2,
+    2.4,
+    4.0
+  ],
+  "variables": [
+    {"id": "first_text", "type": "string", "role": "content", "label": "First text", "description": "Text before the media.", "default": "that's a nice ("},
+    {"id": "second_text", "type": "string", "role": "content", "label": "Second text", "description": "Text after the media.", "default": ") chair!"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. The row shrinks to fit the frame.", "default": 96, "min": 24, "max": 260, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "300", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Text color.", "default": "#e11d48"},
+    {"id": "media_width", "type": "number", "role": "style", "label": "Media width", "description": "Width of the opened media tile, in em of the font size.", "default": 1.7, "min": 0.3, "max": 4, "step": 0.05, "unit": "em"},
+    {"id": "media_height", "type": "number", "role": "style", "label": "Media height", "description": "Height of the media tile, in em of the font size.", "default": 1.7, "min": 0.3, "max": 4, "step": 0.05, "unit": "em"},
+    {"id": "media_radius", "type": "number", "role": "style", "label": "Media radius", "description": "Corner radius of the tile, in em.", "default": 0.12, "min": 0, "max": 1, "step": 0.01, "unit": "em"},
+    {"id": "gradient_from", "type": "color", "role": "style", "label": "Gradient from", "description": "First color of the drawn tile.", "default": "#fda4af"},
+    {"id": "gradient_to", "type": "color", "role": "style", "label": "Gradient to", "description": "Second color of the drawn tile.", "default": "#6d28d9"},
+    {"id": "image", "type": "string", "role": "content", "label": "Image", "description": "Optional image path (for example assets/media/upl_xxx.jpg) drawn over the gradient, cover-fitted. Empty keeps the drawn gradient.", "default": ""},
+    {"id": "open_at", "type": "number", "role": "motion", "label": "Open at", "description": "Seconds when the tile opens.", "default": 0.5, "min": 0, "max": 3, "step": 0.05, "unit": "s"},
+    {"id": "close_at", "type": "number", "role": "motion", "label": "Close at", "description": "Seconds when the tile closes again. 0 keeps it open.", "default": 3.2, "min": 0, "max": 8, "step": 0.05, "unit": "s"},
+    {"id": "spring_duration", "type": "number", "role": "motion", "label": "Spring duration", "description": "Perceived duration of the opening spring.", "default": 0.4, "min": 0.1, "max": 2, "step": 0.05, "unit": "s"}
+  ]
+}

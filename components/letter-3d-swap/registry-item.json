@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "letter-3d-swap",
+  "type": "hyperframes:component",
+  "title": "Letter 3D Swap",
+  "description": "Every letter is a two-faced block that rolls a quarter turn in 3D, from the top, bottom, left or right, in a staggered wave that repeats.",
+  "tags": [
+    "text-effects",
+    "letters",
+    "3d",
+    "kinetic-type",
+    "swap",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A headline should flip letter by letter like a split-flap or a rolling cube, with a clear stagger direction.",
+    "You need to choose which side the new face rolls in from (top, right, bottom, left)."
+  ],
+  "avoidWhen": [
+    "The text should change into different words: use text-rotate or kinetic-type-swap.",
+    "A single smooth entrance is enough: use per-character-rise."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/letter-3d-swap.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "letter-3d-swap.html",
+      "target": "compositions/components/letter-3d-swap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Words that roll.", "default": "Set your mind to it"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels.", "default": 110, "min": 24, "max": 300, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#111111"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "solid_faces", "type": "boolean", "role": "style", "label": "Solid faces", "description": "Fill each face with the face color so the outgoing letter is hidden behind the incoming one, as the source does. Turn off to see through.", "default": true},
+    {"id": "face_color", "type": "color", "role": "style", "label": "Face color", "description": "Fill of the faces when solid. Match it to what sits behind the text.", "default": "#ffffff"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Side the new face rolls in from.", "default": "top", "options": [{"value": "top", "label": "Top"}, {"value": "right", "label": "Right"}, {"value": "bottom", "label": "Bottom"}, {"value": "left", "label": "Left"}]},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.03, "min": 0, "max": 0.3, "step": 0.005, "unit": "s"},
+    {"id": "stagger_from", "type": "enum", "role": "motion", "label": "Stagger from", "description": "Where the wave starts.", "default": "first", "options": [{"value": "first", "label": "First letter"}, {"value": "last", "label": "Last letter"}, {"value": "center", "label": "Center"}, {"value": "random", "label": "Random"}]},
+    {"id": "stiffness", "type": "number", "role": "motion", "label": "Stiffness", "description": "Spring stiffness of the roll.", "default": 160, "min": 20, "max": 600, "step": 5},
+    {"id": "damping", "type": "number", "role": "motion", "label": "Damping", "description": "Spring damping of the roll.", "default": 25, "min": 5, "max": 60, "step": 1},
+    {"id": "swaps", "type": "number", "role": "motion", "label": "Swaps", "description": "How many times the wave plays.", "default": 3, "min": 1, "max": 6, "step": 1},
+    {"id": "first_swap", "type": "number", "role": "motion", "label": "First swap", "description": "Seconds before the first wave.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds between the start of one wave and the next.", "default": 1.5, "min": 0.6, "max": 4, "step": 0.1, "unit": "s"}
+  ]
+}

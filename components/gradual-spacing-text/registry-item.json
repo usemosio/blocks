@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "gradual-spacing-text",
+  "type": "hyperframes:component",
+  "title": "Gradual Spacing Text",
+  "description": "Letters drift in from the left and fade up one after another, so the line seems to space itself out gradually as it appears.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "letters",
+    "slide",
+    "stagger",
+    "eldoraui-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A heading should assemble letter by letter with a sideways glide, slower and more open than a rise.",
+    "Short titles and taglines."
+  ],
+  "avoidWhen": [
+    "A vertical rise: use per-character-rise or bottom-up-letters.",
+    "Long sentences: the stagger is a tenth of a second per letter."
+  ],
+  "author": "Eldora UI",
+  "authorUrl": "https://www.eldoraui.site",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/karthikmudunuri/eldoraui",
+    "path": "apps/www/registry/eldoraui/gradual-spacing-text.tsx",
+    "commit": "6bb8fd211ecbdfa983f5780bead27d9f3890f20a"
+  },
+  "files": [
+    {
+      "path": "gradual-spacing-text.html",
+      "target": "compositions/components/gradual-spacing-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase.", "default": "Gradual Spacing"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between one letter and the next.", "default": 0.1, "min": 0.02, "max": 0.4, "step": 0.01, "unit": "s"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Letter time", "description": "Seconds each letter takes.", "default": 0.5, "min": 0.1, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far left of its place each letter starts. Scales with font size (72px = source).", "default": 20, "min": 0, "max": 120, "step": 1, "unit": "px"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first letter.", "default": 0.2, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 110, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

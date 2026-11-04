@@ -6,7 +6,7 @@
 
   Extracted from the Mosio recipe countdown by usemosio/blocks.
   Adapted from the lemo-opuscar film style "countdown" (https://github.com/lemomo-ai/lemo-opuscar, styles/countdown/STYLE.md at commit 413a6bd6d78ebd3bdd5abaec9538a26867f890df), MIT.
-  The clock, the ten-segment second bar, the title plate wipe, the warm zero flash and the clock turning orange-on-dark at zero follow that style; the cells and the layout are this block's own.
+  The clock, the ten-segment second bar, the title plate wipe, and the clock changing colour at zero follow that style; the cells and the layout are this block's own.
 
   MIT License
 
@@ -40,7 +40,7 @@
     "type": "string",
     "role": "content",
     "label": "Event title",
-    "description": "Headline on the title plate.",
+    "description": "Headline above the clock.",
     "default": "Grand Opening"
   },
   {
@@ -48,7 +48,7 @@
     "type": "string",
     "role": "content",
     "label": "Event subtitle",
-    "description": "Spaced line under the title: place, date or occasion.",
+    "description": "Muted line under the title: place, date or occasion.",
     "default": "Kopi Senja · Jl. Melati 12"
   },
   {
@@ -124,8 +124,8 @@
     "type": "color",
     "role": "style",
     "label": "Background",
-    "description": "Ground behind the clock.",
-    "default": "#06080a"
+    "description": "Page behind the clock.",
+    "default": "#ffffff"
   },
   {
     "id": "panel_color",
@@ -133,15 +133,15 @@
     "role": "style",
     "label": "Panel",
     "description": "Clock panel surface.",
-    "default": "#0b0e11"
+    "default": "#fafafa"
   },
   {
     "id": "main_color",
     "type": "color",
     "role": "style",
     "label": "Main colour",
-    "description": "T− sign, labels, rule and the inverted clock after zero.",
-    "default": "#ff5b1f"
+    "description": "T− sign, segment bar and the digits after zero: the one accent.",
+    "default": "#2563eb"
   },
   {
     "id": "text_color",
@@ -149,15 +149,15 @@
     "role": "style",
     "label": "Text colour",
     "description": "Digits and title.",
-    "default": "#f2f5f7"
+    "default": "#0a0a0a"
   },
   {
     "id": "muted_color",
     "type": "color",
     "role": "style",
     "label": "Muted colour",
-    "description": "Unit labels and the subtitle.",
-    "default": "#7c878d"
+    "description": "Unit labels, panel label and the subtitle.",
+    "default": "#737373"
   },
   {
     "id": "transparent",
@@ -177,7 +177,7 @@
     <template>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&amp;family=Inter:wght@600;800&amp;family=IBM+Plex+Mono:wght@600&amp;display=block"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
       />
       <style>
         #root {
@@ -187,35 +187,32 @@
         #root * { box-sizing: border-box; }
         .cd-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
 
-        #root { background: var(--cd-bg); color: var(--cd-text); font-family: Inter, "Noto Sans", system-ui, sans-serif; }
+        #root { background: var(--cd-bg); color: var(--cd-text); font-family: Geist, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
         .cd-col { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 90); padding: 0 calc(var(--u) * 60); }
         .cd-head { display: grid; width: 100%; max-width: calc(var(--u) * 1700); }
         .cd-head > * { grid-area: 1 / 1; }
         .cd-title { display: flex; align-items: stretch; gap: calc(var(--u) * 26); }
-        .cd-rule { width: calc(var(--u) * 6); flex-shrink: 0; background: var(--cd-main); }
-        .cd-h1 { font-family: Oswald, "Noto Sans", sans-serif; font-weight: 700; font-size: calc(var(--u) * 100); line-height: 1.05; text-transform: uppercase; }
-        .cd-sub { margin-top: calc(var(--u) * 14); font-family: Oswald, sans-serif; font-weight: 500; font-size: calc(var(--u) * 28); letter-spacing: 0.24em; text-transform: uppercase; color: var(--cd-main); }
-        .cd-now { align-self: center; font-family: Oswald, "Noto Sans", sans-serif; font-weight: 700; font-size: calc(var(--u) * 110); line-height: 1.05; text-transform: uppercase; color: var(--cd-main); }
-        .cd-panel { position: relative; width: 100%; max-width: calc(var(--u) * 1700); padding: calc(var(--u) * 36) calc(var(--u) * 36) calc(var(--u) * 52); background: var(--cd-panel); border: calc(var(--u) * 1) solid color-mix(in oklab, var(--cd-text) 16%, transparent); overflow: hidden; }
-        .cd-fill { position: absolute; inset: 0; background: var(--cd-main); opacity: 0; }
+        .cd-h1 { font-weight: 600; font-size: calc(var(--u) * 100); letter-spacing: -0.05em; line-height: 1.05; }
+        .cd-sub { margin-top: calc(var(--u) * 14); font-weight: 400; font-size: calc(var(--u) * 36); letter-spacing: -0.01em; color: var(--cd-muted); }
+        .cd-now { align-self: center; font-weight: 600; font-size: calc(var(--u) * 110); letter-spacing: -0.05em; line-height: 1.05; color: var(--cd-main); }
+        .cd-panel { position: relative; width: 100%; max-width: calc(var(--u) * 1700); padding: calc(var(--u) * 40) calc(var(--u) * 36) calc(var(--u) * 60); background: var(--cd-panel); border: 1px solid color-mix(in oklab, var(--cd-text) 12%, transparent); border-radius: calc(var(--u) * 28); overflow: hidden; }
         .cd-top { position: relative; display: flex; align-items: baseline; gap: calc(var(--u) * 22); margin-bottom: calc(var(--u) * 14); }
-        .cd-sign { font-family: Oswald, sans-serif; font-weight: 500; font-size: calc(var(--u) * 76); line-height: 1; color: var(--cd-main); }
-        .cd-hint { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; font-size: calc(var(--u) * 24); letter-spacing: 0.12em; text-transform: uppercase; color: var(--cd-muted); }
+        .cd-sign { font-weight: 600; font-size: calc(var(--u) * 64); letter-spacing: -0.03em; line-height: 1; color: var(--cd-main); }
+        .cd-hint { font-weight: 500; font-size: calc(var(--u) * 30); color: var(--cd-muted); }
         .cd-cells { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 0; }
         .cd-cell { flex: 1 1 0; min-width: 0; text-align: center; }
-        .cd-num { display: inline-flex; font-family: Oswald, "Noto Sans", sans-serif; font-weight: 500; font-size: calc(var(--u) * 170); line-height: 1.1; color: var(--cd-text); }
-        .cd-d { display: inline-block; width: 0.5em; text-align: center; }
-        .cd-lab { margin-top: calc(var(--u) * 4); font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; font-size: calc(var(--u) * 24); letter-spacing: 0.12em; text-transform: uppercase; color: var(--cd-muted); }
-        .cd-colon { flex: 0 0 auto; font-family: Oswald, sans-serif; font-weight: 500; font-size: calc(var(--u) * 170); line-height: 1.1; color: var(--cd-muted); }
+        .cd-num { display: inline-flex; font-weight: 600; font-size: calc(var(--u) * 140); letter-spacing: -0.04em; line-height: 1.1; color: var(--cd-text); }
+        .cd-d { display: inline-block; width: 0.6em; text-align: center; }
+        .cd-lab { margin-top: calc(var(--u) * 4); font-weight: 500; font-size: calc(var(--u) * 30); color: var(--cd-muted); }
+        .cd-colon { flex: 0 0 auto; font-weight: 400; font-size: calc(var(--u) * 140); line-height: 1.1; color: var(--cd-muted); }
         .cd-seg { position: absolute; left: calc(var(--u) * 36); right: calc(var(--u) * 36); bottom: calc(var(--u) * 22); height: calc(var(--u) * 8); display: grid; grid-template-columns: repeat(10, 1fr); gap: calc(var(--u) * 8); }
-        .cd-seg i { background: color-mix(in oklab, var(--cd-text) 14%, transparent); }
+        .cd-seg i { background: color-mix(in oklab, var(--cd-text) 10%, transparent); border-radius: 2px; }
         .cd-seg i.on { background: var(--cd-main); }
-        .cd-flash { position: absolute; inset: 0; background: #fff8ec; opacity: 0; }
         @container (aspect-ratio > 1) {
           .cd-col { gap: calc(var(--u) * 100); }
-          .cd-h1 { font-size: calc(var(--u) * 130); } .cd-sub { font-size: calc(var(--u) * 34); } .cd-now { font-size: calc(var(--u) * 150); }
+          .cd-h1 { font-size: calc(var(--u) * 130); } .cd-sub { font-size: calc(var(--u) * 40); } .cd-now { font-size: calc(var(--u) * 150); }
           .cd-num, .cd-colon { font-size: calc(var(--u) * 250); }
-          .cd-sign { font-size: calc(var(--u) * 90); } .cd-hint, .cd-lab { font-size: calc(var(--u) * 28); }
+          .cd-sign { font-size: calc(var(--u) * 90); } .cd-hint, .cd-lab { font-size: calc(var(--u) * 34); }
           .cd-panel { padding: calc(var(--u) * 44) calc(var(--u) * 52) calc(var(--u) * 64); } .cd-seg { left: calc(var(--u) * 52); right: calc(var(--u) * 52); bottom: calc(var(--u) * 28); }
         }
 
@@ -225,17 +222,15 @@
         <div id="cd-clip" class="cd-stage clip" data-start="0" data-duration="9.5" data-track-index="0">
           <div class="cd-col">
             <div class="cd-head" id="cd-head">
-              <div class="cd-title" id="cd-title"><div class="cd-rule"></div><div><div class="cd-h1" id="cd-h1"></div><div class="cd-sub" id="cd-sub"></div></div></div>
+              <div class="cd-title" id="cd-title"><div><div class="cd-h1" id="cd-h1"></div><div class="cd-sub" id="cd-sub"></div></div></div>
               <div class="cd-now" id="cd-now"></div>
             </div>
             <div class="cd-panel" id="cd-panel">
-              <div class="cd-fill" id="cd-fill"></div>
               <div class="cd-top"><span class="cd-sign" id="cd-sign">T−</span><span class="cd-hint" id="cd-hint"></span></div>
               <div class="cd-cells" id="cd-cells"></div>
               <div class="cd-seg" id="cd-seg"></div>
             </div>
           </div>
-          <div class="cd-flash" id="cd-flash"></div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
@@ -276,10 +271,9 @@
             if (bool(vars.transparent, false)) root.style.background = "transparent";
 
 
-            var main = colr(vars.main_color, "#ff5b1f");
-            setColors("cd", [["bg", "bg_color", "#06080a"], ["panel", "panel_color", "#0b0e11"], ["main", "main_color", "#ff5b1f"],
-              ["text", "text_color", "#f2f5f7"], ["muted", "muted_color", "#7c878d"]]);
-            var inkMain = ink(main, 120);
+            var main = colr(vars.main_color, "#2563eb");
+            setColors("cd", [["bg", "bg_color", "#ffffff"], ["panel", "panel_color", "#fafafa"], ["main", "main_color", "#2563eb"],
+              ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"]]);
             document.getElementById("cd-h1").textContent = str(vars.event_title, "Grand Opening");
             var subT = typeof vars.event_subtitle === "string" ? vars.event_subtitle : "Kopi Senja · Jl. Melati 12";
             document.getElementById("cd-sub").textContent = subT; if (!subT) document.getElementById("cd-sub").style.display = "none";
@@ -344,16 +338,10 @@
             tl.fromTo("#cd-title", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power2.out" }, 0.2);
             tl.fromTo("#cd-panel", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.1);
             tl.to("#cd-title", { x: -120 * U, opacity: 0, duration: 0.3, ease: "power2.in" }, Z - 0.5);
-            // Zero: a warm flash, the clock turns main-coloured with dark digits, the "now" line takes the title's place.
-            tl.fromTo("#cd-flash", { opacity: 0 }, { opacity: 0.7, duration: 0.16, ease: "power2.in", immediateRender: false }, Z + 0.05);
-            tl.to("#cd-flash", { opacity: 0, duration: 0.4, ease: "power2.out" }, Z + 0.21);
-            tl.to("#cd-fill", { opacity: 1, duration: 0.2, ease: "none" }, Z);
-            tl.to([".cd-num", ".cd-sign"], { color: inkMain, duration: 0.2, ease: "none" }, Z);
-            tl.to([".cd-lab", ".cd-colon"], { color: inkMain, opacity: 0.75, duration: 0.2, ease: "none" }, Z);
+            // Zero: the digits turn to the accent colour and the "now" line takes the title's place.
+            tl.to(".cd-num", { color: main, duration: 0.2, ease: "none" }, Z);
             tl.to(".cd-hint", { opacity: 0, duration: 0.2, ease: "none" }, Z);
-            tl.to(segs, { backgroundColor: inkMain, duration: 0.2, ease: "none" }, Z);
-            tl.fromTo("#cd-now", { y: 50 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.6)", immediateRender: true }, Z + 0.25);
-            tl.fromTo("#cd-panel", { scale: 1 }, { scale: 1.03, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out", immediateRender: false }, Z);
+            tl.fromTo("#cd-now", { y: 50 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out", immediateRender: true }, Z + 0.25);
             draw(0);
 
             var total = parseFloat(root.dataset.duration || "9.5");

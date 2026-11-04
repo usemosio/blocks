@@ -1,0 +1,148 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "mask-text",
+  "type": "hyperframes:component",
+  "title": "Mask Text",
+  "description": "A round spotlight follows an invisible pointer across one line of text and reveals a different line inside it; it swells from a dot to a wide disc and shrinks again.",
+  "tags": [
+    "text-effects",
+    "mask",
+    "spotlight",
+    "reveal",
+    "hover",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "Two messages should share one spot: the plain one outside the light, the real one inside it.",
+    "A hidden line should be discovered by a roaming circle."
+  ],
+  "avoidWhen": [
+    "The second line must be read in full at a glance: the disc only shows part of it at a time.",
+    "A single text reveal with no second message: use mask-reveal-up."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/mask-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "mask-text.html",
+      "target": "compositions/components/mask-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "original_text",
+      "type": "string",
+      "role": "content",
+      "label": "Original text",
+      "description": "Line shown everywhere outside the spotlight.",
+      "default": "Bye World!"
+    },
+    {
+      "id": "reveal_text",
+      "type": "string",
+      "role": "content",
+      "label": "Reveal text",
+      "description": "Line shown inside the spotlight.",
+      "default": "Hello World!"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 120,
+      "min": 12,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "radius",
+      "type": "number",
+      "role": "motion",
+      "label": "Spotlight size",
+      "description": "Diameter of the spotlight when swollen, at 1080 px on the short side.",
+      "default": 500,
+      "min": 100,
+      "max": 1200,
+      "step": 10,
+      "unit": "px"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color behind the original text.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Original color",
+      "description": "Color of the original text.",
+      "default": "#171717"
+    },
+    {
+      "id": "reveal_background",
+      "type": "color",
+      "role": "style",
+      "label": "Spotlight color",
+      "description": "Color of the spotlight disc.",
+      "default": "#000000"
+    },
+    {
+      "id": "reveal_color",
+      "type": "color",
+      "role": "style",
+      "label": "Reveal color",
+      "description": "Color of the reveal text.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

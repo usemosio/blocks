@@ -1,0 +1,147 @@
+<!doctype html>
+<!--
+  Mirror Text
+
+  A word stacked from four clipped copies; the copies slide in a staggered ripple, as if the text were sliced into mirrored strips.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/codse/animata/blob/25c27e5a874c60a56dcc1609df3b2c4f5f8456f8/animata/text/mirror-text.tsx
+
+  MIT License
+
+  Copyright (c) Animata
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="mirror-text"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word that is sliced.", "default": "MIRROR"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Direction the strips move in.", "default": "up", "options": [{"value": "up", "label": "Up"}, {"value": "down", "label": "Down"}, {"value": "left", "label": "Left"}, {"value": "right", "label": "Right"}]},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 150, "min": 12, "max": 320, "step": 1, "unit": "px"},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Hold", "description": "Seconds the strips stay shifted.", "default": 1.2, "min": 0, "max": 4, "step": 0.1, "unit": "s"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "300", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mirror Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .mir-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .mir-box { position: relative; overflow: hidden; }
+        .mir-layer { overflow: hidden; }
+        .mir-text { display: inline-block; text-transform: uppercase; line-height: 1; white-space: pre; letter-spacing: 0.02em; }
+      </style>
+
+      <div id="root" data-composition-id="mirror-text" data-duration="5" data-fps="30">
+        <div id="mir-clip" class="mir-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="mir-box" class="mir-box"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function opt(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : f; }
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > max) { size = Math.max(12, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            
+            var box = document.getElementById("mir-box");
+            var text = str(vars.text, "MIRROR");
+            var dir = opt(vars.direction, ["up", "down", "left", "right"], "up");
+            var hold = num(vars.hold, 1.2, 0, 4);
+            root.style.color = col(vars.color, "#171717");
+            root.style.fontWeight = opt(vars.font_weight, ["300","400","500","600","700","900"], "300");
+            var probe = document.createElement("span"); probe.className = "mir-text"; probe.textContent = text; box.appendChild(probe);
+            var size = num(vars.font_size, 150, 12, 320);
+            probe.style.fontSize = size + "px";
+            var maxW = root.clientWidth * 0.82;
+            if (probe.scrollWidth + size * 1.35 > maxW) size = Math.max(12, size * (maxW / (probe.scrollWidth + size * 1.35)));
+            box.removeChild(probe);
+            box.style.fontSize = size + "px";
+            box.style.padding = size * (24 / 36) + "px";
+            // 36 px text in the original: strips are a third of a line, travel is 16 px.
+            var layers = [], delays = [0.2, 0.1, 0.075, 0];
+            for (var i = 0; i < 4; i++) {
+              var layer = document.createElement("div");
+              layer.className = "mir-layer";
+              if (i < 3) layer.style.height = size / 3 + "px";
+              var t = document.createElement("div"); t.className = "mir-text"; t.textContent = text;
+              layer.appendChild(t); box.appendChild(layer); layers.push(layer);
+            }
+            var move = size * (16 / 36);
+            var prop = dir === "up" || dir === "down" ? "y" : "x";
+            var sign = dir === "up" || dir === "left" ? -1 : 1;
+            gsap.registerPlugin(CustomEase);
+            var ease = CustomEase.create("mir-ease", "M0,0 C0.405,0 0.025,1 1,1");
+            var tl = gsap.timeline({ paused: true });
+            var start = 0.5, out = 0.5 + 0.2 + hold;
+            layers.forEach(function (layer, i) {
+              var a = {}, b = {}; a[prop] = 0; b[prop] = sign * move;
+              var to = Object.assign({ duration: 0.5, ease: ease, immediateRender: false }, b);
+              var back = Object.assign({ duration: 0.5, ease: ease, immediateRender: false }, a);
+              tl.fromTo(layer, a, to, start + delays[i]);
+              tl.fromTo(layer, b, back, start + out + delays[i]);
+              tl.fromTo(layer, a, to, start + 2 * out + delays[i] + 0.8);
+              tl.fromTo(layer, b, back, start + 3 * out + delays[i] + 0.8);
+            });
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["mirror-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

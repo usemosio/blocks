@@ -1,0 +1,196 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "blur-reveal",
+  "type": "hyperframes:component",
+  "title": "Blur Reveal",
+  "description": "A transition: the outgoing scene softens away while the incoming one resolves out of blur, with a faint scale drift.",
+  "tags": [
+    "transition",
+    "blur",
+    "soft",
+    "scene-change",
+    "remotion-ui-port"
+  ],
+  "category": "transitions",
+  "duration": 3,
+  "useWhen": [
+    "Two scenes should change with a soft, premium blur dissolve rather than a hard cut or a wipe.",
+    "The mood is calm, editorial or product-focused."
+  ],
+  "avoidWhen": [
+    "The change should feel energetic or physical: use a wipe, a whip pan or a glitch cut.",
+    "You need a transition over the host's own scenes with no panels of its own: copy the filter and opacity logic into the host."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/blur-reveal.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "blur-reveal.html",
+      "target": "compositions/components/blur-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A title",
+      "description": "Headline of the outgoing panel.",
+      "default": "Before"
+    },
+    {
+      "id": "sub_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A text",
+      "description": "Supporting line of the outgoing panel.",
+      "default": "A busy, scattered start."
+    },
+    {
+      "id": "label_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B title",
+      "description": "Headline of the incoming panel.",
+      "default": "After"
+    },
+    {
+      "id": "sub_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B text",
+      "description": "Supporting line of the incoming panel.",
+      "default": "Calm, clear and focused."
+    },
+    {
+      "id": "color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Panel A color",
+      "description": "Background of the outgoing panel.",
+      "default": "#1d4ed8"
+    },
+    {
+      "id": "color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Panel B color",
+      "description": "Background of the incoming panel.",
+      "default": "#0f766e"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the panel text.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Panel headline size in pixels.",
+      "default": 96,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    },
+    {
+      "id": "max_blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Max blur",
+      "description": "Peak blur of a scene in pixels.",
+      "default": 24,
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "scale_by",
+      "type": "number",
+      "role": "motion",
+      "label": "Scale drift",
+      "description": "How far a scene drifts in scale while it blurs.",
+      "default": 0.03,
+      "min": 0,
+      "max": 0.3,
+      "step": 0.005
+    },
+    {
+      "id": "start_frame",
+      "type": "number",
+      "role": "motion",
+      "label": "Transition start",
+      "description": "Frame (30 per second) the transition starts on.",
+      "default": 30,
+      "min": 0,
+      "max": 300,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "transition_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Transition length",
+      "description": "Frames the transition lasts.",
+      "default": 22,
+      "min": 4,
+      "max": 90,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "blur_out_exiting",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Blur the outgoing scene",
+      "description": "Off keeps the outgoing scene sharp underneath.",
+      "default": true
+    }
+  ],
+  "checkAt": [
+    0.5,
+    1.1,
+    1.4,
+    2.5
+  ]
+}

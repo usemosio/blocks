@@ -1,0 +1,139 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-split-flap",
+  "type": "hyperframes:component",
+  "title": "Word Roller Split Flap",
+  "description": "An airport-style departure board where each word flips onto a row of flap tiles, letter by letter, through a list of places before it lands on a final word; a status line changes from searching to confirmed.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "split-flap",
+    "board",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A list of options (cities, offers, names) that cycles on a physical board and lands on a final word.",
+    "A mechanical feel for a destination, price or status reveal."
+  ],
+  "avoidWhen": [
+    "A caption that should flip letters in time with speech: use caption-split-flap.",
+    "Very long words: each letter is a tile."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/RollerSplitFlap.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-split-flap.html",
+      "target": "compositions/components/word-roller-split-flap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words in order, separated by commas (up to 10). The last one is where it settles.",
+      "default": "PARIS, LONDON, TOKYO, NEW YORK, SYDNEY, BERLIN, WELCOME"
+    },
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caps line above the board.",
+      "default": "DESTINATION"
+    },
+    {
+      "id": "status_busy",
+      "type": "string",
+      "role": "content",
+      "label": "Status while flipping",
+      "description": "Text under the board before the last word.",
+      "default": "SEARCHING..."
+    },
+    {
+      "id": "status_done",
+      "type": "string",
+      "role": "content",
+      "label": "Status at the end",
+      "description": "Text under the board once the last word is shown.",
+      "default": "CONFIRMED"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the letters in pixels. The board shrinks to fit the frame.",
+      "default": 48,
+      "min": 16,
+      "max": 160,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Letter color",
+      "description": "Color of the letters.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Final color",
+      "description": "Color of the last word.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "tile",
+      "type": "color",
+      "role": "style",
+      "label": "Tile color",
+      "description": "Color of each flap tile.",
+      "default": "#262626"
+    },
+    {
+      "id": "success",
+      "type": "color",
+      "role": "style",
+      "label": "Status dot",
+      "description": "Color of the status dot at the end.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+<!doctype html>
+<!--
+  Circular Text
+
+  Characters sit evenly around a circle and the whole ring spins steadily, like a badge or a stamp.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/codse/animata/blob/25c27e5a874c60a56dcc1609df3b2c4f5f8456f8/animata/text/circular-text.tsx
+
+  MIT License
+
+  Copyright (c) Animata
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="circular-text"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Characters placed around the circle; end it with a separator so the loop reads well.", "default": "CIRCULAR•TEXT•COMPONENT•"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Size of each character in pixels.", "default": 40, "min": 12, "max": 160, "step": 1, "unit": "px"},
+    {"id": "radius", "type": "number", "role": "style", "label": "Radius", "description": "Distance from the centre to the characters, in pixels.", "default": 230, "min": 40, "max": 520, "step": 1, "unit": "px"},
+    {"id": "spin_duration", "type": "number", "role": "motion", "label": "Spin duration", "description": "Seconds for one full turn. Equal to the block duration for an exact loop.", "default": 6, "min": 1, "max": 120, "step": 0.5, "unit": "s"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "500", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Circular Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .ct-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ct-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-origin: 0 0; }
+        .ct-ch { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        .ct-g { position: absolute; left: 0; top: 0; white-space: pre; line-height: 1; }
+      </style>
+
+      <div id="root" data-composition-id="circular-text" data-duration="6" data-fps="30">
+        <div id="ct-clip" class="ct-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="ct-ring" class="ct-ring" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function opt(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : f; }
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > max) { size = Math.max(12, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            
+            var ring = document.getElementById("ct-ring");
+            var text = str(vars.text, "CIRCULAR•TEXT•COMPONENT•");
+            var size = num(vars.font_size, 40, 12, 160);
+            var radius = num(vars.radius, 230, 40, 520);
+            var spin = num(vars.spin_duration, 6, 1, 120);
+            root.style.color = col(vars.color, "#171717");
+            root.style.fontWeight = opt(vars.font_weight, ["300","400","500","600","700","900"], "500");
+            ring.setAttribute("aria-label", text);
+            var chars = Array.from(text);
+            chars.forEach(function (c, i) {
+              var holder = document.createElement("span");
+              holder.className = "ct-ch";
+              holder.style.transform = "rotate(" + (360 / chars.length) * i + "deg)";
+              var g = document.createElement("span");
+              g.className = "ct-g";
+              g.style.fontSize = size + "px";
+              g.style.transform = "translate(-50%, calc(-50% - " + radius + "px))";
+              g.textContent = c;
+              holder.appendChild(g);
+              ring.appendChild(holder);
+            });
+            var total0 = parseFloat(root.dataset.duration || "6");
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo(ring, { rotation: 0 }, { rotation: 360 * (total0 / spin), duration: total0, ease: "none", immediateRender: true }, 0);
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["circular-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vertical-cut-reveal",
+  "type": "hyperframes:component",
+  "title": "Vertical Cut Reveal",
+  "description": "Letters, words or whole lines slide up from behind an invisible cut line with a spring, staggered from the first, last, center or in random order; several lines follow one another.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "mask",
+    "stagger",
+    "headline",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A headline of one to a few lines should be revealed by pieces sliding up (or down) out of a hard-edged cut.",
+    "You need to choose how the pieces are split (letters, words, lines) and where the stagger starts."
+  ],
+  "avoidWhen": [
+    "You want a blur-to-sharp entrance: use per-word-rise or per-character-rise.",
+    "Only a soft masked line reveal is needed: use mask-reveal-up."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/vertical-cut-reveal.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "vertical-cut-reveal.html",
+      "target": "compositions/components/vertical-cut-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Lines of text, separated by a line break.", "default": "HI, FRIEND!\nIT IS NICE TO\nMEET YOU."},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Long lines shrink to fit the frame.", "default": 110, "min": 24, "max": 300, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#2447e6"},
+    {"id": "align", "type": "enum", "role": "style", "label": "Align", "description": "Alignment of the lines.", "default": "left", "options": [{"value": "left", "label": "Left"}, {"value": "center", "label": "Center"}]},
+    {"id": "tracking", "type": "number", "role": "style", "label": "Tracking", "description": "Letter spacing in em.", "default": 0.04, "min": -0.1, "max": 0.4, "step": 0.01, "unit": "em"},
+    {"id": "split_by", "type": "enum", "role": "motion", "label": "Split by", "description": "What slides as one piece.", "default": "characters", "options": [{"value": "characters", "label": "Characters"}, {"value": "words", "label": "Words"}, {"value": "lines", "label": "Lines"}]},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring pieces.", "default": 0.025, "min": 0, "max": 0.6, "step": 0.005, "unit": "s"},
+    {"id": "stagger_from", "type": "enum", "role": "motion", "label": "Stagger from", "description": "Where the wave of pieces starts.", "default": "first", "options": [{"value": "first", "label": "First"}, {"value": "last", "label": "Last"}, {"value": "center", "label": "Center"}, {"value": "random", "label": "Random"}]},
+    {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "Pieces slide in from above instead of from below.", "default": false},
+    {"id": "line_delay", "type": "number", "role": "motion", "label": "Line delay", "description": "Seconds between one line starting and the next (letters and words). Lines mode uses the stagger instead.", "default": 0.5, "min": 0, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first piece moves.", "default": 0.2, "min": 0, "max": 3, "step": 0.05, "unit": "s"},
+    {"id": "stiffness", "type": "number", "role": "motion", "label": "Stiffness", "description": "Spring stiffness.", "default": 200, "min": 50, "max": 600, "step": 10},
+    {"id": "damping", "type": "number", "role": "motion", "label": "Damping", "description": "Spring damping.", "default": 21, "min": 5, "max": 60, "step": 1}
+  ]
+}

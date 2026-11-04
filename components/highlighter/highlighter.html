@@ -1,0 +1,229 @@
+<!doctype html>
+<!--
+  Highlighter
+
+  A hand-drawn mark is scribbled over part of a sentence: marker highlight, underline, box, circle, strike-through, crossed-off or bracket, drawn stroke by stroke with a slightly wobbly line.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/highlighter.tsx
+  Changes by usemosio/blocks: the source draws its marks with the rough-notation library; this block draws seeded, wobbly SVG strokes of its own in the same kinds.
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="highlighter"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text_before", "type": "string", "role": "content", "label": "Text before", "description": "Plain text before the marked phrase.", "default": "The "},
+    {"id": "marked", "type": "string", "role": "content", "label": "Marked phrase", "description": "The phrase that receives the hand-drawn mark.", "default": "Highlighter"},
+    {"id": "text_after", "type": "string", "role": "content", "label": "Text after", "description": "Plain text after the marked phrase.", "default": " makes important text stand out effortlessly."},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The paragraph wraps inside 86 % of the frame width.", "default": 64, "min": 12, "max": 200, "step": 1, "unit": "px"},
+    {"id": "text_color", "type": "color", "role": "style", "label": "Text colour", "description": "Colour of the text.", "default": "#0a0a0a"},
+    {"id": "action", "type": "enum", "role": "style", "label": "Mark", "description": "Kind of mark.", "default": "highlight", "options": [{"value": "highlight", "label": "Highlight"}, {"value": "underline", "label": "Underline"}, {"value": "box", "label": "Box"}, {"value": "circle", "label": "Circle"}, {"value": "strike-through", "label": "Strike-through"}, {"value": "crossed-off", "label": "Crossed off"}, {"value": "bracket", "label": "Brackets"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Mark colour", "description": "Colour of the mark.", "default": "#ffd1dc"},
+    {"id": "stroke_width", "type": "number", "role": "style", "label": "Stroke width", "description": "Line width of the mark in pixels (source 1.5; scaled with the text here). Ignored by highlight, which fills the text height.", "default": 1.5, "min": 0.5, "max": 8, "step": 0.25, "unit": "px"},
+    {"id": "iterations", "type": "number", "role": "style", "label": "Passes", "description": "How many times the mark is drawn over itself.", "default": 2, "min": 1, "max": 4, "step": 1},
+    {"id": "padding", "type": "number", "role": "style", "label": "Padding", "description": "Space between the text and the mark, in pixels (source 2).", "default": 2, "min": 0, "max": 40, "step": 1, "unit": "px"},
+    {"id": "draw_seconds", "type": "number", "role": "motion", "label": "Draw time", "description": "Seconds the whole mark takes to draw (the source uses 0.6).", "default": 0.6, "min": 0.2, "max": 3, "step": 0.1, "unit": "s"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Seconds before the mark starts to draw.", "default": 0.6, "min": 0, "max": 3, "step": 0.1, "unit": "s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Highlighter</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .hlt-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .hlt-para { position: relative; z-index: 1; width: 86%; text-align: center; font-family: var(--font-display, Geist, system-ui, sans-serif); font-weight: 500; line-height: 1.5; white-space: pre-wrap; }
+        .hlt-mark { position: relative; display: inline; }
+        .hlt-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: visible; }
+        .hlt-svg path { fill: none; stroke-linecap: butt; stroke-linejoin: round; }
+      </style>
+
+      <div id="root" data-composition-id="highlighter" data-duration="4" data-fps="30">
+        <div id="hlt-clip" class="hlt-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <svg id="hlt-svg" class="hlt-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+          <p id="hlt-para" class="hlt-para"><span id="hlt-before"></span><span id="hlt-mark" class="hlt-mark"></span><span id="hlt-after"></span></p>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "hlt";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "4");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["highlighter"] = tl;
+            }
+
+            var para = document.getElementById("hlt-para");
+            var svg = document.getElementById("hlt-svg");
+            var markEl = document.getElementById("hlt-mark");
+            document.getElementById("hlt-before").textContent = typeof vars.text_before === "string" ? vars.text_before : "The ";
+            markEl.textContent = str(vars.marked, "Highlighter");
+            document.getElementById("hlt-after").textContent = typeof vars.text_after === "string" ? vars.text_after : " makes important text stand out effortlessly.";
+            para.style.color = col(vars.text_color, "#0a0a0a");
+            var size = num(vars.font_size, 64, 12, 200);
+            para.style.fontSize = size + "px";
+            var action = pick(vars.action, ["highlight", "underline", "box", "circle", "strike-through", "crossed-off", "bracket"], "highlight");
+            var color = col(vars.color, "#ffd1dc");
+            var sw = num(vars.stroke_width, 1.5, 0.5, 8) * Math.max(1, size / 24);
+            var passes = Math.round(num(vars.iterations, 2, 1, 4));
+            var pad = num(vars.padding, 2, 0, 40);
+            var drawS = num(vars.draw_seconds, 0.6, 0.2, 3);
+            var delay = num(vars.delay, 0.6, 0, 3);
+            var rnd = mulberry32(2024);
+            function j(a) { return (rnd() * 2 - 1) * a; }
+            var W = root.clientWidth, H = root.clientHeight;
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var rootBox = root.getBoundingClientRect();
+            var rects = Array.from(markEl.getClientRects()).map(function (r) {
+              return { x: r.left - rootBox.left - pad, y: r.top - rootBox.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 };
+            });
+            var NS = "http://www.w3.org/2000/svg";
+            var wob = Math.max(1.2, size / 28); // wobble amount grows with the text
+            function line(x1, y1, x2, y2) {
+              var mx = (x1 + x2) / 2 + j(wob), my = (y1 + y2) / 2 + j(wob);
+              return "M" + (x1 + j(wob)).toFixed(1) + " " + (y1 + j(wob)).toFixed(1) + " Q" + mx.toFixed(1) + " " + my.toFixed(1) + " " + (x2 + j(wob)).toFixed(1) + " " + (y2 + j(wob)).toFixed(1);
+            }
+            function ellipse(r) {
+              var cx = r.x + r.w / 2, cy = r.y + r.h / 2, rx = r.w / 2 * 1.08 + 4, ry = r.h / 2 * 1.2 + 2;
+              var a0 = -2.2 + j(0.2), steps = 28, turn = 6.28 + 0.5, pts = [];
+              for (var i = 0; i <= steps; i++) {
+                var a = a0 + (i / steps) * turn, w = 1 + j(0.03) + (i / steps) * 0.05;
+                pts.push([cx + Math.cos(a) * rx * w, cy + Math.sin(a) * ry * w]);
+              }
+              return "M" + pts.map(function (p) { return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" L");
+            }
+            var paths = []; // {d, width, opacity}
+            rects.forEach(function (r) {
+              for (var k = 0; k < passes; k++) {
+                var dir = k % 2 === 0;
+                var L = r.x, R = r.x + r.w, T = r.y, B = r.y + r.h, M = r.y + r.h / 2;
+                if (action === "highlight") {
+                  paths.push({ d: dir ? line(L, M + j(2), R, M + j(2)) : line(R, M + j(2), L, M + j(2)), width: r.h * (k === 0 ? 0.92 : 0.7), opacity: k === 0 ? 1 : 0.55 });
+                } else if (action === "underline") {
+                  var y = B + 1 + j(1);
+                  paths.push({ d: dir ? line(L, y, R, y + j(2)) : line(R, y + j(2), L, y), width: sw });
+                } else if (action === "strike-through") {
+                  paths.push({ d: dir ? line(L, M, R, M + j(2)) : line(R, M + j(2), L, M), width: sw });
+                } else if (action === "box") {
+                  paths.push({ d: line(L, T, R, T) + " " + line(R, T, R, B).replace("M", "L").replace(/Q/, "Q") + " " + line(R, B, L, B).replace("M", "L") + " " + line(L, B, L, T).replace("M", "L"), width: sw });
+                } else if (action === "circle") {
+                  paths.push({ d: ellipse(r), width: sw });
+                } else if (action === "crossed-off") {
+                  paths.push({ d: dir ? line(L, T, R, B) : line(R, T, L, B), width: sw });
+                } else if (action === "bracket") {
+                  var t = Math.max(6, size * 0.18);
+                  var left = "M" + (L + t) + " " + (T + j(1)) + " Q" + (L + j(2)) + " " + (T + j(2)) + " " + L + " " + (T + t) + " L" + (L + j(1)) + " " + (B - t) + " Q" + (L + j(2)) + " " + (B + j(2)) + " " + (L + t) + " " + B;
+                  var right = "M" + (R - t) + " " + (T + j(1)) + " Q" + (R + j(2)) + " " + (T + j(2)) + " " + R + " " + (T + t) + " L" + (R + j(1)) + " " + (B - t) + " Q" + (R + j(2)) + " " + (B + j(2)) + " " + (R - t) + " " + B;
+                  paths.push({ d: left, width: sw });
+                  paths.push({ d: right, width: sw });
+                }
+              }
+            });
+            // Each path draws in turn, over `draw_seconds` in all.
+            var each = drawS / Math.max(1, paths.length);
+            paths.forEach(function (p, i) {
+              var el = document.createElementNS(NS, "path");
+              el.setAttribute("d", p.d);
+              el.setAttribute("pathLength", "1");
+              el.setAttribute("stroke", color);
+              el.setAttribute("stroke-width", p.width);
+              el.setAttribute("stroke-dasharray", "1");
+              el.setAttribute("stroke-dashoffset", "1");
+              if (p.opacity) el.setAttribute("stroke-opacity", p.opacity);
+              el.id = "hlt-path-" + i;
+              svg.appendChild(el);
+              tl.fromTo(el, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: each, ease: "none", immediateRender: true }, delay + i * each);
+            });
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

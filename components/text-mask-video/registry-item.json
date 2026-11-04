@@ -1,0 +1,243 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-mask-video",
+  "type": "hyperframes:component",
+  "title": "Text Mask Video",
+  "description": "An animated gradient plays inside the letterforms, with a wipe reveal and a slow drifting pan and zoom.",
+  "tags": [
+    "text-effects",
+    "text-mask",
+    "knockout",
+    "gradient",
+    "video-in-text",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A big title should be filled with moving footage or a flowing gradient instead of a flat colour.",
+    "A bold, short display word on a plain background."
+  ],
+  "avoidWhen": [
+    "The text is small or thin: the fill only reads inside heavy letterforms.",
+    "You need the text to stay legible over busy footage: use a caption block with an outline."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/text-mask-video.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "text-mask-video.html",
+      "target": "compositions/components/text-mask-video.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. A line break starts a new line.",
+      "default": "MOTION\nIN TYPE"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 190,
+      "min": 40,
+      "max": 400,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text (heavy reads best).",
+      "default": 900,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "line_height",
+      "type": "number",
+      "role": "style",
+      "label": "Line height",
+      "description": "Line height as a multiple of the font size.",
+      "default": 0.98,
+      "min": 0.7,
+      "max": 1.6,
+      "step": 0.02
+    },
+    {
+      "id": "letter_spacing",
+      "type": "number",
+      "role": "style",
+      "label": "Letter spacing",
+      "description": "Extra spacing between letters, in pixels.",
+      "default": 0,
+      "min": -20,
+      "max": 60,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Gradient color 1",
+      "description": "First colour of the fill gradient.",
+      "default": "#e8b86d"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Gradient color 2",
+      "description": "Second colour of the fill gradient.",
+      "default": "#f472b6"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Gradient color 3",
+      "description": "Third colour of the fill gradient.",
+      "default": "#2dd4bf"
+    },
+    {
+      "id": "gradient_angle",
+      "type": "number",
+      "role": "style",
+      "label": "Gradient angle",
+      "description": "Angle of the fill gradient in degrees.",
+      "default": 115,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "reveal",
+      "type": "enum",
+      "role": "motion",
+      "label": "Reveal",
+      "description": "Direction of the wipe that reveals the fill.",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left to right"
+        },
+        {
+          "value": "right",
+          "label": "Right to left"
+        },
+        {
+          "value": "up",
+          "label": "Bottom to top"
+        },
+        {
+          "value": "down",
+          "label": "Top to bottom"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ]
+    },
+    {
+      "id": "drift",
+      "type": "number",
+      "role": "motion",
+      "label": "Drift",
+      "description": "How far the fill pans behind the letters, in pixels.",
+      "default": 26,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "zoom",
+      "type": "number",
+      "role": "motion",
+      "label": "Zoom",
+      "description": "How much the fill breathes in scale.",
+      "default": 0.12,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01
+    },
+    {
+      "id": "duration_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Reveal duration",
+      "description": "Frames (30 per second) the wipe takes.",
+      "default": 30,
+      "min": 4,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "delay_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frames before the wipe starts.",
+      "default": 6,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "exit",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Exit",
+      "description": "Unwind the wipe at the end of the clip.",
+      "default": false
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "poppins",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-animate",
+  "type": "hyperframes:component",
+  "title": "Text Animate",
+  "description": "One text block with ten entrance presets (fade, blur, slide, scale) that play by whole text, word, character or line, staggered.",
+  "tags": [
+    "text-effects",
+    "entrance",
+    "stagger",
+    "presets",
+    "letters",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "Any headline or sentence needs a standard staggered entrance and you want to pick the preset and the unit by variable.",
+    "You want to try blur-in-up by character, slide-up by word or similar without choosing a different block."
+  ],
+  "avoidWhen": [
+    "You need a particular signature entrance: use a dedicated block such as per-character-rise or soft-blur-in."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/text-animate.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "text-animate.html",
+      "target": "compositions/components/text-animate.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. Use | for line breaks (needed for By line).",
+      "default": "Blur in by character"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 64,
+      "min": 12,
+      "max": 220,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Colour",
+      "description": "Text colour.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    },
+    {
+      "id": "animation",
+      "type": "enum",
+      "role": "motion",
+      "label": "Animation",
+      "description": "Entrance preset.",
+      "default": "blurInUp",
+      "options": [
+        {
+          "value": "fadeIn",
+          "label": "Fade in"
+        },
+        {
+          "value": "blurIn",
+          "label": "Blur in"
+        },
+        {
+          "value": "blurInUp",
+          "label": "Blur in up"
+        },
+        {
+          "value": "blurInDown",
+          "label": "Blur in down"
+        },
+        {
+          "value": "slideUp",
+          "label": "Slide up"
+        },
+        {
+          "value": "slideDown",
+          "label": "Slide down"
+        },
+        {
+          "value": "slideLeft",
+          "label": "Slide left"
+        },
+        {
+          "value": "slideRight",
+          "label": "Slide right"
+        },
+        {
+          "value": "scaleUp",
+          "label": "Scale up"
+        },
+        {
+          "value": "scaleDown",
+          "label": "Scale down"
+        }
+      ]
+    },
+    {
+      "id": "by",
+      "type": "enum",
+      "role": "motion",
+      "label": "By",
+      "description": "What is staggered: the whole text, each word, each character or each line.",
+      "default": "character",
+      "options": [
+        {
+          "value": "text",
+          "label": "Whole text"
+        },
+        {
+          "value": "word",
+          "label": "Word"
+        },
+        {
+          "value": "character",
+          "label": "Character"
+        },
+        {
+          "value": "line",
+          "label": "Line"
+        }
+      ]
+    },
+    {
+      "id": "duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger span",
+      "description": "Seconds across which all segments start (each segment then takes 0.3 s). The source default is 0.3.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Seconds before the first segment starts.",
+      "default": 0.3,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Distance",
+      "description": "Slide and rise distance in pixels (the source uses 20 for small text).",
+      "default": 30,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}

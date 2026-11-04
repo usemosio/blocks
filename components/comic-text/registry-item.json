@@ -1,0 +1,103 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "comic-text",
+  "type": "hyperframes:component",
+  "title": "Comic Text",
+  "description": "Comic-book lettering: skewed uppercase letters with a halftone-dot fill, a heavy black outline and a stacked hard shadow, popping in with a small overshoot.",
+  "tags": [
+    "text-effects",
+    "comic",
+    "pop",
+    "sticker",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "An exclamation, sound effect or punchy label should look like comic-book lettering.",
+    "A playful promo needs a big pop-in word with a halftone look."
+  ],
+  "avoidWhen": [
+    "The tone is quiet or corporate.",
+    "The text is longer than a few words: the outline gets heavy."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/comic-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "comic-text.html",
+      "target": "compositions/components/comic-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The lettering. It is set in capitals.",
+      "default": "BOOM!"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 160,
+      "min": 24,
+      "max": 400,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "fill_color",
+      "type": "color",
+      "role": "style",
+      "label": "Fill colour",
+      "description": "Background colour of the letters.",
+      "default": "#FACC15"
+    },
+    {
+      "id": "dot_color",
+      "type": "color",
+      "role": "style",
+      "label": "Dot colour",
+      "description": "Halftone dots in the letters and the second shadow.",
+      "default": "#EF4444"
+    },
+    {
+      "id": "outline_color",
+      "type": "color",
+      "role": "style",
+      "label": "Outline colour",
+      "description": "Outline and first shadow.",
+      "default": "#000000"
+    },
+    {
+      "id": "pop_seconds",
+      "type": "number",
+      "role": "motion",
+      "label": "Pop time",
+      "description": "Seconds the pop-in takes (the source uses 0.6).",
+      "default": 0.6,
+      "min": 0.2,
+      "max": 2,
+      "step": 0.05,
+      "unit": "s"
+    }
+  ],
+  "checkAt": [
+    0.15,
+    0.3,
+    0.5,
+    2.5
+  ]
+}

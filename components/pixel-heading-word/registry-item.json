@@ -1,0 +1,51 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "pixel-heading-word",
+  "type": "hyperframes:component",
+  "title": "Pixel Heading Word",
+  "description": "A heading set in a pixel typeface that changes face as a pointer rests on it: either cycling through five pixel styles every few hundred milliseconds, or swapping once to a hover style, with the style name in a small label.",
+  "tags": [
+    "text-effects",
+    "pixel",
+    "font-swap",
+    "retro",
+    "hover",
+    "cult-ui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A headline should flip between pixel-font personalities for a retro or technical feel.",
+    "A product or game title that needs a typographic wink."
+  ],
+  "avoidWhen": [
+    "Body copy or long sentences: pixel faces are wide and hard to read at length.",
+    "Letters should change one by one: use pixel-heading-character."
+  ],
+  "author": "Cult UI",
+  "authorUrl": "https://www.cult-ui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/nolly-studio/cult-ui",
+    "path": "apps/www/registry/default/ui/pixel-heading-word.tsx",
+    "commit": "d71b1428b811c2779d46ea41b7ef8c9f9c9991c2"
+  },
+  "files": [
+    {
+      "path": "pixel-heading-word.html",
+      "target": "compositions/components/pixel-heading-word.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Heading text.", "default": "Pixel Perfect"},
+    {"id": "initial_font", "type": "enum", "role": "style", "label": "Starting face", "description": "Pixel face shown before the pointer arrives.", "default": "square", "options": [{"value": "square", "label": "Square (Geist Pixel)"}, {"value": "grid", "label": "Grid (Pixelify Sans)"}, {"value": "circle", "label": "Circle (Silkscreen)"}, {"value": "triangle", "label": "Triangle (Jersey 10)"}, {"value": "line", "label": "Line (Tiny5)"}]},
+    {"id": "hover_font", "type": "enum", "role": "style", "label": "Hover face", "description": "Swap once to this face on hover; leave on Cycle to step through all five.", "default": "cycle", "options": [{"value": "cycle", "label": "Cycle through all"}, {"value": "square", "label": "Square (Geist Pixel)"}, {"value": "grid", "label": "Grid (Pixelify Sans)"}, {"value": "circle", "label": "Circle (Silkscreen)"}, {"value": "triangle", "label": "Triangle (Jersey 10)"}, {"value": "line", "label": "Line (Tiny5)"}]},
+    {"id": "cycle_interval", "type": "number", "role": "motion", "label": "Cycle interval", "description": "Milliseconds between face changes while cycling.", "default": 300, "min": 100, "max": 1500, "step": 10, "unit": "ms"},
+    {"id": "hover_at", "type": "number", "role": "motion", "label": "Pointer enters", "description": "Seconds before the pointer rests on the heading.", "default": 0.6, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hover_until", "type": "number", "role": "motion", "label": "Pointer leaves", "description": "Seconds when the pointer leaves again.", "default": 3.4, "min": 0.5, "max": 8, "step": 0.1, "unit": "s"},
+    {"id": "show_label", "type": "boolean", "role": "style", "label": "Show style label", "description": "Show the name of the current face under the heading.", "default": true},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 120, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"}
+  ]
+}

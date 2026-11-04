@@ -24,7 +24,7 @@
     "type": "string",
     "role": "content",
     "label": "Subject",
-    "description": "Shop or product name, written by hand in the main colour.",
+    "description": "Shop or product name, on its own line under the lead.",
     "default": "Kue Rumahan Bunda"
   },
   {
@@ -56,7 +56,7 @@
     "type": "string",
     "role": "content",
     "label": "Reply",
-    "description": "The shop&#39;s reply bubble. Leave empty to skip it.",
+    "description": "The shop's reply bubble. Leave empty to skip it.",
     "default": "Terima kasih, Bu Sari! Ditunggu pesanannya"
   },
   {
@@ -80,48 +80,40 @@
     "type": "color",
     "role": "style",
     "label": "Background",
-    "description": "Background (blended toward the main colour).",
-    "default": "#fde7ef"
+    "description": "Background.",
+    "default": "#ffffff"
   },
   {
     "id": "surface_color",
     "type": "color",
     "role": "style",
     "label": "Bubble colour",
-    "description": "Incoming bubble.",
-    "default": "#ffffff"
+    "description": "Incoming bubble and avatar.",
+    "default": "#fafafa"
   },
   {
     "id": "main_color",
     "type": "color",
     "role": "style",
     "label": "Main colour",
-    "description": "Subject name, avatar, reply bubble tint and call to action.",
-    "default": "#e0457b"
-  },
-  {
-    "id": "accent_color",
-    "type": "color",
-    "role": "style",
-    "label": "Accent",
-    "description": "Decorative dots.",
-    "default": "#ff7aa8"
+    "description": "Call to action: the one accent.",
+    "default": "#2563eb"
   },
   {
     "id": "text_color",
     "type": "color",
     "role": "style",
     "label": "Text colour",
-    "description": "Headline and bubbles.",
-    "default": "#2a1720"
+    "description": "Headline, subject, reply bubble.",
+    "default": "#0a0a0a"
   },
   {
     "id": "muted_color",
     "type": "color",
     "role": "style",
     "label": "Muted colour",
-    "description": "Customer note.",
-    "default": "#7e6a73"
+    "description": "Headline lead and customer note.",
+    "default": "#737373"
   },
   {
     "id": "star_color",
@@ -129,7 +121,7 @@
     "role": "style",
     "label": "Star colour",
     "description": "Rating stars.",
-    "default": "#ffb400"
+    "default": "#f59e0b"
   },
   {
     "id": "transparent",
@@ -149,7 +141,7 @@
     <template>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&amp;family=Caveat:wght@700&amp;display=block"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
       />
       <style>
         #root {
@@ -159,22 +151,20 @@
         #root * { box-sizing: border-box; }
         .ct-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
 
-        #root { color: var(--ct-text); font-family: Poppins, "Noto Sans", system-ui, sans-serif;
-          background: linear-gradient(160deg, var(--ct-bg), color-mix(in oklab, var(--ct-main) 22%, var(--ct-bg))); }
-        .ct-dot { position: absolute; border-radius: 50%; background: color-mix(in oklab, var(--ct-main) 25%, transparent); }
-        .ct-dot.alt { background: color-mix(in oklab, var(--ct-accent) 30%, transparent); }
+        #root { color: var(--ct-text); font-family: Geist, system-ui, sans-serif; font-variant-numeric: tabular-nums;
+          background: var(--ct-bg); }
         .ct-grid { position: absolute; inset: 0; padding: 0 calc(var(--u) * 90); display: grid; align-content: center; justify-items: stretch; gap: calc(var(--u) * 50);
           grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "chat" "rating" "cta"; }
-        .ct-head { grid-area: head; font-size: calc(var(--u) * 76); font-weight: 800; line-height: 1.12; }
-        .ct-head em { display: block; font-family: Caveat, cursive; font-style: normal; font-weight: 700; font-size: 1.28em; color: var(--ct-main); line-height: 1.05; }
+        .ct-head { grid-area: head; font-size: calc(var(--u) * 76); font-weight: 500; color: var(--ct-muted); letter-spacing: -0.04em; line-height: 1.12; }
+        .ct-head em { display: block; font-style: normal; font-weight: 600; font-size: 1.28em; letter-spacing: -0.05em; color: var(--ct-text); line-height: 1.05; }
         .ct-chat { grid-area: chat; }
         .ct-who { display: flex; align-items: center; gap: calc(var(--u) * 24); margin-bottom: calc(var(--u) * 30); }
-        .ct-ava { width: calc(var(--u) * 110); height: calc(var(--u) * 110); flex-shrink: 0; border-radius: 50%; background: var(--ct-main); color: var(--ct-ink); font-weight: 800; font-size: calc(var(--u) * 54); display: flex; align-items: center; justify-content: center; }
-        .ct-who b { display: block; font-size: calc(var(--u) * 48); line-height: 1.2; }
+        .ct-ava { width: calc(var(--u) * 110); height: calc(var(--u) * 110); flex-shrink: 0; border-radius: 50%; background: var(--ct-surface); border: 1px solid color-mix(in oklab, var(--ct-text) 12%, transparent); color: var(--ct-text); font-weight: 600; font-size: calc(var(--u) * 50); display: flex; align-items: center; justify-content: center; }
+        .ct-who b { display: block; font-weight: 600; letter-spacing: -0.02em; font-size: calc(var(--u) * 48); line-height: 1.2; }
         .ct-who span { font-size: calc(var(--u) * 34); color: var(--ct-muted); }
-        .ct-bub { position: relative; max-width: calc(var(--u) * 860); padding: calc(var(--u) * 34) calc(var(--u) * 44); border-radius: calc(var(--u) * 48); font-size: calc(var(--u) * 46); line-height: 1.35; background: var(--ct-surface); box-shadow: 0 calc(var(--u) * 16) calc(var(--u) * 40) color-mix(in oklab, var(--ct-text) 12%, transparent); margin-bottom: calc(var(--u) * 30); }
+        .ct-bub { position: relative; max-width: calc(var(--u) * 860); padding: calc(var(--u) * 34) calc(var(--u) * 44); border-radius: calc(var(--u) * 48); font-size: calc(var(--u) * 46); line-height: 1.35; background: var(--ct-surface); border: 1px solid color-mix(in oklab, var(--ct-text) 12%, transparent); margin-bottom: calc(var(--u) * 30); }
         .ct-in { border-top-left-radius: calc(var(--u) * 12); }
-        .ct-out { margin-left: auto; border-top-right-radius: calc(var(--u) * 12); background: color-mix(in oklab, var(--ct-main) 24%, var(--ct-surface)); }
+        .ct-out { margin-left: auto; border-top-right-radius: calc(var(--u) * 12); background: var(--ct-text); border-color: var(--ct-text); color: var(--ct-bg); }
         .ct-typing { position: absolute; left: 0; top: 0; display: flex; gap: calc(var(--u) * 14); padding: calc(var(--u) * 40) calc(var(--u) * 44); }
         .ct-typing i { width: calc(var(--u) * 22); height: calc(var(--u) * 22); border-radius: 50%; background: color-mix(in oklab, var(--ct-text) 45%, transparent); }
         .ct-nw { white-space: nowrap; }
@@ -182,9 +172,9 @@
         .ct-stars { display: flex; justify-content: center; gap: calc(var(--u) * 18); }
         .ct-stars svg { width: calc(var(--u) * 104); height: calc(var(--u) * 104); }
         .ct-stars path { fill: var(--ct-star); }
-        .ct-score { margin-top: calc(var(--u) * 20); font-size: calc(var(--u) * 48); font-weight: 500; }
+        .ct-score { margin-top: calc(var(--u) * 20); font-size: calc(var(--u) * 44); font-weight: 500; color: var(--ct-muted); }
         .ct-ctaw { grid-area: cta; display: flex; justify-content: center; }
-        .ct-cta { display: inline-block; max-width: 100%; padding: calc(var(--u) * 34) calc(var(--u) * 64); border-radius: calc(var(--u) * 90); background: var(--ct-main); color: var(--ct-ink); font-size: calc(var(--u) * 44); font-weight: 800; text-align: center; }
+        .ct-cta { display: inline-block; max-width: 100%; padding: calc(var(--u) * 34) calc(var(--u) * 64); border-radius: calc(var(--u) * 90); background: var(--ct-main); color: var(--ct-ink); font-size: calc(var(--u) * 42); font-weight: 600; letter-spacing: -0.01em; text-align: center; }
         @container (aspect-ratio > 1) {
           .ct-grid { padding: 0 calc(var(--u) * 120); column-gap: calc(var(--u) * 100); row-gap: calc(var(--u) * 40); grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
             grid-template-rows: auto auto auto; grid-template-areas: "head chat" "rating chat" "cta chat"; align-content: center; align-items: center; }
@@ -199,8 +189,6 @@
 
       <div id="root" data-composition-id="chat-review-typed" data-duration="10" data-fps="30">
         <div id="ct-clip" class="ct-stage clip" data-start="0" data-duration="10" data-track-index="0">
-          <div class="ct-dot" id="ct-d1" style="width: 28cqmin; height: 28cqmin; left: -7cqmin; bottom: 4%"></div>
-          <div class="ct-dot alt" id="ct-d2" style="width: 18cqmin; height: 18cqmin; right: -4cqmin; top: 8%"></div>
           <div class="ct-grid">
             <div class="ct-head" id="ct-head"><span id="ct-lead"></span><em id="ct-subject"></em></div>
             <div class="ct-chat" id="ct-chat">
@@ -251,9 +239,9 @@
             if (bool(vars.transparent, false)) root.style.background = "transparent";
 
 
-            setColors("ct", [["bg", "bg_color", "#fde7ef"], ["surface", "surface_color", "#ffffff"], ["main", "main_color", "#e0457b"], ["accent", "accent_color", "#ff7aa8"],
-              ["text", "text_color", "#2a1720"], ["muted", "muted_color", "#7e6a73"], ["star", "star_color", "#ffb400"]]);
-            root.style.setProperty("--ct-ink", ink(colr(vars.main_color, "#e0457b")));
+            setColors("ct", [["bg", "bg_color", "#ffffff"], ["surface", "surface_color", "#fafafa"], ["main", "main_color", "#2563eb"],
+              ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"], ["star", "star_color", "#f59e0b"]]);
+            root.style.setProperty("--ct-ink", ink(colr(vars.main_color, "#2563eb")));
             var lead = typeof vars.headline_lead === "string" ? vars.headline_lead : "Kata mereka tentang";
             var subject = str(vars.subject, "Kue Rumahan Bunda");
             var name = str(vars.customer_name, "Bu Sari");
@@ -284,11 +272,9 @@
             var per = Math.min(0.035, 3.2 / Math.max(1, chars.length));
 
             var tl = gsap.timeline({ paused: true });
-            tl.fromTo("#ct-d1", { y: 0 }, { y: -160 * U, duration: 10, ease: "sine.inOut" }, 0);
-            tl.fromTo("#ct-d2", { y: 0 }, { y: 120 * U, duration: 10, ease: "sine.inOut" }, 0);
             tl.fromTo("#ct-head", { y: 60 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.2);
             tl.fromTo("#ct-who", { x: -60 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.8);
-            tl.fromTo("#ct-b1", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.8)", transformOrigin: "0% 0%" }, 1.1);
+            tl.fromTo("#ct-b1", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out", transformOrigin: "0% 0%" }, 1.1);
             tl.to("#ct-typing i", { y: -14 * U, duration: 0.2, yoyo: true, repeat: 5, ease: "sine.inOut", stagger: 0.1 }, 1.3);
             tl.to("#ct-typing", { opacity: 0, duration: 0.15 }, 2.5);
             var T0 = 2.55;
@@ -296,10 +282,10 @@
               tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.01, ease: "none", immediateRender: true }, T0 + i * per);
             });
             var T1 = T0 + chars.length * per;
-            if (reply) tl.fromTo("#ct-b2", { x: 120 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "back.out(1.6)", immediateRender: true }, T1 + 0.5);
+            if (reply) tl.fromTo("#ct-b2", { x: 120 * U, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out", immediateRender: true }, T1 + 0.5);
             var TS = T1 + (reply ? 1.5 : 0.7);
             if (score) {
-              tl.fromTo("#ct-stars svg", { scale: 0, rotation: -120 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2.5)", stagger: 0.14 }, TS);
+              tl.fromTo("#ct-stars svg", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.14 }, TS);
               tl.fromTo("#ct-score", { y: 30 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, TS + 0.9);
               tl.to("#ct-stars svg", { y: -16 * U, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.out", stagger: 0.08 }, TS + 2.2);
             }

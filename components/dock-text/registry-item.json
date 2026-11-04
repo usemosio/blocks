@@ -1,0 +1,49 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dock-text",
+  "type": "hyperframes:component",
+  "title": "Dock Text",
+  "description": "A pointer glides across a line of capitals and the letters near it stretch tall like a dock, the nearest one most, easing back to size when the pointer leaves.",
+  "tags": [
+    "text-effects",
+    "hover",
+    "letters",
+    "dock",
+    "scale",
+    "eldoraui-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A short bold word in capitals should react to a moving pointer with a magnified, dock-style swell.",
+    "A playful interactive-feeling headline for a video."
+  ],
+  "avoidWhen": [
+    "The text should stay calm: use per-character-rise.",
+    "Lowercase or long sentences: the stretch reads best on a short word."
+  ],
+  "author": "Eldora UI",
+  "authorUrl": "https://www.eldoraui.site",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/karthikmudunuri/eldoraui",
+    "path": "apps/www/registry/eldoraui/dock-text.tsx",
+    "commit": "6bb8fd211ecbdfa983f5780bead27d9f3890f20a"
+  },
+  "files": [
+    {
+      "path": "dock-text.html",
+      "target": "compositions/components/dock-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "A short word or phrase; it is shown in capitals.", "default": "Make it grow"},
+    {"id": "down", "type": "boolean", "role": "motion", "label": "Grow downward", "description": "Anchor the stretch at the top so letters grow downward.", "default": false},
+    {"id": "start", "type": "number", "role": "motion", "label": "Pointer enters", "description": "Seconds before the pointer reaches the first letter.", "default": 0.4, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "sweep", "type": "number", "role": "motion", "label": "Sweep time", "description": "Seconds the pointer takes to cross the text.", "default": 2.2, "min": 0.5, "max": 6, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 120, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

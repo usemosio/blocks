@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-gradient-wave",
+  "type": "hyperframes:component",
+  "title": "Word Roller Gradient Wave",
+  "description": "Words swap one after another with their letters rising in, each letter shifting hue in a slow blue wave across the word, over a progress bar; the last word settles in the accent blue, a little bigger.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "gradient",
+    "letters",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A sequence of verbs or values (dream, design, develop, deliver) that ends on a payoff word.",
+    "A light title card where the colour carries a quiet sense of motion."
+  ],
+  "avoidWhen": [
+    "A flat single-colour look: the letters always shift hue.",
+    "Many words with different lengths: the row recentres at every word."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/RollerGradientWave.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-gradient-wave.html",
+      "target": "compositions/components/word-roller-gradient-wave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words in order, separated by commas. The last one is where it settles.",
+      "default": "Dream, Design, Develop, Deliver, DOMINATE"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the word in pixels. A wide word shrinks to fit the frame.",
+      "default": 80,
+      "min": 20,
+      "max": 280,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "hue",
+      "type": "number",
+      "role": "style",
+      "label": "Hue",
+      "description": "Centre hue of the letter colours in degrees (215 is blue).",
+      "default": 215,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "final_hue",
+      "type": "number",
+      "role": "style",
+      "label": "Final hue",
+      "description": "Hue of the last word (221 is the accent blue).",
+      "default": 221,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Progress bar",
+      "description": "Colour of the progress bar.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "word_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per word",
+      "description": "How long each word is shown, in 30 fps frames.",
+      "default": 25,
+      "min": 12,
+      "max": 90,
+      "step": 1,
+      "unit": "f"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

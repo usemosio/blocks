@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-rotate",
+  "type": "hyperframes:component",
+  "title": "Text Rotate",
+  "description": "A fixed phrase followed by a pill that cycles through a list of words: the old word's letters slide up and out, the pill springs to the new width and the next word's letters rise in, with a staggered wave.",
+  "tags": [
+    "text-effects",
+    "rotate",
+    "word-swap",
+    "headline",
+    "kinetic-type",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 8,
+  "useWhen": [
+    "A headline has a fixed lead-in and one slot that cycles through short words (\"Make it ... fast / fun / right\").",
+    "The slot sits in a pill or badge that should resize smoothly to each new word."
+  ],
+  "avoidWhen": [
+    "Words should roll like a slot machine with blur: use inline-word-roll or slot-machine-roll.",
+    "The text should be longer than a few words per step."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/text-rotate.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "text-rotate.html",
+      "target": "compositions/components/text-rotate.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Fixed text before the rotating word.", "default": "Make it"},
+    {"id": "texts", "type": "string", "role": "content", "label": "Words", "description": "Words that rotate, separated by a vertical bar.", "default": "work!|fancy|right|fast|fun"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. A long line shrinks to fit the frame.", "default": 110, "min": 24, "max": 300, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Prefix color", "description": "Color of the fixed text.", "default": "#171717"},
+    {"id": "pill_color", "type": "color", "role": "style", "label": "Pill color", "description": "Background of the rotating word.", "default": "#ff3b30"},
+    {"id": "pill_text_color", "type": "color", "role": "style", "label": "Pill text color", "description": "Color of the rotating word.", "default": "#ffffff"},
+    {"id": "split_by", "type": "enum", "role": "motion", "label": "Split by", "description": "Whether letters or whole words move as one.", "default": "characters", "options": [{"value": "characters", "label": "Characters"}, {"value": "words", "label": "Words"}]},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds each word is on screen, from the start of one swap to the next.", "default": 1.6, "min": 0.8, "max": 6, "step": 0.1, "unit": "s"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.025, "min": 0, "max": 0.3, "step": 0.005, "unit": "s"},
+    {"id": "stagger_from", "type": "enum", "role": "motion", "label": "Stagger from", "description": "Where the wave of letters starts.", "default": "last", "options": [{"value": "first", "label": "First letter"}, {"value": "last", "label": "Last letter"}, {"value": "center", "label": "Center"}, {"value": "random", "label": "Random"}]},
+    {"id": "stiffness", "type": "number", "role": "motion", "label": "Stiffness", "description": "Spring stiffness of the movement.", "default": 400, "min": 50, "max": 900, "step": 10},
+    {"id": "damping", "type": "number", "role": "motion", "label": "Damping", "description": "Spring damping of the movement.", "default": 30, "min": 5, "max": 80, "step": 1}
+  ]
+}

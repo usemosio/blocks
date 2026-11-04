@@ -1,0 +1,184 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "wave-reveal",
+  "type": "hyperframes:component",
+  "title": "Wave Reveal",
+  "description": "Letters (or words) drift into place from slightly above or below while a blur clears, each starting a beat after the last so a slow wave runs through the line.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "blur",
+    "letters",
+    "wave",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A headline should come in as a long, soft wave with a blur that clears.",
+    "The same wave over words instead of letters, or rising instead of falling."
+  ],
+  "avoidWhen": [
+    "A crisp, tight stagger is wanted: use per-character-rise or bottom-up-letters.",
+    "A single scale-and-blur focus pull: use tracking-in or focus-blur-resolve."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/wave-reveal.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "wave-reveal.html",
+      "target": "compositions/components/wave-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Headline that waves in.",
+      "default": "Hello World"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Units fall in from above or rise from below.",
+      "default": "down",
+      "options": [
+        {
+          "value": "down",
+          "label": "Down"
+        },
+        {
+          "value": "up",
+          "label": "Up"
+        }
+      ]
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "motion",
+      "label": "Mode",
+      "description": "Animate letter by letter or word by word.",
+      "default": "letter",
+      "options": [
+        {
+          "value": "letter",
+          "label": "Letter"
+        },
+        {
+          "value": "word",
+          "label": "Word"
+        }
+      ]
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 112,
+      "min": 12,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "unit_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Unit duration",
+      "description": "Seconds each letter or word takes to settle.",
+      "default": 2,
+      "min": 0.2,
+      "max": 6,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Seconds before the first unit starts.",
+      "default": 0,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "blur",
+      "type": "boolean",
+      "role": "style",
+      "label": "Blur",
+      "description": "Start each unit blurred, as in a keynote title.",
+      "default": true
+    },
+    {
+      "id": "blur_px",
+      "type": "number",
+      "role": "style",
+      "label": "Blur size",
+      "description": "Blur radius at the start, in pixels.",
+      "default": 5,
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "500",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

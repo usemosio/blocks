@@ -1,0 +1,167 @@
+<!doctype html>
+<!--
+  Pixel Heading Character
+
+  A heading whose letters each take a pixel typeface of their own and keep changing on a staggered clock: all five faces mixed, a travelling wave, pseudo-random picks, or one face for the whole line.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/nolly-studio/cult-ui/blob/d71b1428b811c2779d46ea41b7ef8c9f9c9991c2/apps/www/registry/default/ui/pixel-heading-character.tsx
+
+  MIT License
+
+  Copyright (c) 2023 Jordan-Gilliam
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="pixel-heading-character"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Heading text.", "default": "Pixel Heading"},
+    {"id": "mode", "type": "enum", "role": "style", "label": "Mode", "description": "How the faces are spread across the letters.", "default": "multi", "options": [{"value": "multi", "label": "Multi (golden-ratio spread)"}, {"value": "wave", "label": "Wave"}, {"value": "random", "label": "Random"}, {"value": "uniform", "label": "Uniform"}]},
+    {"id": "cycle_interval", "type": "number", "role": "motion", "label": "Cycle interval", "description": "Milliseconds between face changes.", "default": 150, "min": 50, "max": 1000, "step": 10, "unit": "ms"},
+    {"id": "stagger_delay", "type": "number", "role": "motion", "label": "Stagger", "description": "Milliseconds between one letter starting and the next.", "default": 50, "min": 0, "max": 300, "step": 5, "unit": "ms"},
+    {"id": "default_font", "type": "enum", "role": "style", "label": "Starting face", "description": "Face used by the uniform mode at the start.", "default": "square", "options": [{"value": "square", "label": "Square (Geist Pixel)"}, {"value": "grid", "label": "Grid (Pixelify Sans)"}, {"value": "circle", "label": "Circle (Silkscreen)"}, {"value": "triangle", "label": "Triangle (Jersey 10)"}, {"value": "line", "label": "Line (Tiny5)"}]},
+    {"id": "prefix", "type": "string", "role": "content", "label": "Prefix", "description": "Optional word before the heading that stays put.", "default": ""},
+    {"id": "prefix_font", "type": "enum", "role": "style", "label": "Prefix face", "description": "Pixel face for the prefix, or the heading font.", "default": "none", "options": [{"value": "none", "label": "Heading font"}, {"value": "square", "label": "Square (Geist Pixel)"}, {"value": "grid", "label": "Grid (Pixelify Sans)"}, {"value": "circle", "label": "Circle (Silkscreen)"}, {"value": "triangle", "label": "Triangle (Jersey 10)"}, {"value": "line", "label": "Line (Tiny5)"}]},
+    {"id": "hover_at", "type": "number", "role": "motion", "label": "Pointer enters", "description": "Seconds before the pointer rests on the heading.", "default": 0.5, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hover_until", "type": "number", "role": "motion", "label": "Pointer leaves", "description": "Seconds when the pointer leaves again.", "default": 3.5, "min": 0.5, "max": 8, "step": 0.1, "unit": "s"},
+    {"id": "show_label", "type": "boolean", "role": "style", "label": "Show mode label", "description": "Show the mode name under the heading.", "default": true},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 120, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pixel Heading Character</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Pixel&amp;family=Pixelify+Sans&amp;family=Silkscreen&amp;family=Jersey+10&amp;family=Tiny5&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, "Geist", system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .pxc-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .pxh-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5em; max-width: 92%; }
+        .pxh-head { text-align: center; line-height: 1.1; letter-spacing: 0; margin: 0; font-weight: 400; }
+        .pxh-label { font-family: "Geist", system-ui, sans-serif; font-size: 0.14em; letter-spacing: 0.25em; text-transform: uppercase; opacity: 0; color: #71717a; }
+        .pxh-preload { position: absolute; left: 0; top: 0; opacity: 0; font-size: 12px; pointer-events: none; }
+      </style>
+
+      <div id="root" data-composition-id="pixel-heading-character" data-duration="4" data-fps="30">
+        <div id="pxc-clip" class="pxc-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <div class="pxh-wrap"><h1 id="pxc-head" class="pxh-head"></h1><output id="pxc-label" class="pxh-label"></output></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function pick(v, l, f) { return l.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { if (typeof v === "boolean") return v; if (v === "true") return true; if (v === "false") return false; return f; }
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            gsap.registerPlugin(CustomEase);
+            var total = parseFloat(root.dataset.duration || "4");
+            // Motion tweens with no easing named run easeInOut.
+            var EIO = CustomEase.create("pxc-eio", "M0,0 C0.42,0 0.58,1 1,1");
+            // Unit step response of a damped spring (semi-implicit Euler at 480 Hz), sampled once.
+            function springTable(k, c, m, dur) {
+              var dt = 1 / 480, x = 0, v = 0, out = [0];
+              for (var t = 0; t < dur; t += dt) { v += ((-k * (x - 1) - c * v) / m) * dt; x += v * dt; out.push(x); }
+              return out;
+            }
+            function springAt(tab, tau) {
+              if (tau <= 0) return 0;
+              var i = tau * 480; if (i >= tab.length - 1) return tab[tab.length - 1];
+              var j = Math.floor(i); return tab[j] + (tab[j + 1] - tab[j]) * (i - j);
+            }
+            var clock = { t: 0 };
+            function finish(tl, draw) {
+              if (draw) { tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0); draw(0); }
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["pixel-heading-character"] = tl;
+            }
+
+
+            // The source cycles five Geist Pixel faces; only one of them is on Google Fonts, so the five
+            // slots (square, grid, circle, triangle, line) use five open pixel faces instead.
+            var KEYS = ["square", "grid", "circle", "triangle", "line"];
+            var FAMS = ["Geist Pixel", "Pixelify Sans", "Silkscreen", "Jersey 10", "Tiny5"];
+            var LABELS = ["Square", "Grid", "Circle", "Triangle", "Line"];
+            // Hidden samples make the browser load every face before it is first needed.
+            FAMS.forEach(function (fam) { var g = document.createElement("span"); g.className = "pxh-preload"; g.style.fontFamily = '"' + fam + '"'; g.textContent = "Aa"; root.appendChild(g); });
+
+            var head = document.getElementById("pxc-head"), label = document.getElementById("pxc-label");
+            var text = str(vars.text, "Pixel Heading");
+            var mode = pick(vars.mode, ["multi", "wave", "random", "uniform"], "multi");
+            var cycle = num(vars.cycle_interval, 150, 50, 1000), stagger = num(vars.stagger_delay, 50, 0, 300);
+            var defIdx = Math.max(0, KEYS.indexOf(pick(vars.default_font, KEYS, "square")));
+            var prefix = typeof vars.prefix === "string" ? vars.prefix.trim() : "";
+            var pfx = KEYS.indexOf(String(vars.prefix_font || "none"));
+            var at = num(vars.hover_at, 0.5, 0, 5), until = Math.max(at + 0.2, num(vars.hover_until, 3.5, 0.5, 8));
+            var showLabel = bool(vars.show_label, true);
+            root.style.fontSize = num(vars.font_size, 120, 12, 260) + "px";
+            head.setAttribute("aria-label", prefix ? prefix + " " + text : text);
+            if (prefix) { var p = document.createElement("span"); p.textContent = prefix + " "; if (pfx >= 0) p.style.fontFamily = '"' + FAMS[pfx] + '"'; head.appendChild(p); }
+            var chars = Array.from(text).map(function (ch) { var s = document.createElement("span"); s.textContent = ch; head.appendChild(s); return { ch: ch, el: s }; });
+            var PHI = (1 + Math.sqrt(5)) / 2;
+            function golden(i) { return Math.floor((i * PHI * 5) % 5); }
+            function rnd(tick, i) { return ((tick * 2654435761 + i * 340573321) >>> 0) % 5; }
+            var MODE_LABEL = { multi: "Multi", wave: "Wave", random: "Random" }, lastSig = "", lastOn = null;
+            function draw(t) {
+              var ms = t >= at ? (Math.min(t, until) - at) * 1000 : 0, vi = 0, fonts = [];
+              chars.forEach(function (c) {
+                if (c.ch === " ") { fonts.push(-1); return; }
+                var f;
+                if (mode === "uniform") f = (defIdx + Math.floor(ms / cycle)) % 5;
+                else {
+                  var cycles = Math.floor(Math.max(0, ms - vi * stagger) / cycle);
+                  if (mode === "multi") f = (golden(vi) + cycles) % 5;
+                  else if (mode === "wave") f = (vi + cycles) % 5;
+                  else f = cycles > 0 ? rnd(cycles, vi) : golden(vi);
+                }
+                fonts.push(f); vi++;
+              });
+              var sig = fonts.join(",");
+              if (sig !== lastSig) {
+                lastSig = sig;
+                chars.forEach(function (c, i) { c.el.style.fontFamily = fonts[i] >= 0 ? '"' + FAMS[fonts[i]] + '", monospace' : ""; });
+                var first = fonts.filter(function (x) { return x >= 0; })[0];
+                label.textContent = mode === "uniform" ? LABELS[first === undefined ? 0 : first] : MODE_LABEL[mode];
+              }
+              var on = t >= at && t < until;
+              if (on !== lastOn) { lastOn = on; label.style.opacity = showLabel && on ? "1" : "0"; }
+            }
+            finish(gsap.timeline({ paused: true }), draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

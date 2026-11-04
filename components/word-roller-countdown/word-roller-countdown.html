@@ -1,0 +1,280 @@
+<!doctype html>
+<!--
+  Word Roller Countdown
+
+  A countdown that scrolls through its numbers, then a blurred, accelerating spin that lands on a launch word with a springy settle.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/lifeprompt-team/remotion-scenes/blob/02c7a84241da7010b5f59c420b0110aafd1d6f0d/src/scenes/RollerAnimations/RollerCountdown.tsx
+
+  MIT License
+
+  Copyright (c) 2026 lifeprompt-team
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="word-roller-countdown"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "numbers", "type": "string", "role": "content", "label": "Countdown", "description": "The values counted through, separated by commas.", "default": "5, 4, 3, 2, 1"},
+    {"id": "final_word", "type": "string", "role": "content", "label": "Final word", "description": "Word shown after the spin.", "default": "LAUNCH"},
+    {"id": "subtitle", "type": "string", "role": "content", "label": "Subtitle", "description": "Small caps line under the final word.", "default": "YOUR JOURNEY BEGINS"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Size of the countdown digits in pixels. The launch word shrinks to fit the frame.", "default": 180, "min": 40, "max": 500, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Digit color", "description": "Color of the countdown digits.", "default": "#0a0a0a"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Launch color", "description": "Color of the final word.", "default": "#2563eb"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Fill behind the text. Use transparent to lay the block over your own footage.", "default": "#fafafa"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Word Roller Countdown</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100;300;400;500;600;700;800;900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, -apple-system, sans-serif);
+          pointer-events: none;
+        }
+        .wcd-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+        #root { color: var(--c, #0a0a0a); }
+        .wcd-g { position: relative; text-align: center; line-height: 1; }
+        .wcd-win { position: relative; height: 1em; overflow: hidden; }
+        .wcd-mask { position: absolute; left: 0; right: 0; height: 0.222em; z-index: 1; }
+        .wcd-mask.t { top: 0; }
+        .wcd-mask.b { bottom: 0; }
+        .wcd-num { height: 1em; display: flex; align-items: center; justify-content: center; font-weight: 700; padding: 0 0.3em; }
+        .wcd-fin { display: none; font-weight: 700; color: var(--ac, #2563eb); white-space: pre; }
+        .wcd-sub { display: none; font-size: 0.111em; color: #737373; margin-top: 1.5em; letter-spacing: 0.25em; white-space: pre; }
+        .wcd-probe { position: absolute; visibility: hidden; white-space: pre; font-weight: 700; font-size: 0.667em; left: 0; top: 0; }
+
+      </style>
+
+      <div id="root" data-composition-id="word-roller-countdown" data-duration="4" data-fps="30">
+        <div id="wcd-clip" class="wcd-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <div id="wcd-g" class="wcd-g">
+            <div id="wcd-win" class="wcd-win">
+              <div id="wcd-mt" class="wcd-mask t"></div>
+              <div id="wcd-mb" class="wcd-mask b"></div>
+              <div id="wcd-sc"><div id="wcd-n0" class="wcd-num"></div><div id="wcd-n1" class="wcd-num"></div></div>
+            </div>
+            <div id="wcd-fin" class="wcd-fin"></div>
+            <div id="wcd-sub" class="wcd-sub"></div>
+            <div id="wcd-probe" class="wcd-probe"></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function el(id) { return document.getElementById(id); }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && value !== undefined && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function txt(value, fallback) {
+              return typeof value === "string" ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function list(value, fallback, max) {
+              var a = (typeof value === "string" ? value : "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+              if (!a.length) a = fallback.slice();
+              return a.slice(0, max || 12);
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            var E = {
+              out: bezier(0.16, 1, 0.3, 1), "in": bezier(0.7, 0, 0.84, 0), inOut: bezier(0.87, 0, 0.13, 1),
+              overshoot: bezier(0.34, 1.56, 0.64, 1), smooth: bezier(0.4, 0, 0.2, 1),
+              quadIn: function (x) { return x * x; },
+              quadOut: function (x) { return 1 - (1 - x) * (1 - x); },
+              cubicOut: function (x) { return 1 - Math.pow(1 - x, 3); },
+              cubicInOut: function (x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+            };
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            // Remotion interpolate with clamped ends, one input range and one output range.
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 towards 1 (mass, stiffness, damping), frame at 30 fps, in closed form.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass || 1, k = cfg.stiffness === undefined ? 100 : cfg.stiffness, c = cfg.damping === undefined ? 10 : cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (Math.abs(z - 1) < 1e-6) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              var q = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + q, r2 = -z * w0 - q;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            // Sets the group's font size, then shrinks it so the group (or its probe) fits the frame.
+            function fitG(g, size, probe, wf, hf, wmul) {
+              g.style.fontSize = size + "px";
+              var p = probe || g;
+              var w = Math.max(1, p.offsetWidth * (wmul || 1)), h = Math.max(1, p.offsetHeight);
+              var k = Math.min(1, root.clientWidth * (wf || 0.9) / w, root.clientHeight * (hf || 0.9) / h);
+              if (k < 1) { size = Math.max(6, size * k); g.style.fontSize = size + "px"; }
+              return size;
+            }
+            function fillSizer(sizer, words) {
+              sizer.textContent = "";
+              words.forEach(function (w) {
+                var s = document.createElement("span");
+                s.textContent = w;
+                sizer.appendChild(s);
+              });
+            }
+            function setText(node, value) {
+              if (node.__t !== value) { node.__t = value; node.textContent = value; }
+            }
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var TOTAL = parseFloat(root.dataset.duration || "4");
+            var clock = { frame: 0 };
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: Math.round(TOTAL * 30), duration: TOTAL, ease: "none", onUpdate: function () { draw(Math.round(clock.frame * speed * 1000) / 1000); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["word-roller-countdown"] = tl;
+            }
+
+            
+            var numbers = list(vars.numbers, ["5", "4", "3", "2", "1"], 10);
+            var N = numbers.length;
+            var finalWord = txt(vars.final_word, "LAUNCH");
+            var g = el("wcd-g"), stage = el("wcd-clip"), win = el("wcd-win"), sc = el("wcd-sc"), n0 = el("wcd-n0"), n1 = el("wcd-n1");
+            var fin = el("wcd-fin"), sub = el("wcd-sub"), mt = el("wcd-mt"), mb = el("wcd-mb"), probe = el("wcd-probe");
+            var accent = str(vars.accent, "#2563eb"), bgc = str(vars.background, "#fafafa");
+            root.style.setProperty("--c", str(vars.color, "#0a0a0a"));
+            root.style.setProperty("--ac", accent);
+            fin.textContent = finalWord;
+            probe.textContent = finalWord;
+            sub.textContent = txt(vars.subtitle, "YOUR JOURNEY BEGINS");
+            var base = num(vars.font_size, 180, 40, 500);
+            function fit() {
+              g.style.fontSize = base + "px";
+              var k = Math.min(1, root.clientWidth * 0.86 / Math.max(1, probe.offsetWidth * 1.2));
+              g.style.fontSize = Math.max(6, base * k) + "px";
+            }
+            fit();
+            onFonts(fit);
+            // remocn-scenes: 60 frames counting (12 per number), 15 frames of accelerating blurred spin,
+            // then the final word springs in. The 180 px roller height is 1 em here.
+            function draw(t) {
+              var CD = 60, SD = 15, U = 180;
+              var counting = t < CD, spinning = t >= CD && t < CD + SD, stopping = t >= CD + SD;
+              var scrollY = 0, di = 0;
+              if (counting) {
+                var fpn = CD / N;
+                di = Math.floor(t / fpn);
+                var sp = spring(t % fpn, { damping: 15, stiffness: 200 });
+                scrollY = di + (1 - sp);
+              } else if (spinning) {
+                var s = t - CD;
+                scrollY = N + s * (15 + s * 2) / U;
+              }
+              var urgency = counting ? di / Math.max(1, N - 1) : 1;
+              root.style.background = bgc;
+              mt.style.background = "linear-gradient(" + bgc + ", transparent)";
+              mb.style.background = "linear-gradient(transparent, " + bgc + ")";
+              stage.style.transform = "scale(" + (counting ? 1 + 0.02 * Math.sin(t * 0.5) * (1 + urgency) : 1) + ")";
+              win.style.display = stopping ? "none" : "";
+              fin.style.display = sub.style.display = stopping ? "block" : "none";
+              if (!stopping) {
+                if (counting) {
+                  var off = scrollY % 1;
+                  setText(n0, numbers[Math.min(di, N - 1)]);
+                  n0.style.transform = n1.style.transform = "translateY(" + (-off) + "em)";
+                  n1.style.display = di < N - 1 ? "" : "none";
+                  if (di < N - 1) setText(n1, numbers[di + 1]);
+                } else {
+                  setText(n0, numbers[Math.floor(scrollY) % N]);
+                  n0.style.transform = "none";
+                  n1.style.display = "none";
+                }
+                sc.style.filter = spinning ? "blur(" + (8 / U) + "em)" : "none";
+              }
+              var lp = stopping ? spring(t - (CD + SD), { damping: 8, stiffness: 150 }) : 0;
+              fin.style.fontSize = (100 + lp * 20) / U + "em";
+              fin.style.transform = "scale(" + (1 + lp * 0.1) + ")";
+              sub.style.opacity = lp;
+            }
+            start(draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

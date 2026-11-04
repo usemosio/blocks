@@ -1,0 +1,205 @@
+<!doctype html>
+<!--
+  Kinetic Text
+
+  A thin variable-weight word where a pointer sweeps over the letters: the letter under it swells to black weight with an outline, and its neighbours follow at lesser weights.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/kinetic-text.tsx
+  Changes by usemosio/blocks: the source reacts to the hover pointer; this block moves a pointer left to right over the letters, with the source's 0.4 s transitions.
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="kinetic-text"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The word. Letters reflow as their weight changes, so keep it short.", "default": "Nostalgia"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 192, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Colour", "description": "Text and outline colour.", "default": "#0a0a0a"},
+    {"id": "step", "type": "number", "role": "motion", "label": "Step", "description": "Seconds the pointer rests on each letter.", "default": 0.22, "min": 0.08, "max": 1, "step": 0.02, "unit": "s"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the pointer reaches the first letter.", "default": 0.4, "min": 0, "max": 3, "step": 0.1, "unit": "s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kinetic Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .knt-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .knt-line { display: flex; flex-wrap: nowrap; justify-content: center; font-family: var(--font-display, Geist, system-ui, sans-serif); font-weight: 300; line-height: 1.1; letter-spacing: -0.05em; font-optical-sizing: auto; }
+        .knt-letter { display: inline-block; white-space: pre; -webkit-text-stroke-style: solid; }
+      </style>
+
+      <div id="root" data-composition-id="kinetic-text" data-duration="4" data-fps="30">
+        <div id="knt-clip" class="knt-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <h1 id="knt-line" class="knt-line"></h1>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "knt";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "4");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["kinetic-text"] = tl;
+            }
+
+            var line = document.getElementById("knt-line");
+            var text = str(vars.text, "Nostalgia");
+            var color = col(vars.color, "#0a0a0a");
+            var step = num(vars.step, 0.22, 0.08, 1);
+            var start = num(vars.start, 0.4, 0, 3);
+            var total = parseFloat(root.dataset.duration || "4");
+            line.style.color = color;
+            line.setAttribute("aria-label", text);
+            var letters = Array.from(text).map(function (ch, i) {
+              var s = document.createElement("span");
+              s.className = "knt-letter";
+              s.id = "knt-letter-" + i;
+              s.setAttribute("aria-hidden", "true");
+              s.textContent = ch === " " ? "\u00A0" : ch;
+              line.appendChild(s);
+              return s;
+            });
+            // Bold letters are wider than thin ones, so leave room for the swell.
+            var size = fit(line, num(vars.font_size, 192, 24, 400), 0.8);
+            var n = letters.length;
+            // Targets: weight, side padding (em) and outline strength for a letter at distance d
+            // from the hovered one (negative = before it). Source: hovered 900, next 600, the one
+            // after 400 (and the same before it); padding on the hovered letter and its two
+            // immediate neighbours; outline only on the hovered one.
+            function target(d) {
+              if (d === 0) return { w: 900, p: 1 / 12, s: 1 };
+              if (d === 1 || d === -1) return { w: 600, p: 1 / 12, s: 0 };
+              if (d === 2 || d === -2) return { w: 400, p: 0, s: 0 };
+              return { w: 300, p: 0, s: 0 };
+            }
+            // Hover schedule: pointer enters letter i at start + i * step, leaves after the last.
+            var events = [];
+            for (var i = 0; i < n; i++) events.push({ t: start + i * step, hover: i });
+            events.push({ t: start + n * step, hover: -1 });
+            var ease = bez(0.25, 0.1, 0.25, 1); // CSS "ease", 0.4 s as in the source
+            var TR = 0.4;
+            // Per letter: a chain of transitions that each start from wherever the last one is.
+            var chains = letters.map(function (_, li) {
+              var segs = [];
+              var cur = { w: 300, p: 0, s: 0 };
+              events.forEach(function (ev) {
+                var tg = ev.hover < 0 ? { w: 300, p: 0, s: 0 } : target(li - ev.hover);
+                var prev = segs.length ? segs[segs.length - 1] : null;
+                var from = prev ? valueIn(prev, ev.t) : cur;
+                if (prev && prev.to.w === tg.w && prev.to.p === tg.p && prev.to.s === tg.s) return;
+                segs.push({ t: ev.t, from: from, to: tg });
+              });
+              return segs;
+            });
+            function valueIn(seg, t) {
+              var f = ease(Math.min(1, Math.max(0, (t - seg.t) / TR)));
+              return { w: seg.from.w + (seg.to.w - seg.from.w) * f, p: seg.from.p + (seg.to.p - seg.from.p) * f, s: seg.from.s + (seg.to.s - seg.from.s) * f };
+            }
+            var strokeBase = size * 125 / 6000;
+            var clock = { t: 0 };
+            function draw(t) {
+              letters.forEach(function (el, i) {
+                var segs = chains[i], v = { w: 300, p: 0, s: 0 };
+                for (var j = 0; j < segs.length; j++) if (segs[j].t <= t) v = valueIn(segs[j], t);
+                el.style.fontWeight = Math.round(v.w);
+                el.style.paddingInline = (v.p * size).toFixed(2) + "px";
+                el.style.webkitTextStrokeWidth = (strokeBase * (1 + v.s)).toFixed(3) + "px";
+                el.style.webkitTextStrokeColor = "color-mix(in srgb, " + color + " " + (v.s * 100).toFixed(1) + "%, transparent)";
+              });
+            }
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

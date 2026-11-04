@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "spinning-text",
+  "type": "hyperframes:component",
+  "title": "Spinning Text",
+  "description": "Text set on a circle that turns steadily like a rotating badge or seal.",
+  "tags": [
+    "text-effects",
+    "circular",
+    "badge",
+    "loop",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A short slogan should circle a point like a seal, sticker or call-to-action badge.",
+    "An endless, steady rotation is wanted behind or around an icon or logo."
+  ],
+  "avoidWhen": [
+    "The text should read as a flat line.",
+    "You want text running around a tilted 3D band: use ring-text."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/spinning-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "spinning-text.html",
+      "target": "compositions/components/spinning-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The phrase set around the circle. A space is added at the end to close the ring.",
+      "default": "learn more • earn more • grow more •"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. The ring shrinks to fit the frame.",
+      "default": 56,
+      "min": 12,
+      "max": 160,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "radius",
+      "type": "number",
+      "role": "style",
+      "label": "Radius",
+      "description": "Ring radius in character widths (the source uses 5).",
+      "default": 5,
+      "min": 2,
+      "max": 14,
+      "step": 0.5,
+      "unit": "ch"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Colour",
+      "description": "Text colour.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "500",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Which way the ring turns.",
+      "default": "clockwise",
+      "options": [
+        {
+          "value": "clockwise",
+          "label": "Clockwise"
+        },
+        {
+          "value": "counter",
+          "label": "Counter-clockwise"
+        }
+      ]
+    },
+    {
+      "id": "rotation_seconds",
+      "type": "number",
+      "role": "motion",
+      "label": "Rotation time",
+      "description": "Seconds for one full turn (the source uses 10).",
+      "default": 6,
+      "min": 1,
+      "max": 30,
+      "step": 0.5,
+      "unit": "s"
+    }
+  ]
+}

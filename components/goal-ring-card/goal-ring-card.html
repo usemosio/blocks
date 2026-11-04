@@ -1,0 +1,160 @@
+<!doctype html>
+<!--
+  Goal Ring Card
+
+  A day-summary card: a ring fills to the share of a daily goal while the figure inside counts up, above a bar that restates the goal.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/codse/animata/blob/25c27e5a874c60a56dcc1609df3b2c4f5f8456f8/animata/widget/calorie-counter.tsx
+  and animata/graphs/donut-chart.tsx (the ring)
+  MIT License
+
+  Copyright (c) Animata
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="goal-ring-card"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "weekday", "type": "string", "role": "content", "label": "Weekday", "description": "Small grey line at the top left.", "default": "Monday"},
+    {"id": "date_label", "type": "string", "role": "content", "label": "Date", "description": "Date line under the weekday.", "default": "25 October"},
+    {"id": "initials", "type": "string", "role": "content", "label": "Initials", "description": "Letters in the round badge at the top right.", "default": "AB"},
+    {"id": "today_label", "type": "string", "role": "content", "label": "Ring label", "description": "Small label above the figure inside the ring.", "default": "Today"},
+    {"id": "goal_label", "type": "string", "role": "content", "label": "Goal label", "description": "Label on the bar at the bottom.", "default": "Your goal"},
+    {"id": "unit", "type": "string", "role": "content", "label": "Unit", "description": "Unit written after the figures.", "default": "Cal"},
+    {"id": "goal", "type": "number", "role": "content", "label": "Goal", "description": "Daily goal.", "default": 4000, "min": 1, "max": 1000000, "step": 1},
+    {"id": "fulfilled", "type": "number", "role": "content", "label": "Done so far", "description": "Amount reached today.", "default": 2600, "min": 0, "max": 1000000, "step": 1},
+    {"id": "ring_duration", "type": "number", "role": "motion", "label": "Fill time", "description": "Seconds the ring takes to fill.", "default": 1.4, "min": 0.3, "max": 4, "step": 0.1, "unit": "s"},
+    {"id": "scale", "type": "number", "role": "style", "label": "Card scale", "description": "Scale of the card (1 is 288 × 384 px); it never grows past the frame.", "default": 2.4, "min": 0.5, "max": 5, "step": 0.1},
+    {"id": "accent", "type": "color", "role": "style", "label": "Ring color", "description": "Colour of the filled ring.", "default": "#4ade80"},
+    {"id": "goal_color", "type": "color", "role": "style", "label": "Goal color", "description": "Colour of the goal figure.", "default": "#fdba74"},
+    {"id": "card_background", "type": "color", "role": "style", "label": "Card color", "description": "Card fill.", "default": "#f3f4f6"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Main text colour.", "default": "#111827"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Goal Ring Card</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .grc-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .grc-card { position: relative; width: 288px; height: 384px; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 12px 20px; border-radius: 24px; border: 2px solid #e5e7eb; background: #f3f4f6; color: #111827; transform-origin: 50% 50%; }
+        .grc-head { display: flex; width: 100%; align-items: center; justify-content: space-between; padding-top: 8px; }
+        .grc-day { color: #9ca3af; font-size: 16px; line-height: 24px; }
+        .grc-date { font-size: 20px; line-height: 28px; }
+        .grc-badge { width: 40px; height: 40px; border-radius: 50%; background: #d1d5db; color: #4b5563; display: grid; place-items: center; font-size: 14px; font-weight: 600; }
+        .grc-ring { position: relative; width: 180px; height: 180px; margin: 8px; display: grid; place-items: center; flex-shrink: 0; }
+        .grc-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+        .grc-mid { position: relative; text-align: center; }
+        .grc-sub { color: #9ca3af; font-size: 16px; line-height: 24px; }
+        .grc-fig { font-size: 20px; line-height: 28px; }
+        .grc-bar { margin-top: auto; display: flex; width: 100%; height: 56px; align-items: center; justify-content: space-between; border-radius: 12px; background: rgba(156,163,175,0.12); padding: 0 16px; font-size: 16px; }
+        .grc-goal { font-weight: 700; }
+      </style>
+
+      <div id="root" data-composition-id="goal-ring-card" data-duration="4" data-fps="30">
+        <div id="grc-clip" class="grc-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <div id="grc-card" class="grc-card">
+            <div class="grc-head"><div><div id="grc-day" class="grc-day"></div><div id="grc-date" class="grc-date"></div></div><div id="grc-badge" class="grc-badge"></div></div>
+            <div class="grc-ring">
+              <svg width="180" height="180" viewBox="0 0 180 180"><circle id="grc-track" cx="90" cy="90" r="81" fill="none" stroke-width="18" stroke="rgba(0,0,0,0.1)"/><circle id="grc-arc" cx="90" cy="90" r="81" fill="none" stroke-width="18" stroke-linecap="round"/></svg>
+              <div class="grc-mid"><div id="grc-sub" class="grc-sub"></div><div id="grc-fig" class="grc-fig"></div></div>
+            </div>
+            <div class="grc-bar"><span id="grc-label"></span><span id="grc-goal" class="grc-goal"></span></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function opt(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : f; }
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > max) { size = Math.max(12, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            
+            var card = document.getElementById("grc-card"), arc = document.getElementById("grc-arc"), fig = document.getElementById("grc-fig");
+            var unit = str(vars.unit, "Cal");
+            var goal = num(vars.goal, 4000, 1, 1000000), done = num(vars.fulfilled, 2600, 0, 1000000);
+            document.getElementById("grc-day").textContent = str(vars.weekday, "Monday");
+            document.getElementById("grc-date").textContent = str(vars.date_label, "25 October");
+            document.getElementById("grc-badge").textContent = str(vars.initials, "AB");
+            document.getElementById("grc-sub").textContent = str(vars.today_label, "Today");
+            document.getElementById("grc-label").textContent = str(vars.goal_label, "Your goal");
+            document.getElementById("grc-goal").textContent = Math.round(goal) + unit;
+            document.getElementById("grc-goal").style.color = col(vars.goal_color, "#fdba74");
+            card.style.background = col(vars.card_background, "#f3f4f6");
+            card.style.color = col(vars.color, "#111827");
+            card.style.transform = "scale(" + Math.min(num(vars.scale, 2.4, 0.5, 5), root.clientHeight * 0.92 / 384, root.clientWidth * 0.92 / 288) + ")";
+            arc.setAttribute("stroke", col(vars.accent, "#4ade80"));
+            var C = 2 * Math.PI * 81, share = Math.min(1, done / goal);
+            arc.setAttribute("stroke-dasharray", C.toFixed(2));
+            var dur = num(vars.ring_duration, 1.4, 0.3, 4);
+            gsap.registerPlugin(CustomEase);
+            var ease = CustomEase.create("grc-ease", "M0,0 C0.25,0.1 0.25,1 1,1");
+            var st = { p: 0 };
+            function draw() {
+              arc.setAttribute("stroke-dashoffset", (C * (1 - share * st.p)).toFixed(2));
+              fig.textContent = Math.round(done * st.p) + unit;
+              arc.style.opacity = st.p > 0 ? 1 : 0;
+            }
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo(st, { p: 0 }, { p: 1, duration: dur, ease: ease, onUpdate: draw, immediateRender: false }, 0.5);
+            draw();
+            var total = parseFloat(root.dataset.duration || "4");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["goal-ring-card"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

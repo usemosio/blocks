@@ -1,0 +1,223 @@
+<!doctype html>
+<!--
+  Dia Text Reveal
+
+  A soft multi-colour gradient band sweeps left to right across the text, revealing the letters behind it; with several texts it then swaps to the next and sweeps again.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/dia-text-reveal.tsx
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="dia-text-reveal"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The text to reveal. Separate several texts with | to take turns when Repeat is on.", "default": "Welcome back|See you soon"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 96, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "colors", "type": "string", "role": "style", "label": "Band colours", "description": "Colours across the moving band, comma separated.", "default": "#A97CF8,#F38CB8,#FDCC92"},
+    {"id": "text_color", "type": "color", "role": "style", "label": "Text colour", "description": "Colour of the revealed text.", "default": "#0a0a0a"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Sweep time", "description": "Seconds one sweep takes (the source uses 1.5).", "default": 1.5, "min": 0.4, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Seconds before each sweep starts.", "default": 0.2, "min": 0, "max": 3, "step": 0.1, "unit": "s"},
+    {"id": "repeat", "type": "enum", "role": "motion", "label": "Repeat", "description": "With several texts, move on to the next after each sweep.", "default": "loop", "options": [{"value": "loop", "label": "Cycle through the texts"}, {"value": "once", "label": "Sweep the first text once"}]},
+    {"id": "repeat_delay", "type": "number", "role": "motion", "label": "Pause between texts", "description": "Seconds between a finished sweep and the next text.", "default": 0.5, "min": 0, "max": 3, "step": 0.1, "unit": "s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dia Text Reveal</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .dtr-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .dtr-line { font-family: var(--font-display, Geist, system-ui, sans-serif); font-weight: 700; letter-spacing: -0.025em; line-height: 1; white-space: nowrap; }
+        .dtr-text {
+          display: inline-block;
+          overflow: hidden;
+          vertical-align: bottom;
+          padding: 0.08em 0;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          -webkit-background-clip: text;
+          background-clip: text;
+          background-size: 100% 100%;
+        }
+      </style>
+
+      <div id="root" data-composition-id="dia-text-reveal" data-duration="5" data-fps="30">
+        <div id="dtr-clip" class="dtr-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="dtr-line" class="dtr-line"><span id="dtr-text" class="dtr-text"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "dtr";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "5");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["dia-text-reveal"] = tl;
+            }
+
+            var line = document.getElementById("dtr-line");
+            var el = document.getElementById("dtr-text");
+            var texts = str(vars.text, "Welcome back|See you soon").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!texts.length) texts = ["Welcome back"];
+            var looping = String(vars.repeat) !== "once" && texts.length > 1;
+            if (!looping) texts = texts.slice(0, 1);
+            var colors = str(vars.colors, "#A97CF8,#F38CB8,#FDCC92").split(",").map(function (c) { return c.trim(); }).filter(Boolean);
+            if (!colors.length) colors = ["#A97CF8"];
+            var textColor = col(vars.text_color, "#0a0a0a");
+            var dur = num(vars.duration, 1.5, 0.4, 5);
+            var delay = num(vars.delay, 0.2, 0, 3);
+            var gap = num(vars.repeat_delay, 0.5, 0, 3);
+            var total = parseFloat(root.dataset.duration || "5");
+            // Size to the widest text, then measure each text's width.
+            var size = num(vars.font_size, 96, 12, 260);
+            line.style.fontSize = size + "px";
+            // A hidden twin measures each text in the live font (re-measured per frame, so a
+            // late-loading font cannot leave the box too narrow).
+            var ghost = el.cloneNode(false);
+            ghost.id = "dtr-ghost";
+            ghost.style.cssText = "position:absolute;visibility:hidden;width:auto;left:0;top:0;padding:0.08em 0";
+            line.appendChild(ghost);
+            function widthOf(i) { ghost.textContent = texts[i]; return ghost.getBoundingClientRect().width; }
+            var widest = Math.max.apply(null, texts.map(function (_, i) { return widthOf(i); }));
+            if (widest > root.clientWidth * 0.9) {
+              size = Math.max(12, size * (root.clientWidth * 0.9) / widest);
+              line.style.fontSize = size + "px";
+            }
+            var BAND = 17, START = -BAND, END = 100 + BAND;
+            function sweepEase(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+            function gradient(pos) {
+              var bs = pos - BAND, be = pos + BAND;
+              if (bs >= 100) return "linear-gradient(90deg, " + textColor + ", " + textColor + ")";
+              var n = colors.length, parts = [];
+              if (bs > 0) parts.push(textColor + " 0%", textColor + " " + bs.toFixed(2) + "%");
+              colors.forEach(function (c, i) {
+                var pct = n === 1 ? pos : bs + (i / (n - 1)) * BAND * 2;
+                parts.push(c + " " + pct.toFixed(2) + "%");
+              });
+              if (be < 100) parts.push("transparent " + be.toFixed(2) + "%", "transparent 100%");
+              return "linear-gradient(90deg, " + parts.join(", ") + ")";
+            }
+            // Cycle k: swap to text k, wait `delay`, sweep for `dur`, pause `gap`, next.
+            var cycles = [];
+            var swap = 0;
+            for (var k = 0; swap < total + 0.001; k++) {
+              var startSweep = swap + delay;
+              if (k > 0 && startSweep + dur > total + 0.001) break;
+              cycles.push({ swap: swap, start: startSweep, end: startSweep + dur, i: k % texts.length });
+              if (!looping) break;
+              swap = startSweep + dur + gap;
+            }
+            var wEase = bez(0.4, 0, 0.2, 1);
+            var shown = -1;
+            var clock = { t: 0 };
+            function draw(t) {
+              var c = cycles[0], idx = 0;
+              for (var j = 0; j < cycles.length; j++) if (cycles[j].swap <= t) { c = cycles[j]; idx = j; }
+              if (shown !== idx) { el.textContent = texts[c.i]; shown = idx; }
+              var pos = t <= c.start ? START : t >= c.end ? END : START + (END - START) * sweepEase((t - c.start) / dur);
+              el.style.backgroundImage = gradient(pos);
+              if (looping) {
+                var curW = widthOf(c.i);
+                var prevW = idx > 0 ? widthOf(cycles[idx - 1].i) : curW;
+                var f = idx > 0 ? wEase(Math.min(1, Math.max(0, (t - c.swap) / 0.4))) : 1;
+                el.style.width = (prevW + (curW - prevW) * f).toFixed(2) + "px";
+              } else {
+                el.style.width = "auto";
+              }
+            }
+            line.style.color = textColor;
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

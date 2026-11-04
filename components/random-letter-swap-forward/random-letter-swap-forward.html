@@ -1,0 +1,185 @@
+<!doctype html>
+<!--
+  Random Letter Swap Forward
+
+  Letters swap out in a random order, each sliding out as an identical copy rolls in, and the wave repeats forward.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/danielpetho/fancy/blob/f9f62c61207b2dd3210476dd98af3c9a5be24094/src/fancy/components/text/random-letter-swap-forward-anim.tsx
+
+  MIT License
+
+  Copyright (c) 2024 Daniel Petho
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="random-letter-swap-forward"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase whose letters swap.", "default": "Letter swap"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 150, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#111111"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]},
+    {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "On: letters leave downward and the copy arrives from above. Off: the other way round.", "default": true},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.02, "min": 0, "max": 0.3, "step": 0.005, "unit": "s"},
+    {"id": "spring_duration", "type": "number", "role": "motion", "label": "Spring duration", "description": "Perceived duration of each letter&#39;s spring.", "default": 0.8, "min": 0.2, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "bounce", "type": "number", "role": "motion", "label": "Bounce", "description": "Spring bounce: 0 settles smoothly, higher overshoots.", "default": 0.25, "min": 0, "max": 0.8, "step": 0.05},
+    {"id": "swaps", "type": "number", "role": "motion", "label": "Swaps", "description": "How many times the wave plays.", "default": 3, "min": 1, "max": 8, "step": 1},
+    {"id": "first_swap", "type": "number", "role": "motion", "label": "First swap", "description": "Seconds before the first wave.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds from the start of one wave to the next.", "default": 1.4, "min": 0.6, "max": 5, "step": 0.1, "unit": "s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Random Letter Swap Forward</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #111111; font-family: Geist, system-ui, sans-serif; }
+        .ls-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .ls-line { display: flex; justify-content: center; align-items: center; overflow: hidden; line-height: 1.2; padding: 0.06em 0 0.14em; }
+        .ls-ch { position: relative; display: flex; white-space: pre; }
+        .ls-a { position: relative; display: block; }
+        .ls-b { position: absolute; left: 0; top: 0; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="random-letter-swap-forward" data-duration="5" data-fps="30">
+        <div id="ls-clip" class="ls-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="ls-line" class="ls-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var DEFS = [{"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase whose letters swap.", "default": "Letter swap"}, {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 150, "min": 24, "max": 400, "step": 1, "unit": "px"}, {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#111111"}, {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}, {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "On: letters leave downward and the copy arrives from above. Off: the other way round.", "default": true}, {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.02, "min": 0, "max": 0.3, "step": 0.005, "unit": "s"}, {"id": "spring_duration", "type": "number", "role": "motion", "label": "Spring duration", "description": "Perceived duration of each letter's spring.", "default": 0.8, "min": 0.2, "max": 2, "step": 0.05, "unit": "s"}, {"id": "bounce", "type": "number", "role": "motion", "label": "Bounce", "description": "Spring bounce: 0 settles smoothly, higher overshoots.", "default": 0.25, "min": 0, "max": 0.8, "step": 0.05}, {"id": "swaps", "type": "number", "role": "motion", "label": "Swaps", "description": "How many times the wave plays.", "default": 3, "min": 1, "max": 8, "step": 1}, {"id": "first_swap", "type": "number", "role": "motion", "label": "First swap", "description": "Seconds before the first wave.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"}, {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds from the start of one wave to the next.", "default": 1.4, "min": 0.6, "max": 5, "step": 0.1, "unit": "s"}];
+            var root = document.getElementById("root");
+            var raw = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            var D = parseFloat(root.dataset.duration || "5");
+            function V(id) {
+              var d = null;
+              for (var i = 0; i < DEFS.length; i++) if (DEFS[i].id === id) d = DEFS[i];
+              var v = raw[id];
+              if (v === undefined || v === null || (v === "" && d.type !== "string")) return d.default;
+              if (d.type === "number") { var n = Number(v); return Number.isFinite(n) ? Math.min(d.max, Math.max(d.min, n)) : d.default; }
+              if (d.type === "boolean") return v === true || v === "true";
+              if (d.type === "enum") { for (var j = 0; j < d.options.length; j++) if (String(d.options[j].value) === String(v)) return d.options[j].value; return d.default; }
+              if (d.type === "string") return typeof v === "string" ? v : d.default;
+              return typeof v === "string" && v ? v : d.default;
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function hash3(a, b, c) { return mulberry32((a * 7919 + b * 104729 + c * 1299709) | 0)(); }
+            // Stagger delays in seconds: "first", "last", "center", "random" (seeded shuffle) or an index.
+            function stagger(n, from, step, seed) {
+              var out = [], i;
+              if (from === "random") {
+                var rng = mulberry32(seed || 7), idx = [];
+                for (i = 0; i < n; i++) idx.push(i);
+                for (i = n - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp; }
+                for (i = 0; i < n; i++) out[idx[i]] = i * step;
+                return out;
+              }
+              for (i = 0; i < n; i++) {
+                var k = from === "last" ? n - 1 - i : from === "center" ? Math.abs(Math.floor(n / 2) - i) : typeof from === "number" ? Math.abs(from - i) : i;
+                out.push(k * step);
+              }
+              return out;
+            }
+            // Damped spring from 0 to 1 (stiffness/damping/mass or duration/bounce, as Motion defines them).
+            function spring(o) {
+              var m = o.mass || 1, k, c;
+              if (o.duration !== undefined) { var w = (2 * Math.PI) / o.duration; k = w * w * m; c = 2 * (1 - (o.bounce || 0)) * Math.sqrt(k * m); }
+              else { k = o.stiffness; c = o.damping; }
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              function at(t) {
+                if (t <= 0) return 0;
+                if (Math.abs(z - 1) < 1e-6) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+                if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t)); }
+                var s = Math.sqrt(z * z - 1), r1 = -w0 * (z - s), r2 = -w0 * (z + s);
+                return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+              }
+              var settle = 6;
+              for (var t = 0.02; t < 6; t += 0.02) {
+                var ok = true;
+                for (var u = t; u < Math.min(t + 0.3, 6); u += 0.05) if (Math.abs(1 - at(u)) > 0.002) { ok = false; break; }
+                if (ok) { settle = t; break; }
+              }
+              return { at: at, duration: settle };
+            }
+            function fitText(text) { return Array.from(text); }
+
+            var line = document.getElementById("ls-line");
+            var text = V("text") || "Letter swap";
+            line.setAttribute("aria-label", text);
+            line.style.color = V("color");
+            line.style.fontWeight = V("font_weight");
+            line.style.fontSize = "min(" + V("font_size") + "px, calc(90cqw / " + Math.max(1, fitText(text).length * 0.6).toFixed(2) + "))";
+            var cells = fitText(text).map(function (ch, i) {
+              var c = document.createElement("span"); c.className = "ls-ch"; c.id = "ls-ch-" + i; c.setAttribute("aria-hidden", "true");
+              c.innerHTML = '<span class="ls-a"></span><span class="ls-b"></span>';
+              c.children[0].textContent = ch; c.children[1].textContent = ch;
+              line.appendChild(c); return { a: c.children[0], b: c.children[1] };
+            });
+            var n = cells.length;
+            var delays = stagger(n, "random", V("stagger"), 11);
+            var sp = spring({ duration: V("spring_duration"), bounce: V("bounce") });
+            var dir = V("reverse") ? 1 : -1, swaps = V("swaps"), first = V("first_swap"), interval = V("interval");
+            
+            var tl = gsap.timeline({ paused: true });
+            function place(i, p) {
+              cells[i].a.style.transform = "translateY(" + (dir * 100 * p).toFixed(3) + "%)";
+              cells[i].b.style.transform = "translateY(" + (-dir * 100 * (1 - p)).toFixed(3) + "%)";
+            }
+            function draw(t) {
+              for (var i = 0; i < n; i++) {
+                var el = t - first - delays[i], p = 0;
+                if (el >= 0) {
+                  var k = Math.min(swaps - 1, Math.floor(el / interval)), e = el - k * interval;
+                  p = e >= sp.duration ? 0 : sp.at(e);
+                }
+                place(i, p);
+              }
+            }
+
+            var clock = { t: 0 };
+            tl.to(clock, { t: D, duration: D, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["random-letter-swap-forward"] = tl;
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

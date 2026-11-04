@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "staggered-letter",
+  "type": "hyperframes:component",
+  "title": "Staggered Letter",
+  "description": "Letters drop in from far above (or rise from far below) one by one and snap into place on a quick spring, over a pale ghost of the word.",
+  "tags": [
+    "text-effects",
+    "letters",
+    "drop",
+    "spring",
+    "reveal",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A title should assemble letter by letter with a long, visible drop and a soft shadow.",
+    "The pale ghost of the word under it should show where the letters will land."
+  ],
+  "avoidWhen": [
+    "A tiny, crisp rise is wanted: use per-character-rise.",
+    "Blur or fade-only entrances: use soft-blur-in or tracking-in."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/staggered-letter.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "staggered-letter.html",
+      "target": "compositions/components/staggered-letter.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Word that assembles.",
+      "default": "Staggered"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Letters fall from above or rise from below.",
+      "default": "drop",
+      "options": [
+        {
+          "value": "drop",
+          "label": "Drop"
+        },
+        {
+          "value": "up",
+          "label": "Rise"
+        }
+      ]
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 150,
+      "min": 12,
+      "max": 320,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Seconds between letters.",
+      "default": 0.09,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01,
+      "unit": "s"
+    },
+    {
+      "id": "ghost",
+      "type": "boolean",
+      "role": "style",
+      "label": "Ghost",
+      "description": "Show a pale copy of the word where the letters land.",
+      "default": true
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "ghost_color",
+      "type": "color",
+      "role": "style",
+      "label": "Ghost color",
+      "description": "Color of the pale copy.",
+      "default": "#9ca3af"
+    }
+  ]
+}

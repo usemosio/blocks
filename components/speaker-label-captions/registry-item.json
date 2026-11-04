@@ -1,0 +1,154 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "speaker-label-captions",
+  "type": "hyperframes:component",
+  "title": "Speaker Label Captions",
+  "description": "A multi-speaker caption track: each line sits on a card with the speaker's name and colour, speakers alternate sides, and the previous line stays as quiet context.",
+  "tags": [
+    "captions",
+    "speaker",
+    "dialogue",
+    "interview",
+    "subtitles",
+    "remotion-ui-port"
+  ],
+  "category": "captions",
+  "duration": 13.5,
+  "useWhen": [
+    "An interview, podcast or dialogue needs captions that say who is speaking: a name tag, a colour and a side per speaker.",
+    "Cues come from an SRT or WebVTT file (with <v Name> voice tags) or from a JSON list."
+  ],
+  "avoidWhen": [
+    "You want word-by-word highlighting from a word-timed transcript: use caption-speaker or caption-karaoke.",
+    "There is one speaker: use a plain caption block."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/speaker-label-captions.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "speaker-label-captions.html",
+      "target": "compositions/components/speaker-label-captions.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "cues",
+      "type": "string",
+      "role": "content",
+      "label": "Cues",
+      "description": "JSON list [{\"text\",\"startMs\",\"endMs\",\"speaker\"}] (or start/end in seconds), or SubRip / WebVTT text where <v Name> tags name the speaker.",
+      "default": "[{\"text\": \"So what made you start making videos?\", \"startMs\": 300, \"endMs\": 2800, \"speaker\": \"Maya\"}, {\"text\": \"Honestly, I wanted to show the work instead of explaining it.\", \"startMs\": 3300, \"endMs\": 6800, \"speaker\": \"Jon\"}, {\"text\": \"And that changed how people respond?\", \"startMs\": 7300, \"endMs\": 9500, \"speaker\": \"Maya\"}, {\"text\": \"Completely. They finally see what we do.\", \"startMs\": 10000, \"endMs\": 12800, \"speaker\": \"Jon\"}]"
+    },
+    {
+      "id": "speaker_colors",
+      "type": "string",
+      "role": "style",
+      "label": "Speaker colors",
+      "description": "JSON object mapping a speaker name to a colour, for example {\"Maya\":\"#38bdf8\"}. Unlisted speakers take the palette in order.",
+      "default": "{}"
+    },
+    {
+      "id": "default_speaker",
+      "type": "string",
+      "role": "content",
+      "label": "Default speaker",
+      "description": "Name shown for cues that carry no speaker.",
+      "default": "Speaker"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Caption text size in pixels; the name tag is half of it.",
+      "default": 42,
+      "min": 16,
+      "max": 140,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the caption text.",
+      "default": 600,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Caption text colour.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card color",
+      "description": "Background of each caption card.",
+      "default": "#0c0c12"
+    },
+    {
+      "id": "card_opacity",
+      "type": "number",
+      "role": "style",
+      "label": "Card opacity",
+      "description": "Opacity of the card background.",
+      "default": 0.82,
+      "min": 0,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "max_width",
+      "type": "number",
+      "role": "layout",
+      "label": "Max width",
+      "description": "Widest a card gets, as a percent of the frame.",
+      "default": 70,
+      "min": 30,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "show_previous",
+      "type": "boolean",
+      "role": "style",
+      "label": "Show previous line",
+      "description": "Keep the previous cue above the current one, dimmed, as context.",
+      "default": true
+    },
+    {
+      "id": "enter_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Enter",
+      "description": "Frames (30 per second) a card takes to arrive.",
+      "default": 10,
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "unit": "frames"
+    }
+  ],
+  "checkAt": [
+    1.5,
+    5.0,
+    8.2,
+    11.0
+  ]
+}

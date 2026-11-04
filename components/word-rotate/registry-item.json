@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-rotate",
+  "type": "hyperframes:component",
+  "title": "Word Rotate",
+  "description": "A list of words takes turns in one spot: each fades out sliding down, the next fades in sliding down from above.",
+  "tags": [
+    "text-effects",
+    "rotating-words",
+    "loop",
+    "headline",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A headline slot should cycle through a few alternative words (audiences, benefits, verbs).",
+    "You need a simple, calm word swap with a fade and a short slide."
+  ],
+  "avoidWhen": [
+    "The word should sit beside a fixed prefix and re-centre the whole line: use inline-word-roll.",
+    "You want a mechanical reel or flip: use slot-machine-roll or rolodex-flip."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/word-rotate.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "word-rotate.html",
+      "target": "compositions/components/word-rotate.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "The words in order, separated by | .",
+      "default": "Word|Rotate"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer words shrink to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Colour",
+      "description": "Text colour.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    },
+    {
+      "id": "interval",
+      "type": "number",
+      "role": "motion",
+      "label": "Interval",
+      "description": "Seconds between word changes (the source uses 2.5).",
+      "default": 2.5,
+      "min": 0.8,
+      "max": 8,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Slide distance",
+      "description": "How far words slide while fading, in pixels.",
+      "default": 50,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    }
+  ],
+  "checkAt": [
+    0.1,
+    1.5,
+    2.65,
+    3.5
+  ]
+}

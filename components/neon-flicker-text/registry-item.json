@@ -1,0 +1,264 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "neon-flicker-text",
+  "type": "hyperframes:component",
+  "title": "Neon Flicker Text",
+  "description": "Lights a word tube by tube like a neon sign, with a mains hum that never quite settles and a dying flicker on the way out.",
+  "tags": [
+    "text-effects",
+    "neon",
+    "glow",
+    "flicker",
+    "letters",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A word or short phrase should read as a neon sign: nightlife, retro, arcade, a late-night offer.",
+    "You want per-letter ignition with a living hum while it holds."
+  ],
+  "avoidWhen": [
+    "The sign must be one connected glass tube drawn along a path: use neon-sign.",
+    "The tone is calm or corporate."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/neon-flicker-text.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "neon-flicker-text.html",
+      "target": "compositions/components/neon-flicker-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. A line break starts a new line.",
+      "default": "Open late."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 96,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#fdf2f8"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": 700,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "motion",
+      "label": "Split by",
+      "description": "What one animated unit is.",
+      "default": "chars",
+      "options": [
+        {
+          "value": "chars",
+          "label": "Characters"
+        },
+        {
+          "value": "words",
+          "label": "Words"
+        },
+        {
+          "value": "lines",
+          "label": "Lines"
+        }
+      ]
+    },
+    {
+      "id": "order",
+      "type": "enum",
+      "role": "motion",
+      "label": "Order",
+      "description": "Order the units arrive in.",
+      "default": "start",
+      "options": [
+        {
+          "value": "start",
+          "label": "Start to end"
+        },
+        {
+          "value": "end",
+          "label": "End to start"
+        },
+        {
+          "value": "center",
+          "label": "Centre outwards"
+        },
+        {
+          "value": "edges",
+          "label": "Edges inwards"
+        },
+        {
+          "value": "random",
+          "label": "Random"
+        }
+      ]
+    },
+    {
+      "id": "stagger_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Frames (30 per second) between one unit and the next.",
+      "default": 4,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "duration_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Unit duration",
+      "description": "Frames one unit takes to arrive.",
+      "default": 24,
+      "min": 1,
+      "max": 90,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "delay_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frames before the first unit starts.",
+      "default": 6,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "exit",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Exit",
+      "description": "Play an exit at the end of the clip.",
+      "default": true
+    },
+    {
+      "id": "glow_color",
+      "type": "color",
+      "role": "style",
+      "label": "Glow color",
+      "description": "Colour of the glow around each lit tube.",
+      "default": "#f472b6"
+    },
+    {
+      "id": "glow_size",
+      "type": "number",
+      "role": "style",
+      "label": "Glow size",
+      "description": "Reach of the glow in pixels.",
+      "default": 26,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "off_level",
+      "type": "number",
+      "role": "style",
+      "label": "Off level",
+      "description": "Brightness of an unlit tube between strikes (0 to 1).",
+      "default": 0.14,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01
+    },
+    {
+      "id": "hum",
+      "type": "number",
+      "role": "motion",
+      "label": "Hum",
+      "description": "Depth of the slow brightness wobble once lit.",
+      "default": 0.12,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01
+    },
+    {
+      "id": "buzz",
+      "type": "number",
+      "role": "motion",
+      "label": "Buzz",
+      "description": "Chance per beat that a lit tube stutters.",
+      "default": 0.06,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01
+    },
+    {
+      "id": "flicker_on_exit",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Flicker out",
+      "description": "Let the tubes die in stutters when the exit plays.",
+      "default": true
+    }
+  ]
+}

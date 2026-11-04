@@ -1,0 +1,146 @@
+<!doctype html>
+<!--
+  Wave Reveal
+
+  Letters (or words) drift into place from slightly above or below while a blur clears, each starting a beat after the last so a slow wave runs through the line.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/codse/animata/blob/25c27e5a874c60a56dcc1609df3b2c4f5f8456f8/animata/text/wave-reveal.tsx
+  and animata/styles/globals.css (the reveal-up, reveal-down and content-blur keyframes)
+  MIT License
+
+  Copyright (c) Animata
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="wave-reveal"
+  data-composition-duration="3.5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Headline that waves in.", "default": "Hello World"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Units fall in from above or rise from below.", "default": "down", "options": [{"value": "down", "label": "Down"}, {"value": "up", "label": "Up"}]},
+    {"id": "mode", "type": "enum", "role": "motion", "label": "Mode", "description": "Animate letter by letter or word by word.", "default": "letter", "options": [{"value": "letter", "label": "Letter"}, {"value": "word", "label": "Word"}]},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 112, "min": 12, "max": 300, "step": 1, "unit": "px"},
+    {"id": "unit_duration", "type": "number", "role": "motion", "label": "Unit duration", "description": "Seconds each letter or word takes to settle.", "default": 2, "min": 0.2, "max": 6, "step": 0.1, "unit": "s"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Seconds before the first unit starts.", "default": 0, "min": 0, "max": 3, "step": 0.1, "unit": "s"},
+    {"id": "blur", "type": "boolean", "role": "style", "label": "Blur", "description": "Start each unit blurred, as in a keynote title.", "default": true},
+    {"id": "blur_px", "type": "number", "role": "style", "label": "Blur size", "description": "Blur radius at the start, in pixels.", "default": 5, "min": 0, "max": 24, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "500", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Wave Reveal</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .wr-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .wr-line { width: 92%; text-align: center; line-height: 1.15; letter-spacing: -0.02em; }
+        .wr-unit { display: inline-block; opacity: 0; white-space: pre; }
+        .wr-word { display: inline-block; white-space: nowrap; }
+      </style>
+
+      <div id="root" data-composition-id="wave-reveal" data-duration="3.5" data-fps="30">
+        <div id="wr-clip" class="wr-stage clip" data-start="0" data-duration="3.5" data-track-index="0">
+          <div id="wr-line" class="wr-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function opt(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : f; }
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > max) { size = Math.max(12, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            
+            var line = document.getElementById("wr-line");
+            var text = str(vars.text, "Hello World");
+            var mode = opt(vars.mode, ["letter", "word"], "letter");
+            var dir = opt(vars.direction, ["down", "up"], "down") === "up" ? 1 : -1;
+            var dur = num(vars.unit_duration, 2, 0.2, 6), first = num(vars.delay, 0, 0, 3);
+            var useBlur = bool(vars.blur, true), blurPx = num(vars.blur_px, 5, 0, 24);
+            root.style.color = col(vars.color, "#171717");
+            root.style.fontWeight = opt(vars.font_weight, ["300","400","500","600","700","900"], "500");
+            line.setAttribute("aria-label", text);
+            line.style.fontSize = num(vars.font_size, 112, 12, 300) + "px";
+            var units = [], offset = 0;
+            text.trim().split(/\s/).forEach(function (word, wi, all) {
+              if (mode === "word") {
+                var s = document.createElement("span"); s.className = "wr-unit"; s.textContent = word;
+                units.push({ el: s, at: first + (wi + offset) * 0.05 }); line.appendChild(s); offset += 1;
+              } else {
+                var holder = document.createElement("span"); holder.className = "wr-word"; line.appendChild(holder);
+                Array.from(word).forEach(function (ch, li) {
+                  var s = document.createElement("span"); s.className = "wr-unit"; s.textContent = ch;
+                  units.push({ el: s, at: first + (li + offset) * 0.05 }); holder.appendChild(s);
+                });
+                offset += word.length + 1;
+              }
+              if (wi < all.length - 1) line.appendChild(document.createTextNode(" "));
+            });
+            gsap.registerPlugin(CustomEase);
+            var ease = CustomEase.create("wr-ease", "M0,0 C0.25,0.1 0.25,1 1,1");
+            var tl = gsap.timeline({ paused: true });
+            units.forEach(function (u) {
+              var from = { opacity: 0, yPercent: dir * 80 };
+              var to = { opacity: 1, yPercent: 0, duration: dur, ease: ease, immediateRender: true };
+              if (useBlur) { from.filter = "blur(" + blurPx + "px)"; to.filter = "blur(0px)"; }
+              tl.fromTo(u.el, from, to, u.at);
+            });
+            var total = parseFloat(root.dataset.duration || "3.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["wave-reveal"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

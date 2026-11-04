@@ -1,0 +1,240 @@
+<!doctype html>
+<!--
+  Swoosh Text
+
+  Extruded lettering lit by a moving light: the extrusion swings away from a cursor sweeping across the text (under-damped, so a flick overshoots), and a click presses a key into its own extrusion.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/kokonut-labs/kokonutui/blob/4d497b7b03f02ffd07225e638c0b9ace3f892dbb/components/kokonutui/swoosh-text.tsx
+
+  MIT License
+
+  Copyright (c) 2025 kokonutUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="swoosh-text"
+  data-composition-duration="4.5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short word or phrase.", "default": "Extruded"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 150, "min": 24, "max": 320, "step": 1, "unit": "px"},
+    {"id": "face_color", "type": "color", "role": "style", "label": "Face color", "description": "Color of the front of the letters.", "default": "#18181b"},
+    {"id": "near_color", "type": "color", "role": "style", "label": "Near color", "description": "Extrusion color right behind the face.", "default": "#d4d4d8"},
+    {"id": "far_color", "type": "color", "role": "style", "label": "Far color", "description": "Extrusion color at its deepest layer.", "default": "#52525b"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Optional color for the deepest layer only (leave empty for none).", "default": ""},
+    {"id": "depth", "type": "number", "role": "style", "label": "Layers", "description": "Stacked layers behind each letter (6 to 16).", "default": 14, "min": 6, "max": 16, "step": 1},
+    {"id": "length", "type": "number", "role": "style", "label": "Extrusion length", "description": "Total extrusion length in em.", "default": 0.32, "min": 0.05, "max": 0.8, "step": 0.01, "unit": "em"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "800", "options": [{"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Swoosh Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@600;700;800&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+        #root { font-family: var(--font-display, Geist, system-ui, sans-serif); }
+        .sw-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .sw-line { position: relative; letter-spacing: -0.03em; line-height: 1.1; white-space: pre; padding: 0.3em 0.4em; }
+        .sw-word { display: inline-block; white-space: nowrap; }
+        .sw-key { position: relative; display: inline-block; }
+        .sw-layer { position: absolute; inset: 0; }
+        .sw-face { position: relative; display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="swoosh-text" data-duration="4.5" data-fps="30">
+        <div id="sw-clip" class="sw-stage clip" data-start="0" data-duration="4.5" data-track-index="0">
+          <div id="sw-line" class="sw-line" role="img"></div>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, a, b) { var x = Number(v); return Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+
+            var line = document.getElementById("sw-line");
+            var text = str(vars.text, "Extruded");
+            var size = num(vars.font_size, 150, 24, 320);
+            var depth = Math.round(num(vars.depth, 14, 6, 16));
+            var length = num(vars.length, 0.32, 0.05, 0.8);
+            var step = length / depth;
+            var weight = ["600", "700", "800"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "800";
+            function rgbOf(hex, f) {
+              var h = String(hex || "").replace("#", "");
+              if (h.length === 3) h = h.replace(/(.)/g, "$1$1");
+              var n = parseInt(h, 16);
+              return Number.isFinite(n) && h.length === 6 ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : f;
+            }
+            var face = col(vars.face_color, "#18181b");
+            var near = rgbOf(vars.near_color, [212, 212, 216]), far = rgbOf(vars.far_color, [82, 82, 91]);
+            var accent = typeof vars.accent === "string" && vars.accent.trim() ? vars.accent : null;
+            line.setAttribute("aria-label", text);
+            line.style.fontSize = size + "px";
+            line.style.fontWeight = weight;
+
+            function layerColor(i) {
+              if (i === depth && accent) return accent;
+              var t = (i - 1) / Math.max(1, depth - 1);
+              return "rgb(" + [0, 1, 2].map(function (c) { return Math.round(far[c] * t + near[c] * (1 - t)); }).join(",") + ")";
+            }
+            var keys = [];
+            var REST = Math.SQRT1_2;
+            Array.from(text.split(/\s+/).filter(Boolean)).forEach(function (word, w) {
+              if (w > 0) line.appendChild(document.createTextNode(" "));
+              var ws = document.createElement("span");
+              ws.className = "sw-word";
+              Array.from(word).forEach(function (ch) {
+                var key = document.createElement("span");
+                key.className = "sw-key";
+                var layers = [];
+                // Deepest layer first so the face paints on top.
+                for (var i = depth; i >= 1; i--) {
+                  var l = document.createElement("span");
+                  l.className = "sw-layer";
+                  l.style.color = layerColor(i);
+                  l.textContent = ch;
+                  key.appendChild(l);
+                  layers.push(l);
+                }
+                var f = document.createElement("span");
+                f.className = "sw-face";
+                f.style.color = face;
+                f.textContent = ch;
+                key.appendChild(f);
+                layers.push(f);
+                ws.appendChild(key);
+                keys.push({ el: key, layers: layers });
+              });
+              line.appendChild(ws);
+            });
+            // Shrink to 90 % of the frame width when the text is wider.
+            var maxW = root.clientWidth * 0.9;
+            if (line.scrollWidth > maxW) { size = Math.max(24, size * maxW / line.scrollWidth); line.style.fontSize = size + "px"; }
+
+            // Measure keys relative to the text block, in unscaled px.
+            var lineBox = line.getBoundingClientRect();
+            var kk = line.offsetWidth / (lineBox.width || line.offsetWidth);
+            keys.forEach(function (k) {
+              var r = k.el.getBoundingClientRect();
+              k.x = (r.left - lineBox.left + r.width / 2) * kk;
+              k.y = (r.top - lineBox.top + r.height / 2) * kk;
+            });
+            var LW = line.offsetWidth, LH = line.offsetHeight;
+
+            // A scripted cursor: it sweeps across the text, clicks one letter, then leaves.
+            // Waypoints are [time, x, y] in fractions of the text block (outside 0..1 is off the text).
+            var way = [[0.5, -0.35, -1.6], [1.3, 0.2, 0.2], [2.1, 0.82, 0.45], [2.7, 0.9, 1.8], [3.4, 0.1, 2.0]];
+            var pointerOn = 0.5, pointerOff = 3.55, clickAt = 2.05, clickOff = 2.5;
+            function pointerAt(t) {
+              if (t < pointerOn || t > pointerOff) return null;
+              for (var i = 0; i < way.length - 1; i++) {
+                var a = way[i], b = way[i + 1];
+                if (t >= a[0] && t <= b[0]) {
+                  var u = (t - a[0]) / (b[0] - a[0]); u = u * u * (3 - 2 * u);
+                  return { x: (a[1] + (b[1] - a[1]) * u) * LW, y: (a[2] + (b[2] - a[2]) * u) * LH };
+                }
+              }
+              var z = way[way.length - 1];
+              return { x: z[1] * LW, y: z[2] * LH };
+            }
+            // Spring for the light direction: under-damped on purpose, so a fast flick swings past its target.
+            var LIGHT_K = 170, LIGHT_C = 13, LIGHT_KICK = 9, LIGHT_MAXV = 30, LIGHT_MAXLEN = 1.35;
+            var KEY_K = 420, KEY_C = 34, MAX_SINK = 0.72, PRESS_R = 0.75;
+            function cl(v, m) { return Math.max(-m, Math.min(m, v)); }
+            function target(p) {
+              if (!p) return [REST, REST];
+              var dx = LW / 2 - p.x, dy = LH / 2 - p.y;
+              var reach = Math.max(Math.hypot(dx, dy), size * 0.9);
+              return [dx / reach, dy / reach];
+            }
+            var dur = parseFloat(root.dataset.duration || "4.5");
+            var H = 120, N = Math.ceil(dur * H) + 2, dt = 1 / H;
+            var LX = new Float32Array(N), LY = new Float32Array(N);
+            var P = keys.map(function () { return new Float32Array(N); });
+            var lx = REST, ly = REST, vx = 0, vy = 0, kp = keys.map(function () { return 0; }), kv = keys.map(function () { return 0; });
+            var prevTarget = [REST, REST], pressed = -1;
+            for (var s = 0; s < N; s++) {
+              var t = s * dt, p = pointerAt(t);
+              var tg = target(p);
+              // The pointer's velocity is carried into the spring at each move.
+              if (p && s % 2 === 0) { vx = cl(vx + (tg[0] - prevTarget[0]) * LIGHT_KICK, LIGHT_MAXV); vy = cl(vy + (tg[1] - prevTarget[1]) * LIGHT_KICK, LIGHT_MAXV); }
+              prevTarget = tg;
+              if (p && t >= clickAt && t < clickOff) {
+                if (pressed < 0) { var bd = size * 0.8; keys.forEach(function (k, i) { var d = Math.hypot(k.x - p.x, k.y - p.y); if (d < bd) { bd = d; pressed = i; } }); }
+              } else pressed = -1;
+              vx += ((tg[0] - lx) * LIGHT_K - vx * LIGHT_C) * dt;
+              vy += ((tg[1] - ly) * LIGHT_K - vy * LIGHT_C) * dt;
+              lx += vx * dt; ly += vy * dt;
+              var ln = Math.hypot(lx, ly);
+              if (ln > LIGHT_MAXLEN) { lx = lx / ln * LIGHT_MAXLEN; ly = ly / ln * LIGHT_MAXLEN; }
+              LX[s] = lx; LY[s] = ly;
+              for (var i2 = 0; i2 < keys.length; i2++) {
+                var tp;
+                if (i2 === pressed) tp = 1;
+                else if (!p) tp = 0;
+                else { var dd = Math.hypot(p.x - keys[i2].x, p.y - keys[i2].y) / (size * PRESS_R); tp = dd > 2.5 ? 0 : Math.exp(-dd * dd); }
+                tp *= MAX_SINK;
+                kv[i2] += ((tp - kp[i2]) * KEY_K - kv[i2] * KEY_C) * dt;
+                kp[i2] += kv[i2] * dt;
+                P[i2][s] = kp[i2];
+              }
+            }
+            function draw(time) {
+              var f = Math.min(N - 2, Math.max(0, time * H)), i0 = Math.floor(f), u = f - i0;
+              var ax = LX[i0] + (LX[i0 + 1] - LX[i0]) * u, ay = LY[i0] + (LY[i0 + 1] - LY[i0]) * u;
+              for (var k = 0; k < keys.length; k++) {
+                var pk = Math.max(0, P[k][i0] + (P[k][i0 + 1] - P[k][i0]) * u);
+                var ls = keys[k].layers; // deepest first, face last
+                for (var j = 0; j < ls.length; j++) {
+                  var idx = ls.length - 1 - j; // face = 0
+                  var off = (idx + (depth - idx) * pk) * step;
+                  ls[j].style.transform = "translate(" + (ax * off).toFixed(4) + "em," + (ay * off).toFixed(4) + "em)";
+                }
+              }
+            }
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: dur, duration: dur, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            var total = parseFloat(root.dataset.duration || "4.5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["swoosh-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

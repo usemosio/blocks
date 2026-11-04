@@ -1,0 +1,128 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "split-text",
+  "type": "hyperframes:component",
+  "title": "Split Text",
+  "description": "A pointer sweeps along a word and each letter it touches splits along its middle: the top half lifts and the bottom half drops, and the neighbours part by less.",
+  "tags": [
+    "text-effects",
+    "letters",
+    "split",
+    "hover",
+    "wave",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 5.5,
+  "useWhen": [
+    "Bold uppercase letters should crack open in a travelling wave.",
+    "A title wants a playful, tactile hover-style accent."
+  ],
+  "avoidWhen": [
+    "The text is small or light: the split needs thick letters to read.",
+    "A single clean reveal: use a per-character block."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/split-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "split-text.html",
+      "target": "compositions/components/split-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Word whose letters split.",
+      "default": "SPLIT TEXT"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 190,
+      "min": 12,
+      "max": 360,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "spread",
+      "type": "number",
+      "role": "style",
+      "label": "Spread",
+      "description": "How far the touched letter splits, as a fraction of the font size (the neighbours get 60 % and 20 %).",
+      "default": 0.16,
+      "min": 0.02,
+      "max": 0.5,
+      "step": 0.01,
+      "unit": "em"
+    },
+    {
+      "id": "dwell",
+      "type": "number",
+      "role": "motion",
+      "label": "Dwell",
+      "description": "Seconds the pointer spends on each letter.",
+      "default": 0.22,
+      "min": 0.05,
+      "max": 1,
+      "step": 0.01,
+      "unit": "s"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#eab308"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "900",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

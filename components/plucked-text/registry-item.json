@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "plucked-text",
+  "type": "hyperframes:component",
+  "title": "Plucked Text",
+  "description": "Text rides on a taut string: it is pulled, let go and rings (high notes first, a slow sway last), carrying and tilting every letter.",
+  "tags": [
+    "text-effects",
+    "physics",
+    "string",
+    "vibration",
+    "letters",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A short phrase should feel like a plucked guitar string: musical, springy, physical.",
+    "A title needs a vibrating beat after a reveal."
+  ],
+  "avoidWhen": [
+    "Long text: the string must be short enough to ring.",
+    "A clean static title card."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/plucked-text.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "plucked-text.html",
+      "target": "compositions/components/plucked-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "One short line that sits on the string.",
+      "default": "Good vibrations"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 110,
+      "min": 24,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Color of the letters.",
+      "default": "#18181b"
+    },
+    {
+      "id": "string_color",
+      "type": "color",
+      "role": "style",
+      "label": "String color",
+      "description": "Color of the string and its end pins.",
+      "default": "#a1a1aa"
+    },
+    {
+      "id": "tension",
+      "type": "number",
+      "role": "motion",
+      "label": "Tension",
+      "description": "How taut the string is. Higher rings faster and settles sooner.",
+      "default": 1,
+      "min": 0.3,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "pluck_at",
+      "type": "number",
+      "role": "motion",
+      "label": "First pluck",
+      "description": "Second the first pluck starts.",
+      "default": 0.5,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "second_pluck",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Second pluck",
+      "description": "Pluck the string a second time from the other side.",
+      "default": true
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    }
+  ],
+  "checkAt": [
+    0.6,
+    0.95,
+    1.2,
+    3.5
+  ]
+}

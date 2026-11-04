@@ -1,0 +1,167 @@
+<!doctype html>
+<!--
+  Sliding Number
+
+  A number whose digits each slide on their own spring reel to the next value in a list, shortest way round, with places appearing and disappearing as the length changes.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/ibelick/motion-primitives/blob/120f64f6ca60348e251f929e9c81f11ccbe45eda/components/core/sliding-number.tsx
+
+  MIT License
+
+  Copyright (c) 2024 ibelick
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  app/page.tsx
+-->
+<html
+  lang="en"
+  data-composition-id="sliding-number"
+  data-composition-duration="4.5"
+  data-composition-variables='[
+    {"id": "values", "type": "string", "role": "content", "label": "Values", "description": "Whole numbers separated by commas; the number slides from one to the next.", "default": "0, 128, 2049, 37"},
+    {"id": "start", "type": "number", "role": "motion", "label": "First change", "description": "Seconds before the first change.", "default": 0.5, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Time between changes", "description": "Seconds from one change to the next.", "default": 1.1, "min": 0.5, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "pad_start", "type": "boolean", "role": "style", "label": "Pad to two digits", "description": "Show single digits as 01, 02 and so on.", "default": false},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 180, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sliding Number</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, "Geist", system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .snn-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .snn-line { display: flex; align-items: center; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; white-space: nowrap; }
+        .snn-col { position: relative; display: inline-block; width: 1ch; height: 1em; overflow-x: visible; overflow-y: clip; }
+        .snn-n { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      </style>
+
+      <div id="root" data-composition-id="sliding-number" data-duration="4.5" data-fps="30">
+        <div id="snn-clip" class="snn-stage clip" data-start="0" data-duration="4.5" data-track-index="0">
+          <div id="snn-line" class="snn-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function pick(v, l, f) { return l.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { if (typeof v === "boolean") return v; if (v === "true") return true; if (v === "false") return false; return f; }
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            gsap.registerPlugin(CustomEase);
+            var total = parseFloat(root.dataset.duration || "4.5");
+            // Motion tweens with no easing named run easeInOut.
+            var EIO = CustomEase.create("snn-eio", "M0,0 C0.42,0 0.58,1 1,1");
+            // Unit step response of a damped spring (semi-implicit Euler at 480 Hz), sampled once.
+            function springTable(k, c, m, dur) {
+              var dt = 1 / 480, x = 0, v = 0, out = [0];
+              for (var t = 0; t < dur; t += dt) { v += ((-k * (x - 1) - c * v) / m) * dt; x += v * dt; out.push(x); }
+              return out;
+            }
+            function springAt(tab, tau) {
+              if (tau <= 0) return 0;
+              var i = tau * 480; if (i >= tab.length - 1) return tab[tab.length - 1];
+              var j = Math.floor(i); return tab[j] + (tab[j + 1] - tab[j]) * (i - j);
+            }
+            var clock = { t: 0 };
+            function finish(tl, draw) {
+              if (draw) { tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0); draw(0); }
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["sliding-number"] = tl;
+            }
+
+
+            var line = document.getElementById("snn-line");
+            var padStart = bool(vars.pad_start, false);
+            var values = str(vars.values, "0, 128, 2049, 37").split(/[\s,;]+/).map(Number).filter(function (n) { return Number.isFinite(n); }).map(function (n) { return Math.floor(Math.abs(n)); });
+            if (!values.length) values = [0, 128, 2049, 37];
+            var start = num(vars.start, 0.5, 0, 5), hold = num(vars.hold, 1.1, 0.5, 5);
+            function len(v) { return padStart && v < 10 ? 2 : String(v).length; }
+            function digit(v, p) { return Math.floor(v / Math.pow(10, p)) % 10; }
+            var maxLen = Math.max.apply(null, values.map(len));
+            line.setAttribute("aria-label", values.join(", "));
+            line.style.fontSize = num(vars.font_size, 180, 12, 240) + "px";
+            line.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700", "800"], "600");
+            var cols = [];
+            for (var p = maxLen - 1; p >= 0; p--) {
+              var col = document.createElement("div"); col.className = "snn-col"; col.id = "snn-col-" + p;
+              var ghost = document.createElement("div"); ghost.style.visibility = "hidden"; ghost.textContent = "0"; col.appendChild(ghost);
+              var ns = [];
+              for (var n = 0; n < 10; n++) { var s = document.createElement("span"); s.className = "snn-n"; s.textContent = String(n); col.appendChild(s); ns.push(s); }
+              line.appendChild(col); cols[p] = { el: col, ns: ns };
+            }
+            // Motion spring: stiffness 280, damping 18, mass 0.3.
+            var tab = springTable(280, 18, 0.3, 1.5);
+            function draw(t) {
+              for (var p = 0; p < maxLen; p++) {
+                var prevD = digit(values[0], p), prevV = len(values[0]) > p ? 1 : 0, cur = prevD, w = prevV;
+                for (var k = 1; k < values.length; k++) {
+                  var tau = t - (start + (k - 1) * hold);
+                  if (tau < 0) break;
+                  var d = digit(values[k], p), nv = len(values[k]) > p ? 1 : 0, s = springAt(tab, tau);
+                  cur = prevD + (d - prevD) * s;
+                  w = prevV + (nv - prevV) * Math.min(1, Math.max(0, s));
+                  prevD = d; prevV = nv;
+                }
+                var c = cols[p];
+                c.el.style.width = w + "ch"; c.el.style.opacity = String(w);
+                var pv = cur % 10;
+                for (var n = 0; n < 10; n++) {
+                  var off = (10 + n - pv) % 10, memo = off;
+                  if (off > 5) memo -= 10;
+                  c.ns[n].style.transform = "translateY(" + (memo * 100) + "%)";
+                }
+              }
+            }
+            finish(gsap.timeline({ paused: true }), draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

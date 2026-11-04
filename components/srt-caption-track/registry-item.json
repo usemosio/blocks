@@ -1,0 +1,208 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "srt-caption-track",
+  "type": "hyperframes:component",
+  "title": "SRT Caption Track",
+  "description": "Renders captions straight from SubRip or WebVTT text: each cue is spread across its words, grouped into pages, and the spoken word is highlighted.",
+  "tags": [
+    "captions",
+    "srt",
+    "webvtt",
+    "subtitles",
+    "highlight",
+    "remotion-ui-port"
+  ],
+  "category": "captions",
+  "duration": 9.5,
+  "useWhen": [
+    "You have an .srt or .vtt subtitle export and want styled, highlighted captions without word timestamps: paste the file text into the variable.",
+    "Subtitles come from a translator or an editor, not from a word-timed transcript."
+  ],
+  "avoidWhen": [
+    "You have word-level timings (a transcript): use a word-timed caption block such as caption-karaoke, which is exact.",
+    "You need speaker names or two languages: use speaker-label-captions or subtitle-translate."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/srt-caption-track.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "srt-caption-track.html",
+      "target": "compositions/components/srt-caption-track.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "srt",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitles",
+      "description": "SubRip (.srt) or WebVTT (.vtt) text, timestamps included.",
+      "default": "1\n00:00:00,300 --> 00:00:02,600\nGood captions are easy to read.\n\n2\n00:00:03,000 --> 00:00:05,800\nTiming is split across the words of each line.\n\n3\n00:00:06,200 --> 00:00:08,600\nSo the highlight follows along."
+    },
+    {
+      "id": "word_timing",
+      "type": "enum",
+      "role": "motion",
+      "label": "Word timing",
+      "description": "SRT has no word times: distribute spreads a cue over its words by length; cue keeps each cue as one token and shows it whole.",
+      "default": "distribute",
+      "options": [
+        {
+          "value": "distribute",
+          "label": "Distribute across words"
+        },
+        {
+          "value": "cue",
+          "label": "Whole cue"
+        }
+      ]
+    },
+    {
+      "id": "combine_ms",
+      "type": "number",
+      "role": "motion",
+      "label": "Page window",
+      "description": "Words of one cue that start within this window share one page; a page never spans two cues. 3000 keeps a typical cue on one page, lower splits it into shorter pages.",
+      "default": 3000,
+      "min": 200,
+      "max": 6000,
+      "step": 100,
+      "unit": "ms"
+    },
+    {
+      "id": "offset_ms",
+      "type": "number",
+      "role": "motion",
+      "label": "Offset",
+      "description": "Shift every caption later (positive) or earlier (negative).",
+      "default": 0,
+      "min": -5000,
+      "max": 5000,
+      "step": 50,
+      "unit": "ms"
+    },
+    {
+      "id": "hold_pages",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Hold pages",
+      "description": "Keep a page on screen until the next one starts.",
+      "default": true
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Caption size in pixels.",
+      "default": 64,
+      "min": 16,
+      "max": 160,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the resting words.",
+      "default": 650,
+      "min": 100,
+      "max": 900,
+      "step": 50
+    },
+    {
+      "id": "active_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Active weight",
+      "description": "Weight of the word being spoken.",
+      "default": 800,
+      "min": 100,
+      "max": 900,
+      "step": 50
+    },
+    {
+      "id": "active_color",
+      "type": "color",
+      "role": "style",
+      "label": "Active color",
+      "description": "Colour of the word being spoken.",
+      "default": "#ff6b00"
+    },
+    {
+      "id": "inactive_color",
+      "type": "color",
+      "role": "style",
+      "label": "Resting color",
+      "description": "Colour of the other words.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_align",
+      "type": "enum",
+      "role": "style",
+      "label": "Align",
+      "description": "Text alignment.",
+      "default": "center",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ]
+    },
+    {
+      "id": "shadow",
+      "type": "boolean",
+      "role": "style",
+      "label": "Shadow",
+      "description": "Soft shadow for legibility over footage.",
+      "default": true
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    }
+  ],
+  "checkAt": [
+    0.9,
+    4.0,
+    5.2,
+    7.2
+  ]
+}

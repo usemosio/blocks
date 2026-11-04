@@ -1,0 +1,311 @@
+<!doctype html>
+<!--
+  Caption Emoji Beat
+
+  Emoji punctuation landing on beats, over an optional caption line.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/caption-emoji-beat.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="caption-emoji-beat"
+  data-composition-duration="5"
+  data-composition-variables='[
+    [
+      {
+        "id": "text",
+        "type": "string",
+        "role": "content",
+        "label": "Caption",
+        "description": "The caption line the emoji punctuate. Leave empty for emoji alone.",
+        "default": "Make every beat count"
+      },
+      {
+        "id": "beats",
+        "type": "string",
+        "role": "content",
+        "label": "Beats",
+        "description": "JSON list of emoji stamps: [{\"emoji\",\"at\",\"x\",\"y\",\"scale\",\"rotate\"}]. at is in seconds (or atInFrames in frames); x and y are percent of the frame from the top-left; scale is the size in px; rotate is the resting tilt in degrees.",
+        "default": "[{\"emoji\": \"🔥\", \"at\": 0.6, \"x\": 22, \"y\": 30, \"rotate\": -10}, {\"emoji\": \"🎬\", \"at\": 1.3, \"x\": 78, \"y\": 26, \"rotate\": 8}, {\"emoji\": \"💡\", \"at\": 2.0, \"x\": 18, \"y\": 68, \"rotate\": -6}, {\"emoji\": \"⭐\", \"at\": 2.7, \"x\": 80, \"y\": 72, \"rotate\": 12}, {\"emoji\": \"👏\", \"at\": 3.4, \"x\": 50, \"y\": 20, \"scale\": 110}]"
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Caption size in pixels.",
+        "default": 64,
+        "min": 16,
+        "max": 200,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the caption.",
+        "default": 800,
+        "min": 100,
+        "max": 900,
+        "step": 100
+      },
+      {
+        "id": "color",
+        "type": "color",
+        "role": "style",
+        "label": "Color",
+        "description": "Caption colour.",
+        "default": "#fafafa"
+      },
+      {
+        "id": "font",
+        "type": "enum",
+        "role": "style",
+        "label": "Font",
+        "description": "Typeface.",
+        "default": "geist",
+        "options": [
+          {
+            "value": "geist",
+            "label": "Geist"
+          },
+          {
+            "value": "poppins",
+            "label": "Poppins"
+          },
+          {
+            "value": "playfair",
+            "label": "Playfair Display"
+          },
+          {
+            "value": "grotesk",
+            "label": "Space Grotesk"
+          }
+        ]
+      },
+      {
+        "id": "emoji_size",
+        "type": "number",
+        "role": "style",
+        "label": "Emoji size",
+        "description": "Base emoji size in pixels.",
+        "default": 84,
+        "min": 24,
+        "max": 300,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "land_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Landing",
+        "description": "Frames (30 per second) an emoji takes to land.",
+        "default": 7,
+        "min": 2,
+        "max": 30,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "hold_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Hold",
+        "description": "Frames it holds at full size before releasing.",
+        "default": 26,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "overshoot",
+        "type": "number",
+        "role": "motion",
+        "label": "Overshoot",
+        "description": "Overshoot on the way in. 1 lands flat.",
+        "default": 1.35,
+        "min": 1,
+        "max": 2,
+        "step": 0.01
+      },
+      {
+        "id": "wobble_degrees",
+        "type": "number",
+        "role": "motion",
+        "label": "Wobble",
+        "description": "Wobble after landing, in degrees.",
+        "default": 9,
+        "min": 0,
+        "max": 30,
+        "step": 0.5,
+        "unit": "deg"
+      },
+      {
+        "id": "text_at_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Caption at",
+        "description": "Frame the caption line arrives on.",
+        "default": 0,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "frames"
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Caption Emoji Beat</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #f4f4f5; }
+        .ceb-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .ceb-text { position: absolute; inset: 0; display: grid; place-items: center; padding: 0 12%; text-align: center; line-height: 1.15; }
+        .ceb-emoji { position: absolute; line-height: 1; opacity: 0; font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
+      </style>
+
+      <div id="root" data-composition-id="caption-emoji-beat" data-duration="5" data-fps="30">
+        <div id="ceb-clip" class="ceb-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="ceb-text" class="ceb-text"></div><div id="ceb-beats"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "5");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "geist");
+            root.style.fontFamily = FONTS[fontKey];
+            var DEFAULT_BEATS = [{"emoji": "🔥", "at": 0.6, "x": 22, "y": 30, "rotate": -10}, {"emoji": "🎬", "at": 1.3, "x": 78, "y": 26, "rotate": 8}, {"emoji": "💡", "at": 2.0, "x": 18, "y": 68, "rotate": -6}, {"emoji": "⭐", "at": 2.7, "x": 80, "y": 72, "rotate": 12}, {"emoji": "👏", "at": 3.4, "x": 50, "y": 20, "scale": 110}];
+            function parseBeats(raw) {
+              var data = raw;
+              if (typeof raw === "string") { try { data = JSON.parse(raw); } catch (e) { data = null; } }
+              if (!Array.isArray(data)) return null;
+              var out = [];
+              data.forEach(function (b) {
+                if (!b || typeof b.emoji !== "string") return;
+                var at = b.atInFrames !== undefined ? Number(b.atInFrames) : Number(b.at) * 30;
+                if (!Number.isFinite(at)) return;
+                out.push({ emoji: b.emoji, at: at, x: Number.isFinite(Number(b.x)) ? Number(b.x) : 50, y: Number.isFinite(Number(b.y)) ? Number(b.y) : 50, scale: Number(b.scale) > 0 ? Number(b.scale) : null, rotate: Number(b.rotate) || 0 });
+              });
+              return out;
+            }
+            var beats = parseBeats(vars.beats) || parseBeats(DEFAULT_BEATS);
+            var text = typeof vars.text === "string" ? vars.text : "Make every beat count";
+            var size = num(vars.emoji_size, 84, 24, 300), land = num(vars.land_frames, 7, 2, 30), hold = num(vars.hold_frames, 26, 0, 120);
+            var overshoot = num(vars.overshoot, 1.35, 1, 2), wob = num(vars.wobble_degrees, 9, 0, 30), textAt = num(vars.text_at_frames, 0, 0, 120);
+            var ENTER = bez(0.16, 1, 0.3, 1);
+            function EXIT(t) { return t * t * t; }
+            var textEl = document.getElementById("ceb-text");
+            textEl.textContent = text;
+            textEl.style.fontSize = num(vars.font_size, 64, 16, 200) + "px";
+            textEl.style.fontWeight = String(num(vars.font_weight, 800, 100, 900));
+            textEl.style.color = str(vars.color, "#fafafa");
+            var holder = document.getElementById("ceb-beats");
+            beats.forEach(function (b) {
+              b.el = mk("span", holder, "ceb-emoji", b.emoji);
+              b.el.style.left = b.x + "%";
+              b.el.style.top = b.y + "%";
+              b.el.style.fontSize = (b.scale || size) + "px";
+            });
+            function draw(frame) {
+              var tp = ramp(frame, textAt, textAt + 12, 0, 1, ENTER);
+              textEl.style.opacity = String(clamp01(tp));
+              textEl.style.transform = "translateY(" + ((1 - tp) * 18).toFixed(2) + "px)";
+              beats.forEach(function (b) {
+                var since = frame - b.at;
+                if (since < -1) { b.el.style.opacity = "0"; return; }
+                var l = ramp(since, 0, land, 0, 1, ENTER);
+                // The release is shorter than the landing and accelerates away.
+                var rel = ramp(since, land + hold, land + hold + 10, 0, 1, EXIT);
+                var scale = (1 + (overshoot - 1) * Math.sin(Math.PI * clamp01(l))) * l * (1 - rel * 0.4);
+                var wobble = wob * Math.sin(since * 0.55) * Math.exp(-Math.max(0, since - land) / 7) * clamp01(l);
+                b.el.style.opacity = String(clamp01(l * 2) * (1 - rel));
+                b.el.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ") rotate(" + (b.rotate + wobble).toFixed(3) + "deg)";
+              });
+            }
+            drive("caption-emoji-beat", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

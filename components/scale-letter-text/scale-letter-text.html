@@ -1,0 +1,155 @@
+<!doctype html>
+<!--
+  Scale Letter Text
+
+  A pointer hops across the word letter by letter: the hovered letter swells, lifts toward the viewer and tilts back, its neighbours follow at half strength, all with a springy overshoot.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/karthikmudunuri/eldoraui/blob/6bb8fd211ecbdfa983f5780bead27d9f3890f20a/apps/www/registry/eldoraui/scale-letter-text.tsx
+
+  MIT License
+
+  Copyright (c) Mudunuri Bhaskara Karthikeya Varma
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="scale-letter-text"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase.", "default": "Feel the beat"},
+    {"id": "dwell", "type": "number", "role": "motion", "label": "Time per letter", "description": "Seconds the pointer rests on each letter (at least the 0.4s transition).", "default": 0.45, "min": 0.4, "max": 1.5, "step": 0.05, "unit": "s"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Pointer enters", "description": "Seconds before the pointer reaches the first letter.", "default": 0.3, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 130, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Scale Letter Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, "Geist", system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .slt-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .slt-line { text-align: center; line-height: 1.2; letter-spacing: -0.04em; white-space: pre; }
+        .slt-ch { position: relative; display: inline-block; margin-right: 0.1em; text-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+      </style>
+
+      <div id="root" data-composition-id="scale-letter-text" data-duration="5" data-fps="30">
+        <div id="slt-clip" class="slt-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="slt-line" class="slt-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function pick(v, l, f) { return l.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { if (typeof v === "boolean") return v; if (v === "true") return true; if (v === "false") return false; return f; }
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            gsap.registerPlugin(CustomEase);
+            var total = parseFloat(root.dataset.duration || "5");
+            // Motion tweens with no easing named run easeInOut.
+            var EIO = CustomEase.create("slt-eio", "M0,0 C0.42,0 0.58,1 1,1");
+            // Unit step response of a damped spring (semi-implicit Euler at 480 Hz), sampled once.
+            function springTable(k, c, m, dur) {
+              var dt = 1 / 480, x = 0, v = 0, out = [0];
+              for (var t = 0; t < dur; t += dt) { v += ((-k * (x - 1) - c * v) / m) * dt; x += v * dt; out.push(x); }
+              return out;
+            }
+            function springAt(tab, tau) {
+              if (tau <= 0) return 0;
+              var i = tau * 480; if (i >= tab.length - 1) return tab[tab.length - 1];
+              var j = Math.floor(i); return tab[j] + (tab[j + 1] - tab[j]) * (i - j);
+            }
+            var clock = { t: 0 };
+            function finish(tl, draw) {
+              if (draw) { tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0); draw(0); }
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["scale-letter-text"] = tl;
+            }
+
+
+            var line = document.getElementById("slt-line");
+            var text = str(vars.text, "Feel the beat");
+            var size = num(vars.font_size, 72, 12, 260), f = size / 72;
+var dwell = num(vars.dwell, 0.45, 0.4, 1.5), start = num(vars.start, 0.3, 0, 5);
+            line.style.fontSize = size + "px"; line.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700", "800"], "700");
+            line.setAttribute("aria-label", text);
+            var spans = Array.from(text).map(function (ch) { var s = document.createElement("span"); s.className = "slt-ch"; s.textContent = ch === " " ? " " : ch; line.appendChild(s); return s; });
+            var maxW = root.clientWidth * 0.92;
+            if (line.scrollWidth > maxW) { f *= maxW / line.scrollWidth; size *= maxW / line.scrollWidth; line.style.fontSize = size + "px"; }
+            var STRONG = "0 2px 6px rgba(0,0,0,0.15)", WEAK = "0 1px 2px rgba(0,0,0,0.08)";
+            // The source's per-letter look for a hovered index h (-1 = none), in its 72px type.
+            function look(i, h) {
+              var d = h >= 0 ? Math.abs(i - h) : 0, sc = 1, y = 0, rx = 0, br = 1, z = 0;
+              if (h >= 0) {
+                if (d === 0) { sc = 1.4; y = -20; rx = -15; br = 1.3; z = 30; }
+                else if (d === 1) { sc = 1.2; y = -10; rx = -8; br = 1.15; z = 15; }
+                else if (d === 2) { sc = 1.1; y = -5; rx = -4; br = 1.08; z = 15; }
+              }
+              return { transformPerspective: 1000, y: y * f, rotationX: rx, scale: sc, z: z * f, filter: "brightness(" + br + ")", textShadow: d <= 2 ? STRONG : WEAK };
+            }
+            // CSS transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275).
+            var SPRING = CustomEase.create("slt-over", "M0,0 C0.175,0.885 0.32,1.275 1,1");
+            var tl = gsap.timeline({ paused: true });
+            var targets = [];
+            spans.forEach(function (s, i) { if (s.textContent !== " ") targets.push(i); });
+            var prev = -1;
+            targets.concat([-1]).forEach(function (h, j) {
+              var at = start + j * dwell;
+              spans.forEach(function (s, i) {
+                tl.fromTo(s, look(i, prev), Object.assign({ duration: 0.4, ease: SPRING, immediateRender: j === 0 }, look(i, h)), at);
+              });
+              prev = h;
+            });
+            finish(tl, null);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

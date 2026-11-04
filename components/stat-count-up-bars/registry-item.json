@@ -3,7 +3,7 @@
   "name": "stat-count-up-bars",
   "type": "hyperframes:component",
   "title": "Stat Count-up With Bars",
-  "description": "A dim label and a giant figure counting up in the main colour with a bold unit under it, then a bar chart whose bars grow while their values count (the last one highlighted), then a percent ring that draws itself with its figure and a few words beside it.",
+  "description": "A muted label and a giant figure counting up in tight black type with a unit under it, then a bar chart whose bars grow while their values count (the last one in the accent colour, the rest in light grey), then a percent ring that draws itself with its figure and a few words beside it. White page.",
   "tags": [
     "mosio-recipe",
     "stats",
@@ -114,39 +114,31 @@
       "role": "style",
       "label": "Background",
       "description": "Background.",
-      "default": "#061a2b"
-    },
-    {
-      "id": "main_color",
-      "type": "color",
-      "role": "style",
-      "label": "Main colour",
-      "description": "Big number, glow and bars.",
-      "default": "#22c3ee"
+      "default": "#ffffff"
     },
     {
       "id": "accent_color",
       "type": "color",
       "role": "style",
       "label": "Accent",
-      "description": "Highlighted last bar and the ring.",
-      "default": "#a3e635"
+      "description": "Highlighted last bar and the ring: the one accent.",
+      "default": "#2563eb"
     },
     {
       "id": "text_color",
       "type": "color",
       "role": "style",
       "label": "Text colour",
-      "description": "Unit, bar values and axis.",
-      "default": "#eaf6ff"
+      "description": "Big number, unit and bar values.",
+      "default": "#0a0a0a"
     },
     {
       "id": "muted_color",
       "type": "color",
       "role": "style",
       "label": "Muted colour",
-      "description": "Label and bar names.",
-      "default": "#b8c6d0"
+      "description": "Label, bar names and the ring caption.",
+      "default": "#737373"
     },
     {
       "id": "transparent",

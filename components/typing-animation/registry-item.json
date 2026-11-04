@@ -1,0 +1,211 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "typing-animation",
+  "type": "hyperframes:component",
+  "title": "Typing Animation",
+  "description": "Words are typed out one after another with a blinking cursor, each deleted faster than it was typed before the next begins.",
+  "tags": [
+    "text-effects",
+    "typing",
+    "cursor",
+    "rotating-words",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 8,
+  "useWhen": [
+    "A line should cycle through several phrases, typing and deleting each.",
+    "A hero line needs a cursor that keeps blinking while words change."
+  ],
+  "avoidWhen": [
+    "Only one line needs to be typed once: use typewriter.",
+    "A prompt box typing a message: use typed-prompt."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/typing-animation.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "typing-animation.html",
+      "target": "compositions/components/typing-animation.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "The phrases in order, separated by | .",
+      "default": "Fast typing|Slow delete"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Colour",
+      "description": "Text and cursor colour.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    },
+    {
+      "id": "cursor_style",
+      "type": "enum",
+      "role": "style",
+      "label": "Cursor",
+      "description": "Cursor shape.",
+      "default": "line",
+      "options": [
+        {
+          "value": "line",
+          "label": "Line"
+        },
+        {
+          "value": "block",
+          "label": "Block"
+        },
+        {
+          "value": "underscore",
+          "label": "Underscore"
+        }
+      ]
+    },
+    {
+      "id": "blink",
+      "type": "enum",
+      "role": "style",
+      "label": "Cursor blink",
+      "description": "Whether the cursor blinks.",
+      "default": "yes",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Blink"
+        },
+        {
+          "value": "no",
+          "label": "Steady"
+        }
+      ]
+    },
+    {
+      "id": "type_speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Type speed",
+      "description": "Milliseconds per typed character (the source uses 100).",
+      "default": 100,
+      "min": 20,
+      "max": 400,
+      "step": 5,
+      "unit": "ms"
+    },
+    {
+      "id": "delete_speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Delete speed",
+      "description": "Milliseconds per deleted character; 0 means half the type speed (as the source).",
+      "default": 50,
+      "min": 0,
+      "max": 400,
+      "step": 5,
+      "unit": "ms"
+    },
+    {
+      "id": "pause",
+      "type": "number",
+      "role": "motion",
+      "label": "Pause",
+      "description": "Milliseconds a finished phrase stays before it is deleted (the source uses 1000).",
+      "default": 1000,
+      "min": 0,
+      "max": 5000,
+      "step": 50,
+      "unit": "ms"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Milliseconds before typing starts.",
+      "default": 300,
+      "min": 0,
+      "max": 3000,
+      "step": 50,
+      "unit": "ms"
+    },
+    {
+      "id": "loop",
+      "type": "enum",
+      "role": "motion",
+      "label": "Loop",
+      "description": "Whether the last phrase is also deleted and the list starts over.",
+      "default": "no",
+      "options": [
+        {
+          "value": "no",
+          "label": "Stop on the last phrase"
+        },
+        {
+          "value": "yes",
+          "label": "Loop"
+        }
+      ]
+    }
+  ],
+  "checkAt": [
+    0.8,
+    1.6,
+    3.6,
+    5.5
+  ]
+}

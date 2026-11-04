@@ -1,0 +1,126 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-mask-slide",
+  "type": "hyperframes:component",
+  "title": "Word Roller Mask Slide",
+  "description": "A huge word is wiped away from the right by the next word in an accent colour, which slides in behind a moving mask; a thin progress line under the word fills over each cycle.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "wipe",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "Uppercase words that change on a hard, graphic wipe (inspire, imagine, innovate, impact).",
+    "A title card where the incoming word should arrive in a different colour."
+  ],
+  "avoidWhen": [
+    "Soft, blurred or bouncy swaps: use word-roller-blur or word-roller-scale-bounce.",
+    "Mixed-length words where the width jump distracts."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/RollerMaskSlide.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-mask-slide.html",
+      "target": "compositions/components/word-roller-mask-slide.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words in order, separated by commas. The last one is where it settles.",
+      "default": "INSPIRE, IMAGINE, INNOVATE, IMPACT"
+    },
+    {
+      "id": "prefix",
+      "type": "string",
+      "role": "content",
+      "label": "Lead-in",
+      "description": "Small caps line above the word.",
+      "default": "TIME TO"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the word in pixels. A wide word shrinks to fit the frame.",
+      "default": 100,
+      "min": 20,
+      "max": 320,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Word color",
+      "description": "Color of the current word.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Incoming color",
+      "description": "Color of the word while it slides in, and of the progress line.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "prefix_color",
+      "type": "color",
+      "role": "style",
+      "label": "Lead-in color",
+      "description": "Color of the line above.",
+      "default": "#737373"
+    },
+    {
+      "id": "cycle_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per word",
+      "description": "How long each word is shown, in 30 fps frames.",
+      "default": 30,
+      "min": 18,
+      "max": 120,
+      "step": 1,
+      "unit": "f"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

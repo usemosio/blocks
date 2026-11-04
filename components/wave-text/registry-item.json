@@ -1,0 +1,278 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "wave-text",
+  "type": "hyperframes:component",
+  "title": "Wave Text",
+  "description": "Runs a sine wave along a line of type, one character at a time: an ambient loop that never settles.",
+  "tags": [
+    "text-effects",
+    "wave",
+    "loop",
+    "kinetic-type",
+    "letters",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A short phrase should stay alive on screen: a playful, musical, or liquid mood.",
+    "A hold of several seconds needs motion so it does not read as a still."
+  ],
+  "avoidWhen": [
+    "The text must be read quickly and precisely: a continuous wave slows reading, use split-text-chars.",
+    "You want a one-time entrance only."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/wave-text.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "wave-text.html",
+      "target": "compositions/components/wave-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. A line break starts a new line.",
+      "default": "Ride the wave."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 84,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": 700,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Font",
+      "description": "Typeface.",
+      "default": "geist",
+      "options": [
+        {
+          "value": "geist",
+          "label": "Geist"
+        },
+        {
+          "value": "poppins",
+          "label": "Poppins"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "grotesk",
+          "label": "Space Grotesk"
+        }
+      ]
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "motion",
+      "label": "Split by",
+      "description": "What one animated unit is.",
+      "default": "chars",
+      "options": [
+        {
+          "value": "chars",
+          "label": "Characters"
+        },
+        {
+          "value": "words",
+          "label": "Words"
+        },
+        {
+          "value": "lines",
+          "label": "Lines"
+        }
+      ]
+    },
+    {
+      "id": "order",
+      "type": "enum",
+      "role": "motion",
+      "label": "Order",
+      "description": "Order the units arrive in.",
+      "default": "start",
+      "options": [
+        {
+          "value": "start",
+          "label": "Start to end"
+        },
+        {
+          "value": "end",
+          "label": "End to start"
+        },
+        {
+          "value": "center",
+          "label": "Centre outwards"
+        },
+        {
+          "value": "edges",
+          "label": "Edges inwards"
+        },
+        {
+          "value": "random",
+          "label": "Random"
+        }
+      ]
+    },
+    {
+      "id": "stagger_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Frames (30 per second) between one unit and the next.",
+      "default": 2,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "duration_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Unit duration",
+      "description": "Frames one unit takes to arrive.",
+      "default": 20,
+      "min": 1,
+      "max": 90,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "delay_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frames before the first unit starts.",
+      "default": 6,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "exit",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Exit",
+      "description": "Play an exit at the end of the clip.",
+      "default": false
+    },
+    {
+      "id": "amplitude",
+      "type": "number",
+      "role": "motion",
+      "label": "Amplitude",
+      "description": "Peak lift of a character, in em.",
+      "default": 0.16,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "unit": "em"
+    },
+    {
+      "id": "wavelength",
+      "type": "number",
+      "role": "motion",
+      "label": "Wavelength",
+      "description": "Characters per full wave. Higher spreads the crest over more characters.",
+      "default": 6,
+      "min": 1,
+      "max": 24,
+      "step": 0.5
+    },
+    {
+      "id": "period_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Period",
+      "description": "Frames (30 per second) for one full cycle.",
+      "default": 48,
+      "min": 6,
+      "max": 240,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Which way the wave travels along the line.",
+      "default": "forward",
+      "options": [
+        {
+          "value": "forward",
+          "label": "Forward"
+        },
+        {
+          "value": "backward",
+          "label": "Backward"
+        }
+      ]
+    },
+    {
+      "id": "wave_scale",
+      "type": "number",
+      "role": "motion",
+      "label": "Crest scale",
+      "description": "How much the crest grows, so it reads as depth rather than jitter.",
+      "default": 0.06,
+      "min": 0,
+      "max": 0.4,
+      "step": 0.01
+    },
+    {
+      "id": "shade",
+      "type": "number",
+      "role": "style",
+      "label": "Trough shade",
+      "description": "How much the trough fades. 0 keeps every character at full opacity.",
+      "default": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    }
+  ]
+}

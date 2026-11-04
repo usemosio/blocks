@@ -1,0 +1,157 @@
+<!doctype html>
+<!--
+  Moving Pen
+
+  A glowing dot glides in from off-screen along a curving path, leaving a luminous trail like ink; a line of handwriting fades in as the pen passes through the centre, then the dot exits on the far side.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/degueba/onda/blob/3c814051269597b31fee1603bef7ccfb93d091b6/www/src/components/hero/MovingPenScene.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Rodrigo Botelho
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="moving-pen"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short line of handwriting that appears as the pen passes.", "default": "Hello, there!"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 130, "min": 24, "max": 300, "step": 1, "unit": "px"},
+    {"id": "text_color", "type": "color", "role": "style", "label": "Text color", "description": "Color of the line of text.", "default": "#f2f2f4"},
+    {"id": "pen_color", "type": "color", "role": "style", "label": "Pen color", "description": "Color of the pen tip, its trail and the glow.", "default": "#d96b82"},
+    {"id": "trail_width", "type": "number", "role": "style", "label": "Trail width", "description": "Thickness of the trail in pixels.", "default": 3, "min": 1, "max": 14, "step": 0.5, "unit": "px"},
+    {"id": "swing", "type": "number", "role": "motion", "label": "Swing", "description": "How far the path bends away from the centre line, as a share of the frame (0 is a straight line).", "default": 0.18, "min": 0, "max": 0.35, "step": 0.01},
+    {"id": "travel", "type": "number", "role": "motion", "label": "Travel time", "description": "Seconds the pen takes to cross the frame.", "default": 4.3, "min": 1.5, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Fill behind the scene (empty keeps it transparent).", "default": ""}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Moving Pen</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+        #root { font-family: var(--font-display, Caveat, cursive); }
+        .mp-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: hidden; }
+      </style>
+
+      <div id="root" data-composition-id="moving-pen" data-duration="6" data-fps="30">
+        <div id="mp-clip" class="clip" data-start="0" data-duration="6" data-track-index="0" style="position:absolute;inset:0">
+          <svg id="mp-svg" class="mp-svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="mp-grad" gradientUnits="userSpaceOnUse">
+                <stop id="mp-s0" offset="0%" stop-opacity="0.2"></stop>
+                <stop id="mp-s1" offset="50%" stop-opacity="0.85"></stop>
+                <stop id="mp-s2" offset="100%" stop-opacity="0.95"></stop>
+              </linearGradient>
+            </defs>
+            <g id="mp-scene">
+              <path id="mp-trail" fill="none" stroke="url(#mp-grad)" stroke-linecap="round" stroke-linejoin="round"></path>
+              <text id="mp-text" text-anchor="middle" font-weight="600" fill="none" opacity="0"></text>
+              <circle id="mp-dot" r="11" opacity="0.96"></circle>
+            </g>
+          </svg>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, a, b) { var x = Number(v); return Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+
+            var svg = document.getElementById("mp-svg");
+            var trail = document.getElementById("mp-trail"), textEl = document.getElementById("mp-text"), dot = document.getElementById("mp-dot"), scene = document.getElementById("mp-scene");
+            var text = str(vars.text, "Hello, there!");
+            var size = num(vars.font_size, 130, 24, 300);
+            var pen = col(vars.pen_color, "#d96b82");
+            var trailW = num(vars.trail_width, 3, 1, 14);
+            var swing = num(vars.swing, 0.18, 0, 0.35);
+            var travel = num(vars.travel, 4.3, 1.5, 5);
+            var bg = typeof vars.background === "string" && vars.background.trim() ? vars.background : null;
+            if (bg) root.style.background = bg;
+            var W = root.clientWidth, H = root.clientHeight;
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            // The pen's journey: in from off-screen left, through the centre, out to the right (one smooth curve).
+            var cy = H * 0.55, a = Math.min(H * swing, W * 0.25 * (swing / 0.18 > 1 ? swing / 0.18 : 1));
+            var d = "M " + (-0.06 * W) + " " + cy + " C " + (0.19 * W) + " " + (cy - a) + ", " + (0.4 * W) + " " + (cy + a) + ", " + (0.5 * W) + " " + cy + " S " + (0.81 * W) + " " + (cy - a) + ", " + (1.06 * W) + " " + cy;
+            trail.setAttribute("d", d);
+            trail.setAttribute("stroke-width", trailW);
+            var L = trail.getTotalLength();
+            trail.style.strokeDasharray = L;
+            ["mp-s0", "mp-s1", "mp-s2"].forEach(function (id) { document.getElementById(id).setAttribute("stop-color", pen); });
+            var grad = document.getElementById("mp-grad");
+            grad.setAttribute("x1", 0); grad.setAttribute("x2", W); grad.setAttribute("y1", 0); grad.setAttribute("y2", 0);
+            trail.style.filter = "drop-shadow(0 0 " + Math.round(W * 0.015) + "px " + pen + ")";
+            dot.setAttribute("fill", pen);
+            dot.style.filter = "drop-shadow(0 0 " + Math.round(W * 0.02) + "px " + pen + ") drop-shadow(0 0 " + Math.round(W * 0.007) + "px rgba(255,255,255,0.6))";
+            textEl.textContent = text;
+            textEl.setAttribute("fill", col(vars.text_color, "#f2f2f4"));
+            textEl.setAttribute("font-size", size);
+            // Shrink to 88 % of the frame width when the text is wider.
+            var tw = textEl.getComputedTextLength();
+            if (tw > W * 0.88) { size = Math.max(24, size * W * 0.88 / tw); textEl.setAttribute("font-size", size); }
+            textEl.setAttribute("x", W / 2);
+            textEl.setAttribute("y", cy - a * 0.35 - size * 0.7);
+            textEl.style.filter = "drop-shadow(0 4px " + Math.round(W * 0.012) + "px " + pen + ")";
+
+            gsap.registerPlugin(CustomEase);
+            var house = CustomEase.create("mp-house", "M0,0 C0.16,1 0.3,1 1,1");
+            var tl = gsap.timeline({ paused: true });
+            var st = { p: 0 };
+            function place() {
+              var pt = trail.getPointAtLength(st.p * L);
+              dot.setAttribute("cx", pt.x); dot.setAttribute("cy", pt.y);
+              trail.style.strokeDashoffset = (1 - st.p) * L;
+            }
+            tl.to(st, { p: 1, duration: travel, ease: house, onUpdate: place }, 0);
+            // The text fades in while the pen approaches the centre; the dot grows from a speck as it enters.
+            tl.to(textEl, { opacity: 1, duration: 1.5, ease: house }, 1.5);
+            var ds = { s: 0.5 };
+            tl.to(ds, { s: 1, duration: 0.67, ease: house, onUpdate: function () { dot.setAttribute("r", 11 * ds.s); } }, 0);
+            // The whole scene fades out at the end.
+            tl.to(scene, { opacity: 0, duration: 1, ease: house }, parseFloat(root.dataset.duration || "6") - 1);
+            place();
+            dot.setAttribute("r", 5.5);
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["moving-pen"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

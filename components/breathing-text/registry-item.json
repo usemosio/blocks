@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "breathing-text",
+  "type": "hyperframes:component",
+  "title": "Breathing Text",
+  "description": "Letters flex between two variable-font settings (weight and slant) in a staggered, mirrored loop, so the word appears to breathe.",
+  "tags": [
+    "text-effects",
+    "variable-font",
+    "loop",
+    "letters",
+    "kinetic-type",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A word or short phrase should stay alive on screen by pulsing between thin and heavy letterforms.",
+    "The type is a variable font and the weight or slant axis is the point of the shot."
+  ],
+  "avoidWhen": [
+    "You want a single decisive weight change that lands once: use variable-axis-type or variable-font-flex.",
+    "The text must hold perfectly still while it is read."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/breathing-text.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "breathing-text.html",
+      "target": "compositions/components/breathing-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase that breathes.", "default": "breathing text"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 120, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#111111"},
+    {"id": "from_weight", "type": "number", "role": "style", "label": "From weight", "description": "Variable-font weight (wght axis) the letters start from.", "default": 100, "min": 100, "max": 1000, "step": 10},
+    {"id": "to_weight", "type": "number", "role": "style", "label": "To weight", "description": "Weight the letters breathe to.", "default": 800, "min": 100, "max": 1000, "step": 10},
+    {"id": "from_slant", "type": "number", "role": "style", "label": "From slant", "description": "Slant axis value (slnt, 0 is upright) the letters start from.", "default": 0, "min": -10, "max": 0, "step": 1, "unit": "deg"},
+    {"id": "to_slant", "type": "number", "role": "style", "label": "To slant", "description": "Slant the letters breathe to.", "default": -10, "min": -10, "max": 0, "step": 1, "unit": "deg"},
+    {"id": "breath_duration", "type": "number", "role": "motion", "label": "Breath duration", "description": "Seconds for one breath in or out.", "default": 1.5, "min": 0.2, "max": 6, "step": 0.1, "unit": "s"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.08, "min": 0, "max": 0.5, "step": 0.01, "unit": "s"},
+    {"id": "stagger_from", "type": "enum", "role": "motion", "label": "Stagger from", "description": "Where the wave of breathing starts.", "default": "first", "options": [{"value": "first", "label": "First letter"}, {"value": "last", "label": "Last letter"}, {"value": "center", "label": "Center"}]},
+    {"id": "repeat_delay", "type": "number", "role": "motion", "label": "Repeat delay", "description": "Pause between a breath in and the breath back.", "default": 0.1, "min": 0, "max": 2, "step": 0.05, "unit": "s"}
+  ]
+}

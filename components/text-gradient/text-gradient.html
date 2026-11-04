@@ -1,0 +1,229 @@
+<!doctype html>
+<!--
+  Flowing Gradient Text
+
+  A huge word filled with a restrained blue gradient that keeps rotating through the letters while the word scales and fades in; three short dashes can fade in below.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/lifeprompt-team/remotion-scenes/blob/02c7a84241da7010b5f59c420b0110aafd1d6f0d/src/scenes/TextAnimations/TextGradient.tsx
+
+  MIT License
+
+  Copyright (c) 2026 lifeprompt-team
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="text-gradient"
+  data-composition-duration="3"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase.", "default": "GRADIENT"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Size of the text in pixels. Longer text shrinks to fit the frame.", "default": 140, "min": 30, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color_1", "type": "color", "role": "style", "label": "Gradient color 1", "description": "First colour of the gradient (it also colours the first dash).", "default": "#2563eb"},
+    {"id": "color_2", "type": "color", "role": "style", "label": "Gradient color 2", "description": "Second colour of the gradient.", "default": "#0ea5e9"},
+    {"id": "color_3", "type": "color", "role": "style", "label": "Gradient color 3", "description": "Third colour of the gradient.", "default": "#1d4ed8"},
+    {"id": "dashes", "type": "boolean", "role": "style", "label": "Dashes", "description": "Show the three small dashes under the text.", "default": false},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Fill behind the text. Use transparent to lay the block over your own footage.", "default": "#fafafa"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flowing Gradient Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100;300;400;500;600;700;800;900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, -apple-system, sans-serif);
+          pointer-events: none;
+        }
+        .fgt-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+        .fgt-g { line-height: 1.2; font-weight: 800; letter-spacing: -0.0286em; white-space: pre; background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; padding: 0 0.04em; }
+        .fgt-dash { position: absolute; bottom: 13.9%; width: 5.2%; height: 0.37cqmin; min-height: 3px; border-radius: 2px; opacity: 0; }
+
+      </style>
+
+      <div id="root" data-composition-id="text-gradient" data-duration="3" data-fps="30">
+        <div id="fgt-clip" class="fgt-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <div id="fgt-g" class="fgt-g"></div>
+          <div id="fgt-d0" class="fgt-dash" style="left: 5.2%"></div>
+          <div id="fgt-d1" class="fgt-dash" style="left: 13%"></div>
+          <div id="fgt-d2" class="fgt-dash" style="left: 20.8%"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function el(id) { return document.getElementById(id); }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && value !== undefined && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function txt(value, fallback) {
+              return typeof value === "string" ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function list(value, fallback, max) {
+              var a = (typeof value === "string" ? value : "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+              if (!a.length) a = fallback.slice();
+              return a.slice(0, max || 12);
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            var E = {
+              out: bezier(0.16, 1, 0.3, 1), "in": bezier(0.7, 0, 0.84, 0), inOut: bezier(0.87, 0, 0.13, 1),
+              overshoot: bezier(0.34, 1.56, 0.64, 1), smooth: bezier(0.4, 0, 0.2, 1),
+              quadIn: function (x) { return x * x; },
+              quadOut: function (x) { return 1 - (1 - x) * (1 - x); },
+              cubicOut: function (x) { return 1 - Math.pow(1 - x, 3); },
+              cubicInOut: function (x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+            };
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            // Remotion interpolate with clamped ends, one input range and one output range.
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 towards 1 (mass, stiffness, damping), frame at 30 fps, in closed form.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass || 1, k = cfg.stiffness === undefined ? 100 : cfg.stiffness, c = cfg.damping === undefined ? 10 : cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (Math.abs(z - 1) < 1e-6) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              var q = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + q, r2 = -z * w0 - q;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            // Sets the group's font size, then shrinks it so the group (or its probe) fits the frame.
+            function fitG(g, size, probe, wf, hf, wmul) {
+              g.style.fontSize = size + "px";
+              var p = probe || g;
+              var w = Math.max(1, p.offsetWidth * (wmul || 1)), h = Math.max(1, p.offsetHeight);
+              var k = Math.min(1, root.clientWidth * (wf || 0.9) / w, root.clientHeight * (hf || 0.9) / h);
+              if (k < 1) { size = Math.max(6, size * k); g.style.fontSize = size + "px"; }
+              return size;
+            }
+            function fillSizer(sizer, words) {
+              sizer.textContent = "";
+              words.forEach(function (w) {
+                var s = document.createElement("span");
+                s.textContent = w;
+                sizer.appendChild(s);
+              });
+            }
+            function setText(node, value) {
+              if (node.__t !== value) { node.__t = value; node.textContent = value; }
+            }
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var TOTAL = parseFloat(root.dataset.duration || "3");
+            var clock = { frame: 0 };
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: Math.round(TOTAL * 30), duration: TOTAL, ease: "none", onUpdate: function () { draw(Math.round(clock.frame * speed * 1000) / 1000); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["text-gradient"] = tl;
+            }
+
+            root.style.background = str(vars.background, "#fafafa");
+            
+            var g = el("fgt-g");
+            g.textContent = str(vars.text, "GRADIENT");
+            var cs = [str(vars.color_1, "#2563eb"), str(vars.color_2, "#0ea5e9"), str(vars.color_3, "#1d4ed8")];
+            var dashes = [el("fgt-d0"), el("fgt-d1"), el("fgt-d2")];
+            dashes.forEach(function (d, i) {
+              d.style.background = cs[i];
+              d.style.display = bool(vars.dashes, false) ? "" : "none";
+            });
+            var base = num(vars.font_size, 140, 30, 400);
+            function fit() { fitG(g, base, null, 0.88, 0.6); }
+            fit();
+            onFonts(fit);
+
+            // remocn-scenes: the gradient angle runs 90 + 2 degrees a frame over a 300 % wide ramp
+            // (colour 1, 2, 3, 1); the word scales 0.8 to 1 and fades in over 30 frames.
+            function draw(f) {
+              var ep = ip(f, 0, 30, 0, 1, E.out);
+              g.style.backgroundImage = "linear-gradient(" + (90 + f * 2) + "deg, " + cs[0] + ", " + cs[1] + ", " + cs[2] + ", " + cs[0] + ")";
+              g.style.transform = "scale(" + (0.8 + ep * 0.2) + ")";
+              g.style.opacity = ep;
+              dashes.forEach(function (d, i) { d.style.opacity = ip(f, 30 + i * 10, 50 + i * 10, 0, 0.6); });
+            }
+            start(draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

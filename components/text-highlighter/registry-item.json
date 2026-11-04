@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-highlighter",
+  "type": "hyperframes:component",
+  "title": "Text Highlighter",
+  "description": "Marked phrases in a paragraph get a highlighter fill that wipes across them (left to right, right to left, top down or bottom up), one phrase after another, wrapping correctly across lines.",
+  "tags": [
+    "text-effects",
+    "highlight",
+    "paragraph",
+    "emphasis",
+    "reveal",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "Key phrases inside a paragraph should be picked out with a highlighter wipe, in reading order.",
+    "The highlights may break over several lines and each line should fill as the wipe runs."
+  ],
+  "avoidWhen": [
+    "Only a single word needs a marker stroke: use marker-highlight.",
+    "The emphasis is a colour change, not a fill: use inline-highlight."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/text-highlighter.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "text-highlighter.html",
+      "target": "compositions/components/text-highlighter.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Paragraph. Wrap each phrase to highlight in double square brackets, like [[this]].", "default": "Typefaces are the voice of a page. [[A good headline is chosen, not defaulted]], and the best ones disappear into the message. Spacing does as much work as shape: [[the room between letters and lines]] decides how easily a reader moves through the text. [[Test it at the size people will actually see.]]"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 54, "min": 16, "max": 160, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Paragraph text color.", "default": "#111111"},
+    {"id": "highlight_color", "type": "color", "role": "style", "label": "Highlight color", "description": "Color of the highlighter fill.", "default": "#f2ad91"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Direction the highlight wipes in.", "default": "ltr", "options": [{"value": "ltr", "label": "Left to right"}, {"value": "rtl", "label": "Right to left"}, {"value": "ttb", "label": "Top to bottom"}, {"value": "btt", "label": "Bottom to top"}]},
+    {"id": "line_height", "type": "number", "role": "style", "label": "Line height", "description": "Line height as a multiple of the font size.", "default": 1.5, "min": 1, "max": 2.5, "step": 0.05},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first highlight starts.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between one highlight and the next.", "default": 0.7, "min": 0, "max": 3, "step": 0.05, "unit": "s"},
+    {"id": "wipe_duration", "type": "number", "role": "motion", "label": "Wipe duration", "description": "Perceived duration of each highlight's spring.", "default": 1, "min": 0.2, "max": 3, "step": 0.05, "unit": "s"}
+  ]
+}

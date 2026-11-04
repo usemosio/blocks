@@ -1,0 +1,193 @@
+<!doctype html>
+<!--
+  Text Morph
+
+  One word turns into the next by letter identity: letters the two words share glide to their new places on a spring while new letters fade in and the leftover ones fade out.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/ibelick/motion-primitives/blob/120f64f6ca60348e251f929e9c81f11ccbe45eda/components/core/text-morph.tsx
+
+  MIT License
+
+  Copyright (c) 2024 ibelick
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  app/page.tsx
+-->
+<html
+  lang="en"
+  data-composition-id="text-morph"
+  data-composition-duration="5.5"
+  data-composition-variables='[
+    {"id": "texts", "type": "string", "role": "content", "label": "Texts", "description": "Words or phrases separated by | (a bar).", "default": "Motion|Emotion|Promotion|Commotion"},
+    {"id": "start", "type": "number", "role": "motion", "label": "First change", "description": "Seconds before the first change.", "default": 0.8, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Time between changes", "description": "Seconds from one change to the next.", "default": 1.4, "min": 0.6, "max": 6, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 150, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Morph</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, "Geist", system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .tmo-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .tmo-meas { position: absolute; left: 0; top: 0; visibility: hidden; white-space: nowrap; line-height: 1; letter-spacing: -0.02em; }
+        .tmo-ch { display: inline-block; }
+        .tmo-live { position: absolute; left: 50%; top: 50%; white-space: pre; line-height: 1; letter-spacing: -0.02em; will-change: transform, opacity; }
+      </style>
+
+      <div id="root" data-composition-id="text-morph" data-duration="5.5" data-fps="30">
+        <div id="tmo-clip" class="tmo-stage clip" data-start="0" data-duration="5.5" data-track-index="0">
+          <div id="tmo-meas" class="tmo-meas"></div>
+          <div id="tmo-live" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function pick(v, l, f) { return l.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { if (typeof v === "boolean") return v; if (v === "true") return true; if (v === "false") return false; return f; }
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            gsap.registerPlugin(CustomEase);
+            var total = parseFloat(root.dataset.duration || "5.5");
+            // Motion tweens with no easing named run easeInOut.
+            var EIO = CustomEase.create("tmo-eio", "M0,0 C0.42,0 0.58,1 1,1");
+            // Unit step response of a damped spring (semi-implicit Euler at 480 Hz), sampled once.
+            function springTable(k, c, m, dur) {
+              var dt = 1 / 480, x = 0, v = 0, out = [0];
+              for (var t = 0; t < dur; t += dt) { v += ((-k * (x - 1) - c * v) / m) * dt; x += v * dt; out.push(x); }
+              return out;
+            }
+            function springAt(tab, tau) {
+              if (tau <= 0) return 0;
+              var i = tau * 480; if (i >= tab.length - 1) return tab[tab.length - 1];
+              var j = Math.floor(i); return tab[j] + (tab[j + 1] - tab[j]) * (i - j);
+            }
+            var clock = { t: 0 };
+            function finish(tl, draw) {
+              if (draw) { tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0); draw(0); }
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["text-morph"] = tl;
+            }
+
+
+            var meas = document.getElementById("tmo-meas"), live = document.getElementById("tmo-live");
+            var texts = str(vars.texts, "Motion|Emotion|Promotion|Commotion").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (texts.length < 2) texts = ["Motion", "Emotion"];
+            var start = num(vars.start, 0.8, 0, 5), hold = num(vars.hold, 1.4, 0.6, 6);
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700", "800"], "700");
+            var size = num(vars.font_size, 150, 12, 240);
+            live.setAttribute("aria-label", texts.join(", "));
+            meas.style.fontWeight = weight; meas.style.fontSize = size + "px";
+            // Shrink so the widest phrase fits.
+            var widest = 0;
+            texts.forEach(function (t) { meas.textContent = t; widest = Math.max(widest, meas.scrollWidth); });
+            var maxW = root.clientWidth * 0.9;
+            if (widest > maxW) { size = size * maxW / widest; meas.style.fontSize = size + "px"; }
+            // Every phrase is laid out once in flow (hidden) to read where each letter belongs.
+            var phrases = texts.map(function (t) {
+              var counts = {}, keys = [];
+              Array.from(t).forEach(function (ch) { var lo = ch.toLowerCase(); counts[lo] = (counts[lo] || 0) + 1; keys.push({ key: lo + counts[lo], label: ch === " " ? " " : ch }); });
+              return keys;
+            });
+            // Elements: a key that stays in consecutive phrases is one element; reappearing makes a new one.
+            var elems = [], lastRun = {};
+            phrases.forEach(function (keys, pi) {
+              keys.forEach(function (c, ci) {
+                var prev = pi > 0 && phrases[pi - 1].some(function (o) { return o.key === c.key; });
+                var id = c.key + "#" + (prev ? lastRun[c.key] : (lastRun[c.key] = (lastRun[c.key] === undefined ? 0 : lastRun[c.key] + 1)));
+                var e = elems.filter(function (x) { return x.id === id; })[0];
+                if (!e) {
+                  var el = document.createElement("span"); el.className = "tmo-live"; el.style.fontWeight = weight; el.style.fontSize = size + "px"; el.textContent = c.label;
+                  live.appendChild(el); e = { id: id, el: el, at: {}, lab: {} }; elems.push(e);
+                }
+                e.at[pi] = ci; e.lab[pi] = c.label;
+              });
+            });
+            var tab = springTable(280, 18, 0.3, 1.5), lay = null, sig = "";
+            function measure() {
+              meas.style.fontSize = size + "px";
+              var out = phrases.map(function (keys) {
+                meas.innerHTML = "";
+                var spans = keys.map(function (c) { var s = document.createElement("span"); s.className = "tmo-ch"; s.textContent = c.label; meas.appendChild(s); return s; });
+                var w = meas.offsetWidth;
+                return spans.map(function (s) { return s.offsetLeft - w / 2; });
+              });
+              var h = JSON.stringify(out); if (h !== sig) { sig = h; lay = out; }
+            }
+            function draw(t) {
+              measure();
+              elems.forEach(function (e) {
+                var cur = 0, x = 0, o = 0, found = false;
+                var xAt = function (pi) { return lay[pi][e.at[pi]]; };
+                for (var pi = 0; pi < phrases.length; pi++) if (e.at[pi] !== undefined) { found = true; break; }
+                if (!found) return;
+                // state before any change: phrase 0
+                var inP = e.at[0] !== undefined; x = inP ? xAt(0) : 0; o = inP ? 1 : 0; var label = inP ? e.lab[0] : null;
+                for (var k = 1; k < phrases.length; k++) {
+                  var tau = t - (start + (k - 1) * hold);
+                  if (tau < 0) break;
+                  var s = springAt(tab, tau), a = e.at[k - 1] !== undefined, b = e.at[k] !== undefined, cl = Math.min(1, Math.max(0, s));
+                  if (a && b) { x = xAt(k - 1) + (xAt(k) - xAt(k - 1)) * s; o = 1; }
+                  else if (a) { x = xAt(k - 1); o = 1 - cl; }
+                  else if (b) { x = xAt(k); o = cl; }
+                  else { o = 0; }
+                  if (b) label = e.lab[k];
+                }
+                if (label !== null) e.el.textContent = label;
+                e.el.style.transform = "translate(" + x + "px, -50%)";
+                e.el.style.opacity = String(o);
+              });
+            }
+            finish(gsap.timeline({ paused: true }), draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

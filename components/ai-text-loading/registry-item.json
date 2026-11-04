@@ -1,0 +1,112 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ai-text-loading",
+  "type": "hyperframes:component",
+  "title": "AI Text Loading",
+  "description": "A cycling status word whose letters blur in one by one while a soft brightness wave runs through them: the look of an AI that is working.",
+  "tags": [
+    "text-effects",
+    "loading",
+    "status",
+    "wave",
+    "letters",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 7.5,
+  "useWhen": [
+    "A video needs a 'working on it' beat: an assistant thinking, a process running, a wait before a result.",
+    "A short list of status words should cycle with a calm, premium feel."
+  ],
+  "avoidWhen": [
+    "The words must be read as a sentence: use per-word-crossfade.",
+    "A real progress bar or percentage is needed."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/ai-text-loading.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "ai-text-loading.html",
+      "target": "compositions/components/ai-text-loading.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "texts",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Status words separated by |. Each one is shown in turn.",
+      "default": "Thinking...|Processing...|Analyzing...|Computing...|Almost..."
+    },
+    {
+      "id": "interval",
+      "type": "number",
+      "role": "motion",
+      "label": "Interval",
+      "description": "Seconds each word stays up. The block lasts 5 words at the default 1.5 s.",
+      "default": 1.5,
+      "min": 0.6,
+      "max": 4,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels. Long words shrink to fit the frame.",
+      "default": 64,
+      "min": 16,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "show_elapsed",
+      "type": "boolean",
+      "role": "content",
+      "label": "Show elapsed",
+      "description": "Show the seconds spent so far next to the word.",
+      "default": false
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,456 @@
+<!doctype html>
+<!--
+  Neon Flicker Text
+
+  Lights a word tube by tube like a neon sign, with a mains hum that never quite settles and a dying flicker on the way out.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/neon-flicker-text.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="neon-flicker-text"
+  data-composition-duration="5"
+  data-composition-variables='[
+    [
+      {
+        "id": "text",
+        "type": "string",
+        "role": "content",
+        "label": "Text",
+        "description": "The text. A line break starts a new line.",
+        "default": "Open late."
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Text size in pixels.",
+        "default": 96,
+        "min": 24,
+        "max": 260,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "color",
+        "type": "color",
+        "role": "style",
+        "label": "Color",
+        "description": "Text color.",
+        "default": "#fdf2f8"
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the text.",
+        "default": 700,
+        "min": 100,
+        "max": 900,
+        "step": 100
+      },
+      {
+        "id": "font",
+        "type": "enum",
+        "role": "style",
+        "label": "Font",
+        "description": "Typeface.",
+        "default": "geist",
+        "options": [
+          {
+            "value": "geist",
+            "label": "Geist"
+          },
+          {
+            "value": "poppins",
+            "label": "Poppins"
+          },
+          {
+            "value": "playfair",
+            "label": "Playfair Display"
+          },
+          {
+            "value": "grotesk",
+            "label": "Space Grotesk"
+          }
+        ]
+      },
+      {
+        "id": "mode",
+        "type": "enum",
+        "role": "motion",
+        "label": "Split by",
+        "description": "What one animated unit is.",
+        "default": "chars",
+        "options": [
+          {
+            "value": "chars",
+            "label": "Characters"
+          },
+          {
+            "value": "words",
+            "label": "Words"
+          },
+          {
+            "value": "lines",
+            "label": "Lines"
+          }
+        ]
+      },
+      {
+        "id": "order",
+        "type": "enum",
+        "role": "motion",
+        "label": "Order",
+        "description": "Order the units arrive in.",
+        "default": "start",
+        "options": [
+          {
+            "value": "start",
+            "label": "Start to end"
+          },
+          {
+            "value": "end",
+            "label": "End to start"
+          },
+          {
+            "value": "center",
+            "label": "Centre outwards"
+          },
+          {
+            "value": "edges",
+            "label": "Edges inwards"
+          },
+          {
+            "value": "random",
+            "label": "Random"
+          }
+        ]
+      },
+      {
+        "id": "stagger_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Stagger",
+        "description": "Frames (30 per second) between one unit and the next.",
+        "default": 4,
+        "min": 0,
+        "max": 20,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "duration_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Unit duration",
+        "description": "Frames one unit takes to arrive.",
+        "default": 24,
+        "min": 1,
+        "max": 90,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "delay_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Delay",
+        "description": "Frames before the first unit starts.",
+        "default": 6,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "exit",
+        "type": "boolean",
+        "role": "motion",
+        "label": "Exit",
+        "description": "Play an exit at the end of the clip.",
+        "default": true
+      },
+      {
+        "id": "glow_color",
+        "type": "color",
+        "role": "style",
+        "label": "Glow color",
+        "description": "Colour of the glow around each lit tube.",
+        "default": "#f472b6"
+      },
+      {
+        "id": "glow_size",
+        "type": "number",
+        "role": "style",
+        "label": "Glow size",
+        "description": "Reach of the glow in pixels.",
+        "default": 26,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "off_level",
+        "type": "number",
+        "role": "style",
+        "label": "Off level",
+        "description": "Brightness of an unlit tube between strikes (0 to 1).",
+        "default": 0.14,
+        "min": 0,
+        "max": 0.6,
+        "step": 0.01
+      },
+      {
+        "id": "hum",
+        "type": "number",
+        "role": "motion",
+        "label": "Hum",
+        "description": "Depth of the slow brightness wobble once lit.",
+        "default": 0.12,
+        "min": 0,
+        "max": 0.6,
+        "step": 0.01
+      },
+      {
+        "id": "buzz",
+        "type": "number",
+        "role": "motion",
+        "label": "Buzz",
+        "description": "Chance per beat that a lit tube stutters.",
+        "default": 0.06,
+        "min": 0,
+        "max": 0.5,
+        "step": 0.01
+      },
+      {
+        "id": "flicker_on_exit",
+        "type": "boolean",
+        "role": "motion",
+        "label": "Flicker out",
+        "description": "Let the tubes die in stutters when the exit plays.",
+        "default": true
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Neon Flicker Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #f4f4f5; }
+        .nfl-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .nfl-text { display: inline-flex; flex-direction: column; align-items: center; text-align: center; max-width: 90%; line-height: 1.15; }
+        .nfl-line { display: block; white-space: normal; }
+        .nfl-word { display: inline-block; white-space: nowrap; }
+        .nfl-unit { display: inline-block; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="neon-flicker-text" data-duration="5" data-fps="30">
+        <div id="nfl-clip" class="nfl-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <span id="nfl-text" class="nfl-text" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "5");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            // ---- Split text into lines, words and units (characters, words or lines), staggered like remotion-ui's useSplitText ----
+            var ENTER = bez(0.16, 1, 0.3, 1);
+            function EXIT(t) { return t * t * t; }
+            function splitText(text, mode) {
+              var lines = [], units = [];
+              String(text).split(/\r?\n/).forEach(function (raw) {
+                var words = [];
+                var rawWords = mode === "lines" ? [raw.trim()].filter(Boolean) : raw.split(/\s+/).filter(Boolean);
+                rawWords.forEach(function (w) {
+                  var pieces = mode === "chars" ? Array.from(w) : [w];
+                  var us = pieces.map(function (p) { var u = { text: p, index: units.length }; units.push(u); return u; });
+                  words.push({ units: us });
+                });
+                lines.push({ words: words });
+              });
+              return { lines: lines, units: units };
+            }
+            function staggerRanks(total, order, seed) {
+              var idx = [], i, mid = (total - 1) / 2;
+              for (i = 0; i < total; i++) idx.push(i);
+              if (order === "end") return idx.map(function (k) { return total - 1 - k; });
+              if (order === "center") return idx.map(function (k) { return Math.round(Math.abs(k - mid)); });
+              if (order === "edges") return idx.map(function (k) { return Math.round(mid - Math.abs(k - mid)); });
+              if (order === "random") {
+                var rng = mulberry32(seed || 1), keys = idx.map(function () { return rng(); });
+                var sorted = idx.slice().sort(function (a, b) { return keys[a] - keys[b]; });
+                var out = new Array(total);
+                sorted.forEach(function (orig, rank) { out[orig] = rank; });
+                return out;
+              }
+              return idx;
+            }
+            // o: stagger, duration, delay (frames), order, seed, exit (bool), exitFrames
+            function makeTiming(split, o) {
+              var rk = staggerRanks(split.units.length, o.order, o.seed);
+              var maxRank = rk.length ? Math.max.apply(null, rk) : 0;
+              var lastEnter = o.delay + maxRank * o.stagger + o.duration;
+              var exitFrames = Math.max(1, Math.round(o.exitFrames || Math.max(6, Math.round(o.duration * 0.7))));
+              var exitStart = null;
+              if (o.exit) exitStart = Math.max(TOTAL * 30 - exitFrames - maxRank * o.stagger, lastEnter);
+              return { ranks: rk, o: o, exitFrames: exitFrames, exitStart: exitStart, lastEnter: lastEnter };
+            }
+            function unitState(frame, T, u) {
+              var rank = T.ranks[u.index], o = T.o;
+              var start = o.delay + rank * o.stagger;
+              var et = clamp01((frame - start) / o.duration);
+              var enter = ENTER(et), eo = clamp01(et / 0.55);
+              if (T.exitStart === null) return { enter: enter, exit: 0, displace: 1 - enter, opacity: eo, value: enter };
+              var us = T.exitStart + rank * o.stagger;
+              var xt = clamp01((frame - us) / T.exitFrames);
+              var ex = EXIT(xt), xo = 1 - clamp01(xt / 0.7);
+              return { enter: enter, exit: ex, displace: ex > 0 ? ex : 1 - enter, opacity: eo * xo, value: enter * (1 - ex) };
+            }
+            // Builds lines > words > unit spans into parent. fill(unitEl, u) fills each unit.
+            function buildSplit(parent, split, pre, wordGap, fill) {
+              split.lines.forEach(function (line) {
+                var lineEl = mk("span", parent, pre + "-line");
+                line.words.forEach(function (word, wi) {
+                  var wordEl = mk("span", lineEl, pre + "-word");
+                  if (wi < line.words.length - 1) wordEl.style.marginRight = wordGap + "em";
+                  word.units.forEach(function (u) {
+                    u.el = mk("span", wordEl, pre + "-unit");
+                    fill(u.el, u);
+                  });
+                });
+              });
+            }
+            function splitCss(pre) {
+              return "." + pre + "-text { display: inline-flex; flex-direction: column; align-items: center; text-align: center; max-width: 90%; line-height: 1.15; }\n" +
+                "." + pre + "-line { display: block; white-space: normal; }\n" +
+                "." + pre + "-word { display: inline-block; }\n" +
+                "." + pre + "-unit { display: inline-block; white-space: pre; }\n";
+            }
+
+            var DEFAULT_TEXT = "Open late.", DEF_STAGGER = 4, DEF_DURATION = 24, DEF_EXIT = true;
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "geist");
+            root.style.fontFamily = FONTS[fontKey];
+            var text = str(vars.text, DEFAULT_TEXT);
+            var mode = pick(vars.mode, ["chars", "words", "lines"], "chars");
+            var MODE_STAGGER = { chars: 2, words: 4, lines: 7 };
+            var split = splitText(text, mode);
+            var T = makeTiming(split, {
+              stagger: num(vars.stagger_frames, DEF_STAGGER, 0, 20), duration: num(vars.duration_frames, DEF_DURATION, 1, 90), delay: num(vars.delay_frames, 6, 0, 120),
+              order: pick(vars.order, ["start", "end", "center", "edges", "random"], "start"), seed: 1, exit: bool(vars.exit, DEF_EXIT)
+            });
+
+            var textEl = document.getElementById("nfl-text");
+            textEl.style.fontSize = num(vars.font_size, 96, 24, 260) + "px";
+            textEl.style.fontWeight = String(num(vars.font_weight, 700, 100, 900));
+            textEl.style.color = str(vars.color, "#fdf2f8");
+            textEl.setAttribute("aria-label", text);
+
+            var glowColor = str(vars.glow_color, "#f472b6"), glowSize = num(vars.glow_size, 26, 0, 120), offLevel = num(vars.off_level, 0.14, 0, 0.6);
+            var hum = num(vars.hum, 0.12, 0, 0.6), buzz = num(vars.buzz, 0.06, 0, 0.5), flickerOut = bool(vars.flicker_on_exit, true);
+            var textColor = str(vars.color, "#fdf2f8"), offColor = "color-mix(in srgb, " + glowColor + " 16%, transparent)";
+            function noise(index, beat, seed) { var v = Math.sin(index * 73.19 + beat * 137.51 + seed * 311.7) * 43758.5453; return v - Math.floor(v); }
+            buildSplit(textEl, split, "nfl", 0.26, function (el, u) { el.textContent = u.text; el.style.opacity = "0"; });
+            function draw(frame) {
+              split.units.forEach(function (u) {
+                var s = unitState(frame, T, u), st = u.el.style, lit;
+                var striking = s.enter > 0 && s.enter < 1, leaving = flickerOut && s.exit > 0;
+                if (s.enter <= 0) lit = 0;
+                else if (striking) lit = noise(u.index, Math.floor(frame / 2), 1) < 0.22 + 0.78 * s.enter ? 1 : offLevel;
+                else {
+                  var wave = 0.5 + 0.5 * Math.sin(frame * 0.42 + u.index * 1.3);
+                  var stutter = buzz > 0 && noise(u.index, Math.floor(frame / 3), 8) < buzz;
+                  lit = stutter ? offLevel + 0.2 : 1 - hum * wave;
+                }
+                if (leaving && noise(u.index, Math.floor(frame / 2), 4) < s.exit) lit = offLevel;
+                var on = lit > offLevel + 0.001, g = Math.max(0, lit);
+                st.opacity = String(s.enter > 0 ? 1 - s.exit : 0);
+                st.color = on ? textColor : offColor;
+                st.textShadow = on ? [0.16, 0.5, 1, 2.2].map(function (k) { return "0 0 " + (glowSize * k * g).toFixed(1) + "px " + glowColor; }).join(", ") : "none";
+              });
+            }
+            drive("neon-flicker-text", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

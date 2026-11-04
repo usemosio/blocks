@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-loop",
+  "type": "hyperframes:component",
+  "title": "Text Loop",
+  "description": "A list of words or phrases takes turns in one spot: the current one slides up and fades out while the next slides in from below, on a fixed interval, round and round.",
+  "tags": [
+    "text-effects",
+    "loop",
+    "word-swap",
+    "slide",
+    "motion-primitives-port"
+  ],
+  "category": "typography",
+  "duration": 6.5,
+  "useWhen": [
+    "Several short words (benefits, services, languages) should rotate in one place.",
+    "A calm, even swap with no spring or blur."
+  ],
+  "avoidWhen": [
+    "A rotating word sits beside a fixed prefix and the line must recentre: use inline-word-roll.",
+    "The swap should be a gooey or letter-by-letter change: use morph-text or text-morph."
+  ],
+  "author": "ibelick",
+  "authorUrl": "https://motion-primitives.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/ibelick/motion-primitives",
+    "path": "components/core/text-loop.tsx",
+    "commit": "120f64f6ca60348e251f929e9c81f11ccbe45eda"
+  },
+  "files": [
+    {
+      "path": "text-loop.html",
+      "target": "compositions/components/text-loop.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "Words or phrases separated by commas.", "default": "Design, Motion, Story, Craft"},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds between swaps.", "default": 2, "min": 0.5, "max": 8, "step": 0.1, "unit": "s"},
+    {"id": "transition", "type": "number", "role": "motion", "label": "Swap time", "description": "Seconds each slide takes.", "default": 0.3, "min": 0.1, "max": 1.5, "step": 0.05, "unit": "s"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far the text travels while it swaps.", "default": 40, "min": 0, "max": 200, "step": 1, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 120, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

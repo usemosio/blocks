@@ -1,0 +1,203 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "subtitle-translate",
+  "type": "hyperframes:component",
+  "title": "Subtitle Translate",
+  "description": "Dual-language stacked subtitles: the lead line arrives first, the translation follows a few frames later in a smaller, quieter size, with optional language tags.",
+  "tags": [
+    "captions",
+    "subtitles",
+    "translation",
+    "bilingual",
+    "dual-language",
+    "remotion-ui-port"
+  ],
+  "category": "captions",
+  "duration": 11.5,
+  "useWhen": [
+    "A video needs subtitles in two languages at once: the spoken language and its translation.",
+    "Cues and translations are known per line (from a subtitle export or a translator)."
+  ],
+  "avoidWhen": [
+    "You need word-by-word highlighting: use a word-timed caption block.",
+    "A single language: use a plain caption block."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/subtitle-translate.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "subtitle-translate.html",
+      "target": "compositions/components/subtitle-translate.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "cues",
+      "type": "string",
+      "role": "content",
+      "label": "Cues",
+      "description": "JSON list [{\"text\",\"translation\",\"startMs\",\"endMs\"}] (or start/end in seconds). Nothing shows between cues.",
+      "default": "[{\"text\": \"Welcome back to the studio.\", \"translation\": \"Selamat datang kembali di studio.\", \"startMs\": 400, \"endMs\": 3200}, {\"text\": \"Today we are shooting a short film.\", \"translation\": \"Hari ini kita syuting film pendek.\", \"startMs\": 3700, \"endMs\": 6800}, {\"text\": \"Keep the camera steady and the light soft.\", \"translation\": \"Jaga kamera tetap stabil dan cahaya tetap lembut.\", \"startMs\": 7300, \"endMs\": 10800}]"
+    },
+    {
+      "id": "primary",
+      "type": "enum",
+      "role": "content",
+      "label": "Lead line",
+      "description": "Which language is the large lead line.",
+      "default": "source",
+      "options": [
+        {
+          "value": "source",
+          "label": "Source text"
+        },
+        {
+          "value": "translation",
+          "label": "Translation"
+        }
+      ]
+    },
+    {
+      "id": "label_source",
+      "type": "string",
+      "role": "content",
+      "label": "Source tag",
+      "description": "Language tag shown beside the source line, for example EN. Empty hides it.",
+      "default": "EN"
+    },
+    {
+      "id": "label_translation",
+      "type": "string",
+      "role": "content",
+      "label": "Translation tag",
+      "description": "Language tag shown beside the translation. Empty hides it.",
+      "default": "ID"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Lead line size in pixels.",
+      "default": 46,
+      "min": 16,
+      "max": 140,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "secondary_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Second line scale",
+      "description": "Size of the second line relative to the lead.",
+      "default": 0.72,
+      "min": 0.4,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the lead line.",
+      "default": 600,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "primary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Lead color",
+      "description": "Colour of the lead line.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "secondary_color",
+      "type": "color",
+      "role": "style",
+      "label": "Second line color",
+      "description": "Colour of the second line.",
+      "default": "#b8b8bc"
+    },
+    {
+      "id": "label_color",
+      "type": "color",
+      "role": "style",
+      "label": "Tag color",
+      "description": "Colour of the language tags.",
+      "default": "#e8b86d"
+    },
+    {
+      "id": "background_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Colour of the card behind the subtitles.",
+      "default": "#0a0a0e"
+    },
+    {
+      "id": "background_opacity",
+      "type": "number",
+      "role": "style",
+      "label": "Background opacity",
+      "description": "Opacity of the card behind the subtitles.",
+      "default": 0.72,
+      "min": 0,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "max_width",
+      "type": "number",
+      "role": "layout",
+      "label": "Max width",
+      "description": "Widest the card gets, as a percent of the frame.",
+      "default": 78,
+      "min": 30,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "enter_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Enter",
+      "description": "Frames (30 per second) a line takes to arrive.",
+      "default": 10,
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "second_offset_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Second line delay",
+      "description": "Frames the second line trails the first.",
+      "default": 4,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "frames"
+    }
+  ],
+  "checkAt": [
+    1.5,
+    5.0,
+    8.5,
+    10.5
+  ]
+}

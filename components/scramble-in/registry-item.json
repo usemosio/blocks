@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "scramble-in",
+  "type": "hyperframes:component",
+  "title": "Scramble In",
+  "description": "Text types itself in left to right with a short run of random glyphs ahead of the cursor that resolve into the real letters; several lines can start in a quick cascade.",
+  "tags": [
+    "text-effects",
+    "scramble",
+    "reveal",
+    "monospace",
+    "decode",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A list, tracklist or block of text should decode onto the screen line by line with a hacker-style run of random glyphs.",
+    "You want a fixed-width layout that never reflows while the text appears."
+  ],
+  "avoidWhen": [
+    "Each word should scramble and lock in on its own: use scramble-reveal or caption-scramble.",
+    "The text should type with a caret: use typewriter."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/scramble-in.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "scramble-in.html",
+      "target": "compositions/components/scramble-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Lines of text, separated by a line break.", "default": "1. Opening Titles - 2:14\n2. Slow Motion - 3:27\n3. Night Drive - 4:58\n4. Paper Planes - 3:45\n5. Interlude - 1:44\n6. Golden Hour - 3:57\n7. Open Road - 3:22\n8. Something About Us - 3:51\n9. Last Light - 5:44\n10. Short Circuit - 3:26"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Long lines shrink to fit the frame.", "default": 34, "min": 12, "max": 120, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Color of the letters that have resolved.", "default": "#111111"},
+    {"id": "scrambled_color", "type": "color", "role": "style", "label": "Scrambled color", "description": "Color of the random glyphs ahead of the cursor.", "default": "#9ca3af"},
+    {"id": "characters", "type": "string", "role": "content", "label": "Characters", "description": "Pool the random glyphs come from.", "default": "abcdefghijklmnopqrstuvwxyz!@#$%^&*()_+"},
+    {"id": "line_height", "type": "number", "role": "style", "label": "Line height", "description": "Line height as a multiple of the font size.", "default": 1.6, "min": 1, "max": 3, "step": 0.05},
+    {"id": "scramble_speed", "type": "number", "role": "motion", "label": "Scramble speed", "description": "Milliseconds per step: each step reveals one more letter.", "default": 25, "min": 10, "max": 200, "step": 5, "unit": "ms"},
+    {"id": "scrambled_letters", "type": "number", "role": "motion", "label": "Scrambled letters", "description": "How many random glyphs run ahead of the cursor.", "default": 5, "min": 0, "max": 16, "step": 1},
+    {"id": "line_delay", "type": "number", "role": "motion", "label": "Line delay", "description": "Seconds between the start of one line and the next.", "default": 0.05, "min": 0, "max": 1, "step": 0.01, "unit": "s"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the first line starts.", "default": 0.2, "min": 0, "max": 3, "step": 0.05, "unit": "s"}
+  ]
+}

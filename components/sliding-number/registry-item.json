@@ -1,0 +1,48 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "sliding-number",
+  "type": "hyperframes:component",
+  "title": "Sliding Number",
+  "description": "A number whose digits each slide on their own spring reel to the next value in a list, shortest way round, with places appearing and disappearing as the length changes.",
+  "tags": [
+    "numbers",
+    "counter",
+    "digits",
+    "spring",
+    "motion-primitives-port"
+  ],
+  "category": "typography",
+  "duration": 4.5,
+  "useWhen": [
+    "A figure (price, count, score) changes value on screen and each digit should visibly slide to its new place.",
+    "Values of different lengths follow one another and the number should grow or shrink gracefully."
+  ],
+  "avoidWhen": [
+    "A smooth run-up from zero to a target: use number-wheel or rolling-number.",
+    "Characters other than digits are changing: use slot-machine-roll."
+  ],
+  "author": "ibelick",
+  "authorUrl": "https://motion-primitives.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/ibelick/motion-primitives",
+    "path": "components/core/sliding-number.tsx",
+    "commit": "120f64f6ca60348e251f929e9c81f11ccbe45eda"
+  },
+  "files": [
+    {
+      "path": "sliding-number.html",
+      "target": "compositions/components/sliding-number.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "values", "type": "string", "role": "content", "label": "Values", "description": "Whole numbers separated by commas; the number slides from one to the next.", "default": "0, 128, 2049, 37"},
+    {"id": "start", "type": "number", "role": "motion", "label": "First change", "description": "Seconds before the first change.", "default": 0.5, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Time between changes", "description": "Seconds from one change to the next.", "default": 1.1, "min": 0.5, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "pad_start", "type": "boolean", "role": "style", "label": "Pad to two digits", "description": "Show single digits as 01, 02 and so on.", "default": false},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 180, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

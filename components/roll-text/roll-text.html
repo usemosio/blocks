@@ -1,0 +1,141 @@
+<!doctype html>
+<!--
+  Roll Text
+
+  Each letter sits in a one-line window and rolls up to an identical copy, one after another, so the word seems to turn over like a split-flap or a barrel; it replays like a re-hover.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/codse/animata/blob/25c27e5a874c60a56dcc1609df3b2c4f5f8456f8/animata/text/roll-text.tsx
+  and animata/text/roll-text.css
+  MIT License
+
+  Copyright (c) Animata
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="roll-text"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Label that rolls.", "default": "Team member"},
+    {"id": "stagger", "type": "enum", "role": "motion", "label": "Stagger", "description": "Roll the whole label at once, word by word, or letter by letter.", "default": "character", "options": [{"value": "none", "label": "Whole label"}, {"value": "word", "label": "Word"}, {"value": "character", "label": "Letter"}]},
+    {"id": "stagger_ms", "type": "number", "role": "motion", "label": "Stagger step", "description": "Milliseconds between units.", "default": 32, "min": 0, "max": 200, "step": 1, "unit": "ms"},
+    {"id": "duration_ms", "type": "number", "role": "motion", "label": "Roll time", "description": "Milliseconds each unit takes to roll.", "default": 250, "min": 60, "max": 1500, "step": 10, "unit": "ms"},
+    {"id": "plays", "type": "number", "role": "motion", "label": "Plays", "description": "How many times the roll repeats within the block.", "default": 3, "min": 1, "max": 6, "step": 1},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 120, "min": 12, "max": 300, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "500", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Roll Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .rt-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .rt-label { white-space: pre; line-height: 1.1; letter-spacing: -0.02em; display: inline-block; }
+        .rt-unit { position: relative; display: inline-block; overflow: hidden; height: 1.1em; vertical-align: top; white-space: pre; }
+        .rt-stack { display: block; }
+        .rt-line { display: block; height: 1.1em; line-height: 1.1; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="roll-text" data-duration="5" data-fps="30">
+        <div id="rt-clip" class="rt-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="rt-label" class="rt-label" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function opt(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : f; }
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > max) { size = Math.max(12, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            
+            var label = document.getElementById("rt-label");
+            var text = str(vars.text, "Team member");
+            var mode = opt(vars.stagger, ["none", "word", "character"], "character");
+            var step = num(vars.stagger_ms, 32, 0, 200) / 1000, dur = num(vars.duration_ms, 250, 60, 1500) / 1000;
+            var plays = Math.round(num(vars.plays, 3, 1, 6));
+            root.style.color = col(vars.color, "#171717");
+            root.style.fontWeight = opt(vars.font_weight, ["300","400","500","600","700","900"], "500");
+            label.setAttribute("aria-label", text);
+            var parts = mode === "none" ? [text] : mode === "word" ? text.trim().split(/\s+/) : Array.from(text);
+            var stacks = [];
+            parts.forEach(function (p, i) {
+              if (mode === "word" && i > 0) label.appendChild(document.createTextNode(" "));
+              var u = document.createElement("span"); u.className = "rt-unit";
+              var st = document.createElement("span"); st.className = "rt-stack";
+              for (var q = 0; q < 2; q++) { var ln = document.createElement("span"); ln.className = "rt-line"; ln.textContent = p; st.appendChild(ln); }
+              u.appendChild(st); label.appendChild(u); stacks.push(st);
+            });
+            fit(label, num(vars.font_size, 120, 12, 300), 0.9);
+            gsap.registerPlugin(CustomEase);
+            var ease = CustomEase.create("rt-ease", "M0,0 C0.77,0 0.175,1 1,1");
+            var tl = gsap.timeline({ paused: true });
+            var total0 = parseFloat(root.dataset.duration || "5");
+            var roll = dur + step * Math.max(0, stacks.length - 1);
+            var cycle = Math.min((total0 - 0.4) / plays, roll + 0.9);
+            for (var p = 0; p < plays; p++) {
+              stacks.forEach(function (st, i) {
+                tl.fromTo(st, { yPercent: 0 }, { yPercent: -50, duration: dur, ease: ease, immediateRender: false }, 0.4 + p * cycle + i * step);
+              });
+            }
+            gsap.set(stacks, { yPercent: 0 });
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["roll-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

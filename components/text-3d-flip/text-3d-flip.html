@@ -1,0 +1,242 @@
+<!doctype html>
+<!--
+  Text 3D Flip
+
+  Every letter is a small rotating prism: the letters roll over one after another with a spring, a second identical face coming round to the front.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/text-3d-flip.tsx
+  Changes by usemosio/blocks: the source rolls on hover; this block rolls the line at fixed moments instead.
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="text-3d-flip"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The line that rolls over.", "default": "Stay curious, stay kind"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text wraps and shrinks to fit the frame.", "default": 96, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Colour", "description": "Colour of the front face.", "default": "#0a0a0a"},
+    {"id": "flip_color", "type": "color", "role": "style", "label": "Flip colour", "description": "Colour of the face that rolls in.", "default": "#0a0a0a"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Which edge the letters roll over.", "default": "top", "options": [{"value": "top", "label": "Top"}, {"value": "bottom", "label": "Bottom"}, {"value": "right", "label": "Right"}, {"value": "left", "label": "Left"}]},
+    {"id": "stagger_from", "type": "enum", "role": "motion", "label": "Stagger from", "description": "Where the roll starts.", "default": "first", "options": [{"value": "first", "label": "First letter"}, {"value": "last", "label": "Last letter"}, {"value": "center", "label": "Centre"}]},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters (the source uses 0.05).", "default": 0.03, "min": 0, "max": 0.3, "step": 0.01, "unit": "s"},
+    {"id": "stiffness", "type": "number", "role": "motion", "label": "Spring stiffness", "description": "Spring stiffness of the roll.", "default": 160, "min": 50, "max": 600, "step": 5},
+    {"id": "damping", "type": "number", "role": "motion", "label": "Spring damping", "description": "Spring damping of the roll.", "default": 25, "min": 5, "max": 80, "step": 1},
+    {"id": "flips", "type": "number", "role": "motion", "label": "Rolls", "description": "How many times the whole line rolls within the block.", "default": 2, "min": 1, "max": 4, "step": 1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text 3D Flip</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .t3f-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .t3f-line { display: flex; flex-wrap: wrap; justify-content: center; max-width: 92%; font-family: "Playfair Display", Georgia, serif; font-weight: 500; line-height: 1.2; }
+        .t3f-word { display: inline-flex; }
+        .t3f-space { white-space: pre; }
+        .t3f-char { position: relative; display: inline-block; transform-style: preserve-3d; white-space: pre; }
+        .t3f-face { display: block; white-space: pre; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .t3f-back { position: absolute; top: 0; left: 0; }
+      </style>
+
+      <div id="root" data-composition-id="text-3d-flip" data-duration="5" data-fps="30">
+        <div id="t3f-clip" class="t3f-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="t3f-line" class="t3f-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "t3f";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "5");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["text-3d-flip"] = tl;
+            }
+
+            var line = document.getElementById("t3f-line");
+            var text = str(vars.text, "Stay curious, stay kind");
+            var frontColor = col(vars.color, "#0a0a0a");
+            var backColor = col(vars.flip_color, "#0a0a0a");
+            var dir = pick(vars.direction, ["top", "bottom", "right", "left"], "top");
+            var from = pick(vars.stagger_from, ["first", "last", "center"], "first");
+            var stagger = num(vars.stagger, 0.03, 0, 0.3);
+            var flips = Math.round(num(vars.flips, 2, 1, 4));
+            var total = parseFloat(root.dataset.duration || "5");
+            line.setAttribute("aria-label", text);
+            var chars = [];
+            var words = text.split(" ");
+            words.forEach(function (w, wi) {
+              var word = document.createElement("span");
+              word.className = "t3f-word";
+              Array.from(w).forEach(function (ch) {
+                var box = document.createElement("span");
+                box.className = "t3f-char";
+                box.id = "t3f-char-" + chars.length;
+                box.setAttribute("aria-hidden", "true");
+                var f = document.createElement("span");
+                f.className = "t3f-face t3f-front";
+                f.textContent = ch;
+                f.style.color = frontColor;
+                var b = document.createElement("span");
+                b.className = "t3f-face t3f-back";
+                b.textContent = ch;
+                b.style.color = backColor;
+                box.appendChild(f);
+                box.appendChild(b);
+                word.appendChild(box);
+                chars.push({ box: box, front: f, back: b });
+              });
+              line.appendChild(word);
+              if (wi < words.length - 1) {
+                var sp = document.createElement("span");
+                sp.className = "t3f-space";
+                sp.textContent = " ";
+                line.appendChild(sp);
+              }
+            });
+            fit(line, num(vars.font_size, 96, 12, 240), 0.92);
+            var size = parseFloat(line.style.fontSize);
+            var lh = size * 1.2;
+            var n = chars.length;
+            // Stagger offsets per letter.
+            var offs = chars.map(function (_, i) {
+              if (from === "last") return (n - 1 - i) * stagger;
+              if (from === "center") return Math.abs(Math.floor(n / 2) - i) * stagger;
+              return i * stagger;
+            });
+            // Damped spring step response (mass 1), sampled until it comes to rest.
+            var k = num(vars.stiffness, 160, 50, 600), c = num(vars.damping, 25, 5, 80);
+            var samples = [0], x = 0, v = 0, dt = 1 / 480;
+            for (var si = 0; si < 480 * 6; si++) {
+              v += (-k * (x - 1) - c * v) * dt;
+              x += v * dt;
+              samples.push(x);
+              if (Math.abs(x - 1) * 90 < 0.5 && Math.abs(v) * 90 < 2) break;
+            }
+            var springDur = (samples.length - 1) * dt;
+            function spring(t) {
+              if (t <= 0) return 0;
+              if (t >= springDur) return 1;
+              var p = t / dt, i0 = Math.floor(p);
+              return samples[i0] + (samples[i0 + 1] - samples[i0]) * (p - i0);
+            }
+            var span = Math.max.apply(null, offs) + springDur;
+            var starts = [];
+            for (var q = 0; q < flips; q++) starts.push(0.4 + q * (span + 0.7));
+            var axisY = dir === "left" || dir === "right";
+            var sign = dir === "top" || dir === "right" ? 1 : -1;
+            function layout() {
+              chars.forEach(function (o) {
+                var depth = (axisY ? o.box.offsetWidth : lh) / 2;
+                o.depth = depth;
+                o.front.style.transform = "translateZ(" + depth + "px)";
+                o.back.style.transform = (axisY ? "rotateY(" : "rotateX(") + (-sign * 90) + "deg) translateZ(" + depth + "px)";
+              });
+            }
+            layout();
+            var clock = { t: 0 };
+            function draw(t) {
+              chars.forEach(function (o, i) {
+                var angle = 0;
+                for (var s = 0; s < starts.length; s++) {
+                  var u = t - starts[s] - offs[i];
+                  if (u > 0 && u < springDur) angle = 90 * spring(u);
+                }
+                var d = o.depth;
+                o.box.style.transform = "translateZ(" + -d + "px) " + (axisY ? "rotateY(" : "rotateX(") + sign * angle + "deg)";
+              });
+            }
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

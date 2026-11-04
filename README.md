@@ -1,6 +1,6 @@
 # blocks
 
-Animated text, captions, transitions, shop promos, shaders, motion graphics, UI and icons for
+Animated text, captions, transitions, price and sale moments, shaders, motion graphics, UI and icons for
 [Hyperframes](https://github.com/heygen-com/hyperframes) videos: plain HTML, CSS and GSAP, one file per
 block. No React, no build step, no runtime to install. A person or an AI agent reads the file and edits any
 line of it.
@@ -9,21 +9,24 @@ Most blocks are ports of [remocn](https://github.com/Remocn/remocn) (MIT), the s
 Remotion components: the same motion (timings, easing, order, look), rewritten so it runs in a Hyperframes
 composition. Every remocn component is here except one helper module; components that copied a real
 product's look are here under generic names with a generic look. Both are listed in [SKIPPED.md](SKIPPED.md).
-Twelve more are taken from the video recipes of [Mosio](https://mosio.me): prices, sales, menus, reviews,
-countdowns, stats, a phone showcase and a shop end card, written for small shops.
+101 more text effects are ported from ten other MIT libraries: Magic UI, fancy, motion-primitives, Eldora UI,
+Cult UI, RemotionUI, remotion-scenes, Kokonut UI, Onda and animata (word rollers, letter swaps, text along a
+path, handwriting, variable-font morphs, SRT and two-language captions…). Seven come from the video recipes of
+[Mosio](https://mosio.me): a price drop, a flash sale, a menu board, a typed review, a countdown, a stat
+count-up and a shop end card.
 
 ## What's inside
 
-439 blocks:
+535 blocks:
 
 | | |
 |---|---|
-| Typography | 70: reveals, kinetic type, typewriter, highlights, glitch, vector type (outline trace, glyph anatomy, path ride) |
-| Captions | 31: word-timed captions (karaoke, highlight box, scramble, split-flap, teleprompter…) from a `captions` variable |
-| Transitions | 31: dissolves, wipes, zooms, whip pan, light leak, page turn, pixel sort, hyperspace, between built-in A/B panels a host swaps for its scenes |
-| Shop and promo | 12: struck-through prices that count down, flash sale burst, menu price board, typed review with stars, event countdown, stat count-up, phone showcase, request-to-products, ads dashboard, news caption, sticker pop, shop end card (Rupiah sample text) |
+| Typography | 165: reveals, kinetic type, typewriter, highlights, glitch, vector type (outline trace, glyph anatomy, path ride), 19 word rollers (drum, slot, split-flap, 3D carousel…), letter swaps, text along a path, handwriting, variable-font and liquid morphs |
+| Captions | 35: word-timed captions (karaoke, highlight box, scramble, split-flap, teleprompter…) from a `captions` variable, SRT/VTT tracks, two-language subtitles, speaker labels |
+| Transitions | 32: dissolves, wipes, zooms, whip pan, light leak, page turn, pixel sort, hyperspace, between built-in A/B panels a host swaps for its scenes |
+| Prices and sales | 7: price drop, flash sale burst, menu price board, typed review with stars, event countdown, stat count-up, shop end card (Rupiah sample text) |
 | Shaders | 61: animated WebGL backdrops (mesh, grain and warp gradients, swirls, god rays, liquid metal, caustics, metaballs, voronoi…), 36 of them ready-made palettes |
-| Motion graphics, looks, filters and scenes | 75: cursors, bursts, generative patterns, CRT, VHS, ASCII, halftone and security-cam looks, cloth reveal, camera moves, logo stings, code, chart, chat and terminal scenes |
+| Motion graphics, looks, filters and scenes | 76: cursors, bursts, generative patterns, CRT, VHS, ASCII, halftone and security-cam looks, cloth reveal, camera moves, logo stings, code, chart, chat and terminal scenes |
 | Templates | 5: multi-scene launch, brand and product films |
 | UI | 54: buttons, inputs, menus, dialogs, toasts, sliders, steppers, and short app flows, each acting out its interaction |
 | Icons | 100: Lucide-based icons that draw themselves and act (bell rings, heart beats, rocket lifts) |

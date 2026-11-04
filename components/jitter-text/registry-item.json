@@ -1,0 +1,138 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "jitter-text",
+  "type": "hyperframes:component",
+  "title": "Jitter Text",
+  "description": "A line of text trembles in tiny steps of position and tilt, settles, rests, then trembles back.",
+  "tags": [
+    "text-effects",
+    "shake",
+    "nervous",
+    "loop",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 4.4,
+  "useWhen": [
+    "A word should feel nervous, electric or on edge without moving away from its place.",
+    "A subtle always-alive texture is wanted on a title."
+  ],
+  "avoidWhen": [
+    "The text must read as calm or premium.",
+    "A heavy impact is wanted: use impact-shake."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/jitter-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "jitter-text.html",
+      "target": "compositions/components/jitter-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Text that trembles.",
+      "default": "Jitter Text"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "motion",
+      "label": "Intensity",
+      "description": "Multiplier for the size of the tremble (1 is the original, which is small).",
+      "default": 1,
+      "min": 0,
+      "max": 6,
+      "step": 0.1
+    },
+    {
+      "id": "duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Tremble duration",
+      "description": "Seconds of one tremble.",
+      "default": 0.6,
+      "min": 0.2,
+      "max": 2,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "pause",
+      "type": "number",
+      "role": "motion",
+      "label": "Pause",
+      "description": "Seconds of rest between trembles.",
+      "default": 0.5,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "900",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

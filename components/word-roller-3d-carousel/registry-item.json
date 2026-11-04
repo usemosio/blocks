@@ -1,0 +1,119 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-3d-carousel",
+  "type": "hyperframes:component",
+  "title": "Word Roller 3D Carousel",
+  "description": "Words stand around a cylinder that spins in perspective: it starts slowly, spins fast, slows, and stops on the last word, which turns to the accent colour and grows while the others stay dim.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "3d",
+    "carousel",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A ring of words (innovation, creation, evolution…) that should spin and land on one big word.",
+    "A reveal with depth, where the words that go past stay visible in perspective."
+  ],
+  "avoidWhen": [
+    "Words that must be read individually while rolling.",
+    "Long words: the ring gets wide and the cylinder shrinks the text."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/Roller3DCarousel.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-3d-carousel.html",
+      "target": "compositions/components/word-roller-3d-carousel.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words around the cylinder, separated by commas. The last one is where it stops.",
+      "default": "Innovation, Creation, Evolution, Revolution, Transformation, INSPIRATION"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the words in pixels. The cylinder shrinks to fit the frame.",
+      "default": 56,
+      "min": 16,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Active color",
+      "description": "Color of the word facing the viewer.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "dim_color",
+      "type": "color",
+      "role": "style",
+      "label": "Idle color",
+      "description": "Color of the other words.",
+      "default": "#a3a3a3"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Final color",
+      "description": "Color of the last word once it has stopped.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "spin_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Spin length",
+      "description": "Frames the cylinder takes to reach the last word (30 fps).",
+      "default": 90,
+      "min": 40,
+      "max": 200,
+      "step": 1,
+      "unit": "f"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

@@ -3,13 +3,12 @@
   "name": "menu-price-board",
   "type": "hyperframes:component",
   "title": "Menu Price Board",
-  "description": "A cafe-style board: the title rises through a mask and a pen stroke underlines it, then each item slides in with its dotted leader and price popping in at the end, a handwritten note sticks on at a slant and the shop details rise at the bottom. Items come from one variable, one per line as \"Name|Price\".",
+  "description": "A clean menu board: the title rises through a mask, then each item slides in with its dotted leader and its price, a short note appears and the shop details rise at the bottom. White page, black type, one accent on the note and the order button. Items come from one variable, one per line as \"Name|Price\".",
   "tags": [
     "mosio-recipe",
     "menu",
     "price-list",
     "list",
-    "handwritten",
     "product"
   ],
   "category": "commerce",
@@ -42,7 +41,7 @@
       "type": "string",
       "role": "content",
       "label": "Kicker",
-      "description": "Small italic line above the title.",
+      "description": "Small muted line above the title.",
       "default": "Dari dapur kami,"
     },
     {
@@ -65,8 +64,8 @@
       "id": "note",
       "type": "string",
       "role": "content",
-      "label": "Handwritten note",
-      "description": "Note stuck on at a slant, in handwriting. Leave empty to hide it.",
+      "label": "Note",
+      "description": "Short italic note in the accent colour, top right. Leave empty to hide it.",
       "default": "favorit!"
     },
     {
@@ -99,39 +98,31 @@
       "role": "style",
       "label": "Background",
       "description": "Board background.",
-      "default": "#f6eee3"
-    },
-    {
-      "id": "main_color",
-      "type": "color",
-      "role": "style",
-      "label": "Main colour",
-      "description": "Kicker, prices, pen stroke and blobs.",
-      "default": "#b5532a"
+      "default": "#ffffff"
     },
     {
       "id": "accent_color",
       "type": "color",
       "role": "style",
       "label": "Accent",
-      "description": "Handwritten note, footer button and blobs.",
-      "default": "#3f6b4a"
+      "description": "Note and footer button: the one accent.",
+      "default": "#2563eb"
     },
     {
       "id": "text_color",
       "type": "color",
       "role": "style",
       "label": "Text colour",
-      "description": "Title, item names and frame.",
-      "default": "#2b1d14"
+      "description": "Title, item names and prices.",
+      "default": "#0a0a0a"
     },
     {
       "id": "muted_color",
       "type": "color",
       "role": "style",
       "label": "Muted colour",
-      "description": "Short notes under item names.",
-      "default": "#72665c"
+      "description": "Kicker, short notes under item names and the footer line.",
+      "default": "#737373"
     },
     {
       "id": "transparent",

@@ -31,22 +31,6 @@
       ]
     },
     {
-      "name": "ads-dashboard",
-      "type": "hyperframes:component",
-      "title": "Ads Dashboard",
-      "description": "A dark metrics dashboard: an alert drops in and the key metric falls in red, then cards pop in, the numbers recover and count up, and a chart line draws itself.",
-      "category": "commerce",
-      "tags": [
-        "dashboard",
-        "metrics",
-        "analytics",
-        "count-up",
-        "chart",
-        "dark",
-        "mosio-recipe"
-      ]
-    },
-    {
       "name": "agent-run",
       "type": "hyperframes:component",
       "title": "Agent Run",
@@ -109,6 +93,21 @@
       ]
     },
     {
+      "name": "ai-text-loading",
+      "type": "hyperframes:component",
+      "title": "AI Text Loading",
+      "description": "A cycling status word whose letters blur in one by one while a soft brightness wave runs through them: the look of an AI that is working.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "loading",
+        "status",
+        "wave",
+        "letters",
+        "kokonutui-port"
+      ]
+    },
+    {
       "name": "alert-dialog",
       "type": "hyperframes:component",
       "title": "Alert Dialog",
@@ -149,6 +148,20 @@
         "bars",
         "spring",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "animated-gradient-text",
+      "type": "hyperframes:component",
+      "title": "Animated Gradient Text",
+      "description": "Text filled with a wide three-colour gradient that drifts slowly from one end to the other and back, so the colours flow through the letters.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "gradient",
+        "color",
+        "loop",
+        "animata-port"
       ]
     },
     {
@@ -197,6 +210,20 @@
         "remocn-port"
       ],
       "webgl": true
+    },
+    {
+      "name": "aurora-text",
+      "type": "hyperframes:component",
+      "title": "Aurora Text",
+      "description": "Four-colour gradient text whose colours drift slowly through the letters, magenta to violet to blue to cyan by default, set after a plain lead-in word.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "gradient",
+        "ambient",
+        "headline",
+        "magicui-port"
+      ]
     },
     {
       "name": "backdrop",
@@ -272,6 +299,20 @@
       ]
     },
     {
+      "name": "blur-reveal",
+      "type": "hyperframes:component",
+      "title": "Blur Reveal",
+      "description": "A transition: the outgoing scene softens away while the incoming one resolves out of blur, with a faint scale drift.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "blur",
+        "soft",
+        "scene-change",
+        "remotion-ui-port"
+      ]
+    },
+    {
       "name": "bottom-up-letters",
       "type": "hyperframes:component",
       "title": "Bottom-Up Letters",
@@ -300,6 +341,21 @@
         "typography",
         "premium",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "breathing-text",
+      "type": "hyperframes:component",
+      "title": "Breathing Text",
+      "description": "Letters flex between two variable-font settings (weight and slant) in a staggered, mirrored loop, so the word appears to breathe.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "variable-font",
+        "loop",
+        "letters",
+        "kinetic-type",
+        "fancy-port"
       ]
     },
     {
@@ -452,6 +508,21 @@
         "pop",
         "social",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "caption-emoji-beat",
+      "type": "hyperframes:component",
+      "title": "Caption Emoji Beat",
+      "description": "Emoji stamps land on the beat over a caption line: each arrives with overshoot, wobbles once, holds, then releases.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "emoji",
+        "beat",
+        "stamp",
+        "social",
+        "remotion-ui-port"
       ]
     },
     {
@@ -891,7 +962,7 @@
       "name": "chat-review-typed",
       "type": "hyperframes:component",
       "title": "Chat Review Typed",
-      "description": "A headline with the shop name in handwriting, a customer's avatar and name, an incoming bubble with typing dots that then writes the review letter by letter, a tinted reply bubble sliding in from the right, five stars popping in with a score line, and a call-to-action pill.",
+      "description": "A headline with the shop name on its own line, a customer's avatar and name, an incoming bubble with typing dots that then writes the review letter by letter, a dark reply bubble sliding in from the right, five stars with a score line, and a call-to-action pill. White page, hairline bubbles.",
       "category": "commerce",
       "tags": [
         "mosio-recipe",
@@ -978,6 +1049,20 @@
       ]
     },
     {
+      "name": "circular-text",
+      "type": "hyperframes:component",
+      "title": "Circular Text",
+      "description": "Characters sit evenly around a circle and the whole ring spins steadily, like a badge or a stamp.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "badge",
+        "spin",
+        "circular",
+        "animata-port"
+      ]
+    },
+    {
       "name": "cloth-reveal",
       "type": "hyperframes:component",
       "title": "Cloth Reveal",
@@ -1037,6 +1122,20 @@
       ]
     },
     {
+      "name": "comic-text",
+      "type": "hyperframes:component",
+      "title": "Comic Text",
+      "description": "Comic-book lettering: skewed uppercase letters with a halftone-dot fill, a heavy black outline and a stacked hard shadow, popping in with a small overshoot.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "comic",
+        "pop",
+        "sticker",
+        "magicui-port"
+      ]
+    },
+    {
       "name": "command-menu",
       "type": "hyperframes:component",
       "title": "Command Menu",
@@ -1090,6 +1189,20 @@
         "right-click",
         "cursor",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "cradle-text",
+      "type": "hyperframes:component",
+      "title": "Cradle Text",
+      "description": "Letters hang from a rail like a Newton's cradle: the first is pulled out and released, the knock runs through the row and the last letter swings out.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "physics",
+        "pendulum",
+        "letters",
+        "kokonutui-port"
       ]
     },
     {
@@ -1155,6 +1268,20 @@
       ]
     },
     {
+      "name": "dia-text-reveal",
+      "type": "hyperframes:component",
+      "title": "Dia Text Reveal",
+      "description": "A soft multi-colour gradient band sweeps left to right across the text, revealing the letters behind it; with several texts it then swaps to the next and sweeps again.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "gradient",
+        "reveal",
+        "sweep",
+        "magicui-port"
+      ]
+    },
+    {
       "name": "dialog",
       "type": "hyperframes:component",
       "title": "Dialog",
@@ -1197,6 +1324,21 @@
         "shader",
         "retro",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "dock-text",
+      "type": "hyperframes:component",
+      "title": "Dock Text",
+      "description": "A pointer glides across a line of capitals and the letters near it stretch tall like a dock, the nearest one most, easing back to size when the pointer leaves.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "hover",
+        "letters",
+        "dock",
+        "scale",
+        "eldoraui-port"
       ]
     },
     {
@@ -1285,6 +1427,21 @@
       ]
     },
     {
+      "name": "dynamic-text",
+      "type": "hyperframes:component",
+      "title": "Dynamic Text",
+      "description": "Word-to-word morph where letters are physical: shared letters glide to their new spot on a spring arc, others fall away, new ones drop in and land with a squash.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "morph",
+        "physics",
+        "kinetic-type",
+        "letters",
+        "kokonutui-port"
+      ]
+    },
+    {
       "name": "echo-stack",
       "type": "hyperframes:component",
       "title": "Echo Stack",
@@ -1336,7 +1493,7 @@
       "name": "event-countdown-clock",
       "type": "hyperframes:component",
       "title": "Event Countdown Clock",
-      "description": "A broadcast-style T− clock in four cells (days, hours, minutes, seconds) under a title plate that wipes in. The days and hours race down, the last five seconds tick in real time with a ten-segment bar emptying each second, then a warm flash, the clock turns colour and flips to T+, and a short \"now\" line takes the title's place.",
+      "description": "A T− clock in four cells (days, hours, minutes, seconds) in a hairline panel under a title that wipes in. The days and hours race down, the last five seconds tick in real time with a ten-segment bar emptying each second, then the clock turns to the accent colour, flips to T+, and a short \"now\" line takes the title's place.",
       "category": "commerce",
       "tags": [
         "mosio-recipe",
@@ -1408,7 +1565,7 @@
       "name": "flash-sale-burst",
       "type": "hyperframes:component",
       "title": "Flash Sale Burst",
-      "description": "A colour flash and a two-word headline slam in, a big percent figure bursts out of a starburst and shakes, two crossed ribbons run their text in opposite directions and clear away, then the deadline is stamped with a small flash.",
+      "description": "A two-word headline rises in, a big percent figure bursts in and shakes once in the accent colour, two crossed running ribbons (black, and outlined) run their text in opposite directions and clear away, then the deadline is set in a bordered box. Clean white page, no starburst.",
       "category": "commerce",
       "tags": [
         "mosio-recipe",
@@ -1511,6 +1668,21 @@
       ]
     },
     {
+      "name": "font-weight-text",
+      "type": "hyperframes:component",
+      "title": "Font Weight Text",
+      "description": "Letters breathe through a variable font weight, thin to heavy and back, each on its own phase so a wave of weight rolls along the word from the middle outward.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "variable-font",
+        "weight",
+        "breathing",
+        "loop",
+        "eldoraui-port"
+      ]
+    },
+    {
       "name": "glass-code-block",
       "type": "hyperframes:component",
       "title": "Glass Code Block",
@@ -1573,6 +1745,22 @@
       ]
     },
     {
+      "name": "goal-ring-card",
+      "type": "hyperframes:component",
+      "title": "Goal Ring Card",
+      "description": "A day-summary card: a ring fills to the share of a daily goal while the figure inside counts up, above a bar that restates the goal.",
+      "category": "data",
+      "tags": [
+        "stat",
+        "progress",
+        "ring",
+        "card",
+        "goal",
+        "widget",
+        "animata-port"
+      ]
+    },
+    {
       "name": "gooey-morph",
       "type": "hyperframes:component",
       "title": "Gooey Morph",
@@ -1600,6 +1788,21 @@
         "title",
         "cut",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "gradual-spacing-text",
+      "type": "hyperframes:component",
+      "title": "Gradual Spacing Text",
+      "description": "Letters drift in from the left and fade up one after another, so the line seems to space itself out gradually as it appears.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "letters",
+        "slide",
+        "stagger",
+        "eldoraui-port"
       ]
     },
     {
@@ -1694,6 +1897,35 @@
         "paper",
         "reveal",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "handwriting-text",
+      "type": "hyperframes:component",
+      "title": "Handwriting Text",
+      "description": "Writes a string on, character by character, with a pen nib riding the wet edge of the ink and a slight hand-made tilt on every letter.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "handwriting",
+        "script",
+        "pen",
+        "letters",
+        "remotion-ui-port"
+      ]
+    },
+    {
+      "name": "highlighter",
+      "type": "hyperframes:component",
+      "title": "Highlighter",
+      "description": "A hand-drawn mark is scribbled over part of a sentence: marker highlight, underline, box, circle, strike-through, crossed-off or bracket, drawn stroke by stroke with a slightly wobbly line.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "hand-drawn",
+        "annotation",
+        "emphasis",
+        "magicui-port"
       ]
     },
     {
@@ -3216,6 +3448,35 @@
       ]
     },
     {
+      "name": "jitter-text",
+      "type": "hyperframes:component",
+      "title": "Jitter Text",
+      "description": "A line of text trembles in tiny steps of position and tilt, settles, rests, then trembles back.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "shake",
+        "nervous",
+        "loop",
+        "animata-port"
+      ]
+    },
+    {
+      "name": "jumping-text",
+      "type": "hyperframes:component",
+      "title": "Jumping Text",
+      "description": "Words (or letters) hop in from below, tilted, and spring upright one after another with a little overshoot.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "spring",
+        "bounce",
+        "reveal",
+        "words",
+        "animata-port"
+      ]
+    },
+    {
       "name": "keystroke",
       "type": "hyperframes:component",
       "title": "Keystroke",
@@ -3257,6 +3518,20 @@
         "sequence",
         "trails",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "kinetic-text",
+      "type": "hyperframes:component",
+      "title": "Kinetic Text",
+      "description": "A thin variable-weight word where a pointer sweeps over the letters: the letter under it swells to black weight with an outline, and its neighbours follow at lesser weights.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "variable-font",
+        "kinetic-type",
+        "letters",
+        "magicui-port"
       ]
     },
     {
@@ -3303,6 +3578,50 @@
         "zoom",
         "shake",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "letter-3d-swap",
+      "type": "hyperframes:component",
+      "title": "Letter 3D Swap",
+      "description": "Every letter is a two-faced block that rolls a quarter turn in 3D, from the top, bottom, left or right, in a staggered wave that repeats.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "3d",
+        "kinetic-type",
+        "swap",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "letter-swap-forward",
+      "type": "hyperframes:component",
+      "title": "Letter Swap Forward",
+      "description": "Each letter slides out and an identical copy rolls in from the other side, in a staggered wave that repeats forward.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "swap",
+        "kinetic-type",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "letter-swap-pingpong",
+      "type": "hyperframes:component",
+      "title": "Letter Swap Ping-Pong",
+      "description": "Each letter slides out and an identical copy rolls in, then after a hold the wave runs back the way it came (ping-pong).",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "swap",
+        "kinetic-type",
+        "ping-pong",
+        "fancy-port"
       ]
     },
     {
@@ -3364,6 +3683,20 @@
       ]
     },
     {
+      "name": "line-shadow-text",
+      "type": "hyperframes:component",
+      "title": "Line Shadow Text",
+      "description": "A bold headline with a hatched drop shadow: fine diagonal lines fill the shadow and slide slowly through it.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "shadow",
+        "ambient",
+        "headline",
+        "magicui-port"
+      ]
+    },
+    {
       "name": "liquid-fill",
       "type": "hyperframes:component",
       "title": "Liquid Fill",
@@ -3375,6 +3708,21 @@
         "fill",
         "bubbles",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "liquid-text-morph",
+      "type": "hyperframes:component",
+      "title": "Liquid Text Morph",
+      "description": "Melts one word into the next through a gooey blur-and-threshold filter: letters arrive squat and wide and tighten as the words trade places.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "morph",
+        "liquid",
+        "goo",
+        "word-swap",
+        "remotion-ui-port"
       ]
     },
     {
@@ -3451,6 +3799,21 @@
       ]
     },
     {
+      "name": "mask-text",
+      "type": "hyperframes:component",
+      "title": "Mask Text",
+      "description": "A round spotlight follows an invisible pointer across one line of text and reveals a different line inside it; it swells from a dot to a wide disc and shrinks again.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "mask",
+        "spotlight",
+        "reveal",
+        "hover",
+        "animata-port"
+      ]
+    },
+    {
       "name": "matrix-decode",
       "type": "hyperframes:component",
       "title": "Matrix Decode",
@@ -3465,17 +3828,31 @@
       ]
     },
     {
+      "name": "media-between-text",
+      "type": "hyperframes:component",
+      "title": "Media Between Text",
+      "description": "A sentence with a gap in the middle: a rounded media tile springs open between the two halves, pushing the words apart, then closes again. The tile is a drawn gradient by default, or your own image.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "media",
+        "inline",
+        "layout",
+        "reveal",
+        "fancy-port"
+      ]
+    },
+    {
       "name": "menu-price-board",
       "type": "hyperframes:component",
       "title": "Menu Price Board",
-      "description": "A cafe-style board: the title rises through a mask and a pen stroke underlines it, then each item slides in with its dotted leader and price popping in at the end, a handwritten note sticks on at a slant and the shop details rise at the bottom. Items come from one variable, one per line as \"Name|Price\".",
+      "description": "A clean menu board: the title rises through a mask, then each item slides in with its dotted leader and its price, a short note appears and the shop details rise at the bottom. White page, black type, one accent on the note and the order button. Items come from one variable, one per line as \"Name|Price\".",
       "category": "commerce",
       "tags": [
         "mosio-recipe",
         "menu",
         "price-list",
         "list",
-        "handwritten",
         "product"
       ]
     },
@@ -3510,6 +3887,20 @@
       ]
     },
     {
+      "name": "metis-text",
+      "type": "hyperframes:component",
+      "title": "Metis Line Underline",
+      "description": "A thin line draws under a word from the left, then leaves to the right; it repeats like a hover on a link.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "underline",
+        "hover",
+        "link",
+        "animata-port"
+      ]
+    },
+    {
       "name": "micro-scale-fade",
       "type": "hyperframes:component",
       "title": "Micro Scale Fade",
@@ -3540,6 +3931,20 @@
       ]
     },
     {
+      "name": "mirror-text",
+      "type": "hyperframes:component",
+      "title": "Mirror Text",
+      "description": "A word stacked from four clipped copies; the copies slide in a staggered ripple, as if the text were sliced into mirrored strips.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "slice",
+        "echo",
+        "ripple",
+        "animata-port"
+      ]
+    },
+    {
       "name": "mondrian-split",
       "type": "hyperframes:component",
       "title": "Mondrian Split",
@@ -3555,6 +3960,51 @@
       ]
     },
     {
+      "name": "moving-pen",
+      "type": "hyperframes:component",
+      "title": "Moving Pen",
+      "description": "A glowing pen-tip dot glides across the frame on a curve, drawing a luminous trail while a handwritten line fades in beneath its passing.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "pen",
+        "trail",
+        "handwriting",
+        "glow",
+        "onda-port"
+      ]
+    },
+    {
+      "name": "multi-direction-slide-text",
+      "type": "hyperframes:component",
+      "title": "Multi Direction Slide Text",
+      "description": "Two lines of text arrive from opposite sides at once: the first slides in from the left, the second from the right, both fading up and meeting in the centre stack.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "slide",
+        "two-lines",
+        "opposing",
+        "eldoraui-port"
+      ]
+    },
+    {
+      "name": "neon-flicker-text",
+      "type": "hyperframes:component",
+      "title": "Neon Flicker Text",
+      "description": "Lights a word tube by tube like a neon sign, with a mains hum that never quite settles and a dying flicker on the way out.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "neon",
+        "glow",
+        "flicker",
+        "letters",
+        "remotion-ui-port"
+      ]
+    },
+    {
       "name": "neon-sign",
       "type": "hyperframes:component",
       "title": "Neon Sign",
@@ -3566,22 +4016,6 @@
         "glow",
         "retro",
         "remocn-port"
-      ]
-    },
-    {
-      "name": "news-caption-slam",
-      "type": "hyperframes:component",
-      "title": "News Caption Slam",
-      "description": "Captions-first social news on a plain or gradient backdrop: a kicker and a huge number in a yellow block that rolls up, then caption words slammed in one by one, a keyword wiped onto a block, a source tag and a second rolling number.",
-      "category": "commerce",
-      "tags": [
-        "caption",
-        "news",
-        "kinetic-type",
-        "numbers",
-        "lower-third",
-        "source-tag",
-        "mosio-recipe"
       ]
     },
     {
@@ -3865,23 +4299,6 @@
       ]
     },
     {
-      "name": "phone-showcase",
-      "type": "hyperframes:component",
-      "title": "Phone Showcase",
-      "description": "One phone on a pastel field in a single take: the camera dives into the screen, a product card lifts out and is tapped into the cart, order notifications drop in and a count-up lands on a dark card.",
-      "category": "commerce",
-      "tags": [
-        "phone",
-        "mockup",
-        "product",
-        "shop",
-        "notifications",
-        "count-up",
-        "camera",
-        "mosio-recipe"
-      ]
-    },
-    {
       "name": "phyllotaxis",
       "type": "hyperframes:component",
       "title": "Phyllotaxis",
@@ -3894,6 +4311,36 @@
         "spiral",
         "dots",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "pixel-heading-character",
+      "type": "hyperframes:component",
+      "title": "Pixel Heading Character",
+      "description": "A heading whose letters each take a pixel typeface of their own and keep changing on a staggered clock: all five faces mixed, a travelling wave, pseudo-random picks, or one face for the whole line.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "pixel",
+        "font-swap",
+        "retro",
+        "letters",
+        "cult-ui-port"
+      ]
+    },
+    {
+      "name": "pixel-heading-word",
+      "type": "hyperframes:component",
+      "title": "Pixel Heading Word",
+      "description": "A heading set in a pixel typeface that changes face as a pointer rests on it: either cycling through five pixel styles every few hundred milliseconds, or swapping once to a hover style, with the style name in a small label.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "pixel",
+        "font-swap",
+        "retro",
+        "hover",
+        "cult-ui-port"
       ]
     },
     {
@@ -3929,6 +4376,36 @@
       "webgl": true
     },
     {
+      "name": "pixelate-text",
+      "type": "hyperframes:component",
+      "title": "Pixelate Text",
+      "description": "A title block, a paragraph and a gradient swatch start as coarse blocks of pixels and resolve to sharp, using an SVG pixelate filter (convolve, tile, dilate) whose block size eases down to one pixel.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "pixelate",
+        "filter",
+        "reveal",
+        "svg-filter",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "plucked-text",
+      "type": "hyperframes:component",
+      "title": "Plucked Text",
+      "description": "Text rides on a taut string: it is pulled, let go and rings (high notes first, a slow sway last), carrying and tilting every letter.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "physics",
+        "string",
+        "vibration",
+        "letters",
+        "kokonutui-port"
+      ]
+    },
+    {
       "name": "polaroid",
       "type": "hyperframes:component",
       "title": "Polaroid",
@@ -3961,7 +4438,7 @@
       "name": "price-drop",
       "type": "hyperframes:component",
       "title": "Price Drop",
-      "description": "A product name rises through a mask, the old price is struck through, the new price counts up to its value and a saving label (like \"Hemat 28%\") is stamped under it, over slowly turning rays.",
+      "description": "A product name rises through a mask, the old price is struck through, the new price counts up to its value in one accent colour and a quiet saving label (like \"Hemat 28%\") appears under it, on a clean white page.",
       "category": "commerce",
       "tags": [
         "mosio-recipe",
@@ -4000,23 +4477,6 @@
         "loading",
         "bar",
         "remocn-port"
-      ]
-    },
-    {
-      "name": "prompt-to-products",
-      "type": "hyperframes:component",
-      "title": "Prompt To Products",
-      "description": "A request is typed into a chat bar and sent; three product cards answer, the chosen price gets a marker highlight and a check, and the total counts up. Ends on the products and a price.",
-      "category": "commerce",
-      "tags": [
-        "chat",
-        "prompt",
-        "typing",
-        "product-cards",
-        "price",
-        "highlight",
-        "camera",
-        "mosio-recipe"
       ]
     },
     {
@@ -4074,6 +4534,37 @@
         "toggle",
         "ui",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "random-letter-swap-forward",
+      "type": "hyperframes:component",
+      "title": "Random Letter Swap Forward",
+      "description": "Letters swap out in a random order, each sliding out as an identical copy rolls in, and the wave repeats forward.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "swap",
+        "kinetic-type",
+        "random",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "random-letter-swap-pingpong",
+      "type": "hyperframes:component",
+      "title": "Random Letter Swap Ping-Pong",
+      "description": "Letters swap out in a random order and, after a hold, swap back in another random-feeling wave (ping-pong).",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "swap",
+        "kinetic-type",
+        "random",
+        "ping-pong",
+        "fancy-port"
       ]
     },
     {
@@ -4180,6 +4671,21 @@
       ]
     },
     {
+      "name": "roll-text",
+      "type": "hyperframes:component",
+      "title": "Roll Text",
+      "description": "Each letter sits in a one-line window and rolls up to an identical copy, one after another, so the word seems to turn over like a split-flap or a barrel; it replays like a re-hover.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "roll",
+        "letters",
+        "hover",
+        "stagger",
+        "animata-port"
+      ]
+    },
+    {
       "name": "rolling-number",
       "type": "hyperframes:component",
       "title": "Rolling Number",
@@ -4207,6 +4713,21 @@
         "cycle",
         "terminal",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "rotate-in",
+      "type": "hyperframes:component",
+      "title": "Rotate In",
+      "description": "Text swings into place: spinning in plane (z) or hinged in depth on the x or y axis, with a small scale-up and a fade that leads the move.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "rotate",
+        "hinge",
+        "3d",
+        "entrance",
+        "remotion-ui-port"
       ]
     },
     {
@@ -4239,6 +4760,36 @@
         "exit",
         "subtle",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "scale-letter-text",
+      "type": "hyperframes:component",
+      "title": "Scale Letter Text",
+      "description": "A pointer hops across the word letter by letter: the hovered letter swells, lifts toward the viewer and tilts back, its neighbours follow at half strength, all with a springy overshoot.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "hover",
+        "letters",
+        "3d",
+        "scale",
+        "eldoraui-port"
+      ]
+    },
+    {
+      "name": "scramble-in",
+      "type": "hyperframes:component",
+      "title": "Scramble In",
+      "description": "Text types itself in left to right with a short run of random glyphs ahead of the cursor that resolve into the real letters; several lines can start in a quick cascade.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "scramble",
+        "reveal",
+        "monospace",
+        "decode",
+        "fancy-port"
       ]
     },
     {
@@ -4343,6 +4894,21 @@
         "weight",
         "title",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "separate-away-text",
+      "type": "hyperframes:component",
+      "title": "Separate Away Text",
+      "description": "Two stacked lines fade in together while drifting slightly apart, the top one up and the bottom one down, opening a small gap between them.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "fade",
+        "two-lines",
+        "spacing",
+        "eldoraui-port"
       ]
     },
     {
@@ -5427,6 +5993,20 @@
       ]
     },
     {
+      "name": "shadow-text",
+      "type": "hyperframes:component",
+      "title": "Shadow Text",
+      "description": "Every letter casts a long, soft shadow that swings across the line as the sun crosses the sky, long and low at the edges, short at noon.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "shadow",
+        "light",
+        "letters",
+        "kokonutui-port"
+      ]
+    },
+    {
       "name": "shared-axis-y",
       "type": "hyperframes:component",
       "title": "Shared Axis Y",
@@ -5503,7 +6083,7 @@
       "name": "shop-end-card",
       "type": "hyperframes:component",
       "title": "Shop End Card",
-      "description": "The closing card of a small-shop video: a colour floods the frame, then a logo tile, the shop name, a tagline, address, opening hours, a contact line and a call-to-action button settle in and hold still.",
+      "description": "The closing card of a small-shop video on a clean white page: a logo tile, the shop name, a tagline, address, opening hours, a contact line and a call-to-action button settle in one after another and hold still.",
       "category": "commerce",
       "tags": [
         "end-card",
@@ -5542,6 +6122,22 @@
         "slide",
         "words",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "shrink-burst-text",
+      "type": "hyperframes:component",
+      "title": "Shrink Burst Text",
+      "description": "A word squeezes tight and trembles, then bursts into letters that fly outward, spin and fade; the word slides back up into place and the cycle repeats.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "explode",
+        "burst",
+        "letters",
+        "loop",
+        "impact",
+        "animata-port"
       ]
     },
     {
@@ -5631,6 +6227,20 @@
       ]
     },
     {
+      "name": "sliding-number",
+      "type": "hyperframes:component",
+      "title": "Sliding Number",
+      "description": "A number whose digits each slide on their own spring reel to the next value in a list, shortest way round, with places appearing and disappearing as the length changes.",
+      "category": "typography",
+      "tags": [
+        "numbers",
+        "counter",
+        "digits",
+        "spring",
+        "motion-primitives-port"
+      ]
+    },
+    {
       "name": "slot-machine-roll",
       "type": "hyperframes:component",
       "title": "Slot Machine Roll",
@@ -5675,6 +6285,35 @@
       ]
     },
     {
+      "name": "sparkles-text",
+      "type": "hyperframes:component",
+      "title": "Sparkles Text",
+      "description": "Bold text with four-point stars that twinkle in and out at random spots over the letters, in two colours.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "sparkle",
+        "ambient",
+        "headline",
+        "magicui-port"
+      ]
+    },
+    {
+      "name": "speaker-label-captions",
+      "type": "hyperframes:component",
+      "title": "Speaker Label Captions",
+      "description": "A multi-speaker caption track: each line sits on a card with the speaker's name and colour, speakers alternate sides, and the previous line stays as quiet context.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "speaker",
+        "dialogue",
+        "interview",
+        "subtitles",
+        "remotion-ui-port"
+      ]
+    },
+    {
       "name": "speed-lines",
       "type": "hyperframes:component",
       "title": "Speed Lines",
@@ -5701,6 +6340,65 @@
         "motion-atom",
         "ui",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "spinning-text",
+      "type": "hyperframes:component",
+      "title": "Spinning Text",
+      "description": "Text set on a circle that turns steadily like a rotating badge or seal.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "circular",
+        "badge",
+        "loop",
+        "magicui-port"
+      ]
+    },
+    {
+      "name": "split-text",
+      "type": "hyperframes:component",
+      "title": "Split Text",
+      "description": "A pointer sweeps along a word and each letter it touches splits along its middle: the top half lifts and the bottom half drops, and the neighbours part by less.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "split",
+        "hover",
+        "wave",
+        "animata-port"
+      ]
+    },
+    {
+      "name": "split-text-chars",
+      "type": "hyperframes:component",
+      "title": "Split Text Chars",
+      "description": "Splits a string into characters, words or lines and staggers them in with a fade-up, fade, scale or blur.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "kinetic-type",
+        "letters",
+        "stagger",
+        "remotion-ui-port"
+      ]
+    },
+    {
+      "name": "spoiler-text",
+      "type": "hyperframes:component",
+      "title": "Spoiler Text",
+      "description": "A phrase in a sentence hides under a shimmering field of specks, then a wave blows them away and the words come into focus.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "spoiler",
+        "particles",
+        "canvas",
+        "kokonutui-port"
       ]
     },
     {
@@ -5777,6 +6475,21 @@
       ]
     },
     {
+      "name": "srt-caption-track",
+      "type": "hyperframes:component",
+      "title": "SRT Caption Track",
+      "description": "Renders captions straight from SubRip or WebVTT text: each cue is spread across its words, grouped into pages, and the spoken word is highlighted.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "srt",
+        "webvtt",
+        "subtitles",
+        "highlight",
+        "remotion-ui-port"
+      ]
+    },
+    {
       "name": "stage",
       "type": "hyperframes:component",
       "title": "Stage",
@@ -5806,10 +6519,25 @@
       ]
     },
     {
+      "name": "staggered-letter",
+      "type": "hyperframes:component",
+      "title": "Staggered Letter",
+      "description": "Letters drop in from far above (or rise from far below) one by one and snap into place on a quick spring, over a pale ghost of the word.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "letters",
+        "drop",
+        "spring",
+        "reveal",
+        "animata-port"
+      ]
+    },
+    {
       "name": "stat-count-up-bars",
       "type": "hyperframes:component",
       "title": "Stat Count-up With Bars",
-      "description": "A dim label and a giant figure counting up in the main colour with a bold unit under it, then a bar chart whose bars grow while their values count (the last one highlighted), then a percent ring that draws itself with its figure and a few words beside it.",
+      "description": "A muted label and a giant figure counting up in tight black type with a unit under it, then a bar chart whose bars grow while their values count (the last one in the accent colour, the rest in light grey), then a percent ring that draws itself with its figure and a few words beside it. White page.",
       "category": "commerce",
       "tags": [
         "mosio-recipe",
@@ -5833,22 +6561,6 @@
         "progress",
         "steps",
         "remocn-port"
-      ]
-    },
-    {
-      "name": "sticker-pop",
-      "type": "hyperframes:component",
-      "title": "Sticker Pop",
-      "description": "Flat bright field with thick-outlined paper stickers popping in with overshoot: a price tag that counts up, a BARU burst, a PROMO pill, small chips and a mascot sidekick with a speech sticker.",
-      "category": "commerce",
-      "tags": [
-        "stickers",
-        "price",
-        "promo",
-        "mascot",
-        "playful",
-        "pop",
-        "mosio-recipe"
       ]
     },
     {
@@ -5909,6 +6621,36 @@
         "title",
         "transition",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "stroke-to-fill-text",
+      "type": "hyperframes:component",
+      "title": "Stroke to Fill Text",
+      "description": "Draws type as an outline, then floods each letter solid with a soft edge, in the direction you choose.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "outline",
+        "stroke",
+        "fill",
+        "letters",
+        "remotion-ui-port"
+      ]
+    },
+    {
+      "name": "subtitle-translate",
+      "type": "hyperframes:component",
+      "title": "Subtitle Translate",
+      "description": "Dual-language stacked subtitles: the lead line arrives first, the translation follows a few frames later in a smaller, quieter size, with optional language tags.",
+      "category": "captions",
+      "tags": [
+        "captions",
+        "subtitles",
+        "translation",
+        "bilingual",
+        "dual-language",
+        "remotion-ui-port"
       ]
     },
     {
@@ -5973,6 +6715,21 @@
       ]
     },
     {
+      "name": "swoosh-text",
+      "type": "hyperframes:component",
+      "title": "Swoosh Text",
+      "description": "Extruded letters lit by a moving light: the 3D extrusion swings and overshoots as a cursor sweeps past, then a letter is pressed down like a keycap.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "extrusion",
+        "3d",
+        "light",
+        "letters",
+        "kokonutui-port"
+      ]
+    },
+    {
       "name": "synthwave",
       "type": "hyperframes:component",
       "title": "Synthwave",
@@ -6028,6 +6785,260 @@
         "code",
         "developer",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "text-3d-flip",
+      "type": "hyperframes:component",
+      "title": "Text 3D Flip",
+      "description": "Every letter is a small rotating prism: the letters roll over one after another with a spring, a second identical face coming round to the front.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "3d",
+        "flip",
+        "kinetic-type",
+        "letters",
+        "magicui-port"
+      ]
+    },
+    {
+      "name": "text-along-path",
+      "type": "hyperframes:component",
+      "title": "Text Along Path",
+      "description": "Letters of a repeating phrase run endlessly along an SVG path, by default a rounded rectangle that frames the picture; supply your own path to make it follow any curve.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "svg",
+        "path",
+        "marquee",
+        "loop",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "text-animate",
+      "type": "hyperframes:component",
+      "title": "Text Animate",
+      "description": "One text block with ten entrance presets (fade, blur, slide, scale) that play by whole text, word, character or line, staggered.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "entrance",
+        "stagger",
+        "presets",
+        "letters",
+        "magicui-port"
+      ]
+    },
+    {
+      "name": "text-animator",
+      "type": "hyperframes:component",
+      "title": "Text Animator",
+      "description": "After Effects style text animator: a range selector sweeps across the characters, words or lines and drives position, scale, rotation, skew, opacity, blur, tracking and fill colour of what it covers.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "text-animator",
+        "range-selector",
+        "kinetic-type",
+        "per-character",
+        "remotion-ui-port"
+      ]
+    },
+    {
+      "name": "text-effect",
+      "type": "hyperframes:component",
+      "title": "Text Effect",
+      "description": "Text enters piece by piece with a preset (blur, fade-in-blur, scale, fade, slide) split per character, per word or per line, with the source's stagger times, and can leave in reverse.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "stagger",
+        "blur",
+        "presets",
+        "motion-primitives-port"
+      ]
+    },
+    {
+      "name": "text-explode",
+      "type": "hyperframes:component",
+      "title": "Text Burst Explode",
+      "description": "A heavy word grows in, then bursts: every letter flies outward at its own angle while spinning and fading, and a thin shockwave ring expands behind them.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "explosion",
+        "burst",
+        "impact",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "text-gradient",
+      "type": "hyperframes:component",
+      "title": "Flowing Gradient Text",
+      "description": "A huge word filled with a restrained blue gradient that keeps rotating through the letters while the word scales and fades in; three short dashes can fade in below.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "gradient",
+        "title",
+        "color",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "text-highlighter",
+      "type": "hyperframes:component",
+      "title": "Text Highlighter",
+      "description": "Marked phrases in a paragraph get a highlighter fill that wipes across them (left to right, right to left, top down or bottom up), one phrase after another, wrapping correctly across lines.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "highlight",
+        "paragraph",
+        "emphasis",
+        "reveal",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "text-kinetic",
+      "type": "hyperframes:component",
+      "title": "Kinetic Bounce Type",
+      "description": "Letters spring up from below one after another, scaling in from nothing, and then keep dancing: each bobs and tilts on its own slow sine while an accent underline draws beneath.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "kinetic-type",
+        "letters",
+        "spring",
+        "bounce",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "text-loop",
+      "type": "hyperframes:component",
+      "title": "Text Loop",
+      "description": "A list of words or phrases takes turns in one spot: the current one slides up and fades out while the next slides in from below, on a fixed interval, round and round.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "loop",
+        "word-swap",
+        "slide",
+        "motion-primitives-port"
+      ]
+    },
+    {
+      "name": "text-mask-video",
+      "type": "hyperframes:component",
+      "title": "Text Mask Video",
+      "description": "An animated gradient plays inside the letterforms, with a wipe reveal and a slow drifting pan and zoom.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "text-mask",
+        "knockout",
+        "gradient",
+        "video-in-text",
+        "remotion-ui-port"
+      ]
+    },
+    {
+      "name": "text-morph",
+      "type": "hyperframes:component",
+      "title": "Text Morph",
+      "description": "One word turns into the next by letter identity: letters the two words share glide to their new places on a spring while new letters fade in and the leftover ones fade out.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "morph",
+        "letters",
+        "spring",
+        "shared-layout",
+        "motion-primitives-port"
+      ]
+    },
+    {
+      "name": "text-reveal",
+      "type": "hyperframes:component",
+      "title": "Text Reveal",
+      "description": "A paragraph in faint type that lights up word by word to full colour, like text being read aloud or scrolled into focus.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "word-by-word",
+        "paragraph",
+        "magicui-port"
+      ]
+    },
+    {
+      "name": "text-roll",
+      "type": "hyperframes:component",
+      "title": "Text Roll",
+      "description": "Every letter rolls over like a rotating drum: the front face tips away on the X axis while the same letter swings in from below, one letter after another, then the roll repeats.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "3d",
+        "letters",
+        "roll",
+        "flip",
+        "motion-primitives-port"
+      ]
+    },
+    {
+      "name": "text-rotate",
+      "type": "hyperframes:component",
+      "title": "Text Rotate",
+      "description": "A fixed phrase followed by a pill that cycles through a list of words: the old word's letters slide up and out, the pill springs to the new width and the next word's letters rise in, with a staggered wave.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "rotate",
+        "word-swap",
+        "headline",
+        "kinetic-type",
+        "fancy-port"
+      ]
+    },
+    {
+      "name": "text-shimmer-wave",
+      "type": "hyperframes:component",
+      "title": "Text Shimmer Wave",
+      "description": "A wave of light runs through muted text: each letter in turn lifts toward the viewer, tilts, grows slightly and brightens, then settles back, and the wave repeats.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "loading",
+        "shimmer",
+        "3d",
+        "letters",
+        "motion-primitives-port"
+      ]
+    },
+    {
+      "name": "text-split",
+      "type": "hyperframes:component",
+      "title": "Split Line Reveal",
+      "description": "Two big left-aligned words arrive from opposite directions, one dropping in from above and one rising from below, while a rule draws across the gap and a thin vertical line grows at the right.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "reveal",
+        "two-line",
+        "editorial",
+        "remotion-scenes-port"
       ]
     },
     {
@@ -6267,6 +7278,20 @@
       ]
     },
     {
+      "name": "typing-animation",
+      "type": "hyperframes:component",
+      "title": "Typing Animation",
+      "description": "Words are typed out one after another with a blinking cursor, each deleted faster than it was typed before the next begins.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typing",
+        "cursor",
+        "rotating-words",
+        "magicui-port"
+      ]
+    },
+    {
       "name": "typing-indicator",
       "type": "hyperframes:component",
       "title": "Typing Indicator",
@@ -6315,6 +7340,21 @@
       ]
     },
     {
+      "name": "variable-font-morph",
+      "type": "hyperframes:component",
+      "title": "Variable Font Morph",
+      "description": "Sweeps a variable font's weight and width axes across a line, one character at a time, so the type swells and slims in a wave.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "variable-font",
+        "weight",
+        "width",
+        "kinetic-type",
+        "remotion-ui-port"
+      ]
+    },
+    {
       "name": "venetian-blinds",
       "type": "hyperframes:component",
       "title": "Venetian Blinds",
@@ -6326,6 +7366,21 @@
         "3d",
         "wipe",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "vertical-cut-reveal",
+      "type": "hyperframes:component",
+      "title": "Vertical Cut Reveal",
+      "description": "Letters, words or whole lines slide up from behind an invisible cut line with a spring, staggered from the first, last, center or in random order; several lines follow one another.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "mask",
+        "stagger",
+        "headline",
+        "fancy-port"
       ]
     },
     {
@@ -6348,6 +7403,20 @@
       "webgl": true
     },
     {
+      "name": "video-text",
+      "type": "hyperframes:component",
+      "title": "Video Text",
+      "description": "Big bold letters used as a window onto moving imagery: here a drifting ocean-coloured gradient with soft moving light, visible only inside the letters.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "mask",
+        "knockout",
+        "title",
+        "magicui-port"
+      ]
+    },
+    {
       "name": "warp-dissolve",
       "type": "hyperframes:component",
       "title": "Warp Dissolve",
@@ -6362,6 +7431,36 @@
       ]
     },
     {
+      "name": "wave-reveal",
+      "type": "hyperframes:component",
+      "title": "Wave Reveal",
+      "description": "Letters (or words) drift into place from slightly above or below while a blur clears, each starting a beat after the last so a slow wave runs through the line.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "blur",
+        "letters",
+        "wave",
+        "animata-port"
+      ]
+    },
+    {
+      "name": "wave-text",
+      "type": "hyperframes:component",
+      "title": "Wave Text",
+      "description": "Runs a sine wave along a line of type, one character at a time: an ambient loop that never settles.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "wave",
+        "loop",
+        "kinetic-type",
+        "letters",
+        "remotion-ui-port"
+      ]
+    },
+    {
       "name": "wave-wipe",
       "type": "hyperframes:component",
       "title": "Wave Wipe",
@@ -6373,6 +7472,21 @@
         "grain",
         "wipe",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "wavy-text",
+      "type": "hyperframes:component",
+      "title": "Wavy Text",
+      "description": "Letters bob up and down in a continuous wave, each starting a beat after the one before, like a ripple running along the word.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "loop",
+        "wave",
+        "letters",
+        "bounce",
+        "eldoraui-port"
       ]
     },
     {
@@ -6402,6 +7516,313 @@
         "words",
         "push",
         "remocn-port"
+      ]
+    },
+    {
+      "name": "word-roller-3d-carousel",
+      "type": "hyperframes:component",
+      "title": "Word Roller 3D Carousel",
+      "description": "Words stand around a cylinder that spins in perspective: it starts slowly, spins fast, slows, and stops on the last word, which turns to the accent colour and grows while the others stay dim.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "3d",
+        "carousel",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-blur",
+      "type": "hyperframes:component",
+      "title": "Word Roller Blur",
+      "description": "A line of small caps over a big word: each word blurs in sharp from soft and fades while blurring away before the next one, and the last word stays crisp.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "blur",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-countdown",
+      "type": "hyperframes:component",
+      "title": "Word Roller Countdown",
+      "description": "A countdown that scrolls through its numbers, then a blurred, accelerating spin that lands on a launch word with a springy settle.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "countdown",
+        "reveal",
+        "launch",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-dramatic-stop",
+      "type": "hyperframes:component",
+      "title": "Word Roller Dramatic Stop",
+      "description": "A vertical roller that fakes you out: it eases almost to a stop on the wrong word, shudders, speeds up again and finally lands on the last word with a small bounce in the accent colour and two lines drawing out to its sides.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "reveal",
+        "suspense",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-drum",
+      "type": "hyperframes:component",
+      "title": "Word Roller Drum",
+      "description": "A word cycles on the face of a rotating 3D drum beside a fixed prefix: each spring turn brings the next word round, and the last one stays.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "3d",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-fade-slide",
+      "type": "hyperframes:component",
+      "title": "Word Roller Fade Slide",
+      "description": "A left-aligned lead-in over a bold word that slides up from below as it fades in and drifts up as it leaves, with an accent underline that redraws on every word and a big faint counter on the right.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "editorial",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-glitch",
+      "type": "hyperframes:component",
+      "title": "Word Roller Glitch",
+      "description": "A heavy uppercase word swaps with an RGB-split glitch: for eight frames a blue top half and a rose bottom half jitter sideways behind the word, then it holds clean until the next swap.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "glitch",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-gradient-wave",
+      "type": "hyperframes:component",
+      "title": "Word Roller Gradient Wave",
+      "description": "Words swap one after another with their letters rising in, each letter shifting hue in a slow blue wave across the word, over a progress bar; the last word settles in the accent blue, a little bigger.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "gradient",
+        "letters",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-liquid",
+      "type": "hyperframes:component",
+      "title": "Word Roller Liquid",
+      "description": "A fat word melts into the next: in the last twelve frames of each cycle an SVG turbulence filter ripples the letters while the next word fades in underneath.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "liquid",
+        "distortion",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-mask-slide",
+      "type": "hyperframes:component",
+      "title": "Word Roller Mask Slide",
+      "description": "A huge word is wiped away from the right by the next word in an accent colour, which slides in behind a moving mask; a thin progress line under the word fills over each cycle.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "wipe",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-multi-slot",
+      "type": "hyperframes:component",
+      "title": "Word Roller Multi Slot",
+      "description": "Three slot-machine columns spin at once, each with its own word list, and stop one after another with a bounce, the landed words and column outlines turning to the accent colour.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "slot",
+        "reveal",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-outline-highlight",
+      "type": "hyperframes:component",
+      "title": "Word Roller Outline Highlight",
+      "description": "The same word stacked seven times as an outline; a solid, slightly larger copy travels down the stack, slow, then fast, then easing, and settles on the last row with a spring.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "outline",
+        "highlight",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-perspective-stripes",
+      "type": "hyperframes:component",
+      "title": "Word Roller Perspective Stripes",
+      "description": "Rows of a two-part phrase in two colours slide sideways at different speeds over a tilted plane that scrolls away in depth, while the phrase itself fades up large in the middle.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "marquee",
+        "perspective",
+        "background",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-scale-bounce",
+      "type": "hyperframes:component",
+      "title": "Word Roller Scale Bounce",
+      "description": "A light lead-in beside a heavy word that pops in from nothing with a bouncy spring, shrinks away before the next, and the last one stays at full size.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "bounce",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-shuffle",
+      "type": "hyperframes:component",
+      "title": "Word Roller Shuffle",
+      "description": "Every letter of a word flickers through random capitals and digits, then locks into its true letter from left to right with a small pop in the accent colour, while a bar below fills as letters are confirmed.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "decode",
+        "scramble",
+        "reveal",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-slot-reveal",
+      "type": "hyperframes:component",
+      "title": "Word Roller Slot Reveal",
+      "description": "A list of ten words scrolls through a masked window beside a fixed prefix: slow start, a fast stretch, then a very long, gentle slowdown onto the last word, which lands larger in the accent colour.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "slot",
+        "reveal",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-split-flap",
+      "type": "hyperframes:component",
+      "title": "Word Roller Split Flap",
+      "description": "An airport-style departure board where each word flips onto a row of flap tiles, letter by letter, through a list of places before it lands on a final word; a status line changes from searching to confirmed.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "split-flap",
+        "board",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-typewriter",
+      "type": "hyperframes:component",
+      "title": "Word Roller Typewriter",
+      "description": "A sentence with one coloured word that is deleted letter by letter and retyped as the next word, with a block cursor that keeps blinking at the end.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "typewriter",
+        "cursor",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-roller-wave",
+      "type": "hyperframes:component",
+      "title": "Word Roller Wave",
+      "description": "A word is built from letters that rise one after another from below as they fade in, and leave by lifting out in a ripple, before the next word starts; the last word stays.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typography",
+        "roller",
+        "word-swap",
+        "letters",
+        "remotion-scenes-port"
+      ]
+    },
+    {
+      "name": "word-rotate",
+      "type": "hyperframes:component",
+      "title": "Word Rotate",
+      "description": "A list of words takes turns in one spot: each fades out sliding down, the next fades in sliding down from above.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "rotating-words",
+        "loop",
+        "headline",
+        "magicui-port"
       ]
     },
     {

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "kinetic-text",
+  "type": "hyperframes:component",
+  "title": "Kinetic Text",
+  "description": "A thin variable-weight word where a pointer sweeps over the letters: the letter under it swells to black weight with an outline, and its neighbours follow at lesser weights.",
+  "tags": [
+    "text-effects",
+    "variable-font",
+    "kinetic-type",
+    "letters",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A word should feel alive with a wave of weight running through its letters.",
+    "A variable font headline needs an animated emphasis that moves along the letters."
+  ],
+  "avoidWhen": [
+    "The text is long: letters reflow as their weight changes.",
+    "You want the letters to move rather than change weight: use per-character-rise."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/kinetic-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "kinetic-text.html",
+      "target": "compositions/components/kinetic-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The word. Letters reflow as their weight changes, so keep it short.",
+      "default": "Nostalgia"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 192,
+      "min": 24,
+      "max": 400,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Colour",
+      "description": "Text and outline colour.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "step",
+      "type": "number",
+      "role": "motion",
+      "label": "Step",
+      "description": "Seconds the pointer rests on each letter.",
+      "default": 0.22,
+      "min": 0.08,
+      "max": 1,
+      "step": 0.02,
+      "unit": "s"
+    },
+    {
+      "id": "start",
+      "type": "number",
+      "role": "motion",
+      "label": "Start",
+      "description": "Seconds before the pointer reaches the first letter.",
+      "default": 0.4,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    }
+  ],
+  "checkAt": [
+    0.9,
+    1.5,
+    2.1,
+    3.0
+  ]
+}

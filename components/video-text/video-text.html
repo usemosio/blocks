@@ -1,0 +1,205 @@
+<!doctype html>
+<!--
+  Video Text
+
+  Big bold letters used as a window onto moving imagery: here a drifting ocean-coloured gradient with soft moving light, visible only inside the letters.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/video-text.tsx
+  Changes by usemosio/blocks: the source masks a video clip with the text; this block has no video, so the letters show a drifting gradient with moving light patches instead.
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="video-text"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The word the footage shows through. Short, in capitals reads best.", "default": "OCEAN"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 420, "min": 40, "max": 800, "step": 1, "unit": "px"},
+    {"id": "color_a", "type": "color", "role": "style", "label": "Colour A", "description": "Deep colour of the default fill.", "default": "#0b3b8c"},
+    {"id": "color_b", "type": "color", "role": "style", "label": "Colour B", "description": "Mid colour of the default fill.", "default": "#0e8fa8"},
+    {"id": "color_c", "type": "color", "role": "style", "label": "Colour C", "description": "Highlight colour of the default fill.", "default": "#a5f3fc"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Drift speed", "description": "How fast the default fill drifts.", "default": 1, "min": 0.2, "max": 4, "step": 0.1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Video Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@800;900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .vtx-stage { position: absolute; inset: 0; }
+        .vtx-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .vtx-text { font-family: var(--font-display, Geist, system-ui, sans-serif); font-weight: 800; letter-spacing: -0.03em; }
+      </style>
+
+      <div id="root" data-composition-id="video-text" data-duration="5" data-fps="30">
+        <div id="vtx-clip" class="vtx-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <svg id="vtx-svg" class="vtx-svg" xmlns="http://www.w3.org/2000/svg" role="img">
+            <defs>
+              <linearGradient id="vtx-grad" gradientUnits="userSpaceOnUse" spreadMethod="repeat"></linearGradient>
+              <mask id="vtx-mask" maskUnits="userSpaceOnUse"><text id="vtx-text" class="vtx-text" fill="#fff" text-anchor="middle" dominant-baseline="central"></text></mask>
+            </defs>
+            <g id="vtx-fill" mask="url(#vtx-mask)">
+              <rect id="vtx-base" fill="url(#vtx-grad)"></rect>
+              <ellipse id="vtx-glow-1"></ellipse><ellipse id="vtx-glow-2"></ellipse><ellipse id="vtx-glow-3"></ellipse>
+            </g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "vtx";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "5");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["video-text"] = tl;
+            }
+
+            var svg = document.getElementById("vtx-svg");
+            var W = root.clientWidth, H = root.clientHeight;
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var text = str(vars.text, "OCEAN");
+            var textEl = document.getElementById("vtx-text");
+            svg.setAttribute("aria-label", text);
+            textEl.textContent = text;
+            textEl.setAttribute("x", W / 2);
+            textEl.setAttribute("y", H / 2);
+            var size = num(vars.font_size, 420, 40, 800);
+            textEl.setAttribute("font-size", size);
+            // Shrink to 90 % of the frame width when wider.
+            var wide = textEl.getComputedTextLength();
+            if (wide > W * 0.9) { size = Math.max(24, size * (W * 0.9) / wide); textEl.setAttribute("font-size", size); }
+            var maskEl = document.getElementById("vtx-mask");
+            maskEl.setAttribute("x", 0); maskEl.setAttribute("y", 0); maskEl.setAttribute("width", W); maskEl.setAttribute("height", H);
+            var ca = col(vars.color_a, "#0b3b8c"), cb = col(vars.color_b, "#0e8fa8"), cc = col(vars.color_c, "#a5f3fc");
+            var grad = document.getElementById("vtx-grad");
+            var span = Math.max(W, H);
+            [[0, ca], [0.45, cb], [0.75, cc], [1, ca]].forEach(function (s) {
+              var st = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+              st.setAttribute("offset", s[0]); st.setAttribute("stop-color", s[1]);
+              grad.appendChild(st);
+            });
+            grad.setAttribute("x1", 0); grad.setAttribute("y1", 0); grad.setAttribute("x2", span); grad.setAttribute("y2", span * 0.35);
+            var base = document.getElementById("vtx-base");
+            base.setAttribute("x", 0); base.setAttribute("y", 0); base.setAttribute("width", W); base.setAttribute("height", H);
+            // Soft drifting light patches, on seeded orbits, so the fill moves like footage.
+            var rnd = mulberry32(11);
+            var defs = svg.querySelector("defs");
+            var glows = [1, 2, 3].map(function (i) {
+              var id = "vtx-rg-" + i;
+              var rg = document.createElementNS("http://www.w3.org/2000/svg", "radialGradient");
+              rg.id = id;
+              var s1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+              s1.setAttribute("offset", 0); s1.setAttribute("stop-color", i === 2 ? ca : cc); s1.setAttribute("stop-opacity", 0.85);
+              var s2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+              s2.setAttribute("offset", 1); s2.setAttribute("stop-color", i === 2 ? ca : cc); s2.setAttribute("stop-opacity", 0);
+              rg.appendChild(s1); rg.appendChild(s2); defs.appendChild(rg);
+              var el = document.getElementById("vtx-glow-" + i);
+              el.setAttribute("fill", "url(#" + id + ")");
+              return { el: el, cx: W * (0.2 + rnd() * 0.6), cy: H * (0.4 + rnd() * 0.2), ax: W * (0.15 + rnd() * 0.15), ay: H * 0.04, ph: rnd() * 6.283, sp: 0.6 + rnd() * 0.8, r: Math.max(W, H) * (0.22 + rnd() * 0.12) };
+            });
+            var speed = num(vars.speed, 1, 0.2, 4);
+            var total = parseFloat(root.dataset.duration || "5");
+            var clock = { t: 0 };
+            function draw(t) {
+              var s = t * speed;
+              grad.setAttribute("gradientTransform", "translate(" + (-s * span * 0.25).toFixed(2) + " " + (s * span * 0.04).toFixed(2) + ")");
+              glows.forEach(function (g) {
+                g.el.setAttribute("cx", (g.cx + Math.sin(s * g.sp + g.ph) * g.ax).toFixed(2));
+                g.el.setAttribute("cy", (g.cy + Math.cos(s * g.sp * 0.8 + g.ph) * g.ay).toFixed(2));
+                g.el.setAttribute("rx", g.r); g.el.setAttribute("ry", g.r * 0.5);
+              });
+            }
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

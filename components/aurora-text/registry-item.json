@@ -1,0 +1,120 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "aurora-text",
+  "type": "hyperframes:component",
+  "title": "Aurora Text",
+  "description": "Four-colour gradient text whose colours drift slowly through the letters, magenta to violet to blue to cyan by default, set after a plain lead-in word.",
+  "tags": [
+    "text-effects",
+    "gradient",
+    "ambient",
+    "headline",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "One emphasised word in a headline should glow with a slowly drifting aurora of colour.",
+    "A hero line needs a soft, premium colour movement without any entrance animation."
+  ],
+  "avoidWhen": [
+    "The colour should flow quickly in two tones: use animated-gradient-text.",
+    "The gradient should sweep once across the text: use text-shimmer."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/aurora-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "aurora-text.html",
+      "target": "compositions/components/aurora-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text_before",
+      "type": "string",
+      "role": "content",
+      "label": "Lead-in",
+      "description": "Plain text before the aurora word. Leave empty to show only the aurora word.",
+      "default": "Ship"
+    },
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Aurora text",
+      "description": "The word or phrase filled with the drifting gradient.",
+      "default": "beautiful"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Colour 1",
+      "description": "First gradient colour (also closes the loop).",
+      "default": "#FF0080"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Colour 2",
+      "description": "Second gradient colour.",
+      "default": "#7928CA"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Colour 3",
+      "description": "Third gradient colour.",
+      "default": "#0070F3"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Colour 4",
+      "description": "Fourth gradient colour.",
+      "default": "#38bdf8"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Lead-in colour",
+      "description": "Colour of the plain lead-in text.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "The drift takes 10 / speed seconds for one pass (source default speed 1 takes 10 s, so 2 fits the block).",
+      "default": 2,
+      "min": 0.25,
+      "max": 6,
+      "step": 0.25
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-effect",
+  "type": "hyperframes:component",
+  "title": "Text Effect",
+  "description": "Text enters piece by piece with a preset (blur, fade-in-blur, scale, fade, slide) split per character, per word or per line, with the source's stagger times, and can leave in reverse.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "stagger",
+    "blur",
+    "presets",
+    "motion-primitives-port"
+  ],
+  "category": "typography",
+  "duration": 3.5,
+  "useWhen": [
+    "A headline or sentence needs a clean staggered entrance and the split (letters, words, lines) and the look (blur, slide, scale, fade) should be a choice.",
+    "One block should cover several simple reveal styles."
+  ],
+  "avoidWhen": [
+    "A very specific reveal such as a mask wipe or a rise from a clipped line: use mask-reveal-up or per-character-rise.",
+    "Words should land on a speech rhythm: use the caption blocks."
+  ],
+  "author": "ibelick",
+  "authorUrl": "https://motion-primitives.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/ibelick/motion-primitives",
+    "path": "components/core/text-effect.tsx",
+    "commit": "120f64f6ca60348e251f929e9c81f11ccbe45eda"
+  },
+  "files": [
+    {
+      "path": "text-effect.html",
+      "target": "compositions/components/text-effect.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text to reveal. A new line starts a new line when per is line.", "default": "Text that arrives with style"},
+    {"id": "preset", "type": "enum", "role": "motion", "label": "Preset", "description": "How each piece appears.", "default": "fade-in-blur", "options": [{"value": "blur", "label": "Blur"}, {"value": "fade-in-blur", "label": "Fade in + blur"}, {"value": "scale", "label": "Scale"}, {"value": "fade", "label": "Fade"}, {"value": "slide", "label": "Slide"}]},
+    {"id": "per", "type": "enum", "role": "motion", "label": "Split", "description": "Reveal per character, word or line.", "default": "word", "options": [{"value": "char", "label": "Character"}, {"value": "word", "label": "Word"}, {"value": "line", "label": "Line"}]},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Seconds before the first piece starts.", "default": 0.3, "min": 0, "max": 5, "step": 0.05, "unit": "s"},
+    {"id": "speed_reveal", "type": "number", "role": "motion", "label": "Reveal speed", "description": "Higher values shorten the gap between pieces.", "default": 1, "min": 0.2, "max": 5, "step": 0.1},
+    {"id": "speed_segment", "type": "number", "role": "motion", "label": "Segment speed", "description": "Higher values shorten the animation of each piece.", "default": 1, "min": 0.2, "max": 5, "step": 0.1},
+    {"id": "exit", "type": "boolean", "role": "motion", "label": "Leave at the end", "description": "Play the reverse (last piece first) near the end.", "default": false},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 72, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "highlighter",
+  "type": "hyperframes:component",
+  "title": "Highlighter",
+  "description": "A hand-drawn mark is scribbled over part of a sentence: marker highlight, underline, box, circle, strike-through, crossed-off or bracket, drawn stroke by stroke with a slightly wobbly line.",
+  "tags": [
+    "text-effects",
+    "hand-drawn",
+    "annotation",
+    "emphasis",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "One phrase in a sentence needs a hand-drawn emphasis mark that draws itself on.",
+    "An explainer line should look annotated, like marker on paper."
+  ],
+  "avoidWhen": [
+    "You want a clean rectangular highlight bar: use inline-highlight.",
+    "The mark should follow a moving target or cursor."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/highlighter.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "highlighter.html",
+      "target": "compositions/components/highlighter.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text_before",
+      "type": "string",
+      "role": "content",
+      "label": "Text before",
+      "description": "Plain text before the marked phrase.",
+      "default": "The "
+    },
+    {
+      "id": "marked",
+      "type": "string",
+      "role": "content",
+      "label": "Marked phrase",
+      "description": "The phrase that receives the hand-drawn mark.",
+      "default": "Highlighter"
+    },
+    {
+      "id": "text_after",
+      "type": "string",
+      "role": "content",
+      "label": "Text after",
+      "description": "Plain text after the marked phrase.",
+      "default": " makes important text stand out effortlessly."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels. The paragraph wraps inside 86 % of the frame width.",
+      "default": 64,
+      "min": 12,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Colour of the text.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "action",
+      "type": "enum",
+      "role": "style",
+      "label": "Mark",
+      "description": "Kind of mark.",
+      "default": "highlight",
+      "options": [
+        {
+          "value": "highlight",
+          "label": "Highlight"
+        },
+        {
+          "value": "underline",
+          "label": "Underline"
+        },
+        {
+          "value": "box",
+          "label": "Box"
+        },
+        {
+          "value": "circle",
+          "label": "Circle"
+        },
+        {
+          "value": "strike-through",
+          "label": "Strike-through"
+        },
+        {
+          "value": "crossed-off",
+          "label": "Crossed off"
+        },
+        {
+          "value": "bracket",
+          "label": "Brackets"
+        }
+      ]
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Mark colour",
+      "description": "Colour of the mark.",
+      "default": "#ffd1dc"
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Stroke width",
+      "description": "Line width of the mark in pixels (source 1.5; scaled with the text here). Ignored by highlight, which fills the text height.",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 8,
+      "step": 0.25,
+      "unit": "px"
+    },
+    {
+      "id": "iterations",
+      "type": "number",
+      "role": "style",
+      "label": "Passes",
+      "description": "How many times the mark is drawn over itself.",
+      "default": 2,
+      "min": 1,
+      "max": 4,
+      "step": 1
+    },
+    {
+      "id": "padding",
+      "type": "number",
+      "role": "style",
+      "label": "Padding",
+      "description": "Space between the text and the mark, in pixels (source 2).",
+      "default": 2,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "draw_seconds",
+      "type": "number",
+      "role": "motion",
+      "label": "Draw time",
+      "description": "Seconds the whole mark takes to draw (the source uses 0.6).",
+      "default": 0.6,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Seconds before the mark starts to draw.",
+      "default": 0.6,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    }
+  ]
+}

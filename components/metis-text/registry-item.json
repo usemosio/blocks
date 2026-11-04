@@ -1,0 +1,151 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "metis-text",
+  "type": "hyperframes:component",
+  "title": "Metis Line Underline",
+  "description": "A thin line draws under a word from the left, then leaves to the right; it repeats like a hover on a link.",
+  "tags": [
+    "text-effects",
+    "underline",
+    "hover",
+    "link",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A single word or label (a link, a nav item, a name) should get a quiet underline draw.",
+    "A clean line wipe is wanted, in on one side and out on the other."
+  ],
+  "avoidWhen": [
+    "A hand-drawn or marker underline is wanted: use ink-underline or marker-highlight.",
+    "Several lines of text need highlighting."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/metis-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "metis-text.html",
+      "target": "compositions/components/metis-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Label that gets the underline.",
+      "default": "about us"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 110,
+      "min": 12,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "thickness",
+      "type": "number",
+      "role": "style",
+      "label": "Line thickness",
+      "description": "Thickness of the underline in pixels.",
+      "default": 4,
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "gap",
+      "type": "number",
+      "role": "style",
+      "label": "Line gap",
+      "description": "Space between the text and the line in pixels.",
+      "default": 10,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "draw",
+      "type": "number",
+      "role": "motion",
+      "label": "Draw time",
+      "description": "Seconds for the line to come in or leave.",
+      "default": 0.3,
+      "min": 0.1,
+      "max": 1.5,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "hold",
+      "type": "number",
+      "role": "motion",
+      "label": "Hold",
+      "description": "Seconds the line stays under the text.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text and line color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "500",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

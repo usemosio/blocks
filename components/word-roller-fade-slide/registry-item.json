@@ -1,0 +1,134 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "word-roller-fade-slide",
+  "type": "hyperframes:component",
+  "title": "Word Roller Fade Slide",
+  "description": "A left-aligned lead-in over a bold word that slides up from below as it fades in and drifts up as it leaves, with an accent underline that redraws on every word and a big faint counter on the right.",
+  "tags": [
+    "text-effects",
+    "typography",
+    "roller",
+    "word-swap",
+    "editorial",
+    "remotion-scenes-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "An editorial, left-aligned statement where one word changes (faster, smarter, better) and each step is counted.",
+    "A title card that needs a calm slide-and-fade rhythm."
+  ],
+  "avoidWhen": [
+    "The line should stay centred: use a centred roller such as word-roller-blur.",
+    "The counter makes no sense for the words: turn it off with the Counter variable."
+  ],
+  "author": "lifeprompt-team",
+  "authorUrl": "https://github.com/lifeprompt-team/remotion-scenes",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/lifeprompt-team/remotion-scenes",
+    "path": "src/scenes/RollerAnimations/RollerFadeSlide.tsx",
+    "commit": "02c7a84241da7010b5f59c420b0110aafd1d6f0d"
+  },
+  "files": [
+    {
+      "path": "word-roller-fade-slide.html",
+      "target": "compositions/components/word-roller-fade-slide.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words in order, separated by commas. The last one is where it settles.",
+      "default": "Faster, Smarter, Better, Stronger"
+    },
+    {
+      "id": "prefix",
+      "type": "string",
+      "role": "content",
+      "label": "Lead-in",
+      "description": "Small line above the word.",
+      "default": "Work"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Size of the word in pixels. Wide text shrinks to fit the frame.",
+      "default": 72,
+      "min": 16,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Word color",
+      "description": "Color of the word.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "prefix_color",
+      "type": "color",
+      "role": "style",
+      "label": "Lead-in color",
+      "description": "Color of the line above.",
+      "default": "#737373"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Color of the underline.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "show_counter",
+      "type": "boolean",
+      "role": "style",
+      "label": "Counter",
+      "description": "Show the large step counter on the right.",
+      "default": true
+    },
+    {
+      "id": "cycle_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per word",
+      "description": "How long each word is shown, in 30 fps frames.",
+      "default": 28,
+      "min": 12,
+      "max": 120,
+      "step": 1,
+      "unit": "f"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Fill behind the text. Use transparent to lay the block over your own footage.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

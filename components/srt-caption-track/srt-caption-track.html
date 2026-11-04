@@ -1,0 +1,394 @@
+<!doctype html>
+<!--
+  SRT Caption Track
+
+  Render captions straight from an SRT or WebVTT file.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/srt-caption-track.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="srt-caption-track"
+  data-composition-duration="9.5"
+  data-composition-variables='[
+    [
+      {
+        "id": "srt",
+        "type": "string",
+        "role": "content",
+        "label": "Subtitles",
+        "description": "SubRip (.srt) or WebVTT (.vtt) text, timestamps included.",
+        "default": "1\n00:00:00,300 --&gt; 00:00:02,600\nGood captions are easy to read.\n\n2\n00:00:03,000 --&gt; 00:00:05,800\nTiming is split across the words of each line.\n\n3\n00:00:06,200 --&gt; 00:00:08,600\nSo the highlight follows along."
+      },
+      {
+        "id": "word_timing",
+        "type": "enum",
+        "role": "motion",
+        "label": "Word timing",
+        "description": "SRT has no word times: distribute spreads a cue over its words by length; cue keeps each cue as one token and shows it whole.",
+        "default": "distribute",
+        "options": [
+          {
+            "value": "distribute",
+            "label": "Distribute across words"
+          },
+          {
+            "value": "cue",
+            "label": "Whole cue"
+          }
+        ]
+      },
+      {
+        "id": "combine_ms",
+        "type": "number",
+        "role": "motion",
+        "label": "Page window",
+        "description": "Words of one cue that start within this window share one page; a page never spans two cues. 3000 keeps a typical cue on one page, lower splits it into shorter pages.",
+        "default": 3000,
+        "min": 200,
+        "max": 6000,
+        "step": 100,
+        "unit": "ms"
+      },
+      {
+        "id": "offset_ms",
+        "type": "number",
+        "role": "motion",
+        "label": "Offset",
+        "description": "Shift every caption later (positive) or earlier (negative).",
+        "default": 0,
+        "min": -5000,
+        "max": 5000,
+        "step": 50,
+        "unit": "ms"
+      },
+      {
+        "id": "hold_pages",
+        "type": "boolean",
+        "role": "motion",
+        "label": "Hold pages",
+        "description": "Keep a page on screen until the next one starts.",
+        "default": true
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Caption size in pixels.",
+        "default": 64,
+        "min": 16,
+        "max": 160,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the resting words.",
+        "default": 650,
+        "min": 100,
+        "max": 900,
+        "step": 50
+      },
+      {
+        "id": "active_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Active weight",
+        "description": "Weight of the word being spoken.",
+        "default": 800,
+        "min": 100,
+        "max": 900,
+        "step": 50
+      },
+      {
+        "id": "active_color",
+        "type": "color",
+        "role": "style",
+        "label": "Active color",
+        "description": "Colour of the word being spoken.",
+        "default": "#ff6b00"
+      },
+      {
+        "id": "inactive_color",
+        "type": "color",
+        "role": "style",
+        "label": "Resting color",
+        "description": "Colour of the other words.",
+        "default": "#ffffff"
+      },
+      {
+        "id": "text_align",
+        "type": "enum",
+        "role": "style",
+        "label": "Align",
+        "description": "Text alignment.",
+        "default": "center",
+        "options": [
+          {
+            "value": "center",
+            "label": "Center"
+          },
+          {
+            "value": "left",
+            "label": "Left"
+          }
+        ]
+      },
+      {
+        "id": "shadow",
+        "type": "boolean",
+        "role": "style",
+        "label": "Shadow",
+        "description": "Soft shadow for legibility over footage.",
+        "default": true
+      },
+      {
+        "id": "font",
+        "type": "enum",
+        "role": "style",
+        "label": "Font",
+        "description": "Typeface.",
+        "default": "geist",
+        "options": [
+          {
+            "value": "geist",
+            "label": "Geist"
+          },
+          {
+            "value": "poppins",
+            "label": "Poppins"
+          },
+          {
+            "value": "playfair",
+            "label": "Playfair Display"
+          },
+          {
+            "value": "grotesk",
+            "label": "Space Grotesk"
+          }
+        ]
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>SRT Caption Track</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #fff; }
+        .srt-stage { position: absolute; left: 6%; right: 6%; bottom: 14%; display: flex; justify-content: center; }
+        .srt-page { display: none; width: 100%; white-space: pre-wrap; line-height: 1.12; word-spacing: 0.12em; }
+        .srt-word { display: inline-block; transform-origin: 50% 100%; }
+      </style>
+
+      <div id="root" data-composition-id="srt-caption-track" data-duration="9.5" data-fps="30">
+        <div id="srt-clip" class="srt-stage clip" data-start="0" data-duration="9.5" data-track-index="0">
+          <div id="srt-host" style="width:100%"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "9.5");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "geist");
+            root.style.fontFamily = FONTS[fontKey];
+            // ---- Cues: a JSON list, or SubRip / WebVTT text ----
+            var TS = "(?:(\\d+):)?(\\d{1,2}):(\\d{1,2})[.,](\\d{1,3})";
+            var CUE_RE = new RegExp(TS + "\\s*-->\\s*" + TS);
+            function tsMs(m, o) {
+              var frac = (m[o + 3] || "0");
+              return (Number(m[o] || 0) || 0) * 3600000 + (Number(m[o + 1]) || 0) * 60000 + (Number(m[o + 2]) || 0) * 1000 + (Number(("" + frac + "00").slice(0, 3)) || 0);
+            }
+            function cleanCue(text) {
+              var voice = /<v(?:\.[^\s>]+)*\s+([^>]+)>/.exec(text);
+              return { speaker: voice ? voice[1].trim() : undefined, text: text.replace(/<[^>]*>/g, "").replace(/\{\\an?\d\}/g, "").replace(/\s+/g, " ").trim() };
+            }
+            function parseSubtitles(src) {
+              var cues = [];
+              String(src).replace(/^﻿/, "").replace(/\r\n?/g, "\n").split(/\n{2,}/).forEach(function (block) {
+                var lines = block.split("\n").filter(function (l) { return l.trim().length > 0; });
+                if (!lines.length) return;
+                var ti = -1;
+                lines.forEach(function (l, i) { if (ti < 0 && CUE_RE.test(l)) ti = i; });
+                if (ti < 0) return;
+                var m = CUE_RE.exec(lines[ti]);
+                var c = cleanCue(lines.slice(ti + 1).join(" "));
+                var s = tsMs(m, 1), e = tsMs(m, 5);
+                if (!c.text || e <= s) return;
+                cues.push({ text: c.text, startMs: s, endMs: e, speaker: c.speaker });
+              });
+              return cues.sort(function (a, b) { return a.startMs - b.startMs; });
+            }
+            function parseCues(raw) {
+              var data = raw;
+              if (typeof raw === "string") {
+                var t = raw.trim();
+                if (t.charAt(0) === "[") { try { data = JSON.parse(t); } catch (e) { data = null; } }
+                else return parseSubtitles(t);
+              }
+              if (!Array.isArray(data)) return null;
+              var out = [];
+              data.forEach(function (c) {
+                if (!c || typeof c.text !== "string") return;
+                var s = c.startMs !== undefined ? Number(c.startMs) : Number(c.start) * 1000;
+                var e = c.endMs !== undefined ? Number(c.endMs) : Number(c.end) * 1000;
+                if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return;
+                out.push({ text: c.text, startMs: s, endMs: e, speaker: typeof c.speaker === "string" ? c.speaker : undefined, translation: typeof c.translation === "string" ? c.translation : "" });
+              });
+              return out.length ? out.sort(function (a, b) { return a.startMs - b.startMs; }) : null;
+            }
+            function mixColor(a, b, t) { return "color-mix(in srgb, " + b + " " + (Math.round(clamp01(t) * 10000) / 100) + "%, " + a + ")"; }
+            var ENTER = bez(0.16, 1, 0.3, 1);
+
+            var DEFAULT_SRT = "1\n00:00:00,300 --> 00:00:02,600\nGood captions are easy to read.\n\n2\n00:00:03,000 --> 00:00:05,800\nTiming is split across the words of each line.\n\n3\n00:00:06,200 --> 00:00:08,600\nSo the highlight follows along.";
+            var timing = pick(vars.word_timing, ["distribute", "cue"], "distribute");
+            var combine = num(vars.combine_ms, 3000, 200, 6000), offset = num(vars.offset_ms, 0, -5000, 5000), hold = bool(vars.hold_pages, true);
+            var cues = parseSubtitles(str(vars.srt, DEFAULT_SRT));
+            if (!cues.length) cues = parseSubtitles(DEFAULT_SRT);
+            // SRT has no word timestamps: distribute spreads a cue over its words, weighted by length.
+            var caps = [];
+            cues.forEach(function (c, ci) {
+              var s0 = c.startMs + offset, e0 = c.endMs + offset;
+              if (timing === "cue") { caps.push({ text: " " + c.text, startMs: s0, endMs: e0, cue: ci }); return; }
+              var words = c.text.split(/\s+/).filter(Boolean);
+              if (!words.length) return;
+              var weights = words.map(function (w) { return w.length + 1; }), total = weights.reduce(function (a, b) { return a + b; }, 0), span = e0 - s0, el = 0;
+              words.forEach(function (w, i) {
+                var s = s0 + (el / total) * span; el += weights[i];
+                caps.push({ text: " " + w, startMs: Math.round(s), endMs: Math.round(s0 + (el / total) * span), cue: ci });
+              });
+            });
+            var pages = [], cur = null;
+            caps.forEach(function (c) {
+              // A page never spans two cues; inside a cue it breaks after the page window.
+              if (cur && /^\s/.test(c.text) && (c.cue !== cur.cue || c.startMs - cur.startMs >= combine)) { pages.push(cur); cur = null; }
+              if (!cur) cur = { startMs: c.startMs, tokens: [], cue: c.cue };
+              cur.tokens.push({ text: c.text, fromMs: c.startMs, toMs: c.endMs });
+            });
+            if (cur) pages.push(cur);
+            pages.forEach(function (p, i) {
+              p.durationMs = p.tokens[p.tokens.length - 1].toMs - p.startMs;
+              var next = pages[i + 1];
+              var end = next ? (hold ? next.startMs : Math.min(next.startMs, p.startMs + combine)) : p.startMs + p.durationMs;
+              p.endMs = end;
+            });
+            var fontSize = num(vars.font_size, 64, 16, 160), fw = String(num(vars.font_weight, 650, 100, 900)), aw = String(num(vars.active_weight, 800, 100, 900));
+            var activeColor = str(vars.active_color, "#ff6b00"), inactiveColor = str(vars.inactive_color, "#ffffff");
+            var SHADOW = "0 1px 2px rgba(0,0,0,0.55), 0 6px 18px rgba(0,0,0,0.45)";
+            var align = pick(vars.text_align, ["center", "left"], "center"), shadow = bool(vars.shadow, true);
+            var host = document.getElementById("srt-host");
+            pages.forEach(function (p) {
+              var el = mk("div", host, "srt-page");
+              el.style.fontSize = fontSize + "px"; el.style.textAlign = align; el.style.color = inactiveColor;
+              if (shadow) el.style.textShadow = SHADOW;
+              p.el = el;
+              p.tokens.forEach(function (tk) {
+                el.appendChild(document.createTextNode(" "));
+                tk.el = mk("span", el, "srt-word", tk.text.trim());
+              });
+            });
+            var popEase = bez(0.34, 1.56, 0.64, 1), holdEase = bez(0.45, 0, 0.55, 1);
+            // Emphasis arrives in 4 frames and releases in 9, as in remotion-ui's caption helpers.
+            function draw(frame) {
+              var t = (frame / 30) * 1000, shown = -1;
+              pages.forEach(function (p, i) { if (p.startMs <= t && t < p.endMs) shown = i; });
+              pages.forEach(function (p, i) { p.el.style.display = i === shown ? "block" : "none"; });
+              if (shown < 0) return;
+              var p = pages[shown], f = frame; // absolute frame; token times are absolute too
+              p.tokens.forEach(function (tk) {
+                var sf = (tk.fromMs / 1000) * 30, ef = (tk.toMs / 1000) * 30;
+                var active = tk.fromMs <= t && t < tk.toMs, e;
+                if (active) e = ramp(f, sf, sf + 4, 0, 1, ENTER);
+                else e = f < sf ? 0 : ramp(f, ef, ef + 9, 1, 0, holdEase);
+                var st = tk.el.style;
+                st.color = mixColor(inactiveColor, activeColor, e);
+                st.fontWeight = e > 0.5 ? aw : fw;
+                st.opacity = String(ramp(e, 0, 1, 0.78, 1, ENTER));
+                st.transform = "translateY(" + (-0.025 * e).toFixed(4) + "em) scale(" + Math.pow(1.05, popEase(e)).toFixed(4) + ")";
+              });
+            }
+            drive("srt-caption-track", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

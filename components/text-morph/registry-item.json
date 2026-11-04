@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-morph",
+  "type": "hyperframes:component",
+  "title": "Text Morph",
+  "description": "One word turns into the next by letter identity: letters the two words share glide to their new places on a spring while new letters fade in and the leftover ones fade out.",
+  "tags": [
+    "text-effects",
+    "morph",
+    "letters",
+    "spring",
+    "shared-layout",
+    "motion-primitives-port"
+  ],
+  "category": "typography",
+  "duration": 5.5,
+  "useWhen": [
+    "Related words or phrases follow one another and the shared letters should visibly travel from one to the next.",
+    "A playful, physical word change on a clean background."
+  ],
+  "avoidWhen": [
+    "The words share almost no letters: the effect reads as a plain crossfade; use text-loop.",
+    "A gooey blur morph: use morph-text."
+  ],
+  "author": "ibelick",
+  "authorUrl": "https://motion-primitives.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/ibelick/motion-primitives",
+    "path": "components/core/text-morph.tsx",
+    "commit": "120f64f6ca60348e251f929e9c81f11ccbe45eda"
+  },
+  "files": [
+    {
+      "path": "text-morph.html",
+      "target": "compositions/components/text-morph.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "checkAt": [
+    0.4,
+    0.88,
+    2.26,
+    3.64
+  ],
+  "variables": [
+    {"id": "texts", "type": "string", "role": "content", "label": "Texts", "description": "Words or phrases separated by | (a bar).", "default": "Motion|Emotion|Promotion|Commotion"},
+    {"id": "start", "type": "number", "role": "motion", "label": "First change", "description": "Seconds before the first change.", "default": 0.8, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Time between changes", "description": "Seconds from one change to the next.", "default": 1.4, "min": 0.6, "max": 6, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 150, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "handwriting-text",
+  "type": "hyperframes:component",
+  "title": "Handwriting Text",
+  "description": "Writes a string on, character by character, with a pen nib riding the wet edge of the ink and a slight hand-made tilt on every letter.",
+  "tags": [
+    "text-effects",
+    "handwriting",
+    "script",
+    "pen",
+    "letters",
+    "remotion-ui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A greeting, signature line or note should look written on by hand, letter by letter.",
+    "A personal, informal or craft tone."
+  ],
+  "avoidWhen": [
+    "You need to draw an actual stroke path (a logo or a real signature): draw an SVG path instead.",
+    "The text is long: a per-letter pen is slow for more than a short line."
+  ],
+  "author": "RemotionUI",
+  "authorUrl": "https://remotionui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/riaz37/remotion-ui",
+    "path": "apps/web/registry/bases/default/primitives/handwriting-text.tsx",
+    "commit": "0aecaca2b61a167992e1205d10e4da16d8a71331"
+  },
+  "files": [
+    {
+      "path": "handwriting-text.html",
+      "target": "compositions/components/handwriting-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text. A line break starts a new line.",
+      "default": "Hello there"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 130,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": 500,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "motion",
+      "label": "Split by",
+      "description": "What one animated unit is.",
+      "default": "chars",
+      "options": [
+        {
+          "value": "chars",
+          "label": "Characters"
+        },
+        {
+          "value": "words",
+          "label": "Words"
+        },
+        {
+          "value": "lines",
+          "label": "Lines"
+        }
+      ]
+    },
+    {
+      "id": "order",
+      "type": "enum",
+      "role": "motion",
+      "label": "Order",
+      "description": "Order the units arrive in.",
+      "default": "start",
+      "options": [
+        {
+          "value": "start",
+          "label": "Start to end"
+        },
+        {
+          "value": "end",
+          "label": "End to start"
+        },
+        {
+          "value": "center",
+          "label": "Centre outwards"
+        },
+        {
+          "value": "edges",
+          "label": "Edges inwards"
+        },
+        {
+          "value": "random",
+          "label": "Random"
+        }
+      ]
+    },
+    {
+      "id": "stagger_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Frames (30 per second) between one unit and the next.",
+      "default": 3,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "duration_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Unit duration",
+      "description": "Frames one unit takes to arrive.",
+      "default": 10,
+      "min": 1,
+      "max": 90,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "delay_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frames before the first unit starts.",
+      "default": 6,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "exit",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Exit",
+      "description": "Play an exit at the end of the clip.",
+      "default": false
+    },
+    {
+      "id": "font",
+      "type": "enum",
+      "role": "style",
+      "label": "Hand",
+      "description": "Script typeface.",
+      "default": "dancing",
+      "options": [
+        {
+          "value": "caveat",
+          "label": "Caveat"
+        },
+        {
+          "value": "dancing",
+          "label": "Dancing Script"
+        },
+        {
+          "value": "apple",
+          "label": "Homemade Apple"
+        }
+      ]
+    },
+    {
+      "id": "pen_size",
+      "type": "number",
+      "role": "style",
+      "label": "Pen size",
+      "description": "Diameter of the nib in em. 0 hides it.",
+      "default": 0.14,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01,
+      "unit": "em"
+    },
+    {
+      "id": "pen_color",
+      "type": "color",
+      "role": "style",
+      "label": "Pen color",
+      "description": "Colour of the nib.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "ink_softness",
+      "type": "number",
+      "role": "style",
+      "label": "Ink softness",
+      "description": "Softness of the ink edge as a share of one letter. 0 is a hard cut.",
+      "default": 0.18,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "wobble",
+      "type": "number",
+      "role": "motion",
+      "label": "Wobble",
+      "description": "Per-letter tilt and baseline drift in degrees. 0 is machine-even.",
+      "default": 1.6,
+      "min": 0,
+      "max": 10,
+      "step": 0.1,
+      "unit": "deg"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Varies the hand. The same seed always writes the same way.",
+      "default": 1,
+      "min": 0,
+      "max": 999,
+      "step": 1
+    }
+  ]
+}

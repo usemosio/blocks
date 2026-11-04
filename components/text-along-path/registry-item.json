@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-along-path",
+  "type": "hyperframes:component",
+  "title": "Text Along Path",
+  "description": "Letters of a repeating phrase run endlessly along an SVG path, by default a rounded rectangle that frames the picture; supply your own path to make it follow any curve.",
+  "tags": [
+    "text-effects",
+    "svg",
+    "path",
+    "marquee",
+    "loop",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "Text should circle the frame, a card or a shape like a ticker tape or a badge ring.",
+    "A repeating phrase needs to follow a curve, a circle or a custom outline."
+  ],
+  "avoidWhen": [
+    "The text should move in a straight line: use infinite-marquee.",
+    "The text should be read once, not repeated: use a reveal block."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/text-along-path.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "text-along-path.html",
+      "target": "compositions/components/text-along-path.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Phrase that repeats along the path.", "default": "JOIN THE WAITLIST • "},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels (or in viewBox units when a custom path is given).", "default": 34, "min": 8, "max": 200, "step": 1, "unit": "px"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#2f4bff"},
+    {"id": "loop_seconds", "type": "number", "role": "motion", "label": "Loop seconds", "description": "Seconds the text takes to travel once around the path. The block lasts 6 seconds, so 6 plays one full seamless loop. The letter spacing stretches slightly so whole phrases fill a closed path exactly.", "default": 6, "min": 1, "max": 60, "step": 0.5, "unit": "s"},
+    {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "Run the text the other way around.", "default": false},
+    {"id": "margin", "type": "number", "role": "style", "label": "Margin", "description": "Distance of the default rectangle from the frame edge, as a percentage of the shorter side.", "default": 9, "min": 0, "max": 40, "step": 1, "unit": "%"},
+    {"id": "corner_radius", "type": "number", "role": "style", "label": "Corner radius", "description": "Corner radius of the default rectangle, as a percentage of the shorter side.", "default": 8, "min": 0, "max": 50, "step": 1, "unit": "%"},
+    {"id": "path", "type": "string", "role": "content", "label": "Custom path", "description": "SVG path data (the d attribute) to run the text on. Empty uses the rounded rectangle.", "default": ""},
+    {"id": "view_box", "type": "string", "role": "content", "label": "Custom viewBox", "description": "viewBox of the custom path, for example 0 0 100 100. Ignored without a custom path.", "default": "0 0 100 100"},
+    {"id": "show_path", "type": "boolean", "role": "style", "label": "Show path", "description": "Draw the path itself as a thin line.", "default": false}
+  ]
+}

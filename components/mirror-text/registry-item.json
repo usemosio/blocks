@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "mirror-text",
+  "type": "hyperframes:component",
+  "title": "Mirror Text",
+  "description": "A word stacked from four clipped copies; the copies slide in a staggered ripple, as if the text were sliced into mirrored strips.",
+  "tags": [
+    "text-effects",
+    "slice",
+    "echo",
+    "ripple",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "An uppercase word should get a graphic, sliced echo with a staggered ripple.",
+    "A title wants a quiet hover-style accent in one of four directions."
+  ],
+  "avoidWhen": [
+    "The text must stay fully legible at all times: the strips overlap mid-motion.",
+    "A long sentence: the effect suits one or two short words."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/mirror-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "mirror-text.html",
+      "target": "compositions/components/mirror-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Word that is sliced.",
+      "default": "MIRROR"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Direction the strips move in.",
+      "default": "up",
+      "options": [
+        {
+          "value": "up",
+          "label": "Up"
+        },
+        {
+          "value": "down",
+          "label": "Down"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 150,
+      "min": 12,
+      "max": 320,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "hold",
+      "type": "number",
+      "role": "motion",
+      "label": "Hold",
+      "description": "Seconds the strips stay shifted.",
+      "default": 1.2,
+      "min": 0,
+      "max": 4,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "300",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

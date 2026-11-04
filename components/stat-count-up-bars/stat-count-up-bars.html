@@ -87,39 +87,31 @@
     "role": "style",
     "label": "Background",
     "description": "Background.",
-    "default": "#061a2b"
-  },
-  {
-    "id": "main_color",
-    "type": "color",
-    "role": "style",
-    "label": "Main colour",
-    "description": "Big number, glow and bars.",
-    "default": "#22c3ee"
+    "default": "#ffffff"
   },
   {
     "id": "accent_color",
     "type": "color",
     "role": "style",
     "label": "Accent",
-    "description": "Highlighted last bar and the ring.",
-    "default": "#a3e635"
+    "description": "Highlighted last bar and the ring: the one accent.",
+    "default": "#2563eb"
   },
   {
     "id": "text_color",
     "type": "color",
     "role": "style",
     "label": "Text colour",
-    "description": "Unit, bar values and axis.",
-    "default": "#eaf6ff"
+    "description": "Big number, unit and bar values.",
+    "default": "#0a0a0a"
   },
   {
     "id": "muted_color",
     "type": "color",
     "role": "style",
     "label": "Muted colour",
-    "description": "Label and bar names.",
-    "default": "#b8c6d0"
+    "description": "Label, bar names and the ring caption.",
+    "default": "#737373"
   },
   {
     "id": "transparent",
@@ -139,7 +131,7 @@
     <template>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;display=block"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
       />
       <style>
         #root {
@@ -149,32 +141,30 @@
         #root * { box-sizing: border-box; }
         .sc-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
 
-        #root { background: var(--sc-bg); color: var(--sc-text); font-family: "Space Grotesk", "Noto Sans", system-ui, sans-serif; }
-        .sc-glow { position: absolute; left: 50%; top: 48%; width: 120cqmin; height: 120cqmin; margin: -60cqmin 0 0 -60cqmin; border-radius: 50%; will-change: transform;
-          background: radial-gradient(circle, color-mix(in oklab, var(--sc-main) 26%, transparent), transparent 60%); }
+        #root { background: var(--sc-bg); color: var(--sc-text); font-family: Geist, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
         .sc-grid { position: absolute; inset: 0; padding: 0 calc(var(--u) * 90); display: grid; align-content: center; gap: calc(var(--u) * 60); grid-template-columns: minmax(0, 1fr);
           grid-template-areas: "hero" "chart" "ring"; }
         .sc-hero { grid-area: hero; }
-        .sc-label { font-size: calc(var(--u) * 52); font-weight: 500; color: var(--sc-muted); line-height: 1.2; }
+        .sc-label { font-size: calc(var(--u) * 48); font-weight: 500; letter-spacing: -0.02em; color: var(--sc-muted); line-height: 1.2; }
         .sc-bigw { display: flex; justify-content: flex-start; margin-top: calc(var(--u) * 6); }
-        .sc-big { display: inline-block; white-space: nowrap; font-weight: 700; font-size: calc(var(--u) * 240); line-height: 1.02; letter-spacing: calc(var(--u) * -8); color: var(--sc-main); font-variant-numeric: tabular-nums; transform-origin: 0 50%; }
-        .sc-unit { font-size: calc(var(--u) * 62); font-weight: 700; margin-top: calc(var(--u) * 6); line-height: 1.2; }
-        .sc-chart { grid-area: chart; position: relative; height: calc(var(--u) * 520); margin: calc(var(--u) * 70) 0 calc(var(--u) * 70); display: flex; align-items: flex-end; gap: calc(var(--u) * 36); border-bottom: calc(var(--u) * 4) solid color-mix(in oklab, var(--sc-text) 35%, transparent); }
+        .sc-big { display: inline-block; white-space: nowrap; font-weight: 600; font-size: calc(var(--u) * 240); line-height: 1.02; letter-spacing: -0.04em; color: var(--sc-text); font-variant-numeric: tabular-nums; transform-origin: 0 50%; }
+        .sc-unit { font-size: calc(var(--u) * 56); font-weight: 500; letter-spacing: -0.03em; margin-top: calc(var(--u) * 6); line-height: 1.2; }
+        .sc-chart { grid-area: chart; position: relative; height: calc(var(--u) * 520); margin: calc(var(--u) * 70) 0 calc(var(--u) * 70); display: flex; align-items: flex-end; gap: calc(var(--u) * 36); border-bottom: 1px solid color-mix(in oklab, var(--sc-text) 14%, transparent); }
         .sc-bar { flex: 1 1 0; position: relative; height: 100%; display: flex; align-items: flex-end; }
-        .sc-fill { width: 100%; border-radius: calc(var(--u) * 22) calc(var(--u) * 22) 0 0; background: color-mix(in oklab, var(--sc-main) 55%, transparent); transform-origin: 50% 100%; }
+        .sc-fill { width: 100%; border-radius: calc(var(--u) * 12) calc(var(--u) * 12) 0 0; background: color-mix(in oklab, var(--sc-text) 10%, var(--sc-bg)); transform-origin: 50% 100%; }
         .sc-bar.top .sc-fill { background: var(--sc-accent); }
-        .sc-val { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); text-align: center; font-size: calc(var(--u) * 44); font-weight: 700; white-space: nowrap; }
+        .sc-val { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); text-align: center; font-size: calc(var(--u) * 42); font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; }
         .sc-nm { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); bottom: calc(var(--u) * -62); text-align: center; font-size: calc(var(--u) * 38); color: var(--sc-muted); white-space: nowrap; }
         .sc-ringrow { grid-area: ring; display: flex; align-items: center; gap: calc(var(--u) * 36); }
         .sc-ring { width: calc(var(--u) * 230); height: calc(var(--u) * 230); flex-shrink: 0; }
-        .sc-ring .track { stroke: color-mix(in oklab, var(--sc-text) 18%, transparent); }
+        .sc-ring .track { stroke: color-mix(in oklab, var(--sc-text) 10%, var(--sc-bg)); }
         .sc-ring .arc { stroke: var(--sc-accent); }
         .sc-rtxt { min-width: 0; }
-        .sc-pct { display: block; font-size: calc(var(--u) * 96); font-weight: 700; line-height: 1; color: var(--sc-accent); font-variant-numeric: tabular-nums; }
-        .sc-plab { display: block; font-size: calc(var(--u) * 44); line-height: 1.25; margin-top: calc(var(--u) * 6); }
+        .sc-pct { display: block; font-size: calc(var(--u) * 96); font-weight: 600; letter-spacing: -0.05em; line-height: 1; color: var(--sc-text); font-variant-numeric: tabular-nums; }
+        .sc-plab { display: block; font-size: calc(var(--u) * 42); color: var(--sc-muted); line-height: 1.25; margin-top: calc(var(--u) * 6); }
         @container (aspect-ratio > 1) {
           .sc-grid { padding: 0 calc(var(--u) * 140); column-gap: calc(var(--u) * 120); row-gap: calc(var(--u) * 50); grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-areas: "hero chart" "ring chart"; align-items: center; }
-          .sc-big { font-size: calc(var(--u) * 230); }
+          .sc-big { font-size: calc(var(--u) * 180); }
           .sc-chart { height: calc(var(--u) * 600); margin: 0; }
           .sc-ring { width: calc(var(--u) * 200); height: calc(var(--u) * 200); }
           .sc-pct { font-size: calc(var(--u) * 84); } .sc-plab { font-size: calc(var(--u) * 38); }
@@ -184,7 +174,6 @@
 
       <div id="root" data-composition-id="stat-count-up-bars" data-duration="9" data-fps="30">
         <div id="sc-clip" class="sc-stage clip" data-start="0" data-duration="9" data-track-index="0">
-          <div id="sc-glow" class="sc-glow"></div>
           <div class="sc-grid">
             <div class="sc-hero" id="sc-hero">
               <div class="sc-label" id="sc-label"></div>
@@ -194,8 +183,8 @@
             <div class="sc-chart" id="sc-chart"></div>
             <div class="sc-ringrow" id="sc-ringrow">
               <svg class="sc-ring" id="sc-ring" viewBox="0 0 100 100">
-                <circle class="track" cx="50" cy="50" r="42" fill="none" stroke-width="12" />
-                <circle class="arc" id="sc-arc" cx="50" cy="50" r="42" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" transform="rotate(-90 50 50)" />
+                <circle class="track" cx="50" cy="50" r="42" fill="none" stroke-width="9" />
+                <circle class="arc" id="sc-arc" cx="50" cy="50" r="42" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264" transform="rotate(-90 50 50)" />
               </svg>
               <div class="sc-rtxt" id="sc-rtxt"><span class="sc-pct" id="sc-pct"></span><span class="sc-plab" id="sc-plab"></span></div>
             </div>
@@ -240,8 +229,8 @@
             if (bool(vars.transparent, false)) root.style.background = "transparent";
 
 
-            setColors("sc", [["bg", "bg_color", "#061a2b"], ["main", "main_color", "#22c3ee"], ["accent", "accent_color", "#a3e635"],
-              ["text", "text_color", "#eaf6ff"], ["muted", "muted_color", "#b8c6d0"]]);
+            setColors("sc", [["bg", "bg_color", "#ffffff"], ["accent", "accent_color", "#2563eb"],
+              ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"]]);
             var label = typeof vars.label === "string" ? vars.label : "Bulan ini kami mencuci";
             var bigN = num(vars.number, 12000, 0, 999999999);
             var suffix = typeof vars.number_suffix === "string" ? vars.number_suffix : "+";
@@ -281,7 +270,6 @@
 
             var bigC = { v: 0 }, pctC = { v: 0 };
             var tl = gsap.timeline({ paused: true });
-            tl.fromTo("#sc-glow", { scale: 0.8 }, { scale: 1.15, duration: 8, ease: "sine.inOut" }, 0);
             tl.fromTo("#sc-label", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.2);
             tl.fromTo("#sc-big", { y: 80 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.4);
             tl.fromTo(bigC, { v: 0 }, { v: bigN, duration: 2, ease: "power3.out", onUpdate: function () { big.textContent = dots(bigC.v) + suffix; } }, 0.4);
@@ -297,7 +285,7 @@
             var BT = B0 + bars.length * bs + 0.3;
             tl.to(chart.querySelector(".top .sc-fill"), { scaleY: 1.04, duration: 0.35, yoyo: true, repeat: 3, ease: "sine.inOut" }, BT + 0.8);
             var R0 = BT + 1.4;
-            tl.fromTo("#sc-ring", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, R0);
+            tl.fromTo("#sc-ring", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, R0);
             tl.fromTo("#sc-arc", { attr: { "stroke-dashoffset": C } }, { attr: { "stroke-dashoffset": C * (1 - pctN / 100) }, duration: 1.4, ease: "power2.out" }, R0 + 0.2);
             tl.fromTo(pctC, { v: 0 }, { v: pctN, duration: 1.4, ease: "power2.out", onUpdate: function () { pctEl.textContent = Math.round(pctC.v) + "%"; } }, R0 + 0.2);
             tl.fromTo("#sc-pct", { opacity: 0 }, { opacity: 1, duration: 0.3 }, R0 + 0.2);

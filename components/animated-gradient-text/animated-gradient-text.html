@@ -1,0 +1,123 @@
+<!doctype html>
+<!--
+  Animated Gradient Text
+
+  Text filled with a wide three-colour gradient that drifts slowly from one end to the other and back, so the colours flow through the letters.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/codse/animata/blob/25c27e5a874c60a56dcc1609df3b2c4f5f8456f8/animata/text/animated-gradient-text.tsx
+  and animata/styles/globals.css (the bg-position keyframes: 3 s, alternating)
+  MIT License
+
+  Copyright (c) Animata
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="animated-gradient-text"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text filled with the gradient.", "default": "Hello, world!"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 130, "min": 12, "max": 320, "step": 1, "unit": "px"},
+    {"id": "color_from", "type": "color", "role": "style", "label": "Start color", "description": "Gradient colour at 30 %.", "default": "#eab308"},
+    {"id": "color_via", "type": "color", "role": "style", "label": "Middle color", "description": "Gradient colour at 50 %.", "default": "#a16207"},
+    {"id": "color_to", "type": "color", "role": "style", "label": "End color", "description": "Gradient colour at 80 %.", "default": "#ec4899"},
+    {"id": "leg", "type": "number", "role": "motion", "label": "Leg duration", "description": "Seconds for the gradient to drift from one end to the other.", "default": 3, "min": 0.5, "max": 10, "step": 0.5, "unit": "s"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "300", "label": "Light"}, {"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "900", "label": "Black"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Animated Gradient Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;900&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .agt-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .agt-text { display: inline-block; line-height: 1.15; white-space: pre; padding: 0 0.04em; color: transparent; -webkit-text-fill-color: transparent; -webkit-background-clip: text; background-clip: text; background-size: 200% auto; background-position: 0% 50%; }
+      </style>
+
+      <div id="root" data-composition-id="animated-gradient-text" data-duration="6" data-fps="30">
+        <div id="agt-clip" class="agt-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <span id="agt-text" class="agt-text"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function opt(v, list, f) { return list.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : v === "true" ? true : v === "false" ? false : f; }
+            function fit(el, size, frac) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * frac);
+              if (el.scrollWidth > max) { size = Math.max(12, size * (max / el.scrollWidth)); el.style.fontSize = size + "px"; }
+              return size;
+            }
+            
+            var el = document.getElementById("agt-text");
+            el.textContent = str(vars.text, "Hello, world!");
+            root.style.fontWeight = opt(vars.font_weight, ["300","400","500","600","700","900"], "700");
+            el.style.backgroundImage = "linear-gradient(to right, " + col(vars.color_from, "#eab308") + " 30%, " + col(vars.color_via, "#a16207") + " 50%, " + col(vars.color_to, "#ec4899") + " 80%)";
+            fit(el, num(vars.font_size, 130, 12, 320), 0.9);
+            var leg = num(vars.leg, 3, 0.5, 10);
+            gsap.registerPlugin(CustomEase);
+            var ease = CustomEase.create("agt-ease", "M0,0 C0.25,0.1 0.25,1 1,1");
+            var st = { p: 0 };
+            function draw() { el.style.backgroundPosition = (st.p * 100).toFixed(2) + "% 50%"; }
+            var tl = gsap.timeline({ paused: true });
+            var total0 = parseFloat(root.dataset.duration || "6");
+            for (var t = 0, up = true; t < total0 - 0.001; t += leg, up = !up) {
+              tl.fromTo(st, { p: up ? 0 : 1 }, { p: up ? 1 : 0, duration: leg, ease: ease, onUpdate: draw, immediateRender: false }, t);
+            }
+            draw();
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["animated-gradient-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

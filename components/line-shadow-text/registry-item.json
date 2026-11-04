@@ -1,0 +1,97 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "line-shadow-text",
+  "type": "hyperframes:component",
+  "title": "Line Shadow Text",
+  "description": "A bold headline with a hatched drop shadow: fine diagonal lines fill the shadow and slide slowly through it.",
+  "tags": [
+    "text-effects",
+    "shadow",
+    "ambient",
+    "headline",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A headline needs a graphic, print-like shadow with a little life in it.",
+    "One word in a line should stand out with an engraved hatch shadow."
+  ],
+  "avoidWhen": [
+    "You want a soft blurred shadow: use a plain text shadow.",
+    "You want a long solid extruded shadow: use long-shadow."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/line-shadow-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "line-shadow-text.html",
+      "target": "compositions/components/line-shadow-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text_before",
+      "type": "string",
+      "role": "content",
+      "label": "Lead-in",
+      "description": "Plain text before the shadowed word. Leave empty to show only the shadowed word.",
+      "default": "Ship"
+    },
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Shadowed text",
+      "description": "The word with the hatched shadow, set in italic.",
+      "default": "Fast"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 160,
+      "min": 24,
+      "max": 400,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Colour of the letters.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "shadow_color",
+      "type": "color",
+      "role": "style",
+      "label": "Shadow colour",
+      "description": "Colour of the hatch lines.",
+      "default": "#000000"
+    },
+    {
+      "id": "cycle_seconds",
+      "type": "number",
+      "role": "motion",
+      "label": "Cycle",
+      "description": "Seconds the hatch takes to slide across the text (the source uses 15).",
+      "default": 15,
+      "min": 2,
+      "max": 60,
+      "step": 1,
+      "unit": "s"
+    }
+  ]
+}

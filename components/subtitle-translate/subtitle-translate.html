@@ -1,0 +1,375 @@
+<!doctype html>
+<!--
+  Subtitle Translate
+
+  Dual-language stacked subtitles.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/subtitle-translate.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="subtitle-translate"
+  data-composition-duration="11.5"
+  data-composition-variables='[
+    [
+      {
+        "id": "cues",
+        "type": "string",
+        "role": "content",
+        "label": "Cues",
+        "description": "JSON list [{\"text\",\"translation\",\"startMs\",\"endMs\"}] (or start/end in seconds). Nothing shows between cues.",
+        "default": "[{\"text\": \"Welcome back to the studio.\", \"translation\": \"Selamat datang kembali di studio.\", \"startMs\": 400, \"endMs\": 3200}, {\"text\": \"Today we are shooting a short film.\", \"translation\": \"Hari ini kita syuting film pendek.\", \"startMs\": 3700, \"endMs\": 6800}, {\"text\": \"Keep the camera steady and the light soft.\", \"translation\": \"Jaga kamera tetap stabil dan cahaya tetap lembut.\", \"startMs\": 7300, \"endMs\": 10800}]"
+      },
+      {
+        "id": "primary",
+        "type": "enum",
+        "role": "content",
+        "label": "Lead line",
+        "description": "Which language is the large lead line.",
+        "default": "source",
+        "options": [
+          {
+            "value": "source",
+            "label": "Source text"
+          },
+          {
+            "value": "translation",
+            "label": "Translation"
+          }
+        ]
+      },
+      {
+        "id": "label_source",
+        "type": "string",
+        "role": "content",
+        "label": "Source tag",
+        "description": "Language tag shown beside the source line, for example EN. Empty hides it.",
+        "default": "EN"
+      },
+      {
+        "id": "label_translation",
+        "type": "string",
+        "role": "content",
+        "label": "Translation tag",
+        "description": "Language tag shown beside the translation. Empty hides it.",
+        "default": "ID"
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Lead line size in pixels.",
+        "default": 46,
+        "min": 16,
+        "max": 140,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "secondary_scale",
+        "type": "number",
+        "role": "style",
+        "label": "Second line scale",
+        "description": "Size of the second line relative to the lead.",
+        "default": 0.72,
+        "min": 0.4,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the lead line.",
+        "default": 600,
+        "min": 100,
+        "max": 900,
+        "step": 100
+      },
+      {
+        "id": "primary_color",
+        "type": "color",
+        "role": "style",
+        "label": "Lead color",
+        "description": "Colour of the lead line.",
+        "default": "#fafafa"
+      },
+      {
+        "id": "secondary_color",
+        "type": "color",
+        "role": "style",
+        "label": "Second line color",
+        "description": "Colour of the second line.",
+        "default": "#b8b8bc"
+      },
+      {
+        "id": "label_color",
+        "type": "color",
+        "role": "style",
+        "label": "Tag color",
+        "description": "Colour of the language tags.",
+        "default": "#e8b86d"
+      },
+      {
+        "id": "background_color",
+        "type": "color",
+        "role": "style",
+        "label": "Background",
+        "description": "Colour of the card behind the subtitles.",
+        "default": "#0a0a0e"
+      },
+      {
+        "id": "background_opacity",
+        "type": "number",
+        "role": "style",
+        "label": "Background opacity",
+        "description": "Opacity of the card behind the subtitles.",
+        "default": 0.72,
+        "min": 0,
+        "max": 1,
+        "step": 0.02
+      },
+      {
+        "id": "max_width",
+        "type": "number",
+        "role": "layout",
+        "label": "Max width",
+        "description": "Widest the card gets, as a percent of the frame.",
+        "default": 78,
+        "min": 30,
+        "max": 100,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "id": "enter_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Enter",
+        "description": "Frames (30 per second) a line takes to arrive.",
+        "default": 10,
+        "min": 1,
+        "max": 40,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "second_offset_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Second line delay",
+        "description": "Frames the second line trails the first.",
+        "default": 4,
+        "min": 0,
+        "max": 30,
+        "step": 1,
+        "unit": "frames"
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Subtitle Translate</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #fafafa; }
+        .sbt-stage { position: absolute; inset: 0; }
+        .sbt-wrap { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; }
+        .sbt-card { display: grid; text-align: center; }
+        .sbt-row { display: flex; align-items: baseline; justify-content: center; }
+        .sbt-tag { font-weight: 700; letter-spacing: 0.1em; text-align: right; flex-shrink: 0; }
+        .sbt-line { line-height: 1.25; }
+      </style>
+
+      <div id="root" data-composition-id="subtitle-translate" data-duration="11.5" data-fps="30">
+        <div id="sbt-clip" class="sbt-stage clip" data-start="0" data-duration="11.5" data-track-index="0">
+          <div id="sbt-host"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "11.5");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "geist");
+            root.style.fontFamily = FONTS[fontKey];
+            // ---- Cues: a JSON list, or SubRip / WebVTT text ----
+            var TS = "(?:(\\d+):)?(\\d{1,2}):(\\d{1,2})[.,](\\d{1,3})";
+            var CUE_RE = new RegExp(TS + "\\s*-->\\s*" + TS);
+            function tsMs(m, o) {
+              var frac = (m[o + 3] || "0");
+              return (Number(m[o] || 0) || 0) * 3600000 + (Number(m[o + 1]) || 0) * 60000 + (Number(m[o + 2]) || 0) * 1000 + (Number(("" + frac + "00").slice(0, 3)) || 0);
+            }
+            function cleanCue(text) {
+              var voice = /<v(?:\.[^\s>]+)*\s+([^>]+)>/.exec(text);
+              return { speaker: voice ? voice[1].trim() : undefined, text: text.replace(/<[^>]*>/g, "").replace(/\{\\an?\d\}/g, "").replace(/\s+/g, " ").trim() };
+            }
+            function parseSubtitles(src) {
+              var cues = [];
+              String(src).replace(/^﻿/, "").replace(/\r\n?/g, "\n").split(/\n{2,}/).forEach(function (block) {
+                var lines = block.split("\n").filter(function (l) { return l.trim().length > 0; });
+                if (!lines.length) return;
+                var ti = -1;
+                lines.forEach(function (l, i) { if (ti < 0 && CUE_RE.test(l)) ti = i; });
+                if (ti < 0) return;
+                var m = CUE_RE.exec(lines[ti]);
+                var c = cleanCue(lines.slice(ti + 1).join(" "));
+                var s = tsMs(m, 1), e = tsMs(m, 5);
+                if (!c.text || e <= s) return;
+                cues.push({ text: c.text, startMs: s, endMs: e, speaker: c.speaker });
+              });
+              return cues.sort(function (a, b) { return a.startMs - b.startMs; });
+            }
+            function parseCues(raw) {
+              var data = raw;
+              if (typeof raw === "string") {
+                var t = raw.trim();
+                if (t.charAt(0) === "[") { try { data = JSON.parse(t); } catch (e) { data = null; } }
+                else return parseSubtitles(t);
+              }
+              if (!Array.isArray(data)) return null;
+              var out = [];
+              data.forEach(function (c) {
+                if (!c || typeof c.text !== "string") return;
+                var s = c.startMs !== undefined ? Number(c.startMs) : Number(c.start) * 1000;
+                var e = c.endMs !== undefined ? Number(c.endMs) : Number(c.end) * 1000;
+                if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return;
+                out.push({ text: c.text, startMs: s, endMs: e, speaker: typeof c.speaker === "string" ? c.speaker : undefined, translation: typeof c.translation === "string" ? c.translation : "" });
+              });
+              return out.length ? out.sort(function (a, b) { return a.startMs - b.startMs; }) : null;
+            }
+            function mixColor(a, b, t) { return "color-mix(in srgb, " + b + " " + (Math.round(clamp01(t) * 10000) / 100) + "%, " + a + ")"; }
+            var ENTER = bez(0.16, 1, 0.3, 1);
+
+            var DEFAULT_CUES = "[{\"text\": \"Welcome back to the studio.\", \"translation\": \"Selamat datang kembali di studio.\", \"startMs\": 400, \"endMs\": 3200}, {\"text\": \"Today we are shooting a short film.\", \"translation\": \"Hari ini kita syuting film pendek.\", \"startMs\": 3700, \"endMs\": 6800}, {\"text\": \"Keep the camera steady and the light soft.\", \"translation\": \"Jaga kamera tetap stabil dan cahaya tetap lembut.\", \"startMs\": 7300, \"endMs\": 10800}]";
+            var cues = parseCues(vars.cues) || parseCues(DEFAULT_CUES);
+            var primary = pick(vars.primary, ["source", "translation"], "source");
+            var labels = { source: typeof vars.label_source === "string" ? vars.label_source : "EN", translation: typeof vars.label_translation === "string" ? vars.label_translation : "ID" };
+            var fontSize = num(vars.font_size, 46, 16, 140), secScale = num(vars.secondary_scale, 0.72, 0.4, 1);
+            var enterFrames = num(vars.enter_frames, 10, 1, 40), secOffset = num(vars.second_offset_frames, 4, 0, 30);
+            var primaryColor = str(vars.primary_color, "#fafafa"), secondaryColor = str(vars.secondary_color, "#b8b8bc"), labelColor = str(vars.label_color, "#e8b86d");
+            var host = document.getElementById("sbt-host");
+            cues.forEach(function (c) {
+              var wrap = mk("div", host, "sbt-wrap");
+              wrap.style.padding = fontSize + "px";
+              var card = mk("div", wrap, "sbt-card");
+              card.style.maxWidth = num(vars.max_width, 78, 30, 100) + "%";
+              card.style.background = mixColor("transparent", str(vars.background_color, "#0a0a0e"), num(vars.background_opacity, 0.72, 0, 1));
+              card.style.borderRadius = fontSize * 0.36 + "px";
+              card.style.padding = fontSize * 0.5 + "px " + fontSize * 0.75 + "px";
+              card.style.gap = fontSize * 0.22 + "px";
+              var order = primary === "source"
+                ? [{ text: c.text, label: labels.source, lead: true }, { text: c.translation, label: labels.translation, lead: false }]
+                : [{ text: c.translation, label: labels.translation, lead: true }, { text: c.text, label: labels.source, lead: false }];
+              c.rows = order.map(function (l) {
+                var row = mk("div", card, "sbt-row");
+                row.style.gap = fontSize * 0.35 + "px";
+                var size = l.lead ? fontSize : fontSize * secScale;
+                if (l.label) {
+                  var tag = mk("span", row, "sbt-tag", l.label);
+                  tag.style.color = labelColor; tag.style.fontSize = size * 0.5 + "px"; tag.style.minWidth = fontSize * 1.1 + "px";
+                }
+                var tx = mk("span", row, "sbt-line", l.text);
+                tx.style.color = l.lead ? primaryColor : secondaryColor;
+                tx.style.fontSize = size + "px";
+                tx.style.fontWeight = l.lead ? String(num(vars.font_weight, 600, 100, 900)) : "500";
+                return row;
+              });
+              c.wrap = wrap;
+            });
+            function draw(frame) {
+              var t = (frame / 30) * 1000;
+              cues.forEach(function (c) {
+                var on = c.startMs <= t && c.endMs > t;
+                c.wrap.style.display = on ? "flex" : "none";
+                if (!on) return;
+                var startFrame = (c.startMs / 1000) * 30;
+                c.rows.forEach(function (row, i) {
+                  var p = ramp(frame, startFrame + (i === 0 ? 0 : secOffset), startFrame + (i === 0 ? 0 : secOffset) + enterFrames, 0, 1, ENTER);
+                  row.style.opacity = String(clamp01(p * 1.5));
+                  row.style.transform = "translateY(" + ((1 - clamp01(p)) * fontSize * 0.3).toFixed(2) + "px)";
+                });
+              });
+            }
+            drive("subtitle-translate", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

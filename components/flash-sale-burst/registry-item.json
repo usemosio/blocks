@@ -3,7 +3,7 @@
   "name": "flash-sale-burst",
   "type": "hyperframes:component",
   "title": "Flash Sale Burst",
-  "description": "A colour flash and a two-word headline slam in, a big percent figure bursts out of a starburst and shakes, two crossed ribbons run their text in opposite directions and clear away, then the deadline is stamped with a small flash.",
+  "description": "A two-word headline rises in, a big percent figure bursts in and shakes once in the accent colour, two crossed running ribbons (black, and outlined) run their text in opposite directions and clear away, then the deadline is set in a bordered box. Clean white page, no starburst.",
   "tags": [
     "mosio-recipe",
     "sale",
@@ -51,7 +51,7 @@
       "type": "string",
       "role": "content",
       "label": "Second word",
-      "description": "Second headline word, in the main colour.",
+      "description": "Second headline word.",
       "default": "Sale!"
     },
     {
@@ -107,39 +107,31 @@
       "type": "color",
       "role": "style",
       "label": "Background",
-      "description": "Background and grid.",
-      "default": "#0d0d12"
-    },
-    {
-      "id": "main_color",
-      "type": "color",
-      "role": "style",
-      "label": "Main colour",
-      "description": "Second headline word, first ribbon, deadline stamp and flash.",
-      "default": "#d7ff3a"
+      "description": "Background.",
+      "default": "#ffffff"
     },
     {
       "id": "accent_color",
       "type": "color",
       "role": "style",
       "label": "Accent",
-      "description": "Percent figure, burst and second ribbon.",
-      "default": "#ff2e88"
+      "description": "Percent figure: the one accent.",
+      "default": "#2563eb"
     },
     {
       "id": "text_color",
       "type": "color",
       "role": "style",
       "label": "Text colour",
-      "description": "First headline word and grid.",
-      "default": "#ffffff"
+      "description": "Headline, \"OFF\", the black ribbon and the deadline.",
+      "default": "#0a0a0a"
     },
     {
       "id": "transparent",
       "type": "boolean",
       "role": "style",
       "label": "Transparent",
-      "description": "Leave the background clear (the opening flash and grid stay).",
+      "description": "Leave the background clear so the block sits over your own scene.",
       "default": false
     }
   ]

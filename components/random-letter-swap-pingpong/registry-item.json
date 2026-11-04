@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "random-letter-swap-pingpong",
+  "type": "hyperframes:component",
+  "title": "Random Letter Swap Ping-Pong",
+  "description": "Letters swap out in a random order and, after a hold, swap back in another random-feeling wave (ping-pong).",
+  "tags": [
+    "text-effects",
+    "letters",
+    "swap",
+    "kinetic-type",
+    "random",
+    "ping-pong",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A word should roll out and then roll back, like a hover-in and hover-out on a button or link.",
+    "The letters should swap in a random order."
+  ],
+  "avoidWhen": [
+    "The letters should turn into different letters or words: use text-rotate, type-fossil or kinetic-type-swap.",
+    "A one-time entrance is enough: use per-character-rise or vertical-cut-reveal."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/random-letter-swap-pingpong-anim.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "random-letter-swap-pingpong.html",
+      "target": "compositions/components/random-letter-swap-pingpong.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase whose letters swap.", "default": "Letter swap"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 150, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#111111"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]},
+    {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "On: letters leave downward and the copy arrives from above. Off: the other way round.", "default": true},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.02, "min": 0, "max": 0.3, "step": 0.005, "unit": "s"},
+    {"id": "spring_duration", "type": "number", "role": "motion", "label": "Spring duration", "description": "Perceived duration of each letter's spring.", "default": 0.8, "min": 0.2, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "bounce", "type": "number", "role": "motion", "label": "Bounce", "description": "Spring bounce: 0 settles smoothly, higher overshoots.", "default": 0.25, "min": 0, "max": 0.8, "step": 0.05},
+    {"id": "swaps", "type": "number", "role": "motion", "label": "Cycles", "description": "How many swap-and-back cycles play.", "default": 2, "min": 1, "max": 8, "step": 1},
+    {"id": "first_swap", "type": "number", "role": "motion", "label": "First swap", "description": "Seconds before the first wave.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds from the start of one wave to the next.", "default": 2.2, "min": 0.6, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "hold", "type": "number", "role": "motion", "label": "Hold", "description": "Seconds the swapped state holds before the wave runs back.", "default": 1.0, "min": 0.2, "max": 4, "step": 0.1, "unit": "s"}
+  ]
+}

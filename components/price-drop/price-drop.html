@@ -17,7 +17,7 @@
     "role": "content",
     "label": "Eyebrow",
     "description": "Short line above the product name.",
-    "default": "Pedasnya nampol, wanginya juara"
+    "default": "Pedas, wangi, buatan rumah"
   },
   {
     "id": "product",
@@ -56,24 +56,16 @@
     "type": "color",
     "role": "style",
     "label": "Background",
-    "description": "Dark edge of the background.",
-    "default": "#2a0a0a"
-  },
-  {
-    "id": "bg_glow_color",
-    "type": "color",
-    "role": "style",
-    "label": "Glow",
-    "description": "Lighter pool of colour behind the price.",
-    "default": "#5c1010"
+    "description": "Background.",
+    "default": "#ffffff"
   },
   {
     "id": "main_color",
     "type": "color",
     "role": "style",
     "label": "Main colour",
-    "description": "New price, eyebrow, rays and label pill.",
-    "default": "#ffc93c"
+    "description": "New price and label outline: the one accent.",
+    "default": "#2563eb"
   },
   {
     "id": "strike_color",
@@ -81,7 +73,7 @@
     "role": "style",
     "label": "Strike colour",
     "description": "Line through the old price.",
-    "default": "#ff3b30"
+    "default": "#a3a3a3"
   },
   {
     "id": "text_color",
@@ -89,7 +81,7 @@
     "role": "style",
     "label": "Text colour",
     "description": "Product name.",
-    "default": "#fff6ee"
+    "default": "#0a0a0a"
   },
   {
     "id": "muted_color",
@@ -97,15 +89,7 @@
     "role": "style",
     "label": "Muted colour",
     "description": "Old price text.",
-    "default": "#c7b0aa"
-  },
-  {
-    "id": "show_rays",
-    "type": "boolean",
-    "role": "style",
-    "label": "Rays",
-    "description": "Slowly turning rays behind the price.",
-    "default": true
+    "default": "#737373"
   },
   {
     "id": "transparent",
@@ -125,7 +109,7 @@
     <template>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Poppins:wght@500;800&amp;display=block"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
       />
       <style>
         #root {
@@ -135,25 +119,21 @@
         #root * { box-sizing: border-box; }
         .pd-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
 
-        #root { color: var(--pd-text); font-family: Poppins, "Noto Sans", system-ui, sans-serif;
-          background: radial-gradient(120% 70% at 50% 45%, var(--pd-glow), var(--pd-bg) 70%); }
-        .pd-rays { position: absolute; left: 50%; top: 50%; width: 200cqmax; height: 200cqmax; margin: -100cqmax 0 0 -100cqmax; opacity: 0.5; will-change: transform;
-          background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--pd-main) 16%, transparent) 0deg 8deg, transparent 8deg 22deg);
-          -webkit-mask-image: radial-gradient(circle, black 0%, transparent 32%); mask-image: radial-gradient(circle, black 0%, transparent 32%); }
+        #root { color: var(--pd-text); font-family: Geist, system-ui, sans-serif; background: var(--pd-bg); }
         .pd-col { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 30); padding: 0 5cqw; }
         .pd-fitw { width: 100%; display: flex; justify-content: center; }
-        .pd-eyebrow { display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 46); font-weight: 500; color: var(--pd-main); }
+        .pd-eyebrow { display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 40); font-weight: 500; color: var(--pd-muted); letter-spacing: calc(var(--u) * -0.5); }
         .pd-mask { display: block; overflow: hidden; }
-        .pd-name { display: inline-block; white-space: nowrap; font-family: "Archivo Black", "Noto Sans", sans-serif; font-size: calc(var(--u) * 100); line-height: 1.15; letter-spacing: calc(var(--u) * -2); }
+        .pd-name { display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 104); font-weight: 600; line-height: 1.15; letter-spacing: -0.05em; }
         .pd-price { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 4); margin-top: calc(var(--u) * 30); }
         .pd-old { position: relative; display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 70); font-weight: 500; color: var(--pd-muted); }
-        .pd-old i { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); top: 52%; height: calc(var(--u) * 7); border-radius: calc(var(--u) * 4); background: var(--pd-strike); transform-origin: 0 50%; }
-        .pd-new { display: inline-block; white-space: nowrap; font-family: "Archivo Black", "Noto Sans", sans-serif; font-size: calc(var(--u) * 170); line-height: 1.05; color: var(--pd-main); font-variant-numeric: tabular-nums; }
-        .pd-label { display: inline-block; margin-top: calc(var(--u) * 20); padding: calc(var(--u) * 16) calc(var(--u) * 46); border-radius: calc(var(--u) * 80); white-space: nowrap; font-size: calc(var(--u) * 54); font-weight: 800; background: var(--pd-main); color: var(--pd-ink); }
+        .pd-old i { position: absolute; left: calc(var(--u) * -10); right: calc(var(--u) * -10); top: 52%; height: calc(var(--u) * 4); border-radius: calc(var(--u) * 2); background: var(--pd-strike); transform-origin: 0 50%; }
+        .pd-new { display: inline-block; white-space: nowrap; font-size: calc(var(--u) * 190); font-weight: 600; letter-spacing: -0.05em; line-height: 1.05; color: var(--pd-main); font-variant-numeric: tabular-nums; }
+        .pd-label { display: inline-block; margin-top: calc(var(--u) * 20); padding: calc(var(--u) * 14) calc(var(--u) * 40); border-radius: calc(var(--u) * 80); white-space: nowrap; font-size: calc(var(--u) * 44); font-weight: 600; border: 2px solid var(--pd-main); color: var(--pd-main); }
         @container (aspect-ratio > 1) {
           .pd-col { gap: calc(var(--u) * 16); }
           .pd-name { font-size: calc(var(--u) * 84); }
-          .pd-new { font-size: calc(var(--u) * 190); }
+          .pd-new { font-size: calc(var(--u) * 200); }
           .pd-old { font-size: calc(var(--u) * 60); }
           .pd-price { margin-top: calc(var(--u) * 16); }
         }
@@ -162,7 +142,6 @@
 
       <div id="root" data-composition-id="price-drop" data-duration="5" data-fps="30">
         <div id="pd-clip" class="pd-stage clip" data-start="0" data-duration="5" data-track-index="0">
-          <div id="pd-rays" class="pd-rays"></div>
           <div class="pd-col">
             <div class="pd-fitw" id="pd-fit1"><span class="pd-eyebrow" id="pd-eyebrow"></span></div>
             <div class="pd-fitw" id="pd-fit2"><span class="pd-mask"><span class="pd-name" id="pd-name"></span></span></div>
@@ -217,13 +196,10 @@
             var oldP = str(vars.old_price, "Rp35.000");
             var newP = str(vars.new_price, "Rp25.000");
             var label = typeof vars.label === "string" ? vars.label.trim() : "Hemat 28%";
-            var main = colr(vars.main_color, "#ffc93c");
-            setColors("pd", [["bg", "bg_color", "#2a0a0a"], ["glow", "bg_glow_color", "#5c1010"], ["main", "main_color", "#ffc93c"],
-              ["strike", "strike_color", "#ff3b30"], ["text", "text_color", "#fff6ee"], ["muted", "muted_color", "#c7b0aa"]]);
-            root.style.setProperty("--pd-ink", ink(main));
-            var rays = document.getElementById("pd-rays");
-            if (!bool(vars.show_rays, true)) rays.style.display = "none";
-            document.getElementById("pd-eyebrow").textContent = eyebrow;
+            var main = colr(vars.main_color, "#2563eb");
+            setColors("pd", [["bg", "bg_color", "#ffffff"], ["main", "main_color", "#2563eb"],
+              ["strike", "strike_color", "#a3a3a3"], ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"]]);
+                        document.getElementById("pd-eyebrow").textContent = eyebrow;
             document.getElementById("pd-name").textContent = product;
             document.getElementById("pd-old-t").textContent = oldP;
             var lab = document.getElementById("pd-label");
@@ -241,16 +217,13 @@
             function show(v) { newEl.textContent = !m || v >= value ? newP : m[1] + dots(Math.round(v / step) * step) + m[3]; }
 
             var tl = gsap.timeline({ paused: true });
-            tl.fromTo(rays, { rotation: 0, scale: 0.6 }, { rotation: 40, scale: 1, duration: 5, ease: "none" }, 0);
             tl.fromTo("#pd-eyebrow", { y: -30 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.15);
             tl.fromTo("#pd-name", { yPercent: 115 }, { yPercent: 0, duration: 0.7, ease: "expo.out" }, 0.3);
             tl.fromTo("#pd-old", { y: 40 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.9);
             tl.fromTo("#pd-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, 1.5);
-            tl.fromTo("#pd-new", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, 1.9);
+            tl.fromTo("#pd-new", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.9);
             tl.fromTo(counter, { v: 0 }, { v: value || 0, duration: 1, ease: "power2.out", onUpdate: function () { show(counter.v); } }, 1.9);
-            tl.to("#pd-new", { scale: 1.1, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, 3.0);
-            tl.fromTo("#pd-label", { scale: 1.8, rotation: -8, opacity: 0 }, { scale: 1, rotation: -3, opacity: 1, duration: 0.45, ease: "expo.out" }, 3.3);
-            tl.to("#pd-label", { scale: 1.06, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut" }, 3.9);
+                        tl.fromTo("#pd-label", { y: 24 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.3);
             show(0);
 
             var total = parseFloat(root.dataset.duration || "5");

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dia-text-reveal",
+  "type": "hyperframes:component",
+  "title": "Dia Text Reveal",
+  "description": "A soft multi-colour gradient band sweeps left to right across the text, revealing the letters behind it; with several texts it then swaps to the next and sweeps again.",
+  "tags": [
+    "text-effects",
+    "gradient",
+    "reveal",
+    "sweep",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A headline should be revealed by a smooth colour wash that settles into the normal text colour.",
+    "A few phrases should take turns, each revealed the same way."
+  ],
+  "avoidWhen": [
+    "The reveal should be letter by letter or word by word: use per-character-rise or per-word-rise.",
+    "A gloss that passes over text already on screen is enough: use text-shimmer."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/dia-text-reveal.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "dia-text-reveal.html",
+      "target": "compositions/components/dia-text-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The text to reveal. Separate several texts with | to take turns when Repeat is on.",
+      "default": "Welcome back|See you soon"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Band colours",
+      "description": "Colours across the moving band, comma separated.",
+      "default": "#A97CF8,#F38CB8,#FDCC92"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Colour of the revealed text.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Sweep time",
+      "description": "Seconds one sweep takes (the source uses 1.5).",
+      "default": 1.5,
+      "min": 0.4,
+      "max": 5,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Seconds before each sweep starts.",
+      "default": 0.2,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "repeat",
+      "type": "enum",
+      "role": "motion",
+      "label": "Repeat",
+      "description": "With several texts, move on to the next after each sweep.",
+      "default": "loop",
+      "options": [
+        {
+          "value": "loop",
+          "label": "Cycle through the texts"
+        },
+        {
+          "value": "once",
+          "label": "Sweep the first text once"
+        }
+      ]
+    },
+    {
+      "id": "repeat_delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Pause between texts",
+      "description": "Seconds between a finished sweep and the next text.",
+      "default": 0.5,
+      "min": 0,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    }
+  ],
+  "checkAt": [
+    0.9,
+    1.4,
+    3.2,
+    4.4
+  ]
+}

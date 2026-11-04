@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "spoiler-text",
+  "type": "hyperframes:component",
+  "title": "Spoiler Text",
+  "description": "A phrase in a sentence hides under a shimmering field of specks, then a wave blows them away and the words come into focus.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "spoiler",
+    "particles",
+    "canvas",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A sentence has one phrase that should be teased, then revealed: a twist, a price, a punchline.",
+    "A chat-style or social video needs the 'tap to reveal spoiler' moment."
+  ],
+  "avoidWhen": [
+    "The whole text should appear with a plain reveal: use blur-in or mask-reveal-up.",
+    "The hidden part is long: the patch dominates the frame."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/spoiler-text.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "spoiler-text.html",
+      "target": "compositions/components/spoiler-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "before",
+      "type": "string",
+      "role": "content",
+      "label": "Text before",
+      "description": "Visible text before the hidden phrase.",
+      "default": "Same. When it turned out"
+    },
+    {
+      "id": "spoiler",
+      "type": "string",
+      "role": "content",
+      "label": "Hidden phrase",
+      "description": "The phrase hidden under the specks until the reveal.",
+      "default": "the lighthouse keeper had been writing the letters all along"
+    },
+    {
+      "id": "after",
+      "type": "string",
+      "role": "content",
+      "label": "Text after",
+      "description": "Visible text after the hidden phrase.",
+      "default": "I had to pause it for a minute."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels.",
+      "default": 56,
+      "min": 16,
+      "max": 160,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Color of the text.",
+      "default": "#3f3f46"
+    },
+    {
+      "id": "speck_color",
+      "type": "color",
+      "role": "style",
+      "label": "Speck color",
+      "description": "Color of the specks and the soft patch behind them.",
+      "default": "#18181b"
+    },
+    {
+      "id": "reveal_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Reveal at",
+      "description": "Second the specks are blown away.",
+      "default": 2.4,
+      "min": 0.2,
+      "max": 10,
+      "step": 0.1,
+      "unit": "s"
+    },
+    {
+      "id": "reveal_from",
+      "type": "enum",
+      "role": "motion",
+      "label": "Reveal from",
+      "description": "Where the wave starts.",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "Start of the phrase"
+        },
+        {
+          "value": "center",
+          "label": "Middle of the phrase"
+        }
+      ]
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Same seed scatters the same specks every time.",
+      "default": 7,
+      "min": 1,
+      "max": 9999,
+      "step": 1
+    }
+  ],
+  "checkAt": [
+    1.2,
+    2.55,
+    2.8,
+    4.5
+  ]
+}

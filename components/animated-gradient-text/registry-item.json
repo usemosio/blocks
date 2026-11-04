@@ -1,0 +1,131 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "animated-gradient-text",
+  "type": "hyperframes:component",
+  "title": "Animated Gradient Text",
+  "description": "Text filled with a wide three-colour gradient that drifts slowly from one end to the other and back, so the colours flow through the letters.",
+  "tags": [
+    "text-effects",
+    "gradient",
+    "color",
+    "loop",
+    "animata-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A headline or tagline should shimmer with moving colour, not a single sweep.",
+    "A calm, always-alive colour flow on a hero word."
+  ],
+  "avoidWhen": [
+    "One quick highlight pass over plain text: use text-shimmer or shimmer-sweep.",
+    "The text must hold a single brand colour."
+  ],
+  "author": "Animata",
+  "authorUrl": "https://animata.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/codse/animata",
+    "path": "animata/text/animated-gradient-text.tsx",
+    "commit": "25c27e5a874c60a56dcc1609df3b2c4f5f8456f8"
+  },
+  "files": [
+    {
+      "path": "animated-gradient-text.html",
+      "target": "compositions/components/animated-gradient-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Text filled with the gradient.",
+      "default": "Hello, world!"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 130,
+      "min": 12,
+      "max": 320,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color_from",
+      "type": "color",
+      "role": "style",
+      "label": "Start color",
+      "description": "Gradient colour at 30 %.",
+      "default": "#eab308"
+    },
+    {
+      "id": "color_via",
+      "type": "color",
+      "role": "style",
+      "label": "Middle color",
+      "description": "Gradient colour at 50 %.",
+      "default": "#a16207"
+    },
+    {
+      "id": "color_to",
+      "type": "color",
+      "role": "style",
+      "label": "End color",
+      "description": "Gradient colour at 80 %.",
+      "default": "#ec4899"
+    },
+    {
+      "id": "leg",
+      "type": "number",
+      "role": "motion",
+      "label": "Leg duration",
+      "description": "Seconds for the gradient to drift from one end to the other.",
+      "default": 3,
+      "min": 0.5,
+      "max": 10,
+      "step": 0.5,
+      "unit": "s"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ]
+    }
+  ]
+}

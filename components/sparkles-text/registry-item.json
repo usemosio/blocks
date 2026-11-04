@@ -1,0 +1,118 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "sparkles-text",
+  "type": "hyperframes:component",
+  "title": "Sparkles Text",
+  "description": "Bold text with four-point stars that twinkle in and out at random spots over the letters, in two colours.",
+  "tags": [
+    "text-effects",
+    "sparkle",
+    "ambient",
+    "headline",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A word or short headline should feel magical, premium or celebratory.",
+    "A title needs a lively glitter without changing the letters themselves."
+  ],
+  "avoidWhen": [
+    "The mood is serious or minimal.",
+    "You want sparks flying outward or a burst: use radial-burst or confetti."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/sparkles-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "sparkles-text.html",
+      "target": "compositions/components/sparkles-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The word or phrase the sparkles sit on.",
+      "default": "Shine bright"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 120,
+      "min": 12,
+      "max": 280,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Colour of the letters.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "color_first",
+      "type": "color",
+      "role": "style",
+      "label": "Sparkle colour 1",
+      "description": "First sparkle colour.",
+      "default": "#9E7AFF"
+    },
+    {
+      "id": "color_second",
+      "type": "color",
+      "role": "style",
+      "label": "Sparkle colour 2",
+      "description": "Second sparkle colour.",
+      "default": "#FE8BBB"
+    },
+    {
+      "id": "sparkles_count",
+      "type": "number",
+      "role": "motion",
+      "label": "Sparkles",
+      "description": "How many stars twinkle at once.",
+      "default": 10,
+      "min": 1,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "sparkle_size",
+      "type": "number",
+      "role": "style",
+      "label": "Sparkle size",
+      "description": "Star size relative to the source, which draws 21 px stars beside 60 px text (1 = source).",
+      "default": 1.6,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes where the stars appear.",
+      "default": 7,
+      "min": 1,
+      "max": 9999,
+      "step": 1
+    }
+  ]
+}

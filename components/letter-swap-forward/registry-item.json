@@ -1,0 +1,53 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "letter-swap-forward",
+  "type": "hyperframes:component",
+  "title": "Letter Swap Forward",
+  "description": "Each letter slides out and an identical copy rolls in from the other side, in a staggered wave that repeats forward.",
+  "tags": [
+    "text-effects",
+    "letters",
+    "swap",
+    "kinetic-type",
+    "fancy-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A word needs a lively letter-by-letter roll that ends exactly where it began, like a hover state on a button or link.",
+    "The letters should swap in an ordered wave from the first, last or center letter."
+  ],
+  "avoidWhen": [
+    "The letters should turn into different letters or words: use text-rotate, type-fossil or kinetic-type-swap.",
+    "A one-time entrance is enough: use per-character-rise or vertical-cut-reveal."
+  ],
+  "author": "Daniel Petho",
+  "authorUrl": "https://fancycomponents.dev",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/danielpetho/fancy",
+    "path": "src/fancy/components/text/letter-swap-forward-anim.tsx",
+    "commit": "f9f62c61207b2dd3210476dd98af3c9a5be24094"
+  },
+  "files": [
+    {
+      "path": "letter-swap-forward.html",
+      "target": "compositions/components/letter-swap-forward.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Word or short phrase whose letters swap.", "default": "Letter swap"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 150, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#111111"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]},
+    {"id": "reverse", "type": "boolean", "role": "motion", "label": "Reverse", "description": "On: letters leave downward and the copy arrives from above. Off: the other way round.", "default": true},
+    {"id": "stagger", "type": "number", "role": "motion", "label": "Stagger", "description": "Seconds between neighbouring letters.", "default": 0.03, "min": 0, "max": 0.3, "step": 0.005, "unit": "s"},
+    {"id": "stagger_from", "type": "enum", "role": "motion", "label": "Stagger from", "description": "Where the wave starts.", "default": "first", "options": [{"value": "first", "label": "First letter"}, {"value": "last", "label": "Last letter"}, {"value": "center", "label": "Center"}]},
+    {"id": "spring_duration", "type": "number", "role": "motion", "label": "Spring duration", "description": "Perceived duration of each letter's spring.", "default": 0.7, "min": 0.2, "max": 2, "step": 0.05, "unit": "s"},
+    {"id": "bounce", "type": "number", "role": "motion", "label": "Bounce", "description": "Spring bounce: 0 settles smoothly, higher overshoots.", "default": 0.25, "min": 0, "max": 0.8, "step": 0.05},
+    {"id": "swaps", "type": "number", "role": "motion", "label": "Swaps", "description": "How many times the wave plays.", "default": 3, "min": 1, "max": 8, "step": 1},
+    {"id": "first_swap", "type": "number", "role": "motion", "label": "First swap", "description": "Seconds before the first wave.", "default": 0.4, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds from the start of one wave to the next.", "default": 1.4, "min": 0.6, "max": 5, "step": 0.1, "unit": "s"}
+  ]
+}

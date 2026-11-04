@@ -3,7 +3,7 @@
   "name": "event-countdown-clock",
   "type": "hyperframes:component",
   "title": "Event Countdown Clock",
-  "description": "A broadcast-style T− clock in four cells (days, hours, minutes, seconds) under a title plate that wipes in. The days and hours race down, the last five seconds tick in real time with a ten-segment bar emptying each second, then a warm flash, the clock turns colour and flips to T+, and a short \"now\" line takes the title's place.",
+  "description": "A T− clock in four cells (days, hours, minutes, seconds) in a hairline panel under a title that wipes in. The days and hours race down, the last five seconds tick in real time with a ten-segment bar emptying each second, then the clock turns to the accent colour, flips to T+, and a short \"now\" line takes the title's place.",
   "tags": [
     "mosio-recipe",
     "countdown",
@@ -45,7 +45,7 @@
       "type": "string",
       "role": "content",
       "label": "Event title",
-      "description": "Headline on the title plate.",
+      "description": "Headline above the clock.",
       "default": "Grand Opening"
     },
     {
@@ -53,7 +53,7 @@
       "type": "string",
       "role": "content",
       "label": "Event subtitle",
-      "description": "Spaced line under the title: place, date or occasion.",
+      "description": "Muted line under the title: place, date or occasion.",
       "default": "Kopi Senja · Jl. Melati 12"
     },
     {
@@ -129,8 +129,8 @@
       "type": "color",
       "role": "style",
       "label": "Background",
-      "description": "Ground behind the clock.",
-      "default": "#06080a"
+      "description": "Page behind the clock.",
+      "default": "#ffffff"
     },
     {
       "id": "panel_color",
@@ -138,15 +138,15 @@
       "role": "style",
       "label": "Panel",
       "description": "Clock panel surface.",
-      "default": "#0b0e11"
+      "default": "#fafafa"
     },
     {
       "id": "main_color",
       "type": "color",
       "role": "style",
       "label": "Main colour",
-      "description": "T− sign, labels, rule and the inverted clock after zero.",
-      "default": "#ff5b1f"
+      "description": "T− sign, segment bar and the digits after zero: the one accent.",
+      "default": "#2563eb"
     },
     {
       "id": "text_color",
@@ -154,15 +154,15 @@
       "role": "style",
       "label": "Text colour",
       "description": "Digits and title.",
-      "default": "#f2f5f7"
+      "default": "#0a0a0a"
     },
     {
       "id": "muted_color",
       "type": "color",
       "role": "style",
       "label": "Muted colour",
-      "description": "Unit labels and the subtitle.",
-      "default": "#7c878d"
+      "description": "Unit labels, panel label and the subtitle.",
+      "default": "#737373"
     },
     {
       "id": "transparent",

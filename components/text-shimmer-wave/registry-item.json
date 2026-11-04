@@ -1,0 +1,54 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "text-shimmer-wave",
+  "type": "hyperframes:component",
+  "title": "Text Shimmer Wave",
+  "description": "A wave of light runs through muted text: each letter in turn lifts toward the viewer, tilts, grows slightly and brightens, then settles back, and the wave repeats.",
+  "tags": [
+    "text-effects",
+    "loading",
+    "shimmer",
+    "3d",
+    "letters",
+    "motion-primitives-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "A status line (loading, thinking, generating) needs life without changing its words.",
+    "A quiet highlight that travels along one line of text."
+  ],
+  "avoidWhen": [
+    "A single clean specular sweep that returns to normal: use text-shimmer.",
+    "The text must stay perfectly still and flat."
+  ],
+  "author": "ibelick",
+  "authorUrl": "https://motion-primitives.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/ibelick/motion-primitives",
+    "path": "components/core/text-shimmer-wave.tsx",
+    "commit": "120f64f6ca60348e251f929e9c81f11ccbe45eda"
+  },
+  "files": [
+    {
+      "path": "text-shimmer-wave.html",
+      "target": "compositions/components/text-shimmer-wave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The line of text.", "default": "Generating your story"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Wave time", "description": "Seconds each letter takes for its lift.", "default": 1, "min": 0.3, "max": 3, "step": 0.05, "unit": "s"},
+    {"id": "spread", "type": "number", "role": "motion", "label": "Spread", "description": "Higher values let the wave travel faster across the line.", "default": 1, "min": 0.3, "max": 3, "step": 0.05},
+    {"id": "z_distance", "type": "number", "role": "motion", "label": "Z distance", "description": "Lift toward the viewer, in pixels.", "default": 10, "min": 0, "max": 60, "step": 1, "unit": "px"},
+    {"id": "x_distance", "type": "number", "role": "motion", "label": "X distance", "description": "Sideways drift, in pixels.", "default": 2, "min": -30, "max": 30, "step": 1, "unit": "px"},
+    {"id": "y_distance", "type": "number", "role": "motion", "label": "Y distance", "description": "Vertical drift, in pixels (negative is up).", "default": -2, "min": -30, "max": 30, "step": 1, "unit": "px"},
+    {"id": "scale_distance", "type": "number", "role": "motion", "label": "Scale", "description": "Peak scale of a letter.", "default": 1.1, "min": 1, "max": 1.6, "step": 0.01},
+    {"id": "rotate_y_distance", "type": "number", "role": "motion", "label": "Rotate Y", "description": "Peak tilt around the vertical axis.", "default": 10, "min": 0, "max": 60, "step": 1, "unit": "deg"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels.", "default": 80, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Base color", "description": "Resting color of the letters.", "default": "#a1a1aa"},
+    {"id": "highlight_color", "type": "color", "role": "style", "label": "Highlight color", "description": "Color of a letter at the peak of the wave.", "default": "#000000"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}

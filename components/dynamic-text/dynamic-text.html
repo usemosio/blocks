@@ -1,0 +1,254 @@
+<!doctype html>
+<!--
+  Dynamic Text
+
+  Morphing text where letters are physical objects: the first word's letters drop in and land with a squash; when the word changes, shared letters travel to their new place on a spring arc, leaving letters tip and fall off the baseline, new letters drop in, and digits roll like a counter.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/kokonut-labs/kokonutui/blob/4d497b7b03f02ffd07225e638c0b9ace3f892dbb/components/kokonutui/dynamic-text.tsx
+
+  MIT License
+
+  Copyright (c) 2025 kokonutUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="dynamic-text"
+  data-composition-duration="7.2"
+  data-composition-variables='[
+    {"id": "texts", "type": "string", "role": "content", "label": "Words", "description": "Words separated by |. The text morphs from each one to the next. Digits roll like a counter.", "default": "Create|Iterate|Repeat|Ship"},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds each word holds before the morph to the next.", "default": 1.8, "min": 0.8, "max": 4, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Wide words shrink to fit the frame.", "default": 120, "min": 24, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#18181b"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dynamic Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+        #root { font-family: var(--font-display, Geist, system-ui, sans-serif); color: var(--dt-color, #18181b); }
+        .dt-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .dt-row { position: relative; line-height: 1.15; letter-spacing: -0.03em; white-space: pre; height: 1.15em; }
+        .dt-glyph { position: absolute; left: 0; top: 0; transform-origin: 50% 100%; opacity: 0; white-space: pre; }
+        .dt-measure { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; line-height: 1.15; letter-spacing: -0.03em; }
+        .dt-measure span { display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="dynamic-text" data-duration="7.2" data-fps="30">
+        <div id="dt-clip" class="dt-stage clip" data-start="0" data-duration="7.2" data-track-index="0">
+          <div id="dt-row" class="dt-row" role="img"></div>
+        </div>
+        <div id="dt-measure" class="dt-measure" aria-hidden="true"></div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, a, b) { var x = Number(v); return Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+
+            var row = document.getElementById("dt-row");
+            var measure = document.getElementById("dt-measure");
+            var words = str(vars.texts, "Create|Iterate|Repeat|Ship").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!words.length) words = ["Create"];
+            var interval = num(vars.interval, 1.8, 0.8, 4);
+            var size = num(vars.font_size, 120, 24, 260);
+            var weight = ["500", "600", "700"].indexOf(String(vars.font_weight)) >= 0 ? String(vars.font_weight) : "600";
+            root.style.setProperty("--dt-color", col(vars.color, "#18181b"));
+            [row, measure].forEach(function (e) { e.style.fontSize = size + "px"; e.style.fontWeight = weight; });
+            row.setAttribute("aria-label", words.join(", "));
+
+            // Measure every word: where each character sits and how wide the word is.
+            function isDigit(c) { return c >= "0" && c <= "9"; }
+            function measureWord(w) {
+              measure.textContent = "";
+              var chars = Array.from(w);
+              chars.forEach(function (c) { var s = document.createElement("span"); s.textContent = c; measure.appendChild(s); });
+              var toks = [];
+              chars.forEach(function (c, i) { if (c.trim() === "") return; toks.push({ char: c, x: measure.children[i].offsetLeft, digit: isDigit(c), slot: 0 }); });
+              var slot = 0;
+              for (var i = toks.length - 1; i >= 0; i--) if (toks[i].digit) toks[i].slot = slot++;
+              return { tokens: toks, width: measure.offsetWidth };
+            }
+            var meas = words.map(measureWord);
+            var widest = Math.max.apply(null, meas.map(function (m) { return m.width; }));
+            var avail = root.clientWidth * 0.9;
+            if (widest > avail) {
+              size = Math.max(24, size * avail / widest);
+              [row, measure].forEach(function (e) { e.style.fontSize = size + "px"; });
+              meas = words.map(measureWord);
+            }
+            var em = size;
+
+            // The physics, ported from the source's engine: springs for travel, lift, roll, squash, tilt and width.
+            var STEP = 1 / 120;
+            function damping(k, z) { return 2 * z * Math.sqrt(k); }
+            var TRAVEL_K = 140, TRAVEL_C = damping(140, 0.8), LIFT_K = 300, LIFT_C = damping(300, 0.9), ROLL_K = 200, ROLL_C = damping(200, 0.86);
+            var SQUASH_K = 1400, SQUASH_C = damping(1400, 0.6), TILT_K = 140, TILT_C = damping(140, 0.7), WIDTH_K = 220, WIDTH_C = damping(220, 1);
+            var GRAVITY = 32, DROP = 0.7, FALL_FADE = 0.9, ROLL = 0.75, LAND_SQUASH = -0.16, ENTER_STAGGER = 0.035, MAX_SPREAD = 0.45, FADE_RATE = 7;
+            var dur = parseFloat(root.dataset.duration || "7.2");
+            var N = Math.ceil(dur / STEP) + 2;
+            var step = 0, glyphs = [], live = [], order = [], nextId = 0, w = meas[0].width, vw = 0, tw = w;
+            var Wd = new Float32Array(N);
+
+            function create(t) {
+              var g = { id: nextId++, char: t.char, digit: t.digit, slot: t.slot, phase: "rest", leaving: false, delay: 0, x: t.x, vx: 0, tx: t.x, x0: t.x, arc: 0, y: 0, vy: 0, ty: 0, r: 0, vr: 0, tr: 0, sq: 0, vsq: 0, o: 1,
+                X: new Float32Array(N), Y: new Float32Array(N), R: new Float32Array(N), Q: new Float32Array(N), O: new Float32Array(N) };
+              glyphs.push(g); live.push(g); return g;
+            }
+            function move(g, t) {
+              g.slot = t.slot; g.tx = t.x;
+              if (g.phase === "rest" && Math.abs(t.x - g.x) < 0.5) { g.x = t.x; return; }
+              g.x0 = g.x; g.delay = 0;
+              var distance = t.x - g.x;
+              g.arc = -Math.sign(distance) * Math.min(0.22 * em, Math.abs(distance) * 0.14);
+              g.phase = "travel";
+            }
+            function enter(g, dir, index) {
+              g.o = 0;
+              if (g.digit) { g.y = dir * ROLL * em; g.ty = 0; g.phase = "roll"; return; }
+              g.y = -DROP * em; g.phase = "drop"; g.delay = index * ENTER_STAGGER;
+            }
+            function leave(g, dir) {
+              g.leaving = true; g.delay = 0;
+              if (g.digit) { g.phase = "roll"; g.ty = -dir * ROLL * 1.2 * em; return; }
+              var side = g.x + em * 0.3 < tw / 2 ? -1 : 1;
+              g.tr = side * (5 + ((g.id * 7) % 11)); g.vx = side * 0.4 * em; g.vy = Math.max(g.vy, 0); g.phase = "fall";
+            }
+            function update(m) {
+              var tokens = m.tokens;
+              var letters = {}, slots = {};
+              order.forEach(function (g) { if (g.digit) slots[g.slot] = g; else (letters[g.char] = letters[g.char] || []).push(g); });
+              var before = Number(order.filter(function (g) { return g.digit; }).map(function (g) { return g.char; }).join(""));
+              var after = Number(tokens.filter(function (t) { return t.digit; }).map(function (t) { return t.char; }).join(""));
+              var dir = after < before ? -1 : 1;
+              var next = [], entering = 0;
+              tokens.forEach(function (t) {
+                var old;
+                if (t.digit) { old = slots[t.slot]; delete slots[t.slot]; }
+                else if (letters[t.char] && letters[t.char].length) old = letters[t.char].shift();
+                if (old && old.char === t.char) { move(old, t); next.push(old); return; }
+                if (old) leave(old, dir);
+                var g = create(t); enter(g, dir, entering++); next.push(g);
+              });
+              var spread = entering * ENTER_STAGGER;
+              if (spread > MAX_SPREAD) next.forEach(function (g) { g.delay *= MAX_SPREAD / spread; });
+              Object.keys(letters).forEach(function (k) { letters[k].forEach(function (g) { leave(g, dir); }); });
+              Object.keys(slots).forEach(function (k) { leave(slots[k], dir); });
+              order = next; tw = m.width;
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            function stepGlyph(g, h) {
+              if (g.phase === "travel") {
+                var span = Math.abs(g.tx - g.x0), p = span < 0.5 ? 1 : clamp01(1 - Math.abs(g.tx - g.x) / span);
+                g.ty = g.arc * 4 * p * (1 - p);
+                g.vx += (-TRAVEL_K * (g.x - g.tx) - TRAVEL_C * g.vx) * h; g.x += g.vx * h;
+                g.vy += (-LIFT_K * (g.y - g.ty) - LIFT_C * g.vy) * h; g.y += g.vy * h;
+                g.o = Math.min(1, g.o + FADE_RATE * h);
+              } else if (g.phase === "drop") {
+                g.vy += GRAVITY * em * h; g.y += g.vy * h;
+                if (g.y >= 0) { g.y = 0; g.vy = 0; g.sq = LAND_SQUASH; g.phase = "rest"; }
+                g.o = clamp01(1 + g.y / (DROP * em));
+              } else if (g.phase === "fall") {
+                g.vy += GRAVITY * em * h; g.y += g.vy * h; g.x += g.vx * h;
+                g.vr += (-TILT_K * (g.r - g.tr) - TILT_C * g.vr) * h; g.r += g.vr * h;
+                g.o = Math.min(g.o, clamp01(1 - g.y / (FALL_FADE * em)));
+              } else if (g.phase === "roll") {
+                g.vy += (-ROLL_K * (g.y - g.ty) - ROLL_C * g.vy) * h; g.y += g.vy * h;
+                g.o = clamp01(1 - Math.abs(g.y) / (ROLL * em));
+              }
+              if (g.sq !== 0 || g.vsq !== 0) {
+                g.vsq += (-SQUASH_K * g.sq - SQUASH_C * g.vsq) * h; g.sq += g.vsq * h;
+                if (Math.abs(g.sq) < 0.001 && Math.abs(g.vsq) < 0.01) { g.sq = 0; g.vsq = 0; }
+              }
+            }
+            function isGone(g) { return g.leaving && g.o <= 0.002; }
+            function settle(g) {
+              if (g.leaving) return;
+              var arrived = Math.abs(g.x - g.tx) < 0.05 && Math.abs(g.vx) < 0.5 && Math.abs(g.y) < 0.05 && Math.abs(g.vy) < 0.5;
+              if ((g.phase === "travel" && arrived) || (g.phase === "roll" && arrived)) { g.x = g.tx; g.y = 0; g.vx = 0; g.vy = 0; g.o = 1; g.phase = "rest"; }
+            }
+            var next = 0;
+            for (step = 0; step < N; step++) {
+              var t = step * STEP;
+              while (next < words.length && t >= next * interval - 1e-9) {
+                if (next === 0) { tw = meas[0].width; w = tw; }
+                update(meas[next]); next++;
+              }
+              live.forEach(function (g) {
+                if (g.delay > 0) { g.delay -= STEP; return; }
+                stepGlyph(g, STEP); settle(g);
+              });
+              if (Math.abs(w - tw) >= 0.1 || Math.abs(vw) >= 0.1) { vw += (-WIDTH_K * (w - tw) - WIDTH_C * vw) * STEP; w += vw * STEP; } else { w = tw; vw = 0; }
+              Wd[step] = w;
+              live.forEach(function (g) { g.X[step] = g.x; g.Y[step] = g.y; g.R[step] = g.r; g.Q[step] = g.sq; g.O[step] = g.o; });
+              live = live.filter(function (g) { return !isGone(g); });
+            }
+
+            // One element per glyph; the timeline reads the recorded simulation back.
+            glyphs.forEach(function (g) {
+              var el = document.createElement("span");
+              el.className = "dt-glyph";
+              el.textContent = g.char;
+              row.appendChild(el);
+              g.el = el;
+            });
+            function draw(time) {
+              var f = Math.min(N - 2, Math.max(0, time / STEP)), i0 = Math.floor(f), u = f - i0;
+              function at(a) { return a[i0] + (a[i0 + 1] - a[i0]) * u; }
+              row.style.width = at(Wd).toFixed(2) + "px";
+              for (var i = 0; i < glyphs.length; i++) {
+                var g = glyphs[i], o = at(g.O);
+                if (o <= 0.002) { g.el.style.opacity = 0; continue; }
+                var sq = at(g.Q);
+                g.el.style.transform = "translate(" + at(g.X).toFixed(2) + "px," + at(g.Y).toFixed(2) + "px) rotate(" + at(g.R).toFixed(2) + "deg) scale(" + (1 - sq * 0.6).toFixed(3) + "," + (1 + sq).toFixed(3) + ")";
+                g.el.style.opacity = o.toFixed(3);
+              }
+            }
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: dur, duration: dur, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+
+            var total = parseFloat(root.dataset.duration || "7.2");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["dynamic-text"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

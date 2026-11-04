@@ -1,0 +1,259 @@
+<!doctype html>
+<!--
+  Word Roller Gradient Wave
+
+  Words swap one after another with their letters rising in, each letter shifting hue in a slow blue wave across the word, over a progress bar; the last word settles in the accent blue, a little bigger.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/lifeprompt-team/remotion-scenes/blob/02c7a84241da7010b5f59c420b0110aafd1d6f0d/src/scenes/RollerAnimations/RollerGradientWave.tsx
+
+  MIT License
+
+  Copyright (c) 2026 lifeprompt-team
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="word-roller-gradient-wave"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "words", "type": "string", "role": "content", "label": "Words", "description": "Words in order, separated by commas. The last one is where it settles.", "default": "Dream, Design, Develop, Deliver, DOMINATE"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Size of the word in pixels. A wide word shrinks to fit the frame.", "default": 80, "min": 20, "max": 280, "step": 1, "unit": "px"},
+    {"id": "hue", "type": "number", "role": "style", "label": "Hue", "description": "Centre hue of the letter colours in degrees (215 is blue).", "default": 215, "min": 0, "max": 360, "step": 1, "unit": "deg"},
+    {"id": "final_hue", "type": "number", "role": "style", "label": "Final hue", "description": "Hue of the last word (221 is the accent blue).", "default": 221, "min": 0, "max": 360, "step": 1, "unit": "deg"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Progress bar", "description": "Colour of the progress bar.", "default": "#2563eb"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Fill behind the text. Use transparent to lay the block over your own footage.", "default": "#fafafa"},
+    {"id": "word_frames", "type": "number", "role": "motion", "label": "Frames per word", "description": "How long each word is shown, in 30 fps frames.", "default": 25, "min": 12, "max": 90, "step": 1, "unit": "f"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Word Roller Gradient Wave</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100;300;400;500;600;700;800;900&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: var(--font-display, Geist, system-ui, -apple-system, sans-serif);
+          pointer-events: none;
+        }
+        .wgw-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+        .wgw-g { position: relative; text-align: center; line-height: 1.2; }
+        .wgw-row { display: flex; justify-content: center; font-weight: 800; }
+        .wgw-ch { display: inline-block; white-space: pre; }
+        .wgw-track { width: 2.5em; height: 0.05em; background: #e5e5e5; margin: 0.375em auto 0; border-radius: 0.025em; overflow: hidden; }
+        .wgw-fill { height: 100%; }
+
+      </style>
+
+      <div id="root" data-composition-id="word-roller-gradient-wave" data-duration="5" data-fps="30">
+        <div id="wgw-clip" class="wgw-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="wgw-g" class="wgw-g">
+            <div id="wgw-row" class="wgw-row"></div>
+            <div class="wgw-track"><div id="wgw-fill" class="wgw-fill"></div></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function el(id) { return document.getElementById(id); }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && value !== undefined && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function txt(value, fallback) {
+              return typeof value === "string" ? value : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function list(value, fallback, max) {
+              var a = (typeof value === "string" ? value : "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+              if (!a.length) a = fallback.slice();
+              return a.slice(0, max || 12);
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            var E = {
+              out: bezier(0.16, 1, 0.3, 1), "in": bezier(0.7, 0, 0.84, 0), inOut: bezier(0.87, 0, 0.13, 1),
+              overshoot: bezier(0.34, 1.56, 0.64, 1), smooth: bezier(0.4, 0, 0.2, 1),
+              quadIn: function (x) { return x * x; },
+              quadOut: function (x) { return 1 - (1 - x) * (1 - x); },
+              cubicOut: function (x) { return 1 - Math.pow(1 - x, 3); },
+              cubicInOut: function (x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+            };
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            // Remotion interpolate with clamped ends, one input range and one output range.
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 towards 1 (mass, stiffness, damping), frame at 30 fps, in closed form.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass || 1, k = cfg.stiffness === undefined ? 100 : cfg.stiffness, c = cfg.damping === undefined ? 10 : cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (Math.abs(z - 1) < 1e-6) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              var q = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + q, r2 = -z * w0 - q;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            // Sets the group's font size, then shrinks it so the group (or its probe) fits the frame.
+            function fitG(g, size, probe, wf, hf, wmul) {
+              g.style.fontSize = size + "px";
+              var p = probe || g;
+              var w = Math.max(1, p.offsetWidth * (wmul || 1)), h = Math.max(1, p.offsetHeight);
+              var k = Math.min(1, root.clientWidth * (wf || 0.9) / w, root.clientHeight * (hf || 0.9) / h);
+              if (k < 1) { size = Math.max(6, size * k); g.style.fontSize = size + "px"; }
+              return size;
+            }
+            function fillSizer(sizer, words) {
+              sizer.textContent = "";
+              words.forEach(function (w) {
+                var s = document.createElement("span");
+                s.textContent = w;
+                sizer.appendChild(s);
+              });
+            }
+            function setText(node, value) {
+              if (node.__t !== value) { node.__t = value; node.textContent = value; }
+            }
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var TOTAL = parseFloat(root.dataset.duration || "5");
+            var clock = { frame: 0 };
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: Math.round(TOTAL * 30), duration: TOTAL, ease: "none", onUpdate: function () { draw(Math.round(clock.frame * speed * 1000) / 1000); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["word-roller-gradient-wave"] = tl;
+            }
+
+            
+            var words = list(vars.words, ["Dream", "Design", "Develop", "Deliver", "DOMINATE"], 10);
+            var fi = words.length - 1;
+            var wd = num(vars.word_frames, 25, 12, 90);
+            var hue0 = num(vars.hue, 215, 0, 360), hueF = num(vars.final_hue, 221, 0, 360);
+            var accent = str(vars.accent, "#2563eb");
+            root.style.background = str(vars.background, "#fafafa");
+            var g = el("wgw-g"), row = el("wgw-row"), fill = el("wgw-fill");
+            var longest = words.slice().sort(function (a, b) { return b.length - a.length; })[0];
+            var probe = document.createElement("div");
+            probe.style.cssText = "position:absolute;visibility:hidden;white-space:pre;font-weight:800;font-size:1.25em;left:0;top:0";
+            probe.textContent = longest;
+            g.appendChild(probe);
+            var base = num(vars.font_size, 80, 20, 280);
+            function fit() { fitG(g, base, probe, 0.88, 0.8); }
+            fit();
+            onFonts(fit);
+
+            var shown = -1, chars = [];
+            function build(index) {
+              row.textContent = "";
+              chars = Array.from(words[index]).map(function (c) {
+                var s = document.createElement("span");
+                s.className = "wgw-ch";
+                s.textContent = c;
+                row.appendChild(s);
+                return s;
+              });
+              shown = index;
+            }
+            // remocn-scenes: hue = 215 +/- 12 and lightness 48 +/- 8 following sin(t * 0.2 + pos * 0.5);
+            // the last word is hue 221 and 100 px instead of 80; letters rise 2 frames apart over 8 frames.
+            function draw(t) {
+              var ci = Math.min(Math.floor(t / wd), fi);
+              var final = ci === fi;
+              var cf = final ? t - fi * wd : t % wd;
+              var wo = t * 0.1;
+              if (shown !== ci) build(ci);
+              row.style.fontSize = final ? "1.25em" : "1em";
+              chars.forEach(function (s, pos) {
+                var cw = Math.sin(wo * 2 + pos * 0.5);
+                var hue = final ? hueF : hue0 + cw * 12;
+                var li = 48 + cw * 8;
+                var ep = ip(cf - pos * 2, 0, 8, 0, 1, E.out);
+                s.style.color = "hsl(" + hue + ", 80%, " + li + "%)";
+                s.style.transform = "translateY(" + ((1 - ep) * 30 / 80) + "em)";
+                s.style.opacity = ep;
+              });
+              fill.style.width = ((ci + 1) / words.length * 100) + "%";
+              fill.style.background = accent;
+            }
+            start(draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,480 @@
+<!doctype html>
+<!--
+  Stroke to Fill Text
+
+  Draws type as an outline, then floods each letter solid with a soft edge, in the direction you choose.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/riaz37/remotion-ui/blob/0aecaca2b61a167992e1205d10e4da16d8a71331/apps/web/registry/bases/default/primitives/stroke-to-fill-text.tsx
+
+  MIT License
+
+  Copyright (c) 2026 RemotionUI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="stroke-to-fill-text"
+  data-composition-duration="4"
+  data-composition-variables='[
+    [
+      {
+        "id": "text",
+        "type": "string",
+        "role": "content",
+        "label": "Text",
+        "description": "The text. A line break starts a new line.",
+        "default": "Fill it in."
+      },
+      {
+        "id": "font_size",
+        "type": "number",
+        "role": "style",
+        "label": "Font size",
+        "description": "Text size in pixels.",
+        "default": 120,
+        "min": 24,
+        "max": 260,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "id": "color",
+        "type": "color",
+        "role": "style",
+        "label": "Color",
+        "description": "Text color.",
+        "default": "#f4f4f5"
+      },
+      {
+        "id": "font_weight",
+        "type": "number",
+        "role": "style",
+        "label": "Font weight",
+        "description": "Weight of the text.",
+        "default": 800,
+        "min": 100,
+        "max": 900,
+        "step": 100
+      },
+      {
+        "id": "font",
+        "type": "enum",
+        "role": "style",
+        "label": "Font",
+        "description": "Typeface.",
+        "default": "poppins",
+        "options": [
+          {
+            "value": "geist",
+            "label": "Geist"
+          },
+          {
+            "value": "poppins",
+            "label": "Poppins"
+          },
+          {
+            "value": "playfair",
+            "label": "Playfair Display"
+          },
+          {
+            "value": "grotesk",
+            "label": "Space Grotesk"
+          }
+        ]
+      },
+      {
+        "id": "mode",
+        "type": "enum",
+        "role": "motion",
+        "label": "Split by",
+        "description": "What one animated unit is.",
+        "default": "chars",
+        "options": [
+          {
+            "value": "chars",
+            "label": "Characters"
+          },
+          {
+            "value": "words",
+            "label": "Words"
+          },
+          {
+            "value": "lines",
+            "label": "Lines"
+          }
+        ]
+      },
+      {
+        "id": "order",
+        "type": "enum",
+        "role": "motion",
+        "label": "Order",
+        "description": "Order the units arrive in.",
+        "default": "start",
+        "options": [
+          {
+            "value": "start",
+            "label": "Start to end"
+          },
+          {
+            "value": "end",
+            "label": "End to start"
+          },
+          {
+            "value": "center",
+            "label": "Centre outwards"
+          },
+          {
+            "value": "edges",
+            "label": "Edges inwards"
+          },
+          {
+            "value": "random",
+            "label": "Random"
+          }
+        ]
+      },
+      {
+        "id": "stagger_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Stagger",
+        "description": "Frames (30 per second) between one unit and the next.",
+        "default": 3,
+        "min": 0,
+        "max": 20,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "duration_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Unit duration",
+        "description": "Frames one unit takes to arrive.",
+        "default": 24,
+        "min": 1,
+        "max": 90,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "delay_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Delay",
+        "description": "Frames before the first unit starts.",
+        "default": 6,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "frames"
+      },
+      {
+        "id": "exit",
+        "type": "boolean",
+        "role": "motion",
+        "label": "Exit",
+        "description": "Play an exit at the end of the clip.",
+        "default": false
+      },
+      {
+        "id": "stroke_color",
+        "type": "color",
+        "role": "style",
+        "label": "Stroke color",
+        "description": "Colour of the outline.",
+        "default": "#f4f4f5"
+      },
+      {
+        "id": "stroke_width",
+        "type": "number",
+        "role": "style",
+        "label": "Stroke width",
+        "description": "Outline thickness in pixels.",
+        "default": 3,
+        "min": 0.5,
+        "max": 16,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "id": "direction",
+        "type": "enum",
+        "role": "motion",
+        "label": "Fill direction",
+        "description": "Which way the fill floods each letter.",
+        "default": "up",
+        "options": [
+          {
+            "value": "up",
+            "label": "Up"
+          },
+          {
+            "value": "down",
+            "label": "Down"
+          },
+          {
+            "value": "left",
+            "label": "Right to left"
+          },
+          {
+            "value": "right",
+            "label": "Left to right"
+          }
+        ]
+      },
+      {
+        "id": "edge_softness",
+        "type": "number",
+        "role": "style",
+        "label": "Edge softness",
+        "description": "Softness of the fill edge as a share of one letter.",
+        "default": 0.12,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "id": "stroke_retain",
+        "type": "number",
+        "role": "style",
+        "label": "Stroke kept",
+        "description": "How much of the outline stays once a letter is full (0 to 1).",
+        "default": 0.35,
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      },
+      {
+        "id": "outline_frames",
+        "type": "number",
+        "role": "motion",
+        "label": "Outline fade-in",
+        "description": "Frames the outline takes to appear.",
+        "default": 16,
+        "min": 1,
+        "max": 90,
+        "step": 1,
+        "unit": "frames"
+      }
+    ]
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stroke to Fill Text</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Poppins:wght@400;600;800&amp;family=Playfair+Display:wght@400..900&amp;family=Space+Grotesk:wght@300..700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: #f4f4f5; }
+        .stf-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .stf-text { display: inline-flex; flex-direction: column; align-items: center; text-align: center; max-width: 90%; line-height: 1.15; }
+        .stf-line { display: block; white-space: normal; }
+        .stf-word { display: inline-block; white-space: nowrap; }
+        .stf-unit { display: inline-block; white-space: pre; }
+        .stf-unit { position: relative; }
+        .stf-fill { position: absolute; left: 0; top: 0; display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="stroke-to-fill-text" data-duration="4" data-fps="30">
+        <div id="stf-clip" class="stf-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <span id="stf-text" class="stf-text" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, min, max) { var n = Number(v); return Number.isFinite(n) && v !== "" && v !== null ? Math.min(max, Math.max(min, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function bool(v, f) { if (v === undefined || v === null || v === "") return f; return !(v === false || v === "false" || v === 0 || v === "0"); }
+            function pick(v, list, f) { v = String(v); return list.indexOf(v) >= 0 ? v : f; }
+            function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function ramp(v, a, b, from, to, ease) { var p = b === a ? 1 : clamp01((v - a) / (b - a)); if (ease) p = ease(p); return from + (to - from) * p; }
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function mk(tag, parent, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+            var TOTAL = parseFloat(root.dataset.duration || "4");
+            // Every frame is drawn from the frame number alone, so seeking anywhere draws the same frame.
+            function drive(name, frameFn) {
+              var clock = { f: 0 };
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { f: TOTAL * 30, duration: TOTAL, ease: "none", onUpdate: function () { frameFn(clock.f); } }, 0);
+              frameFn(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines[name] = tl;
+            }
+
+            // ---- Split text into lines, words and units (characters, words or lines), staggered like remotion-ui's useSplitText ----
+            var ENTER = bez(0.16, 1, 0.3, 1);
+            function EXIT(t) { return t * t * t; }
+            function splitText(text, mode) {
+              var lines = [], units = [];
+              String(text).split(/\r?\n/).forEach(function (raw) {
+                var words = [];
+                var rawWords = mode === "lines" ? [raw.trim()].filter(Boolean) : raw.split(/\s+/).filter(Boolean);
+                rawWords.forEach(function (w) {
+                  var pieces = mode === "chars" ? Array.from(w) : [w];
+                  var us = pieces.map(function (p) { var u = { text: p, index: units.length }; units.push(u); return u; });
+                  words.push({ units: us });
+                });
+                lines.push({ words: words });
+              });
+              return { lines: lines, units: units };
+            }
+            function staggerRanks(total, order, seed) {
+              var idx = [], i, mid = (total - 1) / 2;
+              for (i = 0; i < total; i++) idx.push(i);
+              if (order === "end") return idx.map(function (k) { return total - 1 - k; });
+              if (order === "center") return idx.map(function (k) { return Math.round(Math.abs(k - mid)); });
+              if (order === "edges") return idx.map(function (k) { return Math.round(mid - Math.abs(k - mid)); });
+              if (order === "random") {
+                var rng = mulberry32(seed || 1), keys = idx.map(function () { return rng(); });
+                var sorted = idx.slice().sort(function (a, b) { return keys[a] - keys[b]; });
+                var out = new Array(total);
+                sorted.forEach(function (orig, rank) { out[orig] = rank; });
+                return out;
+              }
+              return idx;
+            }
+            // o: stagger, duration, delay (frames), order, seed, exit (bool), exitFrames
+            function makeTiming(split, o) {
+              var rk = staggerRanks(split.units.length, o.order, o.seed);
+              var maxRank = rk.length ? Math.max.apply(null, rk) : 0;
+              var lastEnter = o.delay + maxRank * o.stagger + o.duration;
+              var exitFrames = Math.max(1, Math.round(o.exitFrames || Math.max(6, Math.round(o.duration * 0.7))));
+              var exitStart = null;
+              if (o.exit) exitStart = Math.max(TOTAL * 30 - exitFrames - maxRank * o.stagger, lastEnter);
+              return { ranks: rk, o: o, exitFrames: exitFrames, exitStart: exitStart, lastEnter: lastEnter };
+            }
+            function unitState(frame, T, u) {
+              var rank = T.ranks[u.index], o = T.o;
+              var start = o.delay + rank * o.stagger;
+              var et = clamp01((frame - start) / o.duration);
+              var enter = ENTER(et), eo = clamp01(et / 0.55);
+              if (T.exitStart === null) return { enter: enter, exit: 0, displace: 1 - enter, opacity: eo, value: enter };
+              var us = T.exitStart + rank * o.stagger;
+              var xt = clamp01((frame - us) / T.exitFrames);
+              var ex = EXIT(xt), xo = 1 - clamp01(xt / 0.7);
+              return { enter: enter, exit: ex, displace: ex > 0 ? ex : 1 - enter, opacity: eo * xo, value: enter * (1 - ex) };
+            }
+            // Builds lines > words > unit spans into parent. fill(unitEl, u) fills each unit.
+            function buildSplit(parent, split, pre, wordGap, fill) {
+              split.lines.forEach(function (line) {
+                var lineEl = mk("span", parent, pre + "-line");
+                line.words.forEach(function (word, wi) {
+                  var wordEl = mk("span", lineEl, pre + "-word");
+                  if (wi < line.words.length - 1) wordEl.style.marginRight = wordGap + "em";
+                  word.units.forEach(function (u) {
+                    u.el = mk("span", wordEl, pre + "-unit");
+                    fill(u.el, u);
+                  });
+                });
+              });
+            }
+            function splitCss(pre) {
+              return "." + pre + "-text { display: inline-flex; flex-direction: column; align-items: center; text-align: center; max-width: 90%; line-height: 1.15; }\n" +
+                "." + pre + "-line { display: block; white-space: normal; }\n" +
+                "." + pre + "-word { display: inline-block; }\n" +
+                "." + pre + "-unit { display: inline-block; white-space: pre; }\n";
+            }
+
+            var DEFAULT_TEXT = "Fill it in.", DEF_STAGGER = 3, DEF_DURATION = 24, DEF_EXIT = false;
+            var FONTS = { geist: "Geist, system-ui, sans-serif", poppins: "Poppins, system-ui, sans-serif", playfair: '"Playfair Display", Georgia, serif', grotesk: '"Space Grotesk", system-ui, sans-serif' };
+            var fontKey = pick(vars.font, ["geist", "poppins", "playfair", "grotesk"], "poppins");
+            root.style.fontFamily = FONTS[fontKey];
+            var text = str(vars.text, DEFAULT_TEXT);
+            var mode = pick(vars.mode, ["chars", "words", "lines"], "chars");
+            var MODE_STAGGER = { chars: 2, words: 4, lines: 7 };
+            var split = splitText(text, mode);
+            var T = makeTiming(split, {
+              stagger: num(vars.stagger_frames, DEF_STAGGER, 0, 20), duration: num(vars.duration_frames, DEF_DURATION, 1, 90), delay: num(vars.delay_frames, 6, 0, 120),
+              order: pick(vars.order, ["start", "end", "center", "edges", "random"], "start"), seed: 1, exit: bool(vars.exit, DEF_EXIT)
+            });
+
+            var textEl = document.getElementById("stf-text");
+            textEl.style.fontSize = num(vars.font_size, 120, 24, 260) + "px";
+            textEl.style.fontWeight = String(num(vars.font_weight, 800, 100, 900));
+            textEl.style.color = str(vars.color, "#f4f4f5");
+            textEl.setAttribute("aria-label", text);
+
+            var strokeColor = str(vars.stroke_color, "#f4f4f5"), strokeWidth = num(vars.stroke_width, 3, 0.5, 16);
+            var dir = pick(vars.direction, ["up", "down", "left", "right"], "up");
+            var DIRS = { up: "to top", down: "to bottom", left: "to left", right: "to right" };
+            var softness = num(vars.edge_softness, 0.12, 0, 1) * 100, retain = num(vars.stroke_retain, 0.35, 0, 1);
+            var outlineFrames = num(vars.outline_frames, 16, 1, 90), delay = T.o.delay;
+            var ease = ENTER;
+            buildSplit(textEl, split, "stf", 0.26, function (el, u) {
+              u.line = mk("span", el, "stf-line1", u.text);
+              u.line.style.color = "transparent";
+              u.line.style.webkitTextStrokeColor = strokeColor;
+              u.fill = mk("span", el, "stf-fill", u.text);
+              u.fill.setAttribute("aria-hidden", "true");
+            });
+            function draw(frame) {
+              var outline = ease(clamp01((frame - delay) / outlineFrames));
+              split.units.forEach(function (u) {
+                var s = unitState(frame, T, u);
+                var flooded = ramp(s.enter, 0.1, 1, 0, 1), fp = flooded * (1 - s.exit), stop = fp * 100;
+                var mask = "linear-gradient(" + DIRS[dir] + ", #000 " + stop.toFixed(2) + "%, rgba(0,0,0,0) " + Math.min(100, stop + softness).toFixed(2) + "%)";
+                u.line.style.webkitTextStrokeWidth = (strokeWidth * (1 - (1 - retain) * fp)).toFixed(3) + "px";
+                u.line.style.opacity = String(outline * (1 - s.exit));
+                u.fill.style.opacity = String(s.opacity);
+                u.fill.style.webkitMaskImage = mask;
+                u.fill.style.maskImage = mask;
+              });
+            }
+            drive("stroke-to-fill-text", draw);
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -3,7 +3,7 @@
   "name": "shop-end-card",
   "type": "hyperframes:component",
   "title": "Shop End Card",
-  "description": "The closing card of a small-shop video: a colour floods the frame, then a logo tile, the shop name, a tagline, address, opening hours, a contact line and a call-to-action button settle in and hold still.",
+  "description": "The closing card of a small-shop video on a clean white page: a logo tile, the shop name, a tagline, address, opening hours, a contact line and a call-to-action button settle in one after another and hold still.",
   "tags": [
     "end-card",
     "cta",
@@ -102,33 +102,33 @@
       "id": "primary_color",
       "type": "color",
       "role": "style",
-      "label": "Card colour",
-      "description": "The colour that floods the frame.",
-      "default": "#e8457a"
+      "label": "Accent colour",
+      "description": "Accent: the button and the logo glyph.",
+      "default": "#2563eb"
     },
     {
       "id": "on_primary_color",
       "type": "color",
       "role": "style",
-      "label": "Text on card",
-      "description": "Text and icons on the card colour.",
-      "default": "#ffffff"
+      "label": "Text colour",
+      "description": "Shop name, details and icons.",
+      "default": "#0a0a0a"
     },
     {
       "id": "dark_color",
       "type": "color",
       "role": "style",
-      "label": "Dark",
-      "description": "The ground before the flood and the button.",
-      "default": "#0c081b"
+      "label": "Background",
+      "description": "Background of the card.",
+      "default": "#ffffff"
     },
     {
       "id": "surface_color",
       "type": "color",
       "role": "style",
       "label": "Light surface",
-      "description": "Logo tile and contact pill.",
-      "default": "#ffffff"
+      "description": "Logo tile.",
+      "default": "#fafafa"
     }
   ],
   "checkAt": [

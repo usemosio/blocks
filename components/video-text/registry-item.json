@@ -1,0 +1,96 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "video-text",
+  "type": "hyperframes:component",
+  "title": "Video Text",
+  "description": "Big bold letters used as a window onto moving imagery: here a drifting ocean-coloured gradient with soft moving light, visible only inside the letters.",
+  "tags": [
+    "text-effects",
+    "mask",
+    "knockout",
+    "title",
+    "magicui-port"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A big one-word title should carry moving colour or footage inside its letters.",
+    "A title card needs a texture that hints at the topic (water, fire, city lights)."
+  ],
+  "avoidWhen": [
+    "The text is small or long: the footage inside will not read.",
+    "A static colour fill is enough."
+  ],
+  "author": "Magic UI",
+  "authorUrl": "https://magicui.design",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/magicuidesign/magicui",
+    "path": "apps/www/registry/magicui/video-text.tsx",
+    "commit": "166367b4e31a27f166fd6c2b71d7be290fe0c1bc"
+  },
+  "files": [
+    {
+      "path": "video-text.html",
+      "target": "compositions/components/video-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The word the footage shows through. Short, in capitals reads best.",
+      "default": "OCEAN"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 420,
+      "min": 40,
+      "max": 800,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Colour A",
+      "description": "Deep colour of the default fill.",
+      "default": "#0b3b8c"
+    },
+    {
+      "id": "color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Colour B",
+      "description": "Mid colour of the default fill.",
+      "default": "#0e8fa8"
+    },
+    {
+      "id": "color_c",
+      "type": "color",
+      "role": "style",
+      "label": "Colour C",
+      "description": "Highlight colour of the default fill.",
+      "default": "#a5f3fc"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Drift speed",
+      "description": "How fast the default fill drifts.",
+      "default": 1,
+      "min": 0.2,
+      "max": 4,
+      "step": 0.1
+    }
+  ]
+}

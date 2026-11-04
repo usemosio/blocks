@@ -3,7 +3,7 @@
   "name": "price-drop",
   "type": "hyperframes:component",
   "title": "Price Drop",
-  "description": "A product name rises through a mask, the old price is struck through, the new price counts up to its value and a saving label (like \"Hemat 28%\") is stamped under it, over slowly turning rays.",
+  "description": "A product name rises through a mask, the old price is struck through, the new price counts up to its value in one accent colour and a quiet saving label (like \"Hemat 28%\") appears under it, on a clean white page.",
   "tags": [
     "mosio-recipe",
     "price",
@@ -43,7 +43,7 @@
       "role": "content",
       "label": "Eyebrow",
       "description": "Short line above the product name.",
-      "default": "Pedasnya nampol, wanginya juara"
+      "default": "Pedas, wangi, buatan rumah"
     },
     {
       "id": "product",
@@ -82,24 +82,16 @@
       "type": "color",
       "role": "style",
       "label": "Background",
-      "description": "Dark edge of the background.",
-      "default": "#2a0a0a"
-    },
-    {
-      "id": "bg_glow_color",
-      "type": "color",
-      "role": "style",
-      "label": "Glow",
-      "description": "Lighter pool of colour behind the price.",
-      "default": "#5c1010"
+      "description": "Background.",
+      "default": "#ffffff"
     },
     {
       "id": "main_color",
       "type": "color",
       "role": "style",
       "label": "Main colour",
-      "description": "New price, eyebrow, rays and label pill.",
-      "default": "#ffc93c"
+      "description": "New price and label outline: the one accent.",
+      "default": "#2563eb"
     },
     {
       "id": "strike_color",
@@ -107,7 +99,7 @@
       "role": "style",
       "label": "Strike colour",
       "description": "Line through the old price.",
-      "default": "#ff3b30"
+      "default": "#a3a3a3"
     },
     {
       "id": "text_color",
@@ -115,7 +107,7 @@
       "role": "style",
       "label": "Text colour",
       "description": "Product name.",
-      "default": "#fff6ee"
+      "default": "#0a0a0a"
     },
     {
       "id": "muted_color",
@@ -123,15 +115,7 @@
       "role": "style",
       "label": "Muted colour",
       "description": "Old price text.",
-      "default": "#c7b0aa"
-    },
-    {
-      "id": "show_rays",
-      "type": "boolean",
-      "role": "style",
-      "label": "Rays",
-      "description": "Slowly turning rays behind the price.",
-      "default": true
+      "default": "#737373"
     },
     {
       "id": "transparent",

@@ -1,0 +1,168 @@
+<!doctype html>
+<!--
+  Word Rotate
+
+  A list of words takes turns in one spot: each fades out sliding down, the next fades in sliding down from above.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/magicuidesign/magicui/blob/166367b4e31a27f166fd6c2b71d7be290fe0c1bc/apps/www/registry/magicui/word-rotate.tsx
+
+  MIT License
+
+  Copyright (c) Magic UI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="word-rotate"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "words", "type": "string", "role": "content", "label": "Words", "description": "The words in order, separated by | .", "default": "Word|Rotate"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer words shrink to fit the frame.", "default": 96, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Colour", "description": "Text colour.", "default": "#0a0a0a"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]},
+    {"id": "interval", "type": "number", "role": "motion", "label": "Interval", "description": "Seconds between word changes (the source uses 2.5).", "default": 2.5, "min": 0.8, "max": 8, "step": 0.1, "unit": "s"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Slide distance", "description": "How far words slide while fading, in pixels.", "default": 50, "min": 0, "max": 200, "step": 1, "unit": "px"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Word Rotate</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .wrt-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .wrt-box { overflow: hidden; padding: 0.1em 0; text-align: center; font-family: var(--font-display, Geist, system-ui, sans-serif); line-height: 1.15; }
+        .wrt-word { display: block; white-space: pre; letter-spacing: -0.03em; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="word-rotate" data-duration="6" data-fps="30">
+        <div id="wrt-clip" class="wrt-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="wrt-box" class="wrt-box"><span id="wrt-word" class="wrt-word"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function col(value, fallback) {
+              return typeof value === "string" && value ? value : fallback;
+            }
+            function pick(value, options, fallback) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Shrink an element's font until it fits a share of the frame width.
+            function fit(el, size, share) {
+              el.style.fontSize = size + "px";
+              var max = Math.max(1, root.clientWidth * share);
+              if (el.scrollWidth > max) {
+                size = Math.max(12, size * (max / el.scrollWidth));
+                el.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // A seeded random generator, so every seek draws the same thing.
+            function mulberry32(a) {
+              return function () {
+                a |= 0; a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+            gsap.registerPlugin(CustomEase);
+            var TAG = "wrt";
+            var bezN = 0;
+            function bez(x1, y1, x2, y2) {
+              return CustomEase.create(TAG + "-" + bezN++, "M0,0 C" + x1 + "," + y1 + " " + x2 + "," + y2 + " 1,1");
+            }
+            var tl = gsap.timeline({ paused: true });
+            function finish() {
+              var total = parseFloat(root.dataset.duration || "6");
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["word-rotate"] = tl;
+            }
+
+            var box = document.getElementById("wrt-box");
+            var el = document.getElementById("wrt-word");
+            var words = str(vars.words, "Word|Rotate").split("|").map(function (w) { return w.trim(); }).filter(Boolean);
+            if (!words.length) words = ["Word", "Rotate"];
+            var gap = num(vars.interval, 2.5, 0.8, 8);
+            var dist = num(vars.distance, 50, 0, 200);
+            var total = parseFloat(root.dataset.duration || "6");
+            box.style.color = col(vars.color, "#0a0a0a");
+            el.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700", "800"], "700");
+            // Size to the widest word so the box does not jump between words.
+            var size = num(vars.font_size, 96, 12, 260);
+            box.style.fontSize = size + "px";
+            var widest = 1;
+            words.forEach(function (w) { el.textContent = w; widest = Math.max(widest, el.scrollWidth); });
+            var maxW = root.clientWidth * 0.9;
+            if (widest > maxW) { size = Math.max(12, size * maxW / widest); box.style.fontSize = size + "px"; }
+            // Source motion: enter from y -50 over 0.25 s, exit to y 50 over 0.25 s, easeOut,
+            // one after the other (AnimatePresence wait), a new word every `interval`.
+            var out = bez(0, 0, 0.58, 1);
+            var q = 0.25;
+            var n = 0;
+            for (var at = 0; at < total + 0.001; at += gap, n++) {
+              var w = words[n % words.length];
+              (function (w, at) {
+                if (at > 0) tl.to(el, { opacity: 0, y: dist, duration: q, ease: out, immediateRender: false }, at);
+                tl.call(function () { el.textContent = w; }, null, at + (at > 0 ? q : 0));
+                tl.fromTo(el, { opacity: 0, y: -dist }, { opacity: 1, y: 0, duration: q, ease: out, immediateRender: false }, at + (at > 0 ? q : 0));
+              })(w, at);
+            }
+            el.textContent = words[0];
+
+            finish();
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

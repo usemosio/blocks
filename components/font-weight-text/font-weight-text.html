@@ -1,0 +1,147 @@
+<!doctype html>
+<!--
+  Font Weight Text
+
+  Letters breathe through a variable font weight, thin to heavy and back, each on its own phase so a wave of weight rolls along the word from the middle outward.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/karthikmudunuri/eldoraui/blob/6bb8fd211ecbdfa983f5780bead27d9f3890f20a/apps/www/registry/eldoraui/font-weight-text.tsx
+
+  MIT License
+
+  Copyright (c) Mudunuri Bhaskara Karthikeya Varma
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="font-weight-text"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The word or phrase that breathes.", "default": "Get Started"},
+    {"id": "min_weight", "type": "number", "role": "style", "label": "Minimum weight", "description": "Lightest weight of the cycle (the font floors it at 100).", "default": 100, "min": 100, "max": 1000, "step": 10},
+    {"id": "max_weight", "type": "number", "role": "style", "label": "Maximum weight", "description": "Heaviest weight of the cycle.", "default": 840, "min": 100, "max": 1000, "step": 10},
+    {"id": "animation_duration", "type": "number", "role": "motion", "label": "Breath time", "description": "Seconds from light to heavy.", "default": 1.5, "min": 0.4, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "delay_multiplier", "type": "number", "role": "motion", "label": "Phase offset", "description": "Seconds of phase between neighbouring letters.", "default": 0.25, "min": 0, "max": 1, "step": 0.01, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 150, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#0e7490"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Font Weight Text</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..1000&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #0e7490);
+          font-family: var(--font-display, "Roboto Flex", system-ui, sans-serif);
+          pointer-events: none;
+        }
+        .fwt-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .fwt-line { text-align: center; line-height: 1.1; white-space: pre; }
+        .fwt-ch { display: inline-block; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="font-weight-text" data-duration="4" data-fps="30">
+        <div id="fwt-clip" class="fwt-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <div id="fwt-line" class="fwt-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, mn, mx) { var n = Number(v); return Number.isFinite(n) ? Math.min(mx, Math.max(mn, n)) : f; }
+            function str(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+            function pick(v, l, f) { return l.indexOf(String(v)) >= 0 ? String(v) : f; }
+            function bool(v, f) { if (typeof v === "boolean") return v; if (v === "true") return true; if (v === "false") return false; return f; }
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            gsap.registerPlugin(CustomEase);
+            var total = parseFloat(root.dataset.duration || "4");
+            // Motion tweens with no easing named run easeInOut.
+            var EIO = CustomEase.create("fwt-eio", "M0,0 C0.42,0 0.58,1 1,1");
+            // Unit step response of a damped spring (semi-implicit Euler at 480 Hz), sampled once.
+            function springTable(k, c, m, dur) {
+              var dt = 1 / 480, x = 0, v = 0, out = [0];
+              for (var t = 0; t < dur; t += dt) { v += ((-k * (x - 1) - c * v) / m) * dt; x += v * dt; out.push(x); }
+              return out;
+            }
+            function springAt(tab, tau) {
+              if (tau <= 0) return 0;
+              var i = tau * 480; if (i >= tab.length - 1) return tab[tab.length - 1];
+              var j = Math.floor(i); return tab[j] + (tab[j + 1] - tab[j]) * (i - j);
+            }
+            var clock = { t: 0 };
+            function finish(tl, draw) {
+              if (draw) { tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t); } }, 0); draw(0); }
+              if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["font-weight-text"] = tl;
+            }
+
+
+            var line = document.getElementById("fwt-line");
+            var text = str(vars.text, "Get Started");
+            var wmin = num(vars.min_weight, 100, 100, 1000), wmax = num(vars.max_weight, 840, 100, 1000);
+            var D = num(vars.animation_duration, 1.5, 0.4, 5), mult = num(vars.delay_multiplier, 0.25, 0, 1);
+            var size = num(vars.font_size, 150, 12, 260);
+            line.style.fontSize = size + "px"; line.setAttribute("aria-label", text);
+            var spans = Array.from(text).map(function (ch) { var s = document.createElement("span"); s.className = "fwt-ch"; s.textContent = ch; line.appendChild(s); return s; });
+            // Fit the width at the heaviest weight.
+            spans.forEach(function (s) { s.style.fontVariationSettings = '"wght" ' + wmax; });
+            var maxW = root.clientWidth * 0.9;
+            if (line.scrollWidth > maxW) { size = size * maxW / line.scrollWidth; line.style.fontSize = size + "px"; }
+            // CSS: breath Ds alternate infinite, cubic-bezier(0.37, 0, 0.63, 1), delay (i - n/2) * mult, fill both.
+            CustomEase.create("fwt-breath", "M0,0 C0.37,0 0.63,1 1,1");
+            var ease = gsap.parseEase("fwt-breath"), n = spans.length;
+            function draw(t) {
+              spans.forEach(function (s, i) {
+                var u = t - (i - n / 2) * mult, w = wmin;
+                if (u > 0) {
+                  var cyc = u / D, k = Math.floor(cyc), fr = cyc - k;
+                  w = wmin + (wmax - wmin) * ease(k % 2 === 0 ? fr : 1 - fr);
+                }
+                s.style.fontVariationSettings = '"wght" ' + w.toFixed(1);
+              });
+            }
+            finish(gsap.timeline({ paused: true }), draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

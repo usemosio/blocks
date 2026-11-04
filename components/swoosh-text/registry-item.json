@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "swoosh-text",
+  "type": "hyperframes:component",
+  "title": "Swoosh Text",
+  "description": "Extruded letters lit by a moving light: the 3D extrusion swings and overshoots as a cursor sweeps past, then a letter is pressed down like a keycap.",
+  "tags": [
+    "text-effects",
+    "extrusion",
+    "3d",
+    "light",
+    "letters",
+    "kokonutui-port"
+  ],
+  "category": "typography",
+  "duration": 4.5,
+  "useWhen": [
+    "A headline should feel like solid, tactile lettering that reacts to a light or a touch.",
+    "A short product word or key phrase needs a playful, physical beat."
+  ],
+  "avoidWhen": [
+    "Long sentences: every letter carries a stack of layers.",
+    "A flat, quiet title card: use per-character-rise."
+  ],
+  "author": "Kokonut UI",
+  "authorUrl": "https://kokonutui.com",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/kokonut-labs/kokonutui",
+    "path": "components/kokonutui/swoosh-text.tsx",
+    "commit": "4d497b7b03f02ffd07225e638c0b9ace3f892dbb"
+  },
+  "files": [
+    {
+      "path": "swoosh-text.html",
+      "target": "compositions/components/swoosh-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Short word or phrase.",
+      "default": "Extruded"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 150,
+      "min": 24,
+      "max": 320,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "face_color",
+      "type": "color",
+      "role": "style",
+      "label": "Face color",
+      "description": "Color of the front of the letters.",
+      "default": "#18181b"
+    },
+    {
+      "id": "near_color",
+      "type": "color",
+      "role": "style",
+      "label": "Near color",
+      "description": "Extrusion color right behind the face.",
+      "default": "#d4d4d8"
+    },
+    {
+      "id": "far_color",
+      "type": "color",
+      "role": "style",
+      "label": "Far color",
+      "description": "Extrusion color at its deepest layer.",
+      "default": "#52525b"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Optional color for the deepest layer only (leave empty for none).",
+      "default": ""
+    },
+    {
+      "id": "depth",
+      "type": "number",
+      "role": "style",
+      "label": "Layers",
+      "description": "Stacked layers behind each letter (6 to 16).",
+      "default": 14,
+      "min": 6,
+      "max": 16,
+      "step": 1
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "role": "style",
+      "label": "Extrusion length",
+      "description": "Total extrusion length in em.",
+      "default": 0.32,
+      "min": 0.05,
+      "max": 0.8,
+      "step": 0.01,
+      "unit": "em"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "800",
+      "options": [
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    }
+  ],
+  "checkAt": [
+    1.0,
+    1.8,
+    2.3,
+    3.0
+  ]
+}

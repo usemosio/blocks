@@ -1,0 +1,50 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "multi-direction-slide-text",
+  "type": "hyperframes:component",
+  "title": "Multi Direction Slide Text",
+  "description": "Two lines of text arrive from opposite sides at once: the first slides in from the left, the second from the right, both fading up and meeting in the centre stack.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "slide",
+    "two-lines",
+    "opposing",
+    "eldoraui-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A two-part statement (setup and punchline, before and after) should come together from both sides.",
+    "A bold, symmetric title card."
+  ],
+  "avoidWhen": [
+    "Only one line of text: use mask-reveal-up or line-by-line-slide.",
+    "Both lines should move the same way: use line-by-line-slide."
+  ],
+  "author": "Eldora UI",
+  "authorUrl": "https://www.eldoraui.site",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/karthikmudunuri/eldoraui",
+    "path": "apps/www/registry/eldoraui/multi-direction-slide-text.tsx",
+    "commit": "6bb8fd211ecbdfa983f5780bead27d9f3890f20a"
+  },
+  "files": [
+    {
+      "path": "multi-direction-slide-text.html",
+      "target": "compositions/components/multi-direction-slide-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text_left", "type": "string", "role": "content", "label": "Text from the left", "description": "Line that slides in from the left.", "default": "Slide in from the left"},
+    {"id": "text_right", "type": "string", "role": "content", "label": "Text from the right", "description": "Line that slides in from the right.", "default": "and from the right"},
+    {"id": "duration", "type": "number", "role": "motion", "label": "Slide time", "description": "Seconds the slide takes.", "default": 1, "min": 0.2, "max": 4, "step": 0.1, "unit": "s"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far outside its place each line starts, as a percent of the frame width.", "default": 25, "min": 5, "max": 100, "step": 1, "unit": "%"},
+    {"id": "start", "type": "number", "role": "motion", "label": "Start", "description": "Seconds before the slide.", "default": 0.2, "min": 0, "max": 5, "step": 0.1, "unit": "s"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels. The source is built for 72px type; its pixel offsets scale with this size.", "default": 100, "min": 12, "max": 260, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}
+  ]
+}
