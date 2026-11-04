@@ -1,0 +1,249 @@
+<!doctype html>
+<!--
+  Followers Overview
+
+  Follow notifications flip through in 3D, one name at a time, then the total follower count blurs in with a spring pop, the account handle and a confetti burst.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/x-followers-overview/index.tsx
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/confetti/index.tsx
+  The motion follows the sources (3D name flip on a fixed cadence, blur-in total with a spring overshoot, seeded confetti). The look was made generic: no product name, logo, verified-badge shape or signature blue; names, times, handle, label and accent are variables and the avatar is an initial disc.
+
+  MIT License
+
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="followers-overview"
+  data-composition-duration="12"
+  data-composition-variables='[
+    {"id": "notifications", "type": "string", "role": "content", "label": "Notifications", "description": "Semicolon-separated entries \"Name|time|v\"; add |v to show a check mark after the name.", "default": "Maya Lindqvist|7h|v; Jonas Reyes|7h|v; marcus|8h; Lena Okoro|9h|v; dev_jay|10h; Priya Nair|11h|v; Tomas Brandt|13h|v; hana.k|15h; Will Archer|18h|v; Yuki Mori|21h|v; benoit|23h; Amara Diallo|1d|v; Leo Martins|1d|v; sol|2d"},
+    {"id": "event_text", "type": "string", "role": "content", "label": "Event text", "description": "Text after the name; the entry&#39;s time follows it.", "default": "followed you"},
+    {"id": "total", "type": "number", "role": "content", "label": "Total", "description": "Follower total revealed at the end.", "default": 1709, "min": 0, "max": 999999999, "step": 1},
+    {"id": "label", "type": "string", "role": "content", "label": "Count label", "description": "Word next to the total.", "default": "Followers"},
+    {"id": "handle", "type": "string", "role": "content", "label": "Handle", "description": "Account handle shown above the total (an @ is added). Leave empty to hide the account.", "default": "studio"},
+    {"id": "orientation", "type": "enum", "role": "style", "label": "Orientation", "description": "Auto follows the host&#39;s shape.", "default": "auto", "options": [
+    {"value": "auto", "label": "Auto"},
+    {"value": "horizontal", "label": "Horizontal"},
+    {"value": "vertical", "label": "Vertical"}
+  ]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the check marks and the first confetti colour.", "default": "#6366f1"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark neutral theme.", "default": "light", "options": [
+    {"value": "light", "label": "Light"},
+    {"value": "dark", "label": "Dark"}
+  ]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the scene sits over your own footage.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Followers Overview</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          background: var(--fo-bg, #fff); color: var(--fo-fg, #14171c);
+          font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .fo-clip { position: absolute; inset: 0; }
+        .fo-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; display: flex; align-items: center; justify-content: center; }
+        .fo-band { position: relative; }
+        .fo-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .fo-notif { gap: 0; }
+        .fo-slot { position: relative; display: inline-flex; }
+        .fo-name { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap; font-weight: 800; color: var(--fo-fg); line-height: 1; transform-origin: center; backface-visibility: hidden; }
+        .fo-spacer { visibility: hidden; display: flex; align-items: center; white-space: nowrap; font-weight: 800; }
+        .fo-suffix { font-weight: 500; color: var(--fo-muted); white-space: nowrap; line-height: 1; }
+        .fo-col { flex-direction: column; }
+        .fo-acct { display: flex; align-items: center; gap: 14px; }
+        .fo-disc { border-radius: 50%; border: 1px solid var(--fo-border); background: var(--fo-border); color: var(--fo-muted); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .fo-handle { font-weight: 700; white-space: nowrap; }
+        .fo-total { display: flex; align-items: baseline; justify-content: center; gap: 18px; }
+        .fo-num { font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+        .fo-lab { font-weight: 500; color: var(--fo-muted); line-height: 1; }
+        .fo-conf { position: absolute; border-radius: 2px; top: 0; left: 0; }
+      </style>
+
+      <div id="root" data-composition-id="followers-overview" data-duration="12" data-fps="30">
+        <div id="fo-clip" class="fo-clip clip" data-start="0" data-duration="12" data-track-index="0">
+          <div id="fo-stage" class="fo-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("fo-stage");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0; if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  t = (lo + hi) / 2;
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            var EASE_OUT = bez(0.22, 1, 0.36, 1), EASE_IN = bez(0.64, 0, 0.78, 0);
+            // Remotion-style interpolate on two points, clamped, with an easing.
+            function interp(x, a, b, from, to, ease) { var p = clamp((x - a) / (b - a), 0, 1); if (ease) p = ease(p); return from + (to - from) * p; }
+
+            function mulberry32(seed) { var a = seed >>> 0; return function () { a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            var items = txt(vars.notifications, "").split(";").map(function (s) { return s.trim(); }).filter(Boolean).map(function (r) { var p = r.split("|").map(function (x) { return x.trim(); }); return { name: p[0], time: p[1] || "", v: p[2] === "v" }; }).filter(function (r) { return r.name; });
+            if (!items.length) items = [{ name: "Maya Lindqvist", time: "7h", v: true }, { name: "Jonas Reyes", time: "7h", v: true }, { name: "marcus", time: "8h", v: false }, { name: "Lena Okoro", time: "9h", v: true }, { name: "dev_jay", time: "10h", v: false }, { name: "Priya Nair", time: "11h", v: true }];
+            var count = items.length;
+            var eventText = txt(vars.event_text, "followed you").trim();
+            var total = Math.round(num(vars.total, 1709, 0, 999999999));
+            var label = txt(vars.label, "Followers").trim();
+            var handle = txt(vars.handle, "studio").trim();
+            var accent = colr(vars.accent_color, "#6366f1");
+            var dark = String(vars.theme) === "dark";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = dark ? { bg: "#0b0c0e", fg: "#ececef", muted: "#8b8f98", border: "#2a2d33" } : { bg: "#ffffff", fg: "#14171c", muted: "#5b6470", border: "#eceff2" };
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--fo-" + k, T[k]); });
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var o = String(vars.orientation);
+            var vertical = o === "vertical" || (o !== "horizontal" && H > W);
+            var RW = vertical ? 720 : 1280, RH = vertical ? 1280 : 720, k = Math.min(W / RW, H / RH);
+            stage.style.width = RW + "px"; stage.style.height = RH + "px";
+            stage.style.marginLeft = -RW / 2 + "px"; stage.style.marginTop = -RH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+            var nS = vertical ? 38 : 46, numS = vertical ? 92 : 110, labS = vertical ? 40 : 46, persp = vertical ? 1000 : 1200, bandH = vertical ? 160 : 180, lineH = nS * 1.4;
+            var avS = vertical ? 72 : 64, hS = vertical ? 30 : 34;
+
+            var band = el("div", "fo-band", stage); band.style.width = RW + "px"; band.style.height = bandH + "px";
+            var notif = el("div", "fo-layer fo-notif", band); notif.style.gap = nS * 0.28 + "px";
+            var slot = el("div", "fo-slot", notif); slot.style.height = lineH + "px"; slot.style.perspective = persp + "px";
+            var spacer = el("div", "fo-spacer", slot); spacer.style.fontSize = nS + "px"; spacer.style.gap = nS * 0.2 + "px";
+            function badge(size) { return '<svg viewBox="0 0 20 20" width="' + size + '" height="' + size + '" style="flex-shrink:0"><circle cx="10" cy="10" r="10" fill="' + accent + '"/><path d="M5.6 10.4l3 3 5.8-6.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+            function mkName(it) {
+              var d = el("div", "fo-name", slot); d.style.fontSize = nS + "px"; d.style.height = lineH + "px"; d.style.gap = nS * 0.2 + "px";
+              el("span", "", d).textContent = it.name; if (it.v) d.insertAdjacentHTML("beforeend", badge(nS * 0.66));
+              return d;
+            }
+            var nameEls = items.map(mkName);
+            var suffix = el("span", "fo-suffix", notif); suffix.style.fontSize = nS + "px";
+
+            var rev = el("div", "fo-layer fo-col", band); rev.style.gap = (vertical ? 26 : 22) + "px";
+            var acct = el("div", "fo-acct", rev), disc = null, hEl = null;
+            if (handle) {
+              disc = el("div", "fo-disc", acct); disc.style.width = disc.style.height = avS + "px"; disc.style.fontSize = avS * 0.42 + "px"; disc.textContent = Array.from(handle)[0].toUpperCase();
+              hEl = el("span", "fo-handle", acct); hEl.style.fontSize = hS + "px"; hEl.textContent = "@" + handle;
+            }
+            var tot = el("div", "fo-total", rev);
+            var numEl = el("span", "fo-num", tot); numEl.style.fontSize = numS + "px"; numEl.textContent = total.toLocaleString("en-US");
+            var labEl = el("span", "fo-lab", tot); labEl.style.fontSize = labS + "px"; labEl.textContent = label;
+
+            // Confetti: seeded burst from the middle of the frame, 160 pieces.
+            var COLORS = [accent, "#ff5da2", "#ffd23f", "#22c55e", "#a855f7"];
+            var rnd = mulberry32(1), parts = [];
+            for (var i = 0; i < 160; i++) {
+              var ang = rnd() * Math.PI * 2, sp = 0.35 + 0.65 * rnd(), col = COLORS[Math.floor(rnd() * COLORS.length)], sz = 0.7 + 0.6 * rnd(), r0 = rnd() * Math.PI * 2, spin = (rnd() - 0.5) * 0.6, drift = (rnd() - 0.5) * 2;
+              var d = el("div", "fo-conf", stage); d.style.background = col; d.style.opacity = 0;
+              parts.push({ d: d, ang: ang, sp: sp, sz: sz, r0: r0, spin: spin, drift: drift });
+            }
+
+            var SLOT = 13, HOLD = 0.45, DUR = 360;
+            var revealStart = Math.min(count * SLOT, Math.round(DUR * 0.82));
+            var CONF_LIFE = 90, CONF_POWER = 17, CONF_GRAV = 0.45, CONF_SIZE = 13, sc = RH / 720;
+            function sm(x) { var c = clamp(x, 0, 1); return c * c * (3 - 2 * c); }
+            function draw(fc) {
+              var pos = fc / SLOT, idx = clamp(Math.floor(pos), 0, count - 1), frac = clamp(pos - idx, 0, 1);
+              var fp = HOLD >= 1 ? 0 : sm((frac - HOLD) / (1 - HOLD));
+              var hasNext = idx + 1 < count;
+              var cur = items[idx], active = hasNext && fp >= 0.5 ? items[idx + 1] : cur;
+              nameEls.forEach(function (e, i) {
+                if (i === idx) { e.style.display = ""; e.style.transform = "rotateX(" + (hasNext ? -90 * fp : 0) + "deg)"; e.style.opacity = hasNext ? interp(fp, 0, 0.55, 1, 0) : 1; }
+                else if (hasNext && i === idx + 1) { e.style.display = ""; e.style.transform = "rotateX(" + 90 * (1 - fp) + "deg)"; e.style.opacity = interp(fp, 0.45, 1, 0, 1); }
+                else e.style.display = "none";
+              });
+              spacer.innerHTML = '<span></span>' + (active.v ? '<span style="width:' + nS * 0.66 + 'px"></span>' : "");
+              spacer.firstChild.textContent = active.name;
+              suffix.textContent = eventText + (active.time ? " · " + active.time : "");
+              notif.style.opacity = interp(fc, revealStart - 4, revealStart + 8, 1, 0);
+              var cin = interp(fc, revealStart + 4, revealStart + 28, 0, 1);
+              var blur = interp(fc, revealStart + 4, revealStart + 28, 10, 0);
+              var sprv = spring(fc - (revealStart + 2), { damping: 10, stiffness: 170, mass: 0.8 });
+              var rs = 0.5 + 0.5 * sprv;
+              var cs = blur > 0 ? "blur(" + blur + "px)" : "none";
+              tot.style.opacity = cin; tot.style.filter = cs; tot.style.transform = "translateY(" + 12 * (1 - cin) + "px) scale(" + rs + ")";
+              if (disc) { disc.style.opacity = cin; disc.style.filter = cs; disc.style.transform = "translateX(" + -36 * (1 - cin) + "px)"; hEl.style.opacity = cin; hEl.style.filter = cs; hEl.style.transform = "translateX(" + 36 * (1 - cin) + "px)"; }
+              var tt = fc - (revealStart + 2);
+              var live = tt >= 0 && tt <= CONF_LIFE;
+              var op = !live ? 0 : Math.min(interp(tt, 0, 4, 0, 1), interp(tt, CONF_LIFE * 0.7, CONF_LIFE, 1, 0));
+              parts.forEach(function (p) {
+                if (op <= 0) { p.d.style.opacity = 0; return; }
+                var vx = Math.cos(p.ang) * p.sp * CONF_POWER + p.drift, vy = Math.sin(p.ang) * p.sp * CONF_POWER;
+                var x = RW * 0.5 + vx * tt * sc, y = RH * 0.5 + (vy * tt + 0.5 * CONF_GRAV * tt * tt) * sc;
+                var w = CONF_SIZE * p.sz * sc, fl = Math.cos(p.r0 + p.spin * tt * 1.6);
+                p.d.style.width = w + "px"; p.d.style.height = w * 0.62 + "px"; p.d.style.opacity = op;
+                p.d.style.transform = "translate(" + x + "px," + y + "px) translate(-50%,-50%) rotate(" + (p.r0 + p.spin * tt) + "rad) scale(" + fl + ",1)";
+              });
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "12");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["followers-overview"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

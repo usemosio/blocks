@@ -1,0 +1,101 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "animated-bar-chart",
+  "type": "hyperframes:component",
+  "title": "Animated Bar Chart",
+  "description": "Bars spring up from the baseline with a staggered cascade.",
+  "tags": [
+    "data-viz",
+    "chart",
+    "bars",
+    "spring",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 3,
+  "useWhen": [
+    "Showing comparative categorical metrics in a product demo: feature usage, plan distribution, benchmark scores.",
+    "A results slide needs a data-revealed moment; the stagger draws attention to the tallest bar last."
+  ],
+  "avoidWhen": [
+    "The data is change over time: use animated-line-chart.",
+    "You have a single data point: use a number counter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/animated-bar-chart/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "animated-bar-chart.html",
+      "target": "compositions/components/animated-bar-chart.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "data",
+      "type": "string",
+      "role": "content",
+      "label": "Data",
+      "description": "Comma-separated bar values.",
+      "default": "35, 60, 45, 80, 55, 70, 90, 65"
+    },
+    {
+      "id": "labels",
+      "type": "string",
+      "role": "content",
+      "label": "Labels",
+      "description": "Optional comma-separated labels under the bars.",
+      "default": ""
+    },
+    {
+      "id": "bar_color",
+      "type": "color",
+      "role": "style",
+      "label": "Bar color",
+      "description": "Bar color.",
+      "default": "#0ea5e9"
+    },
+    {
+      "id": "gap",
+      "type": "number",
+      "role": "style",
+      "label": "Gap",
+      "description": "Gap between bars (in a 1000 px wide chart).",
+      "default": 16,
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "stagger_frames",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger frames",
+      "description": "Frames between one bar and the next.",
+      "default": 6,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+<!doctype html>
+<!--
+  Whip Pan
+
+  Whip the camera sideways with motion blur so both scenes fly through the frame in one move. remocn's version is a Remotion transition presentation; this block plays it between two placeholder panels (A and B). To use it in a video, put your own scenes in place of the panels and apply the same transform, blur and smear to both.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/whip-pan/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="whip-pan"
+  data-composition-duration="3.8"
+  data-composition-variables='[
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Direction the camera whips.", "default": "left", "options": [{"value": "left", "label": "Left"}, {"value": "right", "label": "Right"}, {"value": "up", "label": "Up"}, {"value": "down", "label": "Down"}]},
+    {"id": "blur", "type": "number", "role": "motion", "label": "Blur", "description": "Peak motion blur in pixels.", "default": 24, "min": 0, "max": 48, "step": 2, "unit": "px"},
+    {"id": "scene_a_text", "type": "string", "role": "content", "label": "Scene A text", "description": "Label on the outgoing panel.", "default": "Scene A"},
+    {"id": "scene_b_text", "type": "string", "role": "content", "label": "Scene B text", "description": "Label on the incoming panel.", "default": "Scene B"},
+    {"id": "scene_a_color", "type": "color", "role": "style", "label": "Scene A background", "description": "Background of the outgoing panel.", "default": "#141318"},
+    {"id": "scene_b_color", "type": "color", "role": "style", "label": "Scene B background", "description": "Background of the incoming panel.", "default": "#1a1922"},
+    {"id": "color", "type": "color", "role": "style", "label": "Text color", "description": "Panel text color.", "default": "#f2f2f2"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Whip Pan</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          color: var(--color, #f2f2f2);
+          font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif);
+        }
+        .wp-stage { position: absolute; inset: 0; }
+        .wp-panel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; will-change: transform, filter; }
+        .wp-label { font-size: 8.9cqmin; font-weight: 600; letter-spacing: -0.03em; white-space: nowrap; }
+      </style>
+
+      <div id="root" data-composition-id="whip-pan" data-duration="3.8" data-fps="30">
+        <div id="wp-clip" class="wp-stage clip" data-start="0" data-duration="3.8" data-track-index="0">
+          <div id="wp-a" class="wp-panel"><span id="wp-a-label" class="wp-label"></span></div>
+          <div id="wp-b" class="wp-panel"><span id="wp-b-label" class="wp-label"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            // Easing.bezier(x1, y1, x2, y2) as a function of t (Newton, then bisection).
+            function bez(x1, y1, x2, y2) {
+              function cx(s) { return 3 * x1 * s * (1 - s) * (1 - s) + 3 * x2 * s * s * (1 - s) + s * s * s; }
+              function cy(s) { return 3 * y1 * s * (1 - s) * (1 - s) + 3 * y2 * s * s * (1 - s) + s * s * s; }
+              return function (t) {
+                if (t <= 0) return 0;
+                if (t >= 1) return 1;
+                var lo = 0, hi = 1, s = t;
+                for (var i = 0; i < 40; i++) {
+                  var x = cx(s);
+                  if (Math.abs(x - t) < 1e-6) break;
+                  if (x < t) lo = s; else hi = s;
+                  s = (lo + hi) / 2;
+                }
+                return cy(s);
+              };
+            }
+            // interpolate(f, [a, b], [from, to]) with both ends clamped, like Remotion's extrapolate "clamp".
+            function interp(f, a, b, from, to, ease) {
+              var t = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(t) : t);
+            }
+            // Fit one line to 90 % of the frame width: shrinks the font size when it overflows.
+            function fit(root, line, size) {
+              line.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * 0.9);
+              if (line.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / line.scrollWidth));
+                line.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // Drives draw(frame) from the paused timeline: frame = time * 30 * speed (Remotion's useCurrentFrame() * speed).
+            function drive(tl, total, speed, draw) {
+              var clock = { t: 0 };
+              tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t * 30 * speed); } }, 0);
+              draw(0);
+            }
+
+            var total = parseFloat(root.dataset.duration || "3.8");
+            var direction = pick(vars.direction, ["left", "right", "up", "down"], "left");
+            var blur = num(vars.blur, 24, 0, 48);
+            var a = document.getElementById("wp-a");
+            var b = document.getElementById("wp-b");
+            document.getElementById("wp-a-label").textContent = str(vars.scene_a_text, "Scene A");
+            document.getElementById("wp-b-label").textContent = str(vars.scene_b_text, "Scene B");
+            a.style.background = str(vars.scene_a_color, "#141318");
+            b.style.background = str(vars.scene_b_color, "#1a1922");
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+
+            // remocn timeline: scene A holds 70 frames, scene B 70, the transition is 26 frames and
+            // overlaps both, so it starts at frame 44 and the clip is 114 frames long.
+            var START = 44, LENGTH = 26;
+            var ease = bez(0.7, 0, 0.2, 1);
+            var axisX = direction === "left" || direction === "right";
+            var sign = direction === "left" || direction === "up" ? -1 : 1;
+            function place(el, entering, p) {
+              var travel = interp(p, 0, 1, 0, 1, ease);
+              var velocity = Math.sin(Math.PI * travel);
+              var offset = entering ? (travel - 1) * 110 * sign : travel * 110 * sign;
+              var stretch = 1 + velocity * 0.12;
+              el.style.transform = (axisX ? "translate(" + offset + "%, 0)" : "translate(0, " + offset + "%)") +
+                " scale(" + (axisX ? stretch + ", 1" : "1, " + stretch) + ")";
+              el.style.filter = velocity * blur > 0.01 ? "blur(" + velocity * blur + "px)" : "none";
+            }
+            function draw(frame) {
+              var p = Math.min(1, Math.max(0, (frame - START) / LENGTH));
+              place(a, false, p);
+              place(b, true, p);
+              a.style.visibility = p >= 1 ? "hidden" : "visible";
+              b.style.visibility = p <= 0 ? "hidden" : "visible";
+            }
+            var tl = gsap.timeline({ paused: true });
+            drive(tl, total, 1, draw);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["whip-pan"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

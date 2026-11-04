@@ -1,0 +1,157 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rgb-glitch-text",
+  "type": "hyperframes:component",
+  "title": "RGB Glitch Text",
+  "description": "A short burst where red, green and blue copies of the text jitter apart, then snap back.",
+  "tags": [
+    "text-effects",
+    "glitch",
+    "rgb",
+    "distortion",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.3,
+    0.72,
+    0.82,
+    2.5
+  ],
+  "useWhen": [
+    "A brief digital-glitch hit on a title: a logo sting, a cut, a system-error beat.",
+    "A short word in bold type where the colour split is the effect."
+  ],
+  "avoidWhen": [
+    "A sustained glitch is wanted: this one is a burst.",
+    "A soft or elegant tone: the colour split reads harsh."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/rgb-glitch-text/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "rgb-glitch-text.html",
+      "target": "compositions/components/rgb-glitch-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Text that glitches.",
+      "default": "GLITCH"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "glitch_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Glitch at",
+      "description": "Frame the glitch starts on.",
+      "default": 20,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "glitch_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Glitch duration",
+      "description": "How many frames the glitch lasts.",
+      "default": 8,
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "motion",
+      "label": "Intensity",
+      "description": "Maximum horizontal offset of the colour copies in pixels (at a 96 px font).",
+      "default": 6,
+      "min": 0,
+      "max": 30,
+      "step": 0.5,
+      "unit": "px"
+    },
+    {
+      "id": "seed",
+      "type": "string",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Same seed draws an identical glitch every time.",
+      "default": "glitch"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

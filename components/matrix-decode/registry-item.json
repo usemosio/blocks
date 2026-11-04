@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "matrix-decode",
+  "type": "hyperframes:component",
+  "title": "Matrix Decode",
+  "description": "Scrambled symbols resolve into the real text one character at a time, left to right, in a monospace face.",
+  "tags": [
+    "text-effects",
+    "decode",
+    "scramble",
+    "monospace",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A hacker, security or data-reveal moment where text should decode itself.",
+    "A short uppercase word or code that should resolve with a tech feel."
+  ],
+  "avoidWhen": [
+    "The tone is soft or editorial: use a blur or fade reveal.",
+    "Long sentences: the decode drags."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/matrix-decode/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "matrix-decode.html",
+      "target": "compositions/components/matrix-decode.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Text that decodes.",
+      "default": "DECRYPTED"
+    },
+    {
+      "id": "charset",
+      "type": "string",
+      "role": "style",
+      "label": "Charset",
+      "description": "Symbols shown while a character is still scrambled.",
+      "default": "!@#$%^&*()_+-=<>?/\\|"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#22c55e"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "reveal_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Reveal duration",
+      "description": "Frames over which the whole text resolves.",
+      "default": 60,
+      "min": 10,
+      "max": 240,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

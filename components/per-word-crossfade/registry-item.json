@@ -1,0 +1,121 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "per-word-crossfade",
+  "type": "hyperframes:component",
+  "title": "Per Word Crossfade",
+  "description": "A sentence dissolves word by word into a new one, each word rising slightly as it arrives.",
+  "tags": [
+    "text-effects",
+    "crossfade",
+    "words",
+    "swap",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.1,
+    0.5,
+    0.9,
+    2.0
+  ],
+  "useWhen": [
+    "A headline or tagline should be replaced by another with a soft, word-by-word dissolve.",
+    "A calm editorial swap where the eye follows each word."
+  ],
+  "avoidWhen": [
+    "The swap should be one single fade: use fade-through.",
+    "Text should be revealed from nothing: use a reveal."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/per-word-crossfade/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "per-word-crossfade.html",
+      "target": "compositions/components/per-word-crossfade.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "from_text",
+      "type": "string",
+      "role": "content",
+      "label": "From text",
+      "description": "Text that fades out word by word.",
+      "default": "Beautifully simple."
+    },
+    {
+      "id": "to_text",
+      "type": "string",
+      "role": "content",
+      "label": "To text",
+      "description": "Text that fades in word by word.",
+      "default": "Designed for focus."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

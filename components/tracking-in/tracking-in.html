@@ -1,0 +1,176 @@
+<!doctype html>
+<!--
+  Tracking In
+
+  Letter-spacing collapses and blur clears with a springy entrance.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/tracking-in/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="tracking-in"
+  data-composition-duration="3"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Title word or short phrase.", "default": "tracking in"},
+    {"id": "start_tracking", "type": "number", "role": "motion", "label": "Start tracking", "description": "Letter-spacing at the start, in em.", "default": 0.5, "min": 0, "max": 2, "step": 0.05, "unit": "em"},
+    {"id": "start_blur", "type": "number", "role": "motion", "label": "Start blur", "description": "Blur radius at the start.", "default": 12, "min": 0, "max": 40, "step": 1, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 96, "min": 12, "max": 220, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tracking In</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          color: var(--color, #171717);
+          font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif);
+        }
+        .tri-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .tri-line { line-height: 1.2; white-space: nowrap; }
+      </style>
+
+      <div id="root" data-composition-id="tracking-in" data-duration="3" data-fps="30">
+        <div id="tri-clip" class="tri-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <span id="tri-line" class="tri-line" role="img"></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            // Easing.bezier(x1, y1, x2, y2) as a function of t (Newton, then bisection).
+            function bez(x1, y1, x2, y2) {
+              function cx(s) { return 3 * x1 * s * (1 - s) * (1 - s) + 3 * x2 * s * s * (1 - s) + s * s * s; }
+              function cy(s) { return 3 * y1 * s * (1 - s) * (1 - s) + 3 * y2 * s * s * (1 - s) + s * s * s; }
+              return function (t) {
+                if (t <= 0) return 0;
+                if (t >= 1) return 1;
+                var lo = 0, hi = 1, s = t;
+                for (var i = 0; i < 40; i++) {
+                  var x = cx(s);
+                  if (Math.abs(x - t) < 1e-6) break;
+                  if (x < t) lo = s; else hi = s;
+                  s = (lo + hi) / 2;
+                }
+                return cy(s);
+              };
+            }
+            // interpolate(f, [a, b], [from, to]) with both ends clamped, like Remotion's extrapolate "clamp".
+            function interp(f, a, b, from, to, ease) {
+              var t = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(t) : t);
+            }
+            // Fit one line to 90 % of the frame width: shrinks the font size when it overflows.
+            function fit(root, line, size) {
+              line.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * 0.9);
+              if (line.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / line.scrollWidth));
+                line.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // Drives draw(frame) from the paused timeline: frame = time * 30 * speed (Remotion's useCurrentFrame() * speed).
+            function drive(tl, total, speed, draw) {
+              var clock = { t: 0 };
+              tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t * 30 * speed); } }, 0);
+              draw(0);
+            }
+
+            var text = str(vars.text, "tracking in");
+            var startTracking = num(vars.start_tracking, 0.5, 0, 2);
+            var startBlur = num(vars.start_blur, 12, 0, 40);
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var line = document.getElementById("tri-line");
+            line.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700"], "700");
+            line.setAttribute("aria-label", text);
+            line.textContent = text;
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            // The final letter-spacing (-0.03em) decides the fitted size.
+            line.style.letterSpacing = "-0.03em";
+            fit(root, line, num(vars.font_size, 96, 12, 220));
+
+            // spring({ damping: 18, stiffness: 90 }) at 30 fps, mass 1: damped spring from 0 to 1, closed form.
+            function spring(frame) {
+              var t = Math.max(0, frame) / 30;
+              var w0 = Math.sqrt(90), z = 18 / (2 * Math.sqrt(90));
+              var wd = w0 * Math.sqrt(1 - z * z);
+              return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+            }
+            function draw(frame) {
+              var t = spring(frame);
+              line.style.letterSpacing = (startTracking + (-0.03 - startTracking) * t) + "em";
+              var b = Math.max(0, startBlur * (1 - t));
+              line.style.filter = b > 0.01 ? "blur(" + b + "px)" : "none";
+              line.style.opacity = interp(frame, 0, 15, 0, 1);
+            }
+            var total = parseFloat(root.dataset.duration || "3");
+            var tl = gsap.timeline({ paused: true });
+            drive(tl, total, speed, draw);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["tracking-in"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

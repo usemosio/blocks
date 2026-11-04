@@ -1,0 +1,242 @@
+<!doctype html>
+<!--
+  Supporter Grid
+
+  A thank-you lockup for backers: a heart draws itself, pulses and docks upward while supporter avatars blur-stagger into a grid, then a headline, a supporter count and a call-to-action pill arrive.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/github-sponsors/index.tsx
+  The motion follows the source (heart draw and dock, avatar stagger, blur-in headline, CTA pill). The look was made generic: no product name, brand colour or lettering; avatars are initial discs built from a supporter list, and the link line and labels are variables.
+
+  MIT License
+
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="supporter-grid"
+  data-composition-duration="9"
+  data-composition-variables='[
+    {"id": "supporters", "type": "string", "role": "content", "label": "Supporters", "description": "Comma-separated names; each becomes an initial avatar and the count feeds the \"Powered by\" line.", "default": "Ada, Ben, Chloe, Dev, Eli, Fay, Gus, Hana, Ivo, June, Kai, Lena, Milo, Nia, Omar, Pia, Quin, Rhea, Sol, Tess, Uma, Vik, Wren, Zoe"},
+    {"id": "heading", "type": "string", "role": "content", "label": "Heading", "description": "Headline that blurs in under the grid.", "default": "Thank you"},
+    {"id": "subline", "type": "string", "role": "content", "label": "Subline", "description": "Line under the heading; {count} becomes the number of supporters.", "default": "Powered by {count} supporters"},
+    {"id": "cta_label", "type": "string", "role": "content", "label": "Button label", "description": "Text of the call-to-action pill.", "default": "Become a supporter"},
+    {"id": "link_text", "type": "string", "role": "content", "label": "Link line", "description": "Small muted line under the button. Leave empty to hide it.", "default": "example.org/support"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the heart and the button.", "default": "#f97316"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark neutral theme.", "default": "light", "options": [
+    {"value": "light", "label": "Light"},
+    {"value": "dark", "label": "Dark"}
+  ]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the lockup sits over your own scene.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Supporter Grid</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          background: var(--sg-bg, #fff); color: var(--sg-fg, #171717);
+          font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .sg-clip { position: absolute; inset: 0; }
+        .sg-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; }
+        .sg-av { position: absolute; border-radius: 50%; border: 1px solid var(--sg-border); display: flex; align-items: center; justify-content: center; font-weight: 600; color: #fff; will-change: transform, opacity, filter; }
+        .sg-heart { position: absolute; display: flex; align-items: center; justify-content: center; }
+        .sg-line { position: absolute; left: 0; text-align: center; white-space: nowrap; }
+        .sg-w { display: inline-block; transform-origin: 50% 55%; }
+        .sg-c { display: inline-block; white-space: pre; transform-origin: 50% 55%; }
+        .sg-cta { position: absolute; left: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .sg-pill { display: flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 9999px; color: #fff; font-size: 24px; font-weight: 600; background: var(--sg-accent); }
+        .sg-link { font-size: 18px; color: var(--sg-muted); }
+      </style>
+
+      <div id="root" data-composition-id="supporter-grid" data-duration="9" data-fps="30">
+        <div id="sg-clip" class="sg-clip clip" data-start="0" data-duration="9" data-track-index="0">
+          <div id="sg-stage" class="sg-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("sg-stage");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0; if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  t = (lo + hi) / 2;
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            var EASE_OUT = bez(0.22, 1, 0.36, 1), EASE_IN = bez(0.64, 0, 0.78, 0);
+            // Remotion-style interpolate on two points, clamped, with an easing.
+            function interp(x, a, b, from, to, ease) { var p = clamp((x - a) / (b - a), 0, 1); if (ease) p = ease(p); return from + (to - from) * p; }
+
+            var HEART = "M12.0001 4.52853C14.2745 2.23823 17.9866 2.23823 20.2611 4.52853C22.5784 6.86156 22.5784 10.667 20.2611 13.0001L12.0001 21.3199L3.73907 13.0001C1.42175 10.667 1.42175 6.86156 3.73907 4.52853C6.01353 2.23823 9.72563 2.23823 12.0001 4.52853Z";
+            var names = txt(vars.supporters, "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!names.length) names = ["Ada", "Ben", "Chloe", "Dev", "Eli", "Fay", "Gus", "Hana", "Ivo", "June", "Kai", "Lena", "Milo", "Nia", "Omar", "Pia", "Quin", "Rhea", "Sol", "Tess", "Uma", "Vik", "Wren", "Zoe"];
+            names = names.slice(0, 120);
+            var heading = txt(vars.heading, "Thank you").trim();
+            var subline = txt(vars.subline, "Powered by {count} supporters").replace("{count}", names.length).trim();
+            var ctaLabel = txt(vars.cta_label, "Become a supporter").trim();
+            var linkText = txt(vars.link_text, "example.org/support").trim();
+            var accent = colr(vars.accent_color, "#f97316");
+            var dark = String(vars.theme) === "dark";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = dark ? { bg: "#0b0b0d", subtle: "#17171a", fg: "#fafafa", muted: "#a1a1aa", border: "#2a2a30" }
+                         : { bg: "#ffffff", subtle: "#fafafa", fg: "#171717", muted: "#737373", border: "#ededed" };
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--sg-" + k, T[k]); });
+            root.style.setProperty("--sg-accent", accent);
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, portrait = H > W;
+            var RW = portrait ? 720 : 1280, RH = portrait ? 1280 : 720, k = Math.min(W / RW, H / RH);
+            stage.style.width = RW + "px"; stage.style.height = RH + "px";
+            stage.style.marginLeft = -RW / 2 + "px"; stage.style.marginTop = -RH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+            var L = portrait
+              ? { cx: 360, cy: 600, bw: 600, bh: 420, heartY: 590, headY: 296, thanks: 900, sub: 984, cta: 1050 }
+              : { cx: 640, cy: 304, bw: 900, bh: 236, heartY: 286, headY: 120, thanks: 444, sub: 532, cta: 584 };
+
+            // Grid: near-square cells that fill the box, rows centered.
+            var count = names.length;
+            var cols = Math.max(1, Math.min(count, Math.round(Math.sqrt(count * L.bw / L.bh))));
+            var rows = Math.max(1, Math.ceil(count / cols));
+            var cellW = L.bw / cols, cellH = L.bh / rows;
+            var avSize = Math.min(84, Math.min(cellW, cellH) * 0.76);
+            var AV_START = 70, AV_DUR = 22, AV_WINDOW = 56;
+            var step = count > 1 ? Math.min(3, AV_WINDOW / (count - 1)) : 0;
+            var avs = names.map(function (nm, i) {
+              var r = Math.floor(i / cols), c = i % cols, rc = Math.min(cols, count - r * cols);
+              var x = L.cx - ((rc - 1) * cellW) / 2 + c * cellW, y = L.cy - ((rows - 1) * cellH) / 2 + r * cellH;
+              var d = el("div", "sg-av", stage);
+              d.textContent = Array.from(nm)[0].toUpperCase();
+              var hue = (i * 47 + 20) % 360;
+              d.style.cssText += "left:" + x + "px;top:" + y + "px;width:" + avSize + "px;height:" + avSize + "px;font-size:" + avSize * 0.42 + "px;background:hsl(" + hue + " 55% " + (dark ? 42 : 58) + "%)";
+              return { d: d, x: x, y: y };
+            });
+
+            var HB = 168;
+            var heart = el("div", "sg-heart", stage);
+            heart.style.cssText += "left:" + (L.cx - HB / 2) + "px;top:" + (L.heartY - HB / 2) + "px;width:" + HB + "px;height:" + HB + "px";
+            heart.innerHTML = '<svg viewBox="0 0 24 24" width="' + HB + '" height="' + HB + '"><path id="sg-hp" d="' + HEART + '" pathLength="1" fill="' + accent + '" fill-opacity="0" stroke="' + accent + '" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/></svg>';
+            var hp = heart.querySelector("path");
+
+            function words(parent, text, size, weight, color, spacing) {
+              var box = el("div", "sg-line", parent);
+              box.style.width = RW + "px"; box.style.fontSize = size + "px"; box.style.fontWeight = weight; box.style.color = color; box.style.letterSpacing = spacing;
+              return box;
+            }
+            var hBox = words(stage, "", 54, 600, T.fg, "-0.05em"); hBox.style.top = L.thanks + "px"; hBox.style.height = "84px"; hBox.style.lineHeight = "84px";
+            var hChars = Array.from(heading).map(function (ch) { var s = el("span", "sg-c", hBox); s.textContent = ch; return s; });
+            var sBox = words(stage, "", 24, 500, T.muted, "-0.03em"); sBox.style.top = L.sub + "px"; sBox.style.height = "36px"; sBox.style.lineHeight = "36px";
+            var sWords = subline.split(" ").filter(Boolean).map(function (w) { var s = el("span", "sg-w", sBox); s.textContent = w; s.style.marginRight = "0.25em"; return s; });
+            var cta = el("div", "sg-cta", stage); cta.style.top = L.cta + "px"; cta.style.width = RW + "px";
+            var pill = null, link = null;
+            if (ctaLabel) { pill = el("div", "sg-pill", cta, '<svg width="22" height="22" viewBox="0 0 24 24"><path d="' + HEART + '" fill="#fff"/></svg>'); el("span", "", pill).textContent = ctaLabel; }
+            if (linkText) { link = el("div", "sg-link", cta); link.textContent = linkText; }
+
+            var DRAW_END = 40, PULSE_END = 62, DOCK_A = 52, DOCK_B = 84, THANK = 150, SUB = 166, CTA = 182;
+            var inOut = bez(0.42, 0, 0.58, 1);
+            function draw(fr) {
+              var f = fr; // frames already scaled by speed
+              hp.setAttribute("stroke-dashoffset", 1 - interp(f, 0, DRAW_END, 0, 1, EASE_OUT));
+              hp.setAttribute("fill-opacity", interp(f, DRAW_END - 8, PULSE_END, 0, 1));
+              var pulse = f < DRAW_END + 6 ? interp(f, DRAW_END - 2, DRAW_END + 6, 1, 0.9, inOut) : f < DRAW_END + 17 ? interp(f, DRAW_END + 6, DRAW_END + 17, 0.9, 1.06, inOut) : interp(f, DRAW_END + 17, PULSE_END, 1.06, 1, inOut);
+              var dock = interp(f, DOCK_A, DOCK_B, 0, 1, EASE_OUT);
+              heart.style.transform = "translateY(" + (L.headY - L.heartY) * dock + "px) scale(" + (1 - 0.62 * dock) * pulse + ")";
+              avs.forEach(function (a, i) {
+                var p = interp(f, AV_START + i * step, AV_START + i * step + AV_DUR, 0, 1, EASE_OUT);
+                a.d.style.opacity = p;
+                a.d.style.transform = "translate(-50%, calc(-50% + " + (1 - p) * 14 + "px))";
+                a.d.style.filter = "blur(" + (1 - p) * 10 + "px) grayscale(" + (1 - p) + ")";
+              });
+              hChars.forEach(function (s, i) {
+                var l = f - THANK - i;
+                var p = interp(l, 0, 27, 0, 1, EASE_OUT);
+                s.style.opacity = p;
+                s.style.transform = "translateY(" + interp(l, 0, 9, 16, 0, EASE_OUT) + "px)";
+                s.style.filter = "blur(" + interp(l, 0, 27, 12, 0, EASE_OUT) + "px)";
+              });
+              var total = 270, exitStart = Math.max(17 + sWords.length - 1, total - SUB - 14 - (sWords.length - 1));
+              sWords.forEach(function (s, i) {
+                var le = f - SUB - i, lx = f - SUB - exitStart - i;
+                var ep = interp(le, 0, 17, 0, 1, EASE_OUT), xp = interp(lx, 0, 14, 0, 1, EASE_IN);
+                s.style.opacity = ep * (1 - xp);
+                s.style.transform = "translateY(" + (interp(le, 0, 6, 10, 0, EASE_OUT) + interp(lx, 8, 14, 0, -14, EASE_IN)) + "px)";
+                s.style.filter = "blur(" + (interp(le, 0, 17, 6, 0, EASE_OUT) + interp(lx, 0, 14, 0, 8, EASE_IN)) + "px)";
+              });
+              if (pill) {
+                var cp = interp(f, CTA, CTA + 22, 0, 1, EASE_OUT);
+                pill.style.opacity = cp; pill.style.transform = "translateY(" + (1 - cp) * 12 + "px)"; pill.style.filter = "blur(" + (1 - cp) * 10 + "px)";
+              }
+              if (link) link.style.opacity = interp(f, CTA + 8, CTA + 30, 0, 1, EASE_OUT) * 0.9;
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "9");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["supporter-grid"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

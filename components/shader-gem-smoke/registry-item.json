@@ -1,0 +1,231 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-gem-smoke",
+  "type": "hyperframes:component",
+  "title": "Gem Smoke",
+  "description": "Smoke in your palette flows behind and inside a glassy silhouette: a built-in shape such as a diamond, or a bold glyph or logo letter you type. Drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "shape",
+    "smoke",
+    "logo",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "Brand or logo reveals that want smoke living inside and around a mark.",
+    "You have a short mark, letter or glyph to set in `glyph` and want it treated as a glassy silhouette.",
+    "A premium product intro wants color fields flowing through a recognizable shape."
+  ],
+  "avoidWhen": [
+    "You have no mark to show: the built-in shapes work, or use shader-smoke-ring or shader-neuro-noise for a shapeless field.",
+    "The mark should stay static and legible: the smoke will distort its read.",
+    "You need to feed a real logo image: this block draws text only."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-gem-smoke/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-gem-smoke.html",
+      "target": "compositions/components/shader-gem-smoke.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 6 colors, comma separated, for the smoke.",
+      "default": "#3a3a5c, #52527a"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color around the silhouette.",
+      "default": "#0a0a10"
+    },
+    {
+      "id": "color_inner",
+      "type": "color",
+      "role": "style",
+      "label": "Inner color",
+      "description": "Color inside the silhouette.",
+      "default": "#fafaf5"
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Shape",
+      "description": "The built-in silhouette; ignored when a glyph is set.",
+      "default": "diamond",
+      "options": [
+        {
+          "value": "none",
+          "label": "Full frame"
+        },
+        {
+          "value": "circle",
+          "label": "Circle"
+        },
+        {
+          "value": "daisy",
+          "label": "Daisy"
+        },
+        {
+          "value": "diamond",
+          "label": "Diamond"
+        },
+        {
+          "value": "metaballs",
+          "label": "Metaballs"
+        }
+      ]
+    },
+    {
+      "id": "glyph",
+      "type": "string",
+      "role": "content",
+      "label": "Glyph",
+      "description": "A bold letter, symbol or short word to use as the silhouette instead of a shape. Empty uses the shape.",
+      "default": ""
+    },
+    {
+      "id": "inner_distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Inner distortion",
+      "description": "How much the smoke inside the shape bends.",
+      "default": 0.8,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "outer_distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Outer distortion",
+      "description": "How much the smoke outside the shape bends.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "outer_glow",
+      "type": "number",
+      "role": "style",
+      "label": "Outer glow",
+      "description": "Glow around the silhouette.",
+      "default": 0.55,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "inner_glow",
+      "type": "number",
+      "role": "style",
+      "label": "Inner glow",
+      "description": "Glow inside the silhouette.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Smoke size",
+      "description": "Size of the smoke shapes.",
+      "default": 0.8,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "offset",
+      "type": "number",
+      "role": "style",
+      "label": "Offset",
+      "description": "Shifts the smoke away from the shape.",
+      "default": 0,
+      "min": -1,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "angle",
+      "type": "number",
+      "role": "style",
+      "label": "Angle",
+      "description": "Direction the smoke flows.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 0.6,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

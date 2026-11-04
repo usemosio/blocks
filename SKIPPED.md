@@ -1,135 +1,23 @@
-# Not ported
+# Not ported, and adapted
 
-remocn components at `126221ae` that this library does not carry, and why. Ports skipped during the work are added below with their reason.
+remocn components at `126221ae` that this library does not carry as they are, and why.
 
-- `remocn/ascii-render`: WebGL
-- `remocn/camera-lens`: WebGL
-- `remocn/crt-screen`: WebGL
-- `remocn/displacement`: WebGL
-- `remocn/ember-burn`: WebGL
-- `remocn/glitch-cut`: WebGL
-- `remocn/grid-wave`: WebGL
-- `remocn/halftone-print`: WebGL
-- `remocn/particle-dissolve`: WebGL
-- `remocn/pixelate-region`: WebGL
-- `remocn/rush-type`: WebGL
-- `remocn/security-cam`: WebGL
-- `remocn/shader-caustics`: WebGL
-- `remocn/shader-color-panels`: WebGL
-- `remocn/shader-dithering`: WebGL
-- `remocn/shader-dot-orbit`: WebGL
-- `remocn/shader-god-rays`: WebGL
-- `remocn/shader-grain-gradient`: WebGL
-- `remocn/shader-light-tunnel`: WebGL
-- `remocn/shader-liquid-metal`: WebGL
-- `remocn/shader-mesh-gradient`: WebGL
-- `remocn/shader-metaballs`: WebGL
-- `remocn/shader-neuro-noise`: WebGL
-- `remocn/shader-perlin-noise`: WebGL
-- `remocn/shader-pulsing-border`: WebGL
-- `remocn/shader-seam`: WebGL
-- `remocn/shader-simplex-noise`: WebGL
-- `remocn/shader-smoke-ring`: WebGL
-- `remocn/shader-spiral`: WebGL
-- `remocn/shader-strata`: WebGL
-- `remocn/shader-swirl`: WebGL
-- `remocn/shader-text-reveal`: WebGL
-- `remocn/shader-voronoi`: WebGL
-- `remocn/shader-warp`: WebGL
-- `remocn/shader-water`: WebGL
-- `remocn/shader-weave`: WebGL
-- `remocn/sustained-glitch`: WebGL
-- `remocn/tv-power-off`: WebGL
-- `remocn/underwater-ripple`: WebGL
-- `remocn/vhs-filter`: WebGL
-- `remocn/shader-grain-gradient-arcade`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-blush`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-dune`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-horizon`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-nebula`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-orb`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-sunrise`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-tide`: a preset of a WebGL shader
-- `remocn/shader-grain-gradient-ultraviolet`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-aurora`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-dusk`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-ember`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-ink`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-lagoon`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-lavender`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-mint`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-peach`: a preset of a WebGL shader
-- `remocn/shader-mesh-gradient-synthwave`: a preset of a WebGL shader
-- `remocn/shader-swirl-candy`: a preset of a WebGL shader
-- `remocn/shader-swirl-citrus`: a preset of a WebGL shader
-- `remocn/shader-swirl-ember`: a preset of a WebGL shader
-- `remocn/shader-swirl-hypno`: a preset of a WebGL shader
-- `remocn/shader-swirl-lilac`: a preset of a WebGL shader
-- `remocn/shader-swirl-neon`: a preset of a WebGL shader
-- `remocn/shader-swirl-retro`: a preset of a WebGL shader
-- `remocn/shader-swirl-sunburst`: a preset of a WebGL shader
-- `remocn/shader-swirl-tide`: a preset of a WebGL shader
-- `remocn/shader-warp-acid`: a preset of a WebGL shader
-- `remocn/shader-warp-cream`: a preset of a WebGL shader
-- `remocn/shader-warp-deep-sea`: a preset of a WebGL shader
-- `remocn/shader-warp-marble`: a preset of a WebGL shader
-- `remocn/shader-warp-ocean`: a preset of a WebGL shader
-- `remocn/shader-warp-rose-gold`: a preset of a WebGL shader
-- `remocn/shader-warp-silk`: a preset of a WebGL shader
-- `remocn/shader-warp-storm`: a preset of a WebGL shader
-- `remocn/shader-warp-sunset`: a preset of a WebGL shader
-- `remocn/shader-gem-smoke`: WebGL; needs bundled images
-- `remocn/animated-bar-chart`: already ported in the Hyperframes registry (same name)
-- `remocn/blur-out-up`: already ported in the Hyperframes registry (same name)
-- `remocn/bottom-up-letters`: already ported in the Hyperframes registry (same name)
-- `remocn/caret-swap`: already ported in the Hyperframes registry (same name)
-- `remocn/code-morph`: already ported in the Hyperframes registry (same name)
-- `remocn/confetti`: already ported in the Hyperframes registry (same name)
-- `remocn/fade-through`: already ported in the Hyperframes registry (same name)
-- `remocn/focus-blur-resolve`: already ported in the Hyperframes registry (same name)
-- `remocn/inline-highlight`: already ported in the Hyperframes registry (same name)
-- `remocn/kinetic-center-build`: already ported in the Hyperframes registry (same name)
-- `remocn/light-leak`: already ported in the Hyperframes registry (same name)
-- `remocn/line-by-line-slide`: already ported in the Hyperframes registry (same name)
-- `remocn/marker-highlight`: already ported in the Hyperframes registry (same name)
-- `remocn/matrix-decode`: already ported in the Hyperframes registry (same name)
-- `remocn/number-wheel`: already ported in the Hyperframes registry (same name)
-- `remocn/per-word-crossfade`: already ported in the Hyperframes registry (same name)
-- `remocn/perspective-marquee`: already ported in the Hyperframes registry (same name)
-- `remocn/rgb-glitch-text`: already ported in the Hyperframes registry (same name)
-- `remocn/shared-axis-y`: already ported in the Hyperframes registry (same name)
-- `remocn/shared-axis-z`: already ported in the Hyperframes registry (same name)
-- `remocn/shimmer-sweep`: already ported in the Hyperframes registry (same name)
-- `remocn/slot-machine-roll`: already ported in the Hyperframes registry (same name)
-- `remocn/soft-blur-in`: already ported in the Hyperframes registry (same name)
-- `remocn/staggered-fade-up`: already ported in the Hyperframes registry (same name)
-- `remocn/strikethrough-replace`: already ported in the Hyperframes registry (same name)
-- `remocn/terminal-simulator`: already ported in the Hyperframes registry (same name)
-- `remocn/top-down-letters`: already ported in the Hyperframes registry (same name)
-- `remocn/tracking-in`: already ported in the Hyperframes registry (same name)
-- `remocn/typewriter`: already ported in the Hyperframes registry (same name)
-- `remocn/whip-pan`: already ported in the Hyperframes registry (same name)
-- `remocn/x-follow-card`: already ported in the Hyperframes registry (same name)
-- `remocn-ui/blur-in`: already ported in the Hyperframes registry (same name)
-- `remocn-ui/onboarding-stepper-flow`: already ported in the Hyperframes registry (same name)
-- `remocn-ui/settings-toggle-flow`: already ported in the Hyperframes registry (same name)
-- `remocn-ui/signup-flow`: already ported in the Hyperframes registry (same name)
-- `remocn-ui/typing-indicator`: already ported in the Hyperframes registry (same name)
-- `remocn/hologram`: already ported in the Hyperframes registry (same name); WebGL
-- `remocn/chat-gpt`: imitates a third-party product's UI or brand
-- `remocn/claude-chat`: imitates a third-party product's UI or brand
-- `remocn/claude-code`: imitates a third-party product's UI or brand
-- `remocn/github-sponsors`: imitates a third-party product's UI or brand
-- `remocn/github-stars`: imitates a third-party product's UI or brand
-- `remocn/opencode`: imitates a third-party product's UI or brand
-- `remocn/v0`: imitates a third-party product's UI or brand
-- `remocn/x-followers-overview`: imitates a third-party product's UI or brand
-- `remocn-ui/telegram-chat-flow`: imitates a third-party product's UI or brand
-- `remocn-templates/brand-guidelines`: uses Remotion video/audio
-- `remocn-templates/fomo-limit-orders`: uses Remotion video/audio
-- `remocn-templates/launch-anything`: uses Remotion video/audio
-- `remocn-templates/release-teaser`: uses Remotion video/audio
-- `remocn-templates/workflow-console`: uses Remotion video/audio
-- `remocn-ui/imessage-chat-flow`: uses Remotion video/audio
-- `remocn/brush`: a helper module (brush-stroke geometry and grain filter used by other components), not a component of its own
-- `remocn/cloth-reveal`: a Verlet cloth simulation (about 3,000 constraints, 60 solver passes per frame) that cannot be recomputed per seek at render speed
+## Not ported
+
+- `remocn/brush`: a helper module (brush-stroke geometry and grain filter used by other components), not a
+  component of its own; the blocks that use it draw their strokes themselves.
+
+## Adapted under another name
+
+These copy a real product's interface or brand. Their motion is here with a generic look (no product names,
+logos, signature colours or layouts), under a name that says what the scene is.
+
+| remocn | Block |
+|---|---|
+| `remocn/chat-gpt`, `remocn/claude-chat`, `remocn/v0` | `ai-prompt-composer` |
+| `remocn/claude-code`, `remocn/opencode` | `agent-terminal` (`layout`: panel or launcher) |
+| `remocn/github-sponsors` | `supporter-grid` |
+| `remocn/github-stars` | `milestone-counter-list` |
+| `remocn/x-followers-overview` | `followers-overview` |
+| `remocn/x-follow-card` | `profile-follow-card` |
+| `remocn-ui/imessage-chat-flow`, `remocn-ui/telegram-chat-flow` | `messenger-chat-flow` (`style`: ticks or receipt) |

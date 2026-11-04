@@ -1,0 +1,148 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ai-prompt-composer",
+  "type": "hyperframes:component",
+  "title": "AI Prompt Composer",
+  "description": "An unbranded AI chat composer: the greeting and input ease in, a prompt types itself and the voice button morphs into the send button while the suggestion chips fade.",
+  "tags": [
+    "ai",
+    "chat",
+    "prompt",
+    "composer",
+    "typing",
+    "product-demo",
+    "remocn-port"
+  ],
+  "category": "ai",
+  "duration": 5,
+  "useWhen": [
+    "Showing a prompt-to-result workflow where a chat input is the entry point, without naming any AI product.",
+    "A prompt should type itself with the voice-to-send morph as the action beat.",
+    "A comparison or feature video needs an AI input card in your own colours."
+  ],
+  "avoidWhen": [
+    "The scene must show the answer as well: use ai-prompt-flow or agent-run.",
+    "The product is a command-line coding agent: use agent-terminal.",
+    "You only need a typed line with a caret and no app chrome: use caret or a typewriter text block."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/chat-gpt/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ai-prompt-composer.html",
+      "target": "compositions/components/ai-prompt-composer.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "greeting",
+      "type": "string",
+      "role": "content",
+      "label": "Greeting",
+      "description": "Heading above the input. Leave empty to hide it.",
+      "default": "What should we make?"
+    },
+    {
+      "id": "placeholder",
+      "type": "string",
+      "role": "content",
+      "label": "Placeholder",
+      "description": "Muted hint shown in the empty input.",
+      "default": "Ask anything"
+    },
+    {
+      "id": "prompt",
+      "type": "string",
+      "role": "content",
+      "label": "Prompt",
+      "description": "Text that types itself into the input.",
+      "default": "Make a sunset over a calm ocean"
+    },
+    {
+      "id": "app_label",
+      "type": "string",
+      "role": "content",
+      "label": "App label",
+      "description": "Name in the selector under the input (card layout only). Leave empty to hide it.",
+      "default": "Assistant"
+    },
+    {
+      "id": "suggestions",
+      "type": "string",
+      "role": "content",
+      "label": "Suggestions",
+      "description": "Comma-separated suggestion chips under the input; they fade out once typing starts. Leave empty to hide them.",
+      "default": "Create an image, Write or edit, Look something up"
+    },
+    {
+      "id": "layout",
+      "type": "enum",
+      "role": "style",
+      "label": "Layout",
+      "description": "A card with a toolbar row, or a single-line pill.",
+      "default": "card",
+      "options": [
+        {
+          "value": "card",
+          "label": "Card"
+        },
+        {
+          "value": "pill",
+          "label": "Pill"
+        }
+      ]
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the send button.",
+      "default": "#6e56cf"
+    },
+    {
+      "id": "theme",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the composer sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

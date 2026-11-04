@@ -1,0 +1,430 @@
+<!doctype html>
+<!--
+  VHS Filter
+
+  A scene held under analog tape: chroma bleed, tape wobble, a head-switch tear and luma
+  noise. The scene here is a stat and a bar chart.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/vhs-filter/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  remocn captures its React children with the HTML-in-Canvas API, which a render machine does
+  not have. This block draws remocn's preview scene (a stat and a bar chart) (text and colours from the variables) on a
+  2D canvas and runs remocn's fragment shader over it, so it applies the look to its own content,
+  not to the host video behind it.
+-->
+<html
+  lang="en"
+  data-composition-id="vhs-filter"
+  data-composition-duration="3"
+  data-composition-variables='[{"id": "label", "type": "string", "role": "content", "label": "Label", "description": "Small caption above the number in the sample scene.", "default": "Deploys this week"}, {"id": "value", "type": "string", "role": "content", "label": "Value", "description": "The big number in the sample scene.", "default": "2,481"}, {"id": "bars", "type": "string", "role": "content", "label": "Bars", "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.", "default": "32,51,43,68,57,86,64,100"}, {"id": "accent", "type": "color", "role": "style", "label": "Highlight", "description": "Colour of the last bar.", "default": "#a1eebd"}, {"id": "bleed", "type": "number", "role": "style", "label": "Bleed", "description": "How far colour smears sideways.", "default": 1, "min": 0, "max": 3, "step": 0.1}, {"id": "wobble", "type": "number", "role": "style", "label": "Wobble", "description": "Tape jitter of the lines.", "default": 1, "min": 0, "max": 3, "step": 0.1}, {"id": "noise", "type": "number", "role": "style", "label": "Noise", "description": "Strength of the grain.", "default": 1, "min": 0, "max": 3, "step": 0.1}, {"id": "intensity", "type": "number", "role": "style", "label": "Intensity", "description": "0 shows the scene, 1 the full tape look.", "default": 1, "min": 0, "max": 1, "step": 0.05}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. The scanlines and grain are fine; lower renders faster but softens them.", "default": 1, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>VHS Filter</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .vhs-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .vhs-canvas,
+        .vhs-scene {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .vhs-scene {
+          display: none;
+        }
+        .vhs-off .vhs-canvas {
+          display: none;
+        }
+        .vhs-off .vhs-fb {
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="vhs-filter" data-duration="3" data-fps="30">
+        <div id="vhs-clip" class="vhs-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <canvas id="vhs-scene0" class="vhs-scene vhs-fb"></canvas>
+          <canvas id="vhs-canvas" class="vhs-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "vhs-filter";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("vhs-clip");
+            var canvas = document.getElementById("vhs-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#ffffff").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "label", "type": "string", "default": "Deploys this week"}, {"id": "value", "type": "string", "default": "2,481"}, {"id": "bars", "type": "string", "default": "32,51,43,68,57,86,64,100"}, {"id": "accent", "type": "color", "default": "#a1eebd"}, {"id": "bleed", "type": "number", "default": 1, "min": 0, "max": 3}, {"id": "wobble", "type": "number", "default": 1, "min": 0, "max": 3}, {"id": "noise", "type": "number", "default": 1, "min": 0, "max": 3}, {"id": "intensity", "type": "number", "default": 1, "min": 0, "max": 1}, {"id": "resolution", "type": "number", "default": 1, "min": 0.25, "max": 1}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else if (d.type === "enum") V[d.id] = d.options.indexOf(raw) >= 0 ? raw : d.default;
+              else V[d.id] = typeof raw === "string" && raw.trim() ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var res = V.resolution;
+            var cw = Math.max(2, Math.round(W * res));
+            var ch = Math.max(2, Math.round(H * res));
+            var sceneCanvases = ["vhs-scene0"].map(function (id) {
+              var el = document.getElementById(id);
+              el.width = cw;
+              el.height = ch;
+              return el;
+            });
+
+            var SANS = "Geist, -apple-system, BlinkMacSystemFont, sans-serif";
+            var MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+            var INK = "#f2f2f2";
+            var MUTED = "#8b8f9a";
+            var TONES = ["#a1eebd", "#ffb38e", "#d4b3ff"];
+            var S = Math.min(W / 940, H / 720);
+            function setFont(ctx, weight, size, family) { ctx.font = weight + " " + size + "px " + family; }
+            function fitFont(ctx, text, maxWidth, weight, size, family) {
+              setFont(ctx, weight, size, family);
+              var w = ctx.measureText(text).width;
+              if (w > maxWidth) { size *= maxWidth / w; setFont(ctx, weight, size, family); }
+              return size;
+            }
+            function setSpacing(ctx, px) { if ("letterSpacing" in ctx) ctx.letterSpacing = px + "px"; }
+            function wrapLines(ctx, text, maxWidth) {
+              var words = String(text).split(/\s+/).filter(Boolean);
+              var lines = [];
+              var line = "";
+              words.forEach(function (word) {
+                var next = line ? line + " " + word : word;
+                if (line && ctx.measureText(next).width > maxWidth) { lines.push(line); line = word; }
+                else line = next;
+              });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function pairs(text, max) {
+              return String(text).split(";")
+                .map(function (row) { return row.split("|").map(function (part) { return part.trim(); }); })
+                .filter(function (row) { return row[0]; })
+                .slice(0, max);
+            }
+            function begin(ctx, cw, ch, fill) {
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = fill;
+              ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "middle";
+              ctx.textAlign = "left";
+              setSpacing(ctx, 0);
+            }
+
+
+            // Sample scene "A": a stat and a bar chart (remocn's CanvasSceneA), laid out for any frame size.
+            var barValues = String(V.bars).split(",").map(function (n) { return Math.min(100, Math.max(4, Number(n) || 0)); }).slice(0, 12);
+            if (!barValues.length) barValues = [32, 51, 43, 68, 57, 86, 64, 100];
+            function drawA(canvas) {
+              var ctx = canvas.getContext("2d");
+              begin(ctx, canvas.width, canvas.height, "#0a0a0a");
+              var s = S, pad = 96 * s, inner = W - pad * 2;
+              var labelH = 41 * s, valueSize = 152 * s, barsH = 190 * s;
+              var total = labelH + 6 * s + valueSize + 52 * s + barsH;
+              var y = (H - total) / 2;
+              ctx.fillStyle = MUTED;
+              fitFont(ctx, V.label, inner, 400, 34 * s, SANS);
+              ctx.fillText(V.label, pad, y + labelH / 2);
+              y += labelH + 6 * s;
+              ctx.fillStyle = INK;
+              setSpacing(ctx, -0.04 * valueSize);
+              fitFont(ctx, V.value, inner, 600, valueSize, SANS);
+              ctx.fillText(V.value, pad, y + valueSize / 2);
+              setSpacing(ctx, 0);
+              y += valueSize + 52 * s;
+              var n = barValues.length;
+              var bs = Math.min(1, inner / ((n * 74 + (n - 1) * 16) * s));
+              var bw = 74 * s * bs, gap = 16 * s * bs, base = y + barsH;
+              barValues.forEach(function (v, i) {
+                var h = barsH * v / 100;
+                ctx.fillStyle = i === n - 1 ? V.accent : "#23262e";
+                ctx.beginPath();
+                ctx.roundRect(pad + i * (bw + gap), base - h, bw, h, 10 * s * bs);
+                ctx.fill();
+              });
+            }
+
+            function drawScenes() {
+              drawA(sceneCanvases[0]);
+            }
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 a_pos;",
+              "out vec2 v_uv;",
+              "void main() {",
+              "  v_uv = vec2(a_pos.x * 0.5 + 0.5, 0.5 - a_pos.y * 0.5);",
+              "  gl_Position = vec4(a_pos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+
+uniform sampler2D u_scene;
+uniform float u_frame;
+uniform float u_time;
+uniform float u_bleed;
+uniform float u_wobble;
+uniform float u_noise;
+uniform float u_intensity;
+
+in vec2 v_uv;
+out vec4 outColor;
+
+const float PI = 3.141592653589793;
+const float LINES = 486.0;
+const int TAPS = 6;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float valueNoise(float x) {
+  float i = floor(x);
+  float f = fract(x);
+  float a = hash(vec2(i, 7.0));
+  float b = hash(vec2(i + 1.0, 7.0));
+  return mix(a, b, f * f * (3.0 - 2.0 * f));
+}
+
+vec3 rgb2yiq(vec3 c) {
+  return vec3(
+    dot(c, vec3(0.299, 0.587, 0.114)),
+    dot(c, vec3(0.5959, -0.2746, -0.3213)),
+    dot(c, vec3(0.2115, -0.5227, 0.3112))
+  );
+}
+
+vec3 yiq2rgb(vec3 c) {
+  return vec3(
+    c.x + 0.956 * c.y + 0.619 * c.z,
+    c.x - 0.272 * c.y - 0.647 * c.z,
+    c.x - 1.106 * c.y + 1.703 * c.z
+  );
+}
+
+void main() {
+  float line = floor(v_uv.y * LINES);
+  float clock = mod(u_frame, 64.0);
+
+  float drift =
+    sin(v_uv.y * 37.0 + u_time * 2.3) * 0.55 +
+    sin(v_uv.y * 96.0 - u_time * 1.1) * 0.25;
+  float jitter = valueNoise(line * 0.61 + u_time * 24.0) - 0.5;
+  float wobble = (drift * 0.35 + jitter * 0.9) * 0.007 * u_wobble * u_intensity;
+
+  float band = smoothstep(0.955, 0.994, v_uv.y);
+  float tear = valueNoise(line * 2.7 + u_time * 43.0) - 0.5;
+  float headSwitch = band * tear * 0.085 * u_intensity;
+
+  vec2 uv = vec2(v_uv.x + wobble + headSwitch, v_uv.y);
+  vec4 base = texture(u_scene, uv);
+  float luma = rgb2yiq(base.rgb).x;
+
+  float smear = u_bleed * 0.02 * u_intensity;
+  vec2 chroma = vec2(0.0);
+  float total = 0.0;
+  for (int i = 0; i < TAPS; i++) {
+    float t = float(i) / float(TAPS - 1);
+    float weight = 1.0 - t * 0.72;
+    vec3 tap = texture(u_scene, vec2(uv.x - smear * t, uv.y)).rgb;
+    chroma += rgb2yiq(tap).yz * weight;
+    total += weight;
+  }
+
+  vec3 color = yiq2rgb(vec3(luma, chroma / total));
+
+  float scan = 0.94 + 0.06 * cos(v_uv.y * LINES * PI);
+  color *= mix(1.0, scan, u_intensity);
+
+  float grain =
+    hash(vec2(v_uv.x * 640.0 + clock * 13.0, line + clock * 5.0)) - 0.5;
+  color += grain * 0.07 * u_noise * u_intensity;
+
+  color = mix(color, vec3(luma), band * 0.55 * u_intensity);
+  color += band * (hash(vec2(line, clock * 3.0)) - 0.5) * 0.26 * u_intensity;
+
+  outColor = vec4(clamp(color, 0.0, 1.0), base.a);
+}`;
+
+            canvas.width = cw;
+            canvas.height = ch;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            var upload = function () {};
+            var extraUpload = function () {};
+            var frameFn = function () {};
+            var texUnits = [];
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(program, "a_pos");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+              function makeTexture(unit) {
+                var texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                return texture;
+              }
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              ["u_scene"].forEach(function (name, unit) {
+                makeTexture(unit);
+                gl.uniform1i(u(name), unit);
+              });
+              gl.uniform1f(u("u_aspect"), W / H);
+              var frameLoc = u("u_frame");
+              var timeLoc = u("u_time");
+              upload = function () {
+                sceneCanvases.forEach(function (el, unit) {
+                  gl.activeTexture(gl.TEXTURE0 + unit);
+                  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, el);
+                });
+                extraUpload();
+              };
+
+              gl.uniform1f(u("u_bleed"), V.bleed);
+              gl.uniform1f(u("u_wobble"), V.wobble);
+              gl.uniform1f(u("u_noise"), V.noise);
+              gl.uniform1f(u("u_intensity"), V.intensity);
+
+              paint = function (frame) {
+                gl.uniform1f(frameLoc, frame);
+                gl.uniform1f(timeLoc, frame / 30);
+                frameFn(frame, frame / 30);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+              };
+            } catch (err) {
+              stage.classList.add("vhs-off");
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            // The scenes are redrawn whenever a web font finishes loading, so no frame keeps a fallback face.
+            var fontEpoch = 0;
+            var sceneEpoch = -1;
+            var lastFrame = 0;
+            function render(frame) {
+              lastFrame = frame;
+              if (sceneEpoch !== fontEpoch) {
+                sceneEpoch = fontEpoch;
+                drawScenes();
+                upload();
+              }
+              if (paint) paint(frame);
+            }
+            if (document.fonts && document.fonts.load) {
+              ["400 34px Geist", "500 30px Geist", "600 44px Geist", "400 44px 'Geist Mono'"].forEach(function (face) {
+                document.fonts.load(face).then(function () { fontEpoch++; render(lastFrame); }, function () {});
+              });
+            }
+
+            var total = parseFloat(root.dataset.duration || "3");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { render(Math.round(clock.frame)); }
+            }, 0);
+            render(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,412 @@
+<!doctype html>
+<!--
+  Workflow Console
+
+  A 46.8-second release-automation film in navy and ice blue: a typed title, a command that types itself, terminal runs with tool calls, an environment carousel of node diagrams, a rollout response, pipeline metrics, a large recommendation with a camera push, a performance bar chart and a closing node mark. Silent: sound is added by the host. Commands, logs and metrics are fictional sample text.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-templates/workflow-console/index.tsx
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-->
+<html
+  lang="en"
+  data-composition-id="workflow-console"
+  data-composition-duration="46.833"
+  data-composition-variables='[
+    {"id": "prefix", "type": "string", "role": "content", "label": "Title prefix", "description": "Word before the product name in the opening title.", "default": "Meet"},
+    {"id": "product_name", "type": "string", "role": "content", "label": "Product name", "description": "Product name in the opening title.", "default": "Workflow Console"},
+    {"id": "command", "type": "string", "role": "content", "label": "Opening command", "description": "Command typed in the first box.", "default": "prepare release v2.4. check the build, run tests in staging, then roll out with a canary."},
+    {"id": "fetching", "type": "string", "role": "content", "label": "Loading line", "description": "Line shown while the first request loads.", "default": "Reading release context"},
+    {"id": "launch_command", "type": "string", "role": "content", "label": "Launch command", "description": "Short command that starts the rollout.", "default": "Ship it."},
+    {"id": "geography", "type": "string", "role": "content", "label": "Environment prompt", "description": "Prompt under the environment carousel.", "default": "Choose an environment"},
+    {"id": "campaign", "type": "string", "role": "content", "label": "Release name", "description": "Release name in the rollout response.", "default": "Release v2.4"},
+    {"id": "delivery", "type": "string", "role": "content", "label": "Delivery verb", "description": "Verb highlighted in the rollout response.", "default": "rolling out"},
+    {"id": "delivery_detail", "type": "string", "role": "content", "label": "Delivery detail", "description": "Second line of the rollout response.", "default": "checks are PASSING, rollback is READY"},
+    {"id": "growth", "type": "string", "role": "content", "label": "Growth title", "description": "Title between the two terminal runs; the last word wipes out.", "default": "Less waiting. More shipping."},
+    {"id": "stats_loading", "type": "string", "role": "content", "label": "Metrics loading line", "description": "Line shown while metrics load.", "default": "Reading pipeline metrics"},
+    {"id": "stats_question", "type": "string", "role": "content", "label": "Metrics question", "description": "Question typed in the metrics terminal.", "default": "how is the pipeline doing?"},
+    {"id": "followup", "type": "string", "role": "content", "label": "Follow-up question", "description": "Second question typed in the metrics terminal.", "default": "where is the bottleneck?"},
+    {"id": "change_command", "type": "string", "role": "content", "label": "Change command", "description": "Command typed after the metrics.", "default": "What should we improve?"},
+    {"id": "recommendation", "type": "string", "role": "content", "label": "Recommendation", "description": "Large recommendation text.", "default": "The test queue is growing — add parallel workers."},
+    {"id": "budget_label", "type": "string", "role": "content", "label": "Budget label", "description": "Label before the old and new numbers.", "default": "Test workers"},
+    {"id": "old_budget", "type": "string", "role": "content", "label": "Old budget", "description": "Old value.", "default": "2"},
+    {"id": "new_budget", "type": "string", "role": "content", "label": "New budget", "description": "New value (highlighted).", "default": "6"},
+    {"id": "double_command", "type": "string", "role": "content", "label": "Scale command", "description": "Final large command.", "default": "scale to six workers"},
+    {"id": "closing", "type": "string", "role": "content", "label": "Closing title", "description": "Closing title.", "default": "Keep your work moving"},
+    {"id": "terminal_title", "type": "string", "role": "content", "label": "Terminal title", "description": "Title bar text of the terminal.", "default": "workflow　~/releases/v2.4"},
+    {"id": "chart_title", "type": "string", "role": "content", "label": "Chart title", "description": "Chart caption.", "default": "Pipeline throughput · demo runs / hour"},
+    {"id": "env_1", "type": "string", "role": "content", "label": "Environment 1", "description": "Label of the single-node diagram.", "default": "Preview"},
+    {"id": "env_2", "type": "string", "role": "content", "label": "Environment 2", "description": "Label of the parallel diagram.", "default": "Staging"},
+    {"id": "env_3", "type": "string", "role": "content", "label": "Environment 3", "description": "Label of the cluster diagram.", "default": "Production"},
+    {"id": "env_4", "type": "string", "role": "content", "label": "Environment 4", "description": "Label of the canary diagram.", "default": "Canary"},
+    {"id": "tool_log", "type": "string", "role": "content", "label": "Tool log", "description": "Tool execution log, one line per row (up to 10); rows 2, 4 and 7 are drawn dimmer.", "default": "Workflow Read Release Plan\nChecked in 1.1s\nWorkflow Run Test Suite\nChecked in 1.9s\nWorkflow Create Canary\nWorkflow Start Rollout\nChecked in 0.1s"},
+    {"id": "bar_1_label", "type": "string", "role": "content", "label": "Bar 1 label", "description": "Label of the bar.", "default": "Baseline"},
+    {"id": "bar_1_value", "type": "number", "role": "content", "label": "Bar 1 value", "description": "Height of the bar relative to the tallest.", "default": 24, "min": 0, "max": 1000, "step": 1},
+    {"id": "bar_1_detail", "type": "string", "role": "content", "label": "Bar 1 detail", "description": "Small caption inside the bar.", "default": "24 runs / h"},
+    {"id": "bar_2_label", "type": "string", "role": "content", "label": "Bar 2 label", "description": "Label of the bar.", "default": "Cache"},
+    {"id": "bar_2_value", "type": "number", "role": "content", "label": "Bar 2 value", "description": "Height of the bar relative to the tallest.", "default": 48, "min": 0, "max": 1000, "step": 1},
+    {"id": "bar_2_detail", "type": "string", "role": "content", "label": "Bar 2 detail", "description": "Small caption inside the bar.", "default": "48 runs / h"},
+    {"id": "bar_3_label", "type": "string", "role": "content", "label": "Bar 3 label", "description": "Label of the bar.", "default": "Parallel"},
+    {"id": "bar_3_value", "type": "number", "role": "content", "label": "Bar 3 value", "description": "Height of the bar relative to the tallest.", "default": 72, "min": 0, "max": 1000, "step": 1},
+    {"id": "bar_3_detail", "type": "string", "role": "content", "label": "Bar 3 detail", "description": "Small caption inside the bar.", "default": "72 runs / h"},
+    {"id": "bar_4_label", "type": "string", "role": "content", "label": "Bar 4 label", "description": "Label of the bar.", "default": "Optimized"},
+    {"id": "bar_4_value", "type": "number", "role": "content", "label": "Bar 4 value", "description": "Height of the bar relative to the tallest.", "default": 96, "min": 0, "max": 1000, "step": 1},
+    {"id": "bar_4_detail", "type": "string", "role": "content", "label": "Bar 4 detail", "description": "Small caption inside the bar.", "default": "96 runs / h"},
+    {"id": "terminal_campaign", "type": "string", "role": "content", "label": "Terminal rows, first run", "description": "Optional JSON array of rows [{\"at\": seconds, \"text\": \"…\", \"kind\": \"prompt|call|thought|note|result\", \"highlight\": \"…\"}] that replaces the built-in sample lines of this run; empty keeps them.", "default": ""},
+    {"id": "terminal_launched", "type": "string", "role": "content", "label": "Terminal rows, second run", "description": "Optional JSON array of rows [{\"at\": seconds, \"text\": \"…\", \"kind\": \"prompt|call|thought|note|result\", \"highlight\": \"…\"}] that replaces the built-in sample lines of this run; empty keeps them.", "default": ""},
+    {"id": "terminal_stats", "type": "string", "role": "content", "label": "Terminal rows, third run", "description": "Optional JSON array of rows [{\"at\": seconds, \"text\": \"…\", \"kind\": \"prompt|call|thought|note|result\", \"highlight\": \"…\"}] that replaces the built-in sample lines of this run; empty keeps them.", "default": ""},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Result highlights and performance bars.", "default": "#8ed8f8"},
+    {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Main background.", "default": "#0e1b2b"},
+    {"id": "logo_src", "type": "string", "role": "content", "label": "Logo image", "description": "Optional path to a mark (PNG or SVG) your host provides for the closing; the drawn node mark is used when empty.", "default": ""}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Workflow Console</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Roboto+Mono:wght@400;500&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--wc-bg, #0e1b2b); color: #e7e7e7; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+        #wc-stage { position: absolute; left: 0; top: 0; width: 480px; height: 270px; transform-origin: 0 0; overflow: hidden; }
+        #wc-stage div, #wc-stage span { box-sizing: border-box; }
+      </style>
+
+      <div id="root" data-composition-id="workflow-console" data-duration="46.833" data-fps="30">
+        <div id="wc-clip" class="clip" data-start="0" data-duration="46.833" data-track-index="0" style="position:absolute;inset:0">
+          <div id="wc-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var k = 0; k < 30; k++) {
+                  var mt = 1 - t;
+                  var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                  if (bx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var m = 1 - t;
+                return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+              };
+            }
+            function progress(f, a, b) { return clamp01((f - a) / (b - a)); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            // interpolate(frame, [a, b], [from, to]) with an optional easing and clamped ends.
+            function interp(f, a, b, from, to, easing) {
+              var t = progress(f, a, b);
+              return lerp(from, to, easing ? easing(t) : t);
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+            function graphemes(text) {
+              if (typeof Intl !== "undefined" && Intl.Segmenter) {
+                return Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (p) { return p.segment; });
+              }
+              return Array.from(text);
+            }
+            var DEF = {"prefix": "Meet", "product_name": "Workflow Console", "command": "prepare release v2.4. check the build, run tests in staging, then roll out with a canary.", "fetching": "Reading release context", "launch_command": "Ship it.", "geography": "Choose an environment", "campaign": "Release v2.4", "delivery": "rolling out", "delivery_detail": "checks are PASSING, rollback is READY", "growth": "Less waiting. More shipping.", "stats_loading": "Reading pipeline metrics", "stats_question": "how is the pipeline doing?", "followup": "where is the bottleneck?", "change_command": "What should we improve?", "recommendation": "The test queue is growing — add parallel workers.", "budget_label": "Test workers", "old_budget": "2", "new_budget": "6", "double_command": "scale to six workers", "closing": "Keep your work moving", "terminal_title": "workflow　~/releases/v2.4", "chart_title": "Pipeline throughput · demo runs / hour", "env_1": "Preview", "env_2": "Staging", "env_3": "Production", "env_4": "Canary", "tool_log": "Workflow Read Release Plan\nChecked in 1.1s\nWorkflow Run Test Suite\nChecked in 1.9s\nWorkflow Create Canary\nWorkflow Start Rollout\nChecked in 0.1s", "bar_1_label": "Baseline", "bar_1_detail": "24 runs / h", "bar_2_label": "Cache", "bar_2_detail": "48 runs / h", "bar_3_label": "Parallel", "bar_3_detail": "72 runs / h", "bar_4_label": "Optimized", "bar_4_detail": "96 runs / h"};
+            var c = {};
+            Object.keys(DEF).forEach(function (k) { c[k] = str(vars[k], DEF[k]); });
+            var accent = str(vars.accent_color, "#8ed8f8");
+            var bg = str(vars.background_color, "#0e1b2b");
+            var logoSrc = typeof vars.logo_src === "string" ? vars.logo_src.trim() : "";
+            root.style.setProperty("--wc-bg", bg);
+            var envs = [c.env_1, c.env_2, c.env_3, c.env_4];
+            var topologies = ["single", "parallel", "cluster", "canary"];
+            var tools = c.tool_log.split("\n").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 10);
+            var bars = [1, 2, 3, 4].map(function (i) { return { label: c["bar_" + i + "_label"], value: num(vars["bar_" + i + "_value"], [24, 48, 72, 96][i - 1], 0, 1000), detail: c["bar_" + i + "_detail"] }; });
+            function customRows(name) {
+              var raw = vars["terminal_" + name];
+              if (typeof raw !== "string" || !raw.trim()) return null;
+              try {
+                var rows = JSON.parse(raw);
+                return Array.isArray(rows) && rows.length ? rows.filter(function (r) { return r && typeof r.text === "string" && isFinite(r.at); }) : null;
+              } catch (e) { return null; }
+            }
+            var custom = { campaign: customRows("campaign"), launched: customRows("launched"), stats: customRows("stats") };
+
+            var CW = root.clientWidth || 1080, CH = root.clientHeight || 1920;
+            var S = Math.min(CW / 480, CH / 270);
+            var stage = document.getElementById("wc-stage");
+            stage.style.left = (CW - 480 * S) / 2 + "px";
+            stage.style.top = (CH - 270 * S) / 2 + "px";
+            stage.style.transform = "scale(" + S + ")";
+
+            // ---- helpers (time is in seconds; every frame is drawn from the clock alone)
+            var ease = bezier(0.22, 1, 0.36, 1), smooth = bezier(0.65, 0, 0.35, 1), wipeEase = function (x) { return x < 0.5 ? 2 * x * x : 1 - 2 * (1 - x) * (1 - x); };
+            var MONO = "'Roboto Mono', ui-monospace, monospace";
+            function ramp(t, a, b) { return clamp01((t - a) / Math.max(0.0001, b - a)); }
+            function move(t, a, b, from, to, easing) {
+              if (from === undefined) from = 0;
+              if (to === undefined) to = 1;
+              return from + (to - from) * (easing || ease)(ramp(t, a, b));
+            }
+            function typed(text, t, a, b) { var ch = Array.from(text); return ch.slice(0, Math.floor(ch.length * ramp(t, a, b))).join(""); }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+            function px(v) { return typeof v === "number" ? v + "px" : v; }
+            function L(x, y, w, h, style, inner) {
+              return '<div style="position:absolute;left:' + x + "px;top:" + y + "px;" + (w == null ? "" : "width:" + px(w) + ";") + (h == null ? "" : "height:" + px(h) + ";") + (style || "") + '">' + (inner || "") + "</div>";
+            }
+            function F(style, inner) { return '<div style="position:absolute;inset:0;' + (style || "") + '">' + (inner || "") + "</div>"; }
+            function center(inner, style) { return F("display:flex;align-items:center;justify-content:center;" + (style || ""), inner); }
+            function accentText(text, highlight, fullText) {
+              fullText = fullText == null ? text : fullText;
+              var i = highlight ? fullText.indexOf(highlight) : -1;
+              if (!highlight || i < 0 || i >= text.length) return esc(text);
+              return esc(text.slice(0, i)) + '<span style="color:' + accent + '">' + esc(text.slice(i, i + highlight.length)) + "</span>" + esc(text.slice(i + highlight.length));
+            }
+            var XPATH = "M2 3h7v7H2V3Zm13 11h7v7h-7v-7ZM5 12h2v5h6v2H5v-7Zm6-7h8v7h-2V7h-6V5Z";
+            function xmark(size, color, outline, progress) {
+              if (logoSrc) return '<div style="width:' + size + "px;height:" + size + "px;background:url('" + logoSrc.replace(/'/g, "%27") + "') center/contain no-repeat\"></div>";
+              return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" style="display:block"><path d="' + XPATH + '" fill="' + (outline ? "none" : color) + '" fill-rule="evenodd" stroke="' + (outline ? color : "none") + '" stroke-width="0.3" pathLength="1" stroke-dasharray="1" stroke-dashoffset="' + (1 - clamp01(progress == null ? 1 : progress)) + '"/></svg>';
+            }
+            function command(text, t, start, finish, end, size, tracking, entering) {
+              size = size || 18;
+              if (entering === undefined) entering = true;
+              var written = typed(text, t, start, finish);
+              var prog = ramp(t, start - 0.2, start + 0.25);
+              var width = entering ? move(t, start - 0.2, start + (tracking ? 1.3 : 0.9), 100, 420, smooth) : 420;
+              var arrowW = size * 0.9, gap = size * 0.6;
+              var avail = Math.max(1, width - 44 - arrowW - gap);
+              var fade = 1 - move(t, end - 0.18, end);
+              var blink = t < finish + 0.12 ? 1 : Math.floor((t - finish) * 2.5) % 2 === 0 ? 1 : 0;
+              var inner = F("border:0.75px solid #3b536c;margin-left:10px;margin-right:10px") +
+                F("left:22px;right:22px;display:flex;align-items:center;gap:" + gap + "px;overflow:hidden",
+                  '<span style="width:' + arrowW + "px;flex-shrink:0;font-size:" + size * 1.3 + 'px;font-weight:500;line-height:1">❯</span>' +
+                  '<div style="width:' + avail + 'px;min-width:0;height:100%;display:flex;align-items:center;overflow:hidden"><span style="display:inline-flex;align-items:center;flex-shrink:0;width:max-content;line-height:1.2;transform:translateX(min(0px, calc(' + avail + 'px - 100%)))"><span>' + esc(written) + '</span><span style="display:inline-block;width:1.8px;height:' + size + 'px;margin-left:2px;background:#f5f5f5;opacity:' + blink + '"></span></span></div>');
+              return center('<div style="width:' + width + "px;height:" + size * 2.5 + "px;overflow:hidden;position:relative;opacity:" + (entering ? prog : 1) + ";font-family:" + MONO + ";font-size:" + size + 'px;color:#e6f1f8;white-space:pre">' + inner + "</div>", "opacity:" + fade);
+            }
+            function loading(text, t, start, end) {
+              var elapsed = Math.max(0, t - start - 0.45), label = typed(text, t, start, start + 0.55);
+              var dots = "";
+              for (var i = 0; i < 6; i++) dots += '<circle cx="' + (3 + (i % 2) * 4) + '" cy="' + (5 + Math.floor(i / 2) * 4) + '" r="0.65" fill="#d0d0d0" opacity="' + (0.15 + ((Math.floor(t * 12) + i) % 6) / 8) + '"/>';
+              return center('<div style="display:flex;gap:9px;align-items:center"><svg width="10" height="18" viewBox="0 0 10 18">' + dots + "</svg><span>" + esc(label) + '</span><span style="color:#8198ae;font-style:italic;opacity:' + ramp(t, start + 0.6, start + 0.9) + '">' + elapsed.toFixed(1) + "s</span></div>", "opacity:" + (1 - move(t, end - 0.2, end)) + ";font-family:" + MONO + ";font-size:16px;white-space:pre");
+            }
+
+            // ---- scenes
+            function intro(t) {
+              var f = t * 60, full = [c.prefix, c.product_name].filter(Boolean).join(" ");
+              var fontSize = Math.min(26, 620 / Math.max(1, c.prefix.length + c.product_name.length + 3));
+              var base = "color:#e6f1f8;font-size:" + fontSize + "px;font-weight:400;letter-spacing:-0.03em;line-height:1;white-space:pre;";
+              var ch = Array.from(full), exitAt = 86, exitFrames = 46, stagger = 8;
+              var o;
+              if (f < exitAt) {
+                var n = Math.min(ch.length, Math.max(1, Math.floor(ch.length * clamp01(f / 60)) + 1));
+                o = '<span style="' + base + '">' + esc(ch.slice(0, n).join("")) + "</span>";
+              } else {
+                var prefixExit = wipeEase(clamp01((f - exitAt) / exitFrames));
+                var words = c.product_name.trim().split(/\s+/).filter(Boolean).map(function (w, i) {
+                  var s = exitAt + 2 + i * stagger, ex = wipeEase(clamp01((f - s) / (exitFrames * 0.65)));
+                  return '<span style="display:inline-block;clip-path:inset(0 0 0 ' + ex * 100 + '%)">' + esc(w) + "</span>";
+                }).join("");
+                o = '<span style="' + base + 'display:inline-flex;align-items:baseline;gap:0.25em"><span style="display:inline-block;clip-path:inset(0 ' + prefixExit * 100 + '%  0 0)">' + esc(c.prefix) + "</span>" + words + "</span>";
+              }
+              return center(o, "overflow:hidden");
+            }
+            var TERM_TEXT = "color:#c1d4e2";
+            function terminalRows(run) {
+              if (custom[run]) return custom[run];
+              if (run === "campaign") return [
+                { at: 0.1, text: c.command, kind: "prompt" }, { at: 0.22, text: "Checked in 1.2s", kind: "thought" },
+                { at: 0.4, text: 'Call workflow · read_release (version: "v2.4")', kind: "call" },
+                { at: 0.55, text: "  changes: 12 merged · 0 conflicts", kind: "note", highlight: "12" },
+                { at: 0.72, text: "Call workflow · inspect_test_suite", kind: "call" }, { at: 0.9, text: "  48 checks · 4 parallel groups", kind: "note" },
+                { at: 1.1, text: "All 12 changes are ready. Running the 48 checks in staging,", highlight: "12" },
+                { at: 1.23, text: "then a canary rollout with automatic rollback." }];
+              if (run === "launched") return [
+                { at: 0, text: c.launch_command, kind: "prompt" },
+                { at: 0.13, text: 'Call workflow · create_release (version: "v2.4")', kind: "call" },
+                { at: 0.28, text: "  status: READY · checks: PASSING", kind: "note", highlight: "READY" },
+                { at: 0.42, text: 'Call workflow · prepare_environment (name: "Staging")', kind: "call" },
+                { at: 0.6, text: "  checks: 48 passed · errors: 0", kind: "note" },
+                { at: 0.72, text: 'Call workflow · create_canary (traffic: "10%")', kind: "call" },
+                { at: 0.86, text: "Call workflow · start_rollout", kind: "call" },
+                { at: 1, text: '✓ Release live: "v2.4" — healthy', kind: "result" }];
+              return [
+                { at: 0.08, text: c.stats_question, kind: "prompt" }, { at: 0.2, text: "Checked in 0.6s", kind: "thought" },
+                { at: 0.37, text: 'Call workflow · get_pipeline_metrics (window: "1h")', kind: "call" },
+                { at: 0.58, text: "  median build 42s · target under 60s", kind: "note", highlight: "42s" },
+                { at: 0.77, text: "Builds are healthy — median duration is 42s, under your", highlight: "42s" },
+                { at: 0.88, text: "60s target. Test jobs spend 18s waiting in the queue.", highlight: "18s" },
+                { at: 1.55, text: c.followup, kind: "prompt" }, { at: 1.65, text: "Checked in 0.4s", kind: "thought" },
+                { at: 2.0, text: "The cache is working. Tests are waiting for free workers." },
+                { at: 2.25, text: "Two workers are busy — there’s room to scale." }];
+            }
+            function terminal(t, run, start, end) {
+              var rows = terminalRows(run), local = t - start;
+              var departure = move(t, end - (run === "launched" ? 0.15 : 0.65), end);
+              var body = rows.map(function (row) {
+                var kind = row.kind;
+                var color = kind === "thought" ? "#718ba1" : kind === "note" ? "#96aabd" : kind === "result" ? accent : "#c1d4e2";
+                var mt = kind === "prompt" && rows.indexOf(row) > 0 ? 8 : kind === "result" ? 5 : 0;
+                var txt = typed(row.text, local, row.at, row.at + (kind === "thought" ? 0.05 : 0.28));
+                return '<div style="min-height:' + (kind === "thought" ? 8 : 12.5) + "px;margin-top:" + mt + "px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:10px;color:" + color + ";font-size:" + (kind === "thought" ? 5 : 6.4) + "px;opacity:" + (local >= row.at ? 1 : 0) + '">' + (kind === "prompt" ? "❯ " : "") + accentText(txt, row.highlight, row.text) + "</div>";
+              }).join("");
+              var mask = "linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)";
+              var o = L(50, 36, 380, 204, "padding:13px 14px 12px;background:#14263a;font-family:" + MONO + ";font-size:6.4px;color:#c1d4e2;overflow:hidden;opacity:" + move(t, start, start + 0.23) * (1 - departure * 0.8) + ";translate:" + -departure * 390 + "px 0px;scale:" + move(t, start, start + 0.45, 0.92, 1) + ";transform-origin:50% 60%;-webkit-mask-image:" + mask + ";mask-image:" + mask,
+                '<div style="display:flex;justify-content:space-between;font-size:5.5px;color:#839bb0;height:20px"><span>' + esc(c.terminal_title) + "</span><span>⌘ K　▥</span></div>" +
+                '<div style="height:142px;overflow:hidden">' + body + "</div>" +
+                '<div style="position:absolute;left:14px;right:14px;bottom:25px;height:13px;border:0.4px solid #3b536c;display:flex;align-items:center;padding-left:5px;color:#d8d8d8">❯</div>' +
+                '<div style="position:absolute;left:14px;right:14px;bottom:10px;display:flex;justify-content:space-between;font-size:4.6px;color:#8ba4ba"><span>Send enter　Mode tab　History ↑↓　Multiline ⇧↵　Quit ^C　Commands /</span><span>[1]</span></div>');
+              return o;
+            }
+            var TOPO = {
+              single: "M15 38h24v24H15ZM61 38h24v24H61ZM39 50h22",
+              parallel: "M9 38h20v24H9ZM71 12h20v20H71ZM71 68h20v20H71ZM29 50h21V22h21M50 50v28h21",
+              cluster: "M10 10h22v22H10ZM68 10h22v22H68ZM10 68h22v22H10ZM68 68h22v22H68ZM39 39h22v22H39ZM32 21h18v18M79 32v18H61M21 32v18h18M50 61v18h18M32 79h18",
+              canary: "M8 37h24v26H8ZM66 12h24v24H66ZM66 64h24v24H66ZM32 50h17V24h17M49 50v26h17M71 20h14M71 28h8"
+            };
+            function geography(t) {
+              var local = t - 12.55, n = envs.length;
+              var travel = 2 + move(t, 13.85, 14.3, 0, -1, smooth) + move(t, 14.85, 15.3, 0, 2, smooth) + move(t, 15.75, 16.2, 0, -3, smooth);
+              var active = Math.floor(travel + 0.5);
+              var rotation = Math.sin(local * 3.3) * 17 + Math.sin(move(t, 13.85, 14.3, 0, Math.PI, smooth)) * 75 + Math.sin(move(t, 14.85, 15.3, 0, Math.PI, smooth)) * 75 + Math.sin(move(t, 15.75, 16.2, 0, Math.PI, smooth)) * 75;
+              var intro_ = move(local, 0, 0.45), outro = move(t, 16.45, 16.8);
+              var items = "";
+              for (var item = 0; item < 18; item++) {
+                var i = item - 4, delta = i - travel;
+                items += '<span style="position:absolute;width:70px;left:' + (180 + delta * 66 + Math.sign(delta) * 30) + 'px;text-align:center;font-size:14px;line-height:30px;color:#9ab0c4;opacity:' + (Math.abs(delta) < 0.5 ? 0 : 0.65) + '">' + esc(envs[((i % n) + n) % n]) + "</span>";
+              }
+              var maskH = "linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)";
+              var o = L(25, 117, null, 34, "right:25px;overflow:hidden;-webkit-mask-image:" + maskH + ";mask-image:" + maskH, items);
+              var idx = ((active % n) + n) % n;
+              var layers = [0, 1, 2].map(function (layer) {
+                return '<svg viewBox="0 0 100 100" style="position:absolute;left:0;top:0;width:100%;height:100%;translate:' + layer * 0.8 + "px " + layer * 0.8 + 'px"><path d="' + TOPO[topologies[idx]] + '" fill="none" stroke="' + (layer ? "#3b536c" : accent) + '" stroke-width="' + (layer ? 0.7 : 1.4) + '" opacity="' + (layer ? 0.7 : 0.65) + '"/></svg>';
+              }).join("");
+              var box = L(move(local, 0, 0.45, 80, 175), move(local, 0, 0.45, 110, 67), move(local, 0, 0.45, 320, 130), move(local, 0, 0.45, 48, 130), "border:0.8px solid #3b536c;border-radius:" + move(local, 0, 0.45, 0, 14) + "px;box-shadow:0 0 0 2px #ffffff03;background:" + bg + ";overflow:hidden",
+                '<div style="position:absolute;left:16px;right:16px;top:8px;bottom:28px;opacity:' + intro_ + ";transform:rotateY(" + rotation + "deg) rotateX(" + (-10 + Math.sin(local) * 5) + "deg) rotateZ(-8deg);transform-style:preserve-3d\">" + layers + "</div>" +
+                '<div style="position:absolute;bottom:8px;width:100%;text-align:center;color:' + accent + ";font-size:10px;opacity:" + intro_ + '">' + esc(envs[idx]) + "</div>");
+              o += box;
+              o += '<div style="position:absolute;left:0;top:213px;width:100%;text-align:center;color:#e5e5e5;font-size:18px;letter-spacing:-0.035em;opacity:' + ramp(local, 0.15, 0.5) + '">' + esc(c.geography) + "</div>";
+              return F("opacity:" + (1 - outro) + ";translate:0px " + outro * -40 + "px;perspective:650px", o);
+            }
+            function toolRun(t) {
+              var local = t - 16.8, exit = move(t, 19.35, 19.9, 0, 1, smooth);
+              var rows = tools.map(function (text, i) {
+                return '<div style="opacity:' + (local >= i * 0.15 ? 1 : 0) + ";white-space:nowrap;color:" + (i === 1 || i === 3 || i === 6 ? "#8198ae" : "#b9ccdc") + '"><span style="color:#bababa;margin-right:7px">◆</span>' + esc(typed(text, local, i * 0.15, i * 0.15 + 0.43)) + "</div>";
+              }).join("");
+              return L(85, 54, 320, 173, "background:#14263a;padding:24px 26px;color:#a0a0a0;font-family:" + MONO + ";font-size:10.5px;line-height:16px;opacity:" + move(local, 0, 0.22) * (1 - exit) + ";clip-path:inset(" + exit * 100 + "% 0 0 0);scale:" + move(local, 0, 2.5, 0.93, 1.02), rows);
+            }
+            function delivery(t) {
+              var full = c.campaign + " is " + c.delivery + " -";
+              var mask = "linear-gradient(90deg,#000 20%,transparent 90%)";
+              return L(move(t, 19.5, 21.7, 155, 70), 115, 560, null, "font-family:" + MONO + ";font-size:18px;line-height:25px;color:#e6e6e6;opacity:" + (1 - move(t, 21.75, 22)) + ";-webkit-mask-image:" + mask + ";mask-image:" + mask,
+                '<div style="white-space:pre">' + accentText(typed(full, t, 19.8, 20.35), c.delivery, full) + '</div><div style="color:#9ab0c4;opacity:0.85;white-space:pre">' + esc(typed(c.delivery_detail, t, 20, 20.8)) + "</div>");
+            }
+            function growth(t) {
+              var parts = c.growth.split(" "), last = parts.pop() || c.growth, prefix = parts.join(" ");
+              var exit = move(t, 25.1, 25.6), inner;
+              if (t < 25.1) inner = esc(typed(c.growth, t, 24, 24.48));
+              else inner = '<span style="display:inline-block;clip-path:inset(0 ' + exit * 100 + '% 0 0)">' + esc(prefix) + ' </span><span style="display:inline-block;clip-path:inset(0 0 0 ' + move(t, 25.56, 25.6) * 100 + "%);translate:" + exit * -60 + 'px 0px">' + esc(last) + "</span>";
+              return center('<div style="font-size:' + Math.min(26, 700 / Math.max(1, c.growth.length)) + 'px;letter-spacing:-0.04em;color:#eee;white-space:pre">' + inner + "</div>");
+            }
+            function recommendation(t) {
+              var full = c.recommendation, len = Array.from(full).length;
+              var zoom = move(t, 35.5, 37.15, 0, 1, smooth), scale = 1 + zoom * 0.65;
+              var target = move(t, 32.85, 37.2, Math.min(11, len * 0.25), Math.max(Math.min(25, len * 0.55), len - 4), smooth);
+              var x = 240 - target * 26 * 0.6 * scale, y = 106 + 6 * zoom;
+              var budget = c.budget_label + ": " + c.old_budget + " → " + c.new_budget + ".";
+              return L(0, 0, 1800, null, "font-family:" + MONO + ";font-size:26px;line-height:37px;color:#e9e9e9;transform:translate3d(" + x + "px," + y + "px,0) scale(" + scale + ");transform-origin:0 0;white-space:pre;opacity:" + (1 - move(t, 37.15, 37.35)),
+                "<div>" + accentText(typed(full, t, 32.85, 33.9), "", full) + '</div><div style="color:#9ab0c4;opacity:' + (1 - ramp(t, 35.9, 36.7)) + '">' + accentText(typed(budget, t, 33.35, 34.6), c.new_budget, budget) + "</div>");
+            }
+            function chart(t) {
+              var max = Math.max.apply(null, [1].concat(bars.map(function (b) { return b.value; })));
+              var width = 286 / bars.length, exit = move(t, 40.7, 40.8);
+              var cols = bars.map(function (b, i) {
+                var h = (Math.max(0, b.value) / max) * 117;
+                var g = move(t, 38.78 + i * 0.07, 39.38 + i * 0.11, 0.18, 1) * (0.9 + move(t, 39.3, 40.1, 0, 1, smooth) * 0.1);
+                return '<div style="position:relative;flex:1;min-width:0;height:' + h + "px;color:" + (i === 0 ? "#a0a0a0" : bg) + ";overflow:hidden;clip-path:inset(" + (1 - g) * 100 + '% 0 0 0)">' +
+                  '<div style="position:absolute;inset:0;background:' + (i === 0 ? "#3a526a" : accent) + ";box-shadow:inset 0 1px #ffffff30;transform:scaleY(" + g + ');transform-origin:50% 100%"></div>' +
+                  '<div style="padding:5px 4px;font-size:' + Math.min(6.5, width / 9) + "px;white-space:nowrap;transform:translateY(" + h * (1 - g) + 'px);position:relative">' + esc(b.label) + "</div>" +
+                  '<div style="position:absolute;left:4px;bottom:4px;font-size:5.8px">' + esc(b.detail) + "</div></div>";
+              }).join("");
+              return L(76, 44, 330, 189, "background:#14263a;opacity:" + move(t, 38.8, 39) + ";transform:scale(" + move(t, 38.8, 40.4, 0.88, 1.05) + ");transform-origin:50% 65%;overflow:hidden;clip-path:inset(0 " + exit * 100 + "% 0 0)",
+                '<div style="position:absolute;top:15px;left:15px;color:#dedede;font-size:8px">' + esc(c.chart_title) + "</div>" +
+                '<div style="position:absolute;left:16px;right:16px;bottom:17px;display:flex;align-items:flex-end;gap:3px;height:126px">' + cols + "</div>");
+            }
+            function closingTitle(t) {
+              return center('<div style="color:#eee;font-size:' + Math.min(31, 710 / Math.max(1, c.closing.length)) + 'px;letter-spacing:-0.04em;white-space:pre">' + esc(typed(c.closing, t, 40.8, 41.5)) + "</div>");
+            }
+            function mark(t) {
+              var resolve = move(t, 44.5, 44.72), layers = "";
+              for (var layer = 0; layer < 3; layer++) {
+                layers += F("opacity:" + (1 - resolve) * (layer === 0 ? 0.45 : 0.22) + ";translate:" + (1 - ramp(t, 43.2, 44.6)) * layer * 5 + "px 0px", xmark(100, accent, true, ramp(t, 43.05 + layer * 0.1, 44.25)));
+              }
+              layers += F("opacity:" + resolve, xmark(100, accent, false, 1));
+              return center('<div style="position:relative;width:100px;height:100px;scale:' + move(t, 43, 46.2, 1, 0.48) + ";opacity:" + (1 - move(t, 45.55, 46.45)) + '">' + layers + "</div>");
+            }
+
+            var SCENES = [
+              [0, 2.2, intro],
+              [1.85, 6.4, function (t) { return command(c.command, t, 1.85, 5.4, 6.4, 18, true); }],
+              [6.4, 8.1, function (t) { return loading(c.fetching, t, 6.4, 8.1); }],
+              [8.1, 10.7, function (t) { return terminal(t, "campaign", 8.1, 10.7); }],
+              [10.3, 12.55, function (t) { return '<div style="position:absolute;inset:0;opacity:' + ramp(t, 10.3, 10.7) + '">' + command(c.launch_command, t, 10.3, 11.23, 12.7) + "</div>"; }],
+              [12.55, 16.8, geography],
+              [16.8, 19.9, toolRun],
+              [19.9, 22, delivery],
+              [22, 24, function (t) { return terminal(t, "launched", 22, 24); }],
+              [24, 25.6, growth],
+              [25.6, 27.8, function (t) { return loading(c.stats_loading, t, 25.6, 27.8); }],
+              [27.8, 31.4, function (t) { return terminal(t, "stats", 27.8, 31.4); }],
+              [31, 32.95, function (t) { return '<div style="position:absolute;inset:0;opacity:' + ramp(t, 31, 31.4) + '">' + command(c.change_command, t, 31, 32.24, 32.85) + "</div>"; }],
+              [32.95, 37.35, recommendation],
+              [37.35, 38.8, function (t) { return command(c.double_command, t, 37.35, 38.05, 38.8, 26); }],
+              [38.8, 40.8, chart],
+              [40.8, 43, closingTitle],
+              [43, 100, mark]
+            ];
+            function draw(t) {
+              var html = "";
+              SCENES.forEach(function (s) { if (t >= s[0] && t < s[1]) html += s[2](t); });
+              stage.innerHTML = html;
+            }
+
+            var TOTAL = parseFloat(root.dataset.duration || "46.833");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: TOTAL, duration: TOTAL, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["workflow-console"] = tl;
+          })();
+        </script>
+      </div>
+
+    </template>
+  </body>
+</html>

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "signup-flow",
+  "type": "hyperframes:component",
+  "title": "Signup Flow",
+  "description": "A cursor-driven signup card: labeled Full Name, Email, Password and Confirm Password fields fill top to bottom, then Create account runs hover, press, loading and success as a confirmation toast slides in.",
+  "tags": [
+    "ui",
+    "flow",
+    "signup",
+    "form",
+    "product-demo",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 12.7,
+  "checkAt": [
+    1.5,
+    4.0,
+    8.5,
+    11.0
+  ],
+  "useWhen": [
+    "Showing a full onboarding or signup flow in a product launch or demo video.",
+    "Demonstrating a realistic form-fill interaction with an animated cursor and field progression.",
+    "You need a ready auth scene with zero assembly and the default field layout fits."
+  ],
+  "avoidWhen": [
+    "You need a generic form with custom fields: compose input, button and cursor manually.",
+    "You only need the success notification: use toast directly.",
+    "You need a settings interaction walkthrough: use settings-toggle-flow."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/signup-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "signup-flow.html",
+      "target": "compositions/components/signup-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Card heading.",
+      "default": "Create an account"
+    },
+    {
+      "id": "description",
+      "type": "string",
+      "role": "content",
+      "label": "Description",
+      "description": "Line under the heading.",
+      "default": "Enter your information below to create your account"
+    },
+    {
+      "id": "full_name",
+      "type": "string",
+      "role": "content",
+      "label": "Full name",
+      "description": "Text typed into the Full Name field.",
+      "default": "John Doe"
+    },
+    {
+      "id": "email",
+      "type": "string",
+      "role": "content",
+      "label": "Email",
+      "description": "Text typed into the Email field.",
+      "default": "m@example.com"
+    },
+    {
+      "id": "password",
+      "type": "string",
+      "role": "content",
+      "label": "Password",
+      "description": "Text typed into both password fields.",
+      "default": "••••••••"
+    },
+    {
+      "id": "create_label",
+      "type": "string",
+      "role": "content",
+      "label": "Create label",
+      "description": "Label of the submit button.",
+      "default": "Create account"
+    },
+    {
+      "id": "toast_title",
+      "type": "string",
+      "role": "content",
+      "label": "Toast title",
+      "description": "Heading of the confirmation toast.",
+      "default": "Account created"
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Mode",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the control sits over your own scene.",
+      "default": false
+    }
+  ]
+}

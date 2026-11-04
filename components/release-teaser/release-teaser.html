@@ -1,0 +1,463 @@
+<!doctype html>
+<!--
+  Release Teaser
+
+  A sixteen-second release announcement: five short statements resolve from the center outward over an
+  extreme close-up of a dark, beveled open ring, then the camera pulls back to the ring behind the
+  release lockup and the light recedes while the name holds. Silent: the host adds sound.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-templates/release-teaser/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="release-teaser"
+  data-composition-duration="16.016"
+  data-composition-variables='[
+    { "id": "brand_name", "type": "string", "role": "content", "label": "Brand name", "description": "Name in the final release lockup.", "default": "Orvio" },
+    { "id": "release", "type": "string", "role": "content", "label": "Release", "description": "Version suffix after the name; leave empty to hide it.", "default": "2" },
+    { "id": "tagline", "type": "string", "role": "content", "label": "Tagline", "description": "Supporting line under the lockup.", "default": "Your next chapter starts here." },
+    { "id": "statement_1", "type": "string", "role": "content", "label": "Statement 1", "description": "First statement (0 to 1.7 s). Use a line break for two lines.", "default": "Start with an idea" },
+    { "id": "statement_2", "type": "string", "role": "content", "label": "Statement 2", "description": "Second statement (1.7 to 3.5 s).", "default": "Make room\nfor better work" },
+    { "id": "statement_3", "type": "string", "role": "content", "label": "Statement 3", "description": "Third statement (3.5 to 5.4 s).", "default": "Bring every detail to life" },
+    { "id": "statement_4", "type": "string", "role": "content", "label": "Statement 4", "description": "Fourth statement (5.4 to 7.4 s).", "default": "Move together.\nGo further." },
+    { "id": "statement_5", "type": "string", "role": "content", "label": "Statement 5", "description": "Fifth statement (7.4 to 10.2 s), before the release reveal.", "default": "A fresh chapter.\nNo starting over." },
+    { "id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Mark and the ring's edge lighting.", "default": "#9BC8DD" },
+    { "id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background behind the ring.", "default": "#050709" },
+    { "id": "surface", "type": "color", "role": "style", "label": "Surface", "description": "Base color of the ring's material.", "default": "#151C22" },
+    { "id": "foreground", "type": "color", "role": "style", "label": "Text", "description": "Statements and the release title.", "default": "#F2F5F7" },
+    { "id": "muted", "type": "color", "role": "style", "label": "Muted text", "description": "Tagline color.", "default": "#A4ADB5" },
+    { "id": "light_intensity", "type": "number", "role": "style", "label": "Light intensity", "description": "Strength of the ring's edge highlights.", "default": 1, "min": 0, "max": 2, "step": 0.05 }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Release Teaser</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          background: var(--rt-bg, #050709);
+          font-family: Inter, system-ui, sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        .rt-clip { position: absolute; inset: 0; }
+        .rt-ring-wrap { position: absolute; inset: 0; }
+        .rt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .rt-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; }
+        .rt-statement {
+          position: absolute;
+          inset: 0;
+          display: none;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          font-weight: 500;
+          line-height: 1.13;
+        }
+        .rt-line { white-space: pre; text-align: center; min-height: 1.13em; }
+        .rt-char { display: inline-block; white-space: pre; }
+        .rt-lockup {
+          position: absolute;
+          inset: 0;
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+        .rt-title-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .rt-mark { width: 34px; height: 34px; flex-shrink: 0; }
+        .rt-title { font-weight: 600; line-height: 1; white-space: pre; text-align: center; }
+        .rt-tagline { line-height: 1.3; white-space: pre; text-align: center; }
+      </style>
+
+      <div id="root" data-composition-id="release-teaser" data-duration="16.016" data-fps="30">
+        <div id="rt-clip" class="rt-clip clip" data-start="0" data-duration="16.016" data-track-index="0">
+          <div id="rt-ring-wrap" class="rt-ring-wrap"><canvas id="rt-canvas" class="rt-canvas"></canvas></div>
+          <div id="rt-stage" class="rt-stage">
+            <div id="rt-statements"></div>
+            <div id="rt-lockup" class="rt-lockup">
+              <div class="rt-title-row">
+                <svg class="rt-mark" viewBox="-240 -240 480 480" fill="none" aria-hidden="true">
+                  <path id="rt-mark-path" d="M209.23 -67.98 A220 220 0 1 1 116.58 -186.57 L71.01 -113.64 A134 134 0 1 0 127.44 -41.41 Z" />
+                </svg>
+                <div id="rt-title" class="rt-title"></div>
+              </div>
+              <div id="rt-tagline" class="rt-tagline"></div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+
+            var STATEMENTS = [
+              "Start with an idea",
+              "Make room\nfor better work",
+              "Bring every detail to life",
+              "Move together.\nGo further.",
+              "A fresh chapter.\nNo starting over."
+            ];
+            var statements = STATEMENTS.map(function (fallback, i) {
+              return str(vars["statement_" + (i + 1)], fallback);
+            });
+            var brandName = str(vars.brand_name, "Orvio");
+            // An explicit empty release hides the version suffix.
+            var release = typeof vars.release === "string" ? vars.release.trim() : "2";
+            var tagline = str(vars.tagline, "Your next chapter starts here.");
+            var theme = {
+              background: str(vars.background, "#050709"),
+              surface: str(vars.surface, "#151C22"),
+              foreground: str(vars.foreground, "#F2F5F7"),
+              muted: str(vars.muted, "#A4ADB5"),
+              accent: str(vars.accent_color, "#9BC8DD")
+            };
+            var lightIntensity = num(vars.light_intensity, 1, 0, 2);
+            root.style.setProperty("--rt-bg", theme.background);
+
+            // The design space keeps the short side at 540 units, so a 1920×1080 frame is the
+            // original 960×540 layout and a vertical frame gets a 540-wide stage.
+            var CW = root.clientWidth || 1080;
+            var CH = root.clientHeight || 1920;
+            var S = Math.min(CW, CH) / 540;
+            var W = CW / S;
+            var H = CH / S;
+            var OX = (W - 960) / 2;
+            var OY = (H - 540) / 2;
+            var stage = document.getElementById("rt-stage");
+            stage.style.width = W + "px";
+            stage.style.height = H + "px";
+            stage.style.transform = "scale(" + S + ")";
+
+            // Picture clock: a doubled NTSC rate, 960 frames in 16.016 seconds.
+            var REF_FPS = 60000 / 1001;
+
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var k = 0; k < 30; k++) {
+                  var mt = 1 - t;
+                  var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                  if (bx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var m = 1 - t;
+                return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+              };
+            }
+            var easeCurve = bezier(0.5, 0, 0.2, 1);
+            function progress(f, a, b) { return clamp01((f - a) / (b - a)); }
+            function ease(f, a, b) { return easeCurve(progress(f, a, b)); }
+            function lerpClamp(f, a, b, from, to) { return from + (to - from) * progress(f, a, b); }
+
+            function graphemes(text) {
+              if (typeof Intl !== "undefined" && Intl.Segmenter) {
+                return Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (p) { return p.segment; });
+              }
+              return Array.from(text);
+            }
+            function textUnits(text) {
+              return graphemes(text).reduce(function (sum, ch) {
+                if (/\s/.test(ch)) return sum + 0.3;
+                if (/[ilI.,'!|]/.test(ch)) return sum + 0.29;
+                if (/[MW@%]/.test(ch)) return sum + 0.98;
+                return sum + ((ch.codePointAt(0) || 0) > 0x024f ? 1.02 : 0.63);
+              }, 0);
+            }
+            // Honor explicit lines and keep long copy inside the safe area (808 of 960 units wide).
+            function fitText(text, maxSize, width) {
+              var lines = text.split("\n");
+              var widest = Math.max.apply(null, [1].concat(lines.map(textUnits)));
+              return Math.min(maxSize, width / widest, 220 / (Math.max(1, lines.length) * 1.15));
+            }
+            var safe = Math.min(1, W / 960);
+
+            // Center-out focus, with a stagger that does not depend on the copy's length.
+            function characterState(frame, end, index, count) {
+              var distance = count <= 1 ? 0 : Math.abs(index - (count - 1) / 2) / ((count - 1) / 2);
+              var delay = distance * 7;
+              var enter = ease(frame, delay, delay + 18);
+              var exit = ease(frame, end - 16 - distance * 5, end - 1 - distance * 5);
+              return { opacity: enter * (1 - exit), blur: (1 - enter) * 5 + exit * 3, y: (1 - enter) * 2 - exit * 1.5 };
+            }
+
+            // Statements: [from, to) on the picture clock.
+            var BEATS = [[0, 104], [104, 208], [208, 326], [326, 446], [446, 610]];
+            var holder = document.getElementById("rt-statements");
+            var statementEls = statements.map(function (text, s) {
+              var box = document.createElement("div");
+              box.className = "rt-statement";
+              box.id = "rt-statement-" + s;
+              box.setAttribute("role", "img");
+              box.setAttribute("aria-label", text);
+              box.style.fontSize = fitText(text, 48, 808 * safe) + "px";
+              box.style.color = theme.foreground;
+              var lines = text.split("\n").map(function (line, li) {
+                var row = document.createElement("div");
+                row.className = "rt-line";
+                var chars = graphemes(line).map(function (ch, ci) {
+                  var span = document.createElement("span");
+                  span.className = "rt-char";
+                  span.id = "rt-char-" + s + "-" + li + "-" + ci;
+                  span.textContent = ch;
+                  row.appendChild(span);
+                  return span;
+                });
+                box.appendChild(row);
+                return chars;
+              });
+              holder.appendChild(box);
+              return { box: box, lines: lines };
+            });
+
+            var lockup = document.getElementById("rt-lockup");
+            var title = brandName + (release ? " " + release : "");
+            var titleEl = document.getElementById("rt-title");
+            titleEl.textContent = title;
+            titleEl.style.fontSize = fitText(title, 70, 750 * safe) + "px";
+            titleEl.style.color = theme.foreground;
+            var taglineEl = document.getElementById("rt-tagline");
+            taglineEl.textContent = tagline;
+            taglineEl.style.fontSize = fitText(tagline, 20, 740 * safe) + "px";
+            taglineEl.style.color = theme.muted;
+            document.getElementById("rt-mark-path").setAttribute("fill", theme.accent);
+
+            // ---- The dimensional ring: a 320-degree beveled annulus drawn as a projected mesh.
+            function normalize(v) {
+              var l = Math.hypot(v[0], v[1], v[2]) || 1;
+              return [v[0] / l, v[1] / l, v[2] / l];
+            }
+            function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+            function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+            function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+            function rotate(v, rx, ry, rz) {
+              var y = v[1] * Math.cos(rx) - v[2] * Math.sin(rx);
+              var z = v[1] * Math.sin(rx) + v[2] * Math.cos(rx);
+              var x = v[0] * Math.cos(ry) + z * Math.sin(ry);
+              var depth = -v[0] * Math.sin(ry) + z * Math.cos(ry);
+              return [x * Math.cos(rz) - y * Math.sin(rz), x * Math.sin(rz) + y * Math.cos(rz), depth];
+            }
+            function rotator(rx, ry, rz) {
+              var x = rotate([1, 0, 0], rx, ry, rz), y = rotate([0, 1, 0], rx, ry, rz), z = rotate([0, 0, 1], rx, ry, rz);
+              return function (v) {
+                return [x[0] * v[0] + y[0] * v[1] + z[0] * v[2], x[1] * v[0] + y[1] * v[1] + z[1] * v[2], x[2] * v[0] + y[2] * v[1] + z[2] * v[2]];
+              };
+            }
+            function face(vertices, bevel) {
+              var c = [0, 0, 0];
+              vertices.forEach(function (p) { c[0] += p[0] / vertices.length; c[1] += p[1] / vertices.length; c[2] += p[2] / vertices.length; });
+              return { vertices: vertices, normal: normalize(cross(sub(vertices[1], vertices[0]), sub(vertices[2], vertices[0]))), center: c, bevel: bevel };
+            }
+            function createRing(count) {
+              // Counter-clockwise cross-section (radius, depth); front faces point toward +Z.
+              var profile = [[144, 32], [210, 32], [220, 22], [220, -22], [210, -32], [144, -32], [134, -22], [134, 22]];
+              function section(i) {
+                var angle = ((-18 + (i / count) * 320) * Math.PI) / 180;
+                return profile.map(function (p) { return [p[0] * Math.cos(angle), p[0] * Math.sin(angle), p[1]]; });
+              }
+              var faces = [];
+              var halfStep = ((160 / count) * Math.PI) / 180;
+              for (var i = 0; i < count; i++) {
+                var a = section(i), b = section(i + 1);
+                for (var j = 0; j < profile.length; j++) {
+                  var next = (j + 1) % profile.length;
+                  var quad = face([a[j], a[next], b[next], b[j]], j % 2 === 1);
+                  // Normals turned half a step each way shade every strip as one smooth band.
+                  quad.edgeNormals = [rotate(quad.normal, 0, 0, -halfStep), rotate(quad.normal, 0, 0, halfStep)];
+                  faces.push(quad);
+                }
+              }
+              faces.push(face(section(0).reverse(), false), face(section(count), false));
+              return faces;
+            }
+            var ring = createRing(96);
+            function project(v, scale, x, y) {
+              var p = 1100 / Math.max(300, 1100 - v[2] * scale);
+              return [x + v[0] * scale * p, y + v[1] * scale * p];
+            }
+            function ringPose(frame) {
+              var f = Math.max(0, Math.min(959, frame));
+              var travel = progress(f, 0, 610);
+              var reveal = ease(f, 602, 702);
+              return {
+                x: 480 + (1 - reveal) * (18 - travel * 26),
+                y: (-200 + travel * 100) * (1 - reveal) + 270 * reveal,
+                scale: (2.78 - travel * 0.32) * (1 - reveal) + 1.08 * reveal,
+                rx: (0.4 - travel * 0.1) * (1 - reveal) + 0.14 * reveal,
+                ry: (-0.55 + travel * 0.12) * (1 - reveal) - 0.16 * reveal,
+                rz: (-0.42 + travel * 0.22) * (1 - reveal) - 0.13 * reveal,
+                lightAngle: -0.8 + (f / 960) * 1.1,
+                opacity: ease(f, 0, 48) * (1 - ease(f, 858, 946))
+              };
+            }
+
+            var canvas = document.getElementById("rt-canvas");
+            canvas.width = Math.round(CW);
+            canvas.height = Math.round(CH);
+            var ctx = canvas.getContext("2d", { willReadFrequently: true });
+            function channels(color) {
+              ctx.clearRect(0, 0, 1, 1);
+              ctx.fillStyle = "#000000";
+              ctx.fillStyle = color;
+              ctx.fillRect(0, 0, 1, 1);
+              return Array.prototype.slice.call(ctx.getImageData(0, 0, 1, 1).data, 0, 3);
+            }
+            var accentRgb = channels(theme.accent);
+            var surfaceRgb = channels(theme.surface);
+            var ringWrap = document.getElementById("rt-ring-wrap");
+
+            function drawRing(frame) {
+              var pose = ringPose(frame);
+              ringWrap.style.opacity = pose.opacity;
+              ctx.setTransform(1, 0, 0, 1, 0, 0);
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.setTransform(S, 0, 0, S, 0, 0);
+              var turn = rotator(pose.rx, pose.ry, pose.rz);
+              var key = normalize([Math.cos(pose.lightAngle) * 0.95, 0.6, 0.3]);
+              var rim = normalize([-0.8, -0.5, 0.18]);
+              var half = normalize([key[0], key[1], key[2] + 1]);
+              var px = pose.x + OX, py = pose.y + OY;
+              var faces = ring.map(function (f) {
+                return {
+                  bevel: f.bevel,
+                  normal: turn(f.normal),
+                  edgeNormals: f.edgeNormals ? [turn(f.edgeNormals[0]), turn(f.edgeNormals[1])] : null,
+                  center: turn(f.center),
+                  vertices: f.vertices.map(turn)
+                };
+              }).sort(function (a, b) { return a.center[2] - b.center[2]; });
+              var intensity = lightIntensity * pose.opacity;
+              faces.forEach(function (f) {
+                if (dot(f.normal, normalize([-f.center[0], -f.center[1], 1100 / pose.scale - f.center[2]])) <= 0) return;
+                var shade = function (n) {
+                  var diffuse = Math.max(0, dot(n, key));
+                  var rimLight = Math.max(0, dot(n, rim));
+                  var specular = Math.pow(Math.max(0, dot(n, half)), f.bevel ? 26 : 48);
+                  var rgb = surfaceRgb.map(function (c, i) {
+                    return Math.min(255, c * 0.19 + intensity * (accentRgb[i] * (Math.pow(diffuse, 3) * 0.36 + Math.pow(rimLight, 6) * 0.16) + 180 * specular * 0.68));
+                  });
+                  return "rgb(" + rgb.join(",") + ")";
+                };
+                var pts = f.vertices.map(function (v) { return project(v, pose.scale, px, py); });
+                ctx.beginPath();
+                ctx.moveTo(pts[0][0], pts[0][1]);
+                for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+                ctx.closePath();
+                if (f.edgeNormals) {
+                  var g = ctx.createLinearGradient(
+                    (pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2,
+                    (pts[2][0] + pts[3][0]) / 2, (pts[2][1] + pts[3][1]) / 2
+                  );
+                  g.addColorStop(0, shade(f.edgeNormals[0]));
+                  g.addColorStop(1, shade(f.edgeNormals[1]));
+                  ctx.fillStyle = g;
+                } else {
+                  ctx.fillStyle = shade(f.normal);
+                }
+                ctx.fill();
+                // A sub-pixel seam overlap hides hairlines between neighbouring quads.
+                ctx.strokeStyle = ctx.fillStyle;
+                ctx.lineWidth = 0.45;
+                ctx.stroke();
+              });
+            }
+
+            function drawStatement(s, frame, duration) {
+              var st = statementEls[s];
+              st.box.style.transform = "scale(" + lerpClamp(frame, 0, duration, 0.99, 1.025) + ")";
+              st.lines.forEach(function (chars) {
+                chars.forEach(function (span, i) {
+                  var c = characterState(frame, duration, i, chars.length);
+                  span.style.opacity = c.opacity;
+                  span.style.filter = c.blur > 0.08 ? "blur(" + c.blur + "px)" : "none";
+                  span.style.transform = "translateY(" + c.y + "px)";
+                });
+              });
+            }
+
+            var shown = -2;
+            function draw(t) {
+              var frame = t * REF_FPS;
+              drawRing(frame);
+              var active = -1;
+              for (var i = 0; i < BEATS.length; i++) if (frame >= BEATS[i][0] && frame < BEATS[i][1]) active = i;
+              if (frame >= 610) active = 5;
+              if (active !== shown) {
+                statementEls.forEach(function (st, i) { st.box.style.display = i === active ? "flex" : "none"; });
+                lockup.style.display = active === 5 ? "flex" : "none";
+                shown = active;
+              }
+              if (active >= 0 && active < 5) drawStatement(active, frame - BEATS[active][0], BEATS[active][1] - BEATS[active][0]);
+              if (active === 5) {
+                var local = frame - 610;
+                var reveal = ease(local, 0, 32);
+                lockup.style.opacity = reveal;
+                lockup.style.filter = reveal < 0.99 ? "blur(" + (1 - reveal) * 6 + "px)" : "none";
+                lockup.style.transform = "scale(" + lerpClamp(local, 0, 350, 0.97, 1.03) + ")";
+                taglineEl.style.opacity = ease(local, 8, 40);
+              }
+            }
+
+            var TOTAL = parseFloat(root.dataset.duration || "16.016");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: TOTAL, duration: TOTAL, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["release-teaser"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

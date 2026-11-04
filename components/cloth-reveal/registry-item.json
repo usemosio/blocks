@@ -1,0 +1,136 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "cloth-reveal",
+  "type": "hyperframes:component",
+  "title": "Cloth Reveal",
+  "description": "A satin sheet draped over your content is yanked from one corner, folding and fluttering as a simulated cloth before it clears the frame. The Verlet simulation runs once at load with a fixed timestep and a seeded rest shape (a 32×20 grid), every frame's points are stored, and the timeline only draws the stored frame. The content under the sheet is a neutral lockup with editable text.",
+  "tags": [
+    "camera",
+    "reveal",
+    "cloth",
+    "premium",
+    "simulation",
+    "remocn-port"
+  ],
+  "category": "camera",
+  "duration": 2.133,
+  "useWhen": [
+    "A logo, product or headline should be unveiled like a launch-event reveal.",
+    "The video opens on a covered shape so the viewer waits a beat for what is underneath.",
+    "A single premium reveal is the payoff of the video and can afford a heavier render."
+  ],
+  "avoidWhen": [
+    "The reveal is a move from one scene to the next rather than content under a sheet: use page-turn.",
+    "A light should search the dark stage and land on the logo: use spotlight.",
+    "Lines of text only need to rise into place: use mask-reveal-up."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/cloth-reveal/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "cloth-reveal.html",
+      "target": "compositions/components/cloth-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Wordmark of the placeholder lockup hidden under the sheet.",
+      "default": "Unveiled"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Which corner is pinched and which way the sheet is pulled.",
+      "default": "right",
+      "options": [
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "up",
+          "label": "Up"
+        },
+        {
+          "value": "down",
+          "label": "Down"
+        }
+      ]
+    },
+    {
+      "id": "cloth_color",
+      "type": "color",
+      "role": "style",
+      "label": "Cloth",
+      "description": "Top side of the sheet (hex).",
+      "default": "#E5322D"
+    },
+    {
+      "id": "underside_color",
+      "type": "color",
+      "role": "style",
+      "label": "Underside",
+      "description": "Underside tint, seen where the sheet folds over (hex).",
+      "default": "#8E1A16"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background behind the content.",
+      "default": "#111111"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Delay",
+      "description": "Frame (at 30 fps) when the tug starts.",
+      "default": 6,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes the fold pattern and waves of the resting sheet.",
+      "default": 2,
+      "min": 1,
+      "max": 24,
+      "step": 1
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Scales the timeline after the simulation; it does not change how the cloth moves.",
+      "default": 1,
+      "min": 0.25,
+      "max": 3,
+      "step": 0.05
+    }
+  ]
+}

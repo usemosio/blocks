@@ -1,0 +1,763 @@
+<!doctype html>
+<!--
+  Code Morph
+
+  A code panel morphs between versions of a file: surviving tokens glide to their new line and column, removed code blurs out and new code fades in. The clip is 4.6 s long for the default two versions and 36-frame morph.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/code-morph/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="code-morph"
+  data-composition-duration="4.6"
+  data-composition-variables='[
+    {"id": "filename", "type": "string", "role": "content", "label": "Filename", "description": "Name shown on the editor tab.", "default": "invoices.tsx"},
+    {"id": "code_before", "type": "string", "role": "content", "label": "Code before", "description": "First version of the file. Leave empty for the sample.", "default": ""},
+    {"id": "code_after", "type": "string", "role": "content", "label": "Code after", "description": "Version the panel morphs into. Leave empty for the sample.", "default": ""},
+    {"id": "morph_at", "type": "number", "role": "motion", "label": "Morph at", "description": "Frame the morph into the second version starts.", "default": 48, "min": 0, "max": 200, "step": 1, "unit": "frames"},
+    {"id": "steps", "type": "string", "role": "content", "label": "Steps", "description": "Optional JSON array of {at, code} versions (at = start frame at 30 fps). Overrides code before and after.", "default": ""},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark editor panel.", "default": "dark", "options": [{"value": "dark", "label": "Dark"}, {"value": "light", "label": "Light"}]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Highlight bar and string/number color.", "default": "#0ea5e9"},
+    {"id": "morph_duration", "type": "number", "role": "motion", "label": "Morph frames", "description": "Frames each morph takes.", "default": 36, "min": 12, "max": 90, "step": 1, "unit": "frames"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Code size in pixels at a 1280 x 720 frame; it scales with the frame.", "default": 20, "min": 12, "max": 32, "step": 1, "unit": "px"},
+    {"id": "highlight", "type": "boolean", "role": "style", "label": "Highlight changes", "description": "Hold a short accent highlight on the changed lines.", "default": true},
+    {"id": "line_numbers", "type": "boolean", "role": "style", "label": "Line numbers", "description": "Show the line number gutter.", "default": true},
+    {"id": "window_dots", "type": "boolean", "role": "style", "label": "Window dots", "description": "Show the three window dots in the title bar.", "default": true},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Code Morph</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+        .cm-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .cm-panel { position: relative; flex-shrink: 0; box-sizing: content-box; overflow: hidden; font-variant-ligatures: none; font-kerning: none; }
+        .cm-abs { position: absolute; }
+        .cm-head { position: absolute; left: 0; top: 0; right: 0; }
+        .cm-rule { position: absolute; left: 0; right: 0; bottom: 0; }
+        .cm-body { position: absolute; }
+        .cm-num { text-align: right; white-space: pre; }
+        .cm-code { position: absolute; top: 0; }
+        .cm-tok { position: absolute; left: 0; top: 0; display: block; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="code-morph" data-duration="4.6" data-fps="30">
+        <div id="cm-clip" class="cm-stage clip" data-start="0" data-duration="4.6" data-track-index="0">
+          <div id="cm-panel" class="cm-panel">
+            <div id="cm-head" class="cm-head"><div id="cm-rule" class="cm-rule"></div></div>
+            <div id="cm-bands"></div>
+            <div id="cm-body" class="cm-body"><div id="cm-code" class="cm-code"></div></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 to 1, rest at 0 velocity (mass, stiffness, damping), at `frame` of 30 fps.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass, k = cfg.stiffness, c = cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var q = Math.sqrt(z * z - 1), r1 = w0 * (-z + q), r2 = w0 * (-z - q);
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var TOTAL = 4.6;
+            var FRAMES = Math.round(TOTAL * 30);
+            var clock = { frame: 0 };
+            function frameNow() { return Math.round(clock.frame * 1000) / 1000; }
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: FRAMES, duration: TOTAL, ease: "none", onUpdate: function () { draw(frameNow()); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["code-morph"] = tl;
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            function fit(el, size, frac, hfrac) {
+              el.style.fontSize = size + "px";
+              var maxW = Math.max(1, root.clientWidth * frac);
+              var maxH = Math.max(1, root.clientHeight * (hfrac || 0.9));
+              var k = Math.min(1, maxW / Math.max(1, el.scrollWidth), maxH / Math.max(1, el.scrollHeight));
+              if (k < 1) { size = Math.max(8, size * k); el.style.fontSize = size + "px"; }
+              return size;
+            }
+
+
+            var filename = typeof vars.filename === "string" ? vars.filename.trim() : "invoices.tsx";
+            var theme = pick(vars.theme, ["dark", "light"], "dark");
+            var accentColor = str(vars.accent_color, "#0ea5e9");
+            var morphReq = num(vars.morph_duration, 36, 12, 90);
+            var fontReq = num(vars.font_size, 20, 12, 32);
+            var highlightOn = bool(vars.highlight, true);
+            var lineNumbersOn = bool(vars.line_numbers, true);
+            var windowDotsOn = bool(vars.window_dots, true);
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var BEFORE = "import { useEffect, useState } from \"./hooks\";\n\nexport function Invoices() {\n  const [invoices, setInvoices] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    fetch(\"/api/invoices\")\n      .then((res) => res.json())\n      .then(setInvoices)\n      .finally(() => setLoading(false));\n  }, []);\n\n  if (loading) return <Spinner />;\n  return <InvoiceTable rows={invoices} />;\n}";
+            var AFTER = "import { useFetch } from \"./hooks\";\n\nexport function Invoices() {\n  const { data, isLoading } = useFetch(\"/api/invoices\", fetcher);\n\n  if (isLoading) return <Spinner />;\n  return <InvoiceTable rows={data} />;\n}";
+            var stepsIn = null;
+            if (typeof vars.steps === "string" && vars.steps.trim()) {
+              try { var parsed = JSON.parse(vars.steps); if (Array.isArray(parsed) && parsed.length) stepsIn = parsed; } catch (e) { /* keep the default versions */ }
+            }
+            if (!stepsIn) {
+              stepsIn = [
+                { at: 0, code: typeof vars.code_before === "string" && vars.code_before.trim() ? vars.code_before : BEFORE },
+                { at: num(vars.morph_at, 48, 0, 200), code: typeof vars.code_after === "string" && vars.code_after.trim() ? vars.code_after : AFTER }
+              ];
+            }
+
+            // ---- constants (reference pixels at 1280 x 720) ----
+            var REF_W = 1280, REF_H = 720, MAX_W = 1152, MAX_H = 640;
+            var ADVANCE = 0.6, LEADING = 1.55, HEADER = 42, PAD_TOP = 20, PAD_BOTTOM = 22, PAD_LEFT = 22, PAD_RIGHT = 28, GUTTER_GAP = 2;
+            var RADIUS = 14, DOT = 11, DOT_GAP = 7, DOT_LEFT = 16, TAB_OFFSET = 14;
+            var TAB_AFTER_DOTS = DOT_LEFT + 3 * DOT + 2 * DOT_GAP + TAB_OFFSET;
+            var TAB_LEFT = 10, TAB_TOP = 8, TAB_PAD = 14, TAB_RADIUS = 8, TAB_FONT = 13, BAR = 2;
+            var BLUR = 3.5, SHRINK = 0.08, GROW_FROM = 0.96, BASE = 36;
+            var EXIT_SPREAD = 4, EXIT_DURATION = 12, MOVE_START = 6, MOVE_DURATION = 22, CASCADE = 4;
+            var ENTER_START = 20, ENTER_SPREAD = 4, ENTER_DURATION = 12, ARC = 0.08, RISE = 8, SHOW = 24, FALL = 14, HOLD = 24;
+            var MIN_MORPH = 12, MAX_MORPH = 120, MIN_FONT = 10, MAX_FONT = 40;
+            var LINE_COST = 10, COLUMN_COST = 0.5, MAX_COST = 1000, PUNCT_VALUE = 12, TAB = "  ";
+            var KEYWORDS = new Set("abstract as async await break case catch class const continue debugger declare default delete do else enum export extends false finally for from function if implements import in instanceof interface keyof let namespace new null of private protected public readonly return satisfies static super switch this throw true try type typeof undefined var void while yield".split(" "));
+            var OPERATORS = ["===", "!==", "**=", "...", "&&=", "||=", "??=", "=>", "==", "!=", "<=", ">=", "&&", "||", "??", "?.", "++", "--", "+=", "-=", "*=", "/=", "%=", "**", "</", "/>"];
+            var NUMBER = /0[xXbBoO][\dA-Fa-f_]+n?|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?n?/y;
+            var WORD = /[A-Za-z_$À-ɏͰ-Ͽ][\w$À-ɏͰ-Ͽ]*/y;
+            var SPACE = /\s/, CAPITAL = /^[A-Z]/;
+            var OPENERS = new Set(["(", "[", "{"]);
+            var CLOSERS = new Map([[")", "("], ["]", "["], ["}", "{"]]);
+            var glide = bezier(0.6, 0, 0.2, 1);
+            var PALETTES = {
+              dark: { panel: "#111113", chrome: "#0c0c0e", border: "#27272a", dot: "#3f3f46", label: "#e4e4e7", gutter: "#52525b", keyword: "#a1a1aa", "function": "#fafafa", type: "#fafafa", text: "#d4d4d8", punct: "#71717a", comment: "#5b5b63", mix: "#ffffff", share: 80, band: 0.16 },
+              light: { panel: "#ffffff", chrome: "#f7f7f8", border: "#e4e4e7", dot: "#d4d4d8", label: "#27272a", gutter: "#b4b4bb", keyword: "#71717a", "function": "#09090b", type: "#09090b", text: "#3f3f46", punct: "#909098", comment: "#a1a1aa", mix: "#000000", share: 70, band: 0.12 }
+            };
+            var unit01 = clamp01;
+            function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+            function easeOut(v) { return 1 - Math.pow(1 - unit01(v), 3); }
+            function easeOutQuad(v) { return 1 - Math.pow(1 - unit01(v), 2); }
+            function phase(v, morph) { return (v * morph) / BASE; }
+            function range(a, b) { var out = []; for (var k = a; k < b; k++) out.push(k); return out; }
+            function smoothstep(v) { var t = unit01(v); return t * t * (3 - 2 * t); }
+
+            // ---- tokenizer ----
+            function normalizeCode(code) {
+              var lines = code.replace(/\r\n?/g, "\n").replace(/\t/g, TAB).split("\n").map(function (l) { return l.replace(/\s+$/, ""); });
+              var s = 0;
+              while (s < lines.length && lines[s] === "") s++;
+              var e = lines.length;
+              while (e > s && lines[e - 1] === "") e--;
+              var body = lines.slice(s, e);
+              var indents = body.filter(function (l) { return l !== ""; }).map(function (l) { return l.length - l.replace(/^\s+/, "").length; });
+              var cut = indents.length ? Math.min.apply(null, indents) : 0;
+              return body.map(function (l) { return l.slice(cut); }).join("\n");
+            }
+            function closing(line, from, quote) {
+              var i = from;
+              while (i < line.length) { var ch = line[i]; if (ch === quote) return i; i += ch === "\\" ? 2 : 1; }
+              return -1;
+            }
+            function matchAt(pattern, line, index) { pattern.lastIndex = index; var m = pattern.exec(line); return m ? m[0] : ""; }
+            function scanLine(line, open) {
+              var pieces = [];
+              function emit(s, e, lex) { pieces.push({ start: s, end: e, lexeme: lex }); return e; }
+              var index = 0;
+              if (open !== null) {
+                var isComment = open === "comment";
+                var end0 = isComment ? line.indexOf("*/") : closing(line, 0, "`");
+                if (end0 === -1) { emit(0, line.length, open); return { pieces: pieces, open: open }; }
+                index = emit(0, end0 + (isComment ? 2 : 1), open);
+              }
+              while (index < line.length) {
+                var ch = line[index];
+                if (SPACE.test(ch)) { index++; continue; }
+                if (line.startsWith("//", index)) { emit(index, line.length, "comment"); break; }
+                if (line.startsWith("/*", index)) {
+                  var e2 = line.indexOf("*/", index + 2);
+                  if (e2 === -1) { emit(index, line.length, "comment"); return { pieces: pieces, open: "comment" }; }
+                  index = emit(index, e2 + 2, "comment"); continue;
+                }
+                if (ch === '"' || ch === "'" || ch === "`") {
+                  var e3 = closing(line, index + 1, ch);
+                  if (e3 === -1 && ch === "`") { emit(index, line.length, "string"); return { pieces: pieces, open: "string" }; }
+                  index = emit(index, e3 === -1 ? line.length : e3 + 1, "string"); continue;
+                }
+                var number = matchAt(NUMBER, line, index);
+                if (number !== "") { index = emit(index, index + number.length, "number"); continue; }
+                var word = matchAt(WORD, line, index);
+                if (word !== "") { index = emit(index, index + word.length, "word"); continue; }
+                var op = OPERATORS.find(function (item) { return line.startsWith(item, index); });
+                var glyph = String.fromCodePoint(line.codePointAt(index) || 0);
+                index = emit(index, index + (op || glyph).length, "punct");
+              }
+              return { pieces: pieces, open: null };
+            }
+            function columnsOf(line) {
+              var cols = [], index = 0, column = 0;
+              for (var ch of line) {
+                for (var u = 0; u < ch.length; u++) cols[index + u] = column;
+                index += ch.length; column++;
+              }
+              cols[index] = column;
+              return cols;
+            }
+            function kindOf(lexed, index) {
+              var cur = lexed[index];
+              if (cur.lexeme !== "word") return cur.lexeme;
+              var prev = index > 0 ? lexed[index - 1].text : "";
+              var next = index + 1 < lexed.length ? lexed[index + 1].text : "";
+              var member = prev === "." || prev === "?.";
+              if (!member && KEYWORDS.has(cur.text)) return "keyword";
+              if (next === "(") return "function";
+              if (CAPITAL.test(cur.text)) return "type";
+              return "text";
+            }
+            function versionOf(source) {
+              var code = normalizeCode(source);
+              var lines = code.split("\n");
+              var lexed = [], open = null, columns = 0;
+              lines.forEach(function (text, line) {
+                var map = columnsOf(text);
+                columns = Math.max(columns, map[text.length]);
+                var scanned = scanLine(text, open);
+                open = scanned.open;
+                scanned.pieces.forEach(function (piece) {
+                  var s = piece.start, e = piece.end;
+                  while (s < e && SPACE.test(text[s])) s++;
+                  while (e > s && SPACE.test(text[e - 1])) e--;
+                  if (e === s) return;
+                  lexed.push({ text: text.slice(s, e), lexeme: piece.lexeme, line: line, col: map[s] });
+                });
+              });
+              var tokens = lexed.map(function (item, index) {
+                var kind = kindOf(lexed, index);
+                return { text: item.text, kind: kind, line: item.line, col: item.col, word: kind !== "punct" };
+              });
+              return { code: code, tokens: tokens, lines: lines.length, columns: columns };
+            }
+
+            // ---- token diff ----
+            function widthsOf(tokens) {
+              var w = new Map();
+              tokens.forEach(function (t) {
+                var end = t.col + Array.from(t.text).length;
+                w.set(t.line, Math.max(w.get(t.line) || 0, end));
+              });
+              return w;
+            }
+            function shiftOf(sides, pair) {
+              var anchor = sides.from[pair[0]], landed = sides.to[pair[1]];
+              return { line: anchor.line, lines: landed.line - anchor.line, cols: landed.col - anchor.col };
+            }
+            var STILL = { line: -1, lines: 0, cols: 0 };
+            function expectedCost(sides, i, j, shift) {
+              var source = sides.from[i], target = sides.to[j];
+              var lineOff = Math.abs(target.line - (source.line + shift.lines));
+              if (source.line !== shift.line) {
+                return lineOff * LINE_COST + Math.abs(target.col - source.col) * COLUMN_COST;
+              }
+              var left = source.col + shift.cols;
+              var tail = (sides.fromWidths.get(source.line) || 0) - source.col;
+              var right = (sides.toWidths.get(target.line) || 0) - tail;
+              var colOff = Math.min(Math.abs(target.col - left), Math.abs(target.col - right));
+              return lineOff * LINE_COST + colOff * COLUMN_COST;
+            }
+            function costOf(sides, i, j, before, after) {
+              if (before === null && after === null) return Math.min(MAX_COST, expectedCost(sides, i, j, STILL));
+              function via(shift) { return shift === null ? MAX_COST : expectedCost(sides, i, j, shift); }
+              return Math.min(MAX_COST, via(before), via(after));
+            }
+            function align(sources, targets, value) {
+              var rows = sources.length, cols = targets.length;
+              if (rows === 0 || cols === 0) return [];
+              var width = cols + 1;
+              var worth = new Float64Array(rows * cols);
+              for (var a = 0; a < rows; a++) for (var b = 0; b < cols; b++) worth[a * cols + b] = value(sources[a], targets[b]);
+              var table = new Float64Array((rows + 1) * width);
+              function at(a2, b2) { return table[a2 * width + b2]; }
+              for (var a1 = rows - 1; a1 >= 0; a1--) {
+                for (var b1 = cols - 1; b1 >= 0; b1--) {
+                  var gain = worth[a1 * cols + b1];
+                  var skip = Math.max(at(a1 + 1, b1), at(a1, b1 + 1));
+                  var take = gain > 0 ? at(a1 + 1, b1 + 1) + gain : 0;
+                  table[a1 * width + b1] = Math.max(skip, take);
+                }
+              }
+              var pairs = [], p = 0, q = 0;
+              while (p < rows && q < cols) {
+                var g = worth[p * cols + q];
+                if (g > 0 && at(p, q) === at(p + 1, q + 1) + g) { pairs.push([sources[p], targets[q]]); p++; q++; }
+                else if (at(p, q) === at(p + 1, q)) p++;
+                else q++;
+              }
+              return pairs;
+            }
+            function increasing(candidates) {
+              var length = [], previous = [], best = -1;
+              candidates.forEach(function (c, k) {
+                length[k] = 1; previous[k] = -1;
+                for (var p = 0; p < k; p++) {
+                  if (candidates[p][1] < c[1] && length[p] + 1 > length[k]) { length[k] = length[p] + 1; previous[k] = p; }
+                }
+                if (best === -1 || length[k] > length[best]) best = k;
+              });
+              var chain = [];
+              for (var k2 = best; k2 !== -1; k2 = previous[k2]) chain.push(candidates[k2]);
+              return chain.reverse();
+            }
+            function anchorsOf(from, to) {
+              var fromCount = new Map(), toCount = new Map(), toIndex = new Map();
+              from.forEach(function (t) { if (t.word) fromCount.set(t.text, (fromCount.get(t.text) || 0) + 1); });
+              to.forEach(function (t, j) {
+                if (!t.word) return;
+                toCount.set(t.text, (toCount.get(t.text) || 0) + 1);
+                toIndex.set(t.text, j);
+              });
+              var candidates = [];
+              from.forEach(function (t, i) {
+                var j = toIndex.get(t.text);
+                var unique = fromCount.get(t.text) === 1 && toCount.get(t.text) === 1;
+                if (t.word && unique && j !== undefined) candidates.push([i, j]);
+              });
+              return increasing(candidates);
+            }
+            function guidesOf(sides, pairs) {
+              var size = sides.from.length, before = [], after = [], last = null, cursor = 0;
+              for (var i = 0; i < size; i++) {
+                while (cursor < pairs.length && pairs[cursor][0] <= i) { last = shiftOf(sides, pairs[cursor]); cursor++; }
+                before.push(last);
+              }
+              var next = null;
+              cursor = pairs.length - 1;
+              for (var i2 = size - 1; i2 >= 0; i2--) {
+                while (cursor >= 0 && pairs[cursor][0] >= i2) { next = shiftOf(sides, pairs[cursor]); cursor--; }
+                after[i2] = next;
+              }
+              return { before: before, after: after };
+            }
+            function partnersOf(tokens) {
+              var partner = tokens.map(function () { return -1; }), stack = [];
+              tokens.forEach(function (t, index) {
+                if (t.kind !== "punct") return;
+                if (OPENERS.has(t.text)) { stack.push(index); return; }
+                var opener = CLOSERS.get(t.text);
+                if (opener === undefined) return;
+                var depth = stack.length - 1;
+                while (depth >= 0 && tokens[stack[depth]].text !== opener) depth--;
+                if (depth < 0) return;
+                partner[stack[depth]] = index; partner[index] = stack[depth];
+                stack.length = depth;
+              });
+              return partner;
+            }
+            function linesOf(tokens) {
+              var lines = new Map();
+              tokens.forEach(function (t, index) {
+                var list = lines.get(t.line);
+                if (list) list.push(index); else lines.set(t.line, [index]);
+              });
+              return lines;
+            }
+            function signatureOf(tokens, indices) {
+              var base = tokens[indices[0]].col;
+              return JSON.stringify(indices.map(function (i) { return [tokens[i].col - base, tokens[i].text]; }));
+            }
+            function diffTokens(from, to) {
+              var sides = { from: from, to: to, fromWidths: widthsOf(from), toWidths: widthsOf(to) };
+              var guides = guidesOf(sides, anchorsOf(from, to));
+              var fromWords = range(0, from.length).filter(function (i) { return from[i].word; });
+              var toWords = range(0, to.length).filter(function (j) { return to[j].word; });
+              var weight = (Math.min(fromWords.length, toWords.length) + 1) * MAX_COST;
+              var words = align(fromWords, toWords, function (i, j) {
+                if (from[i].text !== to[j].text) return 0;
+                return weight - costOf(sides, i, j, guides.before[i], guides.after[i]);
+              });
+              var fromTo = from.map(function () { return -1; }), toFrom = to.map(function () { return -1; });
+              function link(pair) { fromTo[pair[0]] = pair[1]; toFrom[pair[1]] = pair[0]; }
+              var bounds = [[-1, -1]].concat(words, [[from.length, to.length]]);
+              for (var k = 0; k + 1 < bounds.length; k++) {
+                var a0 = bounds[k][0], b0 = bounds[k][1], a1 = bounds[k + 1][0], b1 = bounds[k + 1][1];
+                var inner = k + 2 < bounds.length;
+                var before = k > 0 ? shiftOf(sides, bounds[k]) : null;
+                var after = inner ? shiftOf(sides, bounds[k + 1]) : null;
+                var sources = range(a0 + 1, a1).filter(function (i) { return !from[i].word; });
+                var targets = range(b0 + 1, b1).filter(function (j) { return !to[j].word; });
+                var found = align(sources, targets, function (i, j) {
+                  if (from[i].text !== to[j].text) return 0;
+                  return PUNCT_VALUE - costOf(sides, i, j, before, after);
+                });
+                found.forEach(link);
+                if (inner) link(bounds[k + 1]);
+              }
+              var fromPartner = partnersOf(from), toPartner = partnersOf(to);
+              from.forEach(function (t, i) {
+                var j = fromTo[i];
+                if (j < 0 || !OPENERS.has(t.text)) return;
+                var close = fromPartner[i], target = toPartner[j];
+                if (close < 0 || target < 0 || fromTo[close] === target) return;
+                if (fromTo[close] >= 0) toFrom[fromTo[close]] = -1;
+                if (toFrom[target] >= 0) fromTo[toFrom[target]] = -1;
+                link([close, target]);
+              });
+              var fromLines = linesOf(from), pool = new Map();
+              fromLines.forEach(function (indices, line) {
+                var removed = indices.every(function (i) { return fromTo[i] < 0; });
+                if (!removed || !indices.some(function (i) { return from[i].word; })) return;
+                var key = signatureOf(from, indices), list = pool.get(key);
+                if (list) list.push(line); else pool.set(key, [line]);
+              });
+              linesOf(to).forEach(function (indices, line) {
+                if (!indices.every(function (j) { return toFrom[j] < 0; })) return;
+                var list = pool.get(signatureOf(to, indices));
+                if (list === undefined || list.length === 0) return;
+                var best = 0;
+                list.forEach(function (candidate, k2) { if (Math.abs(candidate - line) < Math.abs(list[best] - line)) best = k2; });
+                var source = list.splice(best, 1)[0];
+                var origin = fromLines.get(source) || [];
+                indices.forEach(function (j, k3) { link([origin[k3], j]); });
+              });
+              return { fromTo: fromTo, toFrom: toFrom };
+            }
+            function ranks(lines) {
+              var distinct = Array.from(new Set(lines)).sort(function (a, b) { return a - b; });
+              var map = new Map(), last = distinct.length - 1;
+              distinct.forEach(function (line, index) { map.set(line, last > 0 ? index / last : 0); });
+              return map;
+            }
+            function changedLines(from, to, diff) {
+              var sizes = new Map(), members = new Map();
+              from.tokens.forEach(function (t) { sizes.set(t.line, (sizes.get(t.line) || 0) + 1); });
+              to.tokens.forEach(function (t, j) {
+                var list = members.get(t.line);
+                if (list) list.push(j); else members.set(t.line, [j]);
+              });
+              var changed = [];
+              members.forEach(function (indices, line) {
+                var sources = indices.map(function (j) { return diff.toFrom[j]; });
+                var origin = sources[0] >= 0 ? from.tokens[sources[0]].line : -1;
+                var copied = sources.every(function (i) { return i >= 0 && from.tokens[i].line === origin; });
+                if (!(copied && sizes.get(origin) === indices.length)) changed.push(line);
+              });
+              return changed.sort(function (a, b) { return a - b; });
+            }
+            function morphOf(from, to) {
+              var diff = diffTokens(from.tokens, to.tokens);
+              var leaving = [], entering = [], moving = [];
+              from.tokens.forEach(function (t, i) { if (diff.fromTo[i] < 0) leaving.push(t.line); });
+              to.tokens.forEach(function (t, j) {
+                var i = diff.toFrom[j];
+                if (i < 0) { entering.push(t.line); return; }
+                var s = from.tokens[i];
+                if (s.line !== t.line || s.col !== t.col) moving.push(t.line);
+              });
+              return { diff: diff, exitRank: ranks(leaving), moveRank: ranks(moving), enterRank: ranks(entering), changed: changedLines(from, to, diff) };
+            }
+            function stepsOf(steps) {
+              var ordered = steps.map(function (s, index) {
+                return { index: index, at: Math.max(0, Number.isFinite(Number(s && s.at)) ? Number(s.at) : 0), code: s && typeof s.code === "string" ? s.code : "" };
+              }).sort(function (a, b) { return a.at - b.at || a.index - b.index; });
+              return ordered.length ? ordered : [{ index: 0, at: 0, code: "" }];
+            }
+
+            // ---- layout and timeline ----
+            var W = root.clientWidth, H = root.clientHeight;
+            var stepList = stepsOf(stepsIn);
+            var size = clamp(fontReq, MIN_FONT, MAX_FONT);
+            var versions = stepList.map(function (s) { return versionOf(s.code); });
+            var morphs = [];
+            for (var vi = 1; vi < versions.length; vi++) morphs.push(morphOf(versions[vi - 1], versions[vi]));
+            var rows = Math.max.apply(null, versions.map(function (v) { return v.lines; }));
+            var columns = Math.max.apply(null, versions.map(function (v) { return v.columns; }));
+            var digits = lineNumbersOn ? Math.max(2, String(rows).length) : 0;
+            var gutter = lineNumbersOn ? digits + GUTTER_GAP : 0;
+            var header = windowDotsOn || filename !== "" ? HEADER : 0;
+            var leading = size * LEADING;
+            var panelW = PAD_LEFT + PAD_RIGHT + (gutter + columns) * ADVANCE * size;
+            var panelH = header + PAD_TOP + PAD_BOTTOM + rows * leading;
+            var fitK = Math.min(1, MAX_W / panelW, MAX_H / panelH);
+            var scale = Math.min(W / REF_W, H / REF_H);
+            var unit = scale * fitK;
+            var L = { unit: unit, fontSize: size * unit, lineHeight: leading * unit, header: header * unit, padTop: PAD_TOP * unit, padBottom: PAD_BOTTOM * unit, padLeft: PAD_LEFT * unit, padRight: PAD_RIGHT * unit };
+
+            var morph = clamp(morphReq, MIN_MORPH, MAX_MORPH);
+            var starts = [], ready = 0;
+            stepList.slice(1).forEach(function (s) { var st = Math.max(s.at, ready); starts.push(st); ready = st + morph; });
+            var tmorphs = starts.map(function (st, index) {
+              var highlightStart = st + phase(ENTER_START, morph);
+              var natural = highlightStart + RISE + SHOW;
+              var next = index + 1 < starts.length ? starts[index + 1] : natural;
+              var fallStart = Math.min(natural, next);
+              return { start: st, end: st + morph, highlightStart: highlightStart, fallStart: fallStart, highlightEnd: fallStart + FALL };
+            });
+
+            // ---- DOM ----
+            var host = document.getElementById("cm-clip");
+            var palette = PALETTES[theme];
+            var hairline = Math.max(1, unit);
+            var edge = hairline + "px solid " + palette.border;
+            var top = L.header + L.padTop;
+            var accentText = "color-mix(in oklab, " + accentColor + " " + palette.share + "%, " + palette.mix + ")";
+            function colorOf(kind) { return kind === "string" || kind === "number" ? accentText : palette[kind]; }
+            var panel = document.getElementById("cm-panel");
+            var ps = panel.style;
+            ps.width = "calc(" + (gutter + columns) + "ch + " + (L.padLeft + L.padRight) + "px)";
+            ps.height = (top + rows * L.lineHeight + L.padBottom) + "px";
+            ps.background = palette.panel; ps.color = palette.text; ps.border = edge; ps.borderRadius = (RADIUS * unit) + "px";
+            ps.fontSize = L.fontSize + "px"; ps.lineHeight = L.lineHeight + "px";
+            var headEl = document.getElementById("cm-head");
+            if (L.header > 0) {
+              headEl.style.height = L.header + "px"; headEl.style.background = palette.chrome;
+              var rule = document.getElementById("cm-rule");
+              rule.style.height = hairline + "px"; rule.style.background = palette.border;
+              if (windowDotsOn) {
+                for (var d = 0; d < 3; d++) {
+                  var dot = document.createElement("div");
+                  dot.id = "cm-dot-" + d; dot.className = "cm-abs";
+                  dot.style.cssText += ";left:" + ((DOT_LEFT + d * (DOT + DOT_GAP)) * unit) + "px;top:" + (((HEADER - DOT) / 2) * unit) + "px;width:" + (DOT * unit) + "px;height:" + (DOT * unit) + "px;border-radius:50%;background:" + palette.dot;
+                  headEl.appendChild(dot);
+                }
+              }
+              if (filename !== "") {
+                var tab = document.createElement("div");
+                tab.id = "cm-tab"; tab.className = "cm-abs"; tab.textContent = filename;
+                var tr = TAB_RADIUS * unit;
+                tab.style.cssText += ";left:" + ((windowDotsOn ? TAB_AFTER_DOTS : TAB_LEFT) * unit) + "px;bottom:0;height:" + ((HEADER - TAB_TOP) * unit) + "px;box-sizing:border-box;display:flex;align-items:center;padding:0 " + (TAB_PAD * unit) + "px;background:" + palette.panel + ";border-top:" + edge + ";border-left:" + edge + ";border-right:" + edge + ";border-radius:" + tr + "px " + tr + "px 0 0;color:" + palette.label + ";font-size:" + (TAB_FONT * unit) + "px;line-height:1;white-space:pre";
+                headEl.appendChild(tab);
+              }
+            } else { headEl.style.display = "none"; }
+            var bandHost = document.getElementById("cm-bands");
+            var body = document.getElementById("cm-body");
+            body.style.left = L.padLeft + "px"; body.style.top = top + "px";
+            var codeEl = document.getElementById("cm-code");
+            codeEl.style.left = gutter + "ch";
+            var numEls = [];
+            if (lineNumbersOn) {
+              for (var r = 0; r < rows; r++) {
+                var n = document.createElement("div");
+                n.id = "cm-num-" + r; n.className = "cm-abs cm-num"; n.textContent = String(r + 1);
+                n.style.cssText += ";left:0;top:" + (r * L.lineHeight) + "px;width:" + digits + "ch;color:" + palette.gutter + ";opacity:0";
+                body.insertBefore(n, codeEl); numEls.push(n);
+              }
+            }
+            var tokenEls = new Map(), bandEls = new Map();
+            function tokenEl(key, token) {
+              var el = tokenEls.get(key);
+              if (!el) {
+                el = document.createElement("span");
+                el.className = "cm-tok"; el.textContent = token.text; el.style.color = colorOf(token.kind);
+                codeEl.appendChild(el); tokenEls.set(key, el);
+              }
+              return el;
+            }
+            function bandEl(key) {
+              var el = bandEls.get(key);
+              if (!el) {
+                el = document.createElement("div");
+                el.className = "cm-abs cm-band";
+                el.style.cssText += ";left:0;right:0;height:" + L.lineHeight + "px";
+                var fill = document.createElement("div"); fill.className = "cm-abs"; fill.style.cssText += ";inset:0;background:" + accentColor;
+                var bar = document.createElement("div"); bar.className = "cm-abs"; bar.style.cssText += ";left:0;top:0;bottom:0;width:" + (BAR * unit) + "px;background:" + accentColor;
+                el.appendChild(fill); el.appendChild(bar); el._fill = fill; el._bar = bar;
+                bandHost.appendChild(el); bandEls.set(key, el);
+              }
+              return el;
+            }
+
+            // ---- frame state ----
+            function restingTokens(version) {
+              return versions[version].tokens.map(function (t, j) {
+                return { key: version + ":" + j, text: t.text, kind: t.kind, line: t.line, col: t.col, opacity: 1, scale: 1, blur: 0 };
+              });
+            }
+            function morphFrame(index, local) {
+              var data = morphs[index], from = versions[index], to = versions[index + 1];
+              var blur = BLUR * unit, tokens = [];
+              from.tokens.forEach(function (t, i) {
+                if (data.diff.fromTo[i] >= 0) return;
+                var rank = data.exitRank.get(t.line) || 0;
+                var delay = phase(EXIT_SPREAD, morph) * rank;
+                var progress = (local - delay) / phase(EXIT_DURATION, morph);
+                if (progress >= 1) return;
+                var e = easeOut(progress);
+                tokens.push({ key: index + ">" + i, text: t.text, kind: t.kind, line: t.line, col: t.col, opacity: 1 - e, scale: 1 - SHRINK * e, blur: blur * e });
+              });
+              function travel(delay) { return (local - phase(MOVE_START, morph) - delay) / phase(MOVE_DURATION, morph); }
+              to.tokens.forEach(function (t, j) {
+                var i = data.diff.toFrom[j];
+                if (i < 0) return;
+                var s = from.tokens[i];
+                var rank = data.moveRank.get(t.line) || 0;
+                var progress = travel(phase(CASCADE, morph) * rank);
+                var vertical = glide(unit01(progress / (1 - ARC)));
+                var horizontal = glide(unit01((progress - ARC) / (1 - ARC)));
+                tokens.push({ key: (index + 1) + ":" + j, text: t.text, kind: t.kind, line: s.line + (t.line - s.line) * vertical, col: s.col + (t.col - s.col) * horizontal, opacity: 1, scale: 1, blur: 0 });
+              });
+              to.tokens.forEach(function (t, j) {
+                if (data.diff.toFrom[j] >= 0) return;
+                var rank = data.enterRank.get(t.line) || 0;
+                var st = phase(ENTER_START + ENTER_SPREAD * rank, morph);
+                var progress = (local - st) / phase(ENTER_DURATION, morph);
+                if (progress <= 0) return;
+                var e = easeOut(progress);
+                tokens.push({ key: (index + 1) + ":" + j, text: t.text, kind: t.kind, line: t.line, col: t.col, opacity: e, scale: GROW_FROM + (1 - GROW_FROM) * e, blur: blur * (1 - e) });
+              });
+              var shrinking = to.lines < from.lines;
+              var lag = shrinking ? phase(CASCADE, morph) : 0;
+              var grown = glide(unit01(travel(lag) / (1 - ARC)));
+              var shared = Math.min(from.lines, to.lines), count = Math.max(from.lines, to.lines);
+              var nums = [];
+              for (var row = 0; row < count; row++) nums.push(row < shared ? 1 : shrinking ? 1 - grown : grown);
+              return { tokens: tokens, nums: nums };
+            }
+            function highlightsAt(time, active) {
+              var out = [];
+              if (!highlightOn) return out;
+              [active - 1, active].forEach(function (index) {
+                if (index < 0) return;
+                var m = tmorphs[index];
+                var rise = easeOutQuad((time - m.highlightStart) / RISE);
+                var fall = smoothstep((time - m.fallStart) / FALL);
+                var opacity = rise * (1 - fall);
+                if (opacity <= 0) return;
+                morphs[index].changed.forEach(function (row) { out.push({ key: index + ":" + row, row: row, opacity: opacity }); });
+              });
+              return out;
+            }
+            function stateAt(time) {
+              var active = -1;
+              tmorphs.forEach(function (m, index) { if (m.start <= time) active = index; });
+              var highlights = highlightsAt(time, active);
+              if (active === -1) {
+                return { tokens: restingTokens(0), nums: range(0, versions[0].lines).map(function () { return 1; }), highlights: highlights };
+              }
+              var local = time - tmorphs[active].start;
+              if (local >= morph) {
+                var v = active + 1;
+                return { tokens: restingTokens(v), nums: range(0, versions[v].lines).map(function () { return 1; }), highlights: highlights };
+              }
+              var mf = morphFrame(active, local);
+              return { tokens: mf.tokens, nums: mf.nums, highlights: highlights };
+            }
+            function draw(raw) {
+              var time = Math.max(0, raw) * speed;
+              var st = stateAt(time);
+              var seen = new Set();
+              st.tokens.forEach(function (t) {
+                var el = tokenEl(t.key, t);
+                seen.add(t.key);
+                el.style.display = "block";
+                el.style.opacity = t.opacity;
+                el.style.transform = "translate(" + t.col + "ch, " + (t.line * L.lineHeight) + "px)" + (t.scale === 1 ? "" : " scale(" + t.scale + ")");
+                el.style.filter = t.blur > 0 ? "blur(" + t.blur + "px)" : "none";
+              });
+              tokenEls.forEach(function (el, key) { if (!seen.has(key)) el.style.display = "none"; });
+              numEls.forEach(function (el, row) { el.style.opacity = row < st.nums.length ? st.nums[row] : 0; });
+              var bseen = new Set();
+              st.highlights.forEach(function (b) {
+                var el = bandEl(b.key);
+                bseen.add(b.key);
+                el.style.display = "block";
+                el.style.top = (top + b.row * L.lineHeight) + "px";
+                el._fill.style.opacity = b.opacity * palette.band;
+                el._bar.style.opacity = b.opacity;
+              });
+              bandEls.forEach(function (el, key) { if (!bseen.has(key)) el.style.display = "none"; });
+            }
+            start(draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

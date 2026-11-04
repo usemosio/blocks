@@ -1,0 +1,266 @@
+<!doctype html>
+<!--
+  Terminal Simulator
+
+  A console window that types out commands and rolls older lines off the top.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/terminal-simulator/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="terminal-simulator"
+  data-composition-duration="10"
+  data-composition-variables='[
+    {"id": "lines", "type": "string", "role": "content", "label": "Lines", "description": "JSON array of lines: [{\"text\", \"type\": \"command\" | \"log\" | \"success\" | \"error\", \"delay\": frames before the line starts (default 8), \"pause\": extra frames to hold after it (lines ending in ... hold 18)}].", "default": "[{\"text\":\"npm run build\",\"type\":\"command\",\"delay\":0},{\"text\":\"Resolving dependencies...\",\"type\":\"log\",\"delay\":6},{\"text\":\"> my-app@1.0.0 build\",\"type\":\"log\",\"delay\":4},{\"text\":\"> next build\",\"type\":\"log\",\"delay\":4},{\"text\":\"Compiling...\",\"type\":\"log\",\"delay\":12},{\"text\":\"Compiled successfully in 4.2s\",\"type\":\"success\",\"delay\":14},{\"text\":\"Generating static pages (24/24)\",\"type\":\"log\",\"delay\":10},{\"text\":\"Build completed without errors\",\"type\":\"success\",\"delay\":12}]"},
+    {"id": "prompt", "type": "string", "role": "content", "label": "Prompt", "description": "Prompt character before commands.", "default": "$"},
+    {"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Window title in the title bar.", "default": "~/projects/my-app"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Terminal background.", "default": "#0a0a0a"},
+    {"id": "chrome_color", "type": "color", "role": "style", "label": "Chrome color", "description": "Title bar background.", "default": "#1a1a1a"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Terminal text size in design pixels (the window scales to fit the frame).", "default": 18, "min": 10, "max": 32, "step": 1, "unit": "px"},
+    {"id": "chars_per_frame", "type": "number", "role": "motion", "label": "Characters per frame", "description": "Typing speed.", "default": 1, "min": 0.25, "max": 6, "step": 0.25},
+    {"id": "chunk_size", "type": "number", "role": "motion", "label": "Chunk size", "description": "Characters revealed per step.", "default": 1, "min": 1, "max": 20, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Terminal Simulator</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          
+          font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif);
+        }
+        .tsm-stage { position: absolute; inset: 0; }
+        .tsm-win { position: absolute; left: 50%; top: 50%; width: 900px; height: 480px; margin: -240px 0 0 -450px; transform-origin: 50% 50%;
+          border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;
+          box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+          font-family: "Geist Mono", ui-monospace, SFMono-Regular, monospace; }
+        .tsm-chrome { height: 40px; flex: none; display: flex; align-items: center; padding: 0 16px; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .tsm-light { width: 12px; height: 12px; border-radius: 50%; opacity: 0.85; }
+        .tsm-title { flex: 1; text-align: center; color: #71717a; font-size: 13px; }
+        .tsm-body { flex: 1; padding: 20px; overflow: hidden; position: relative; }
+        .tsm-buffer { position: absolute; left: 20px; right: 20px; top: 20px; }
+        .tsm-row { display: flex; align-items: center; white-space: pre; }
+        .tsm-prompt { color: #22c55e; margin-right: 8px; }
+        .tsm-block { display: inline-block; margin-left: 2px; }
+      </style>
+
+      <div id="root" data-composition-id="terminal-simulator" data-duration="10" data-fps="30">
+        <div id="tsm-clip" class="tsm-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <div id="tsm-win" class="tsm-win">
+            <div id="tsm-chrome" class="tsm-chrome">
+              <div class="tsm-light" style="background: #ff5f57"></div>
+              <div class="tsm-light" style="background: #febc2e"></div>
+              <div class="tsm-light" style="background: #28c840"></div>
+              <div id="tsm-title" class="tsm-title"></div>
+            </div>
+            <div class="tsm-body"><div id="tsm-buffer" class="tsm-buffer"></div></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            // Easing.bezier(x1, y1, x2, y2) as a function of t (Newton, then bisection).
+            function bez(x1, y1, x2, y2) {
+              function cx(s) { return 3 * x1 * s * (1 - s) * (1 - s) + 3 * x2 * s * s * (1 - s) + s * s * s; }
+              function cy(s) { return 3 * y1 * s * (1 - s) * (1 - s) + 3 * y2 * s * s * (1 - s) + s * s * s; }
+              return function (t) {
+                if (t <= 0) return 0;
+                if (t >= 1) return 1;
+                var lo = 0, hi = 1, s = t;
+                for (var i = 0; i < 40; i++) {
+                  var x = cx(s);
+                  if (Math.abs(x - t) < 1e-6) break;
+                  if (x < t) lo = s; else hi = s;
+                  s = (lo + hi) / 2;
+                }
+                return cy(s);
+              };
+            }
+            // interpolate(f, [a, b], [from, to]) with both ends clamped, like Remotion's extrapolate "clamp".
+            function interp(f, a, b, from, to, ease) {
+              var t = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(t) : t);
+            }
+            // Fit one line to 90 % of the frame width: shrinks the font size when it overflows.
+            function fit(root, line, size) {
+              line.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * 0.9);
+              if (line.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / line.scrollWidth));
+                line.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // Drives draw(frame) from the paused timeline: frame = time * 30 * speed (Remotion's useCurrentFrame() * speed).
+            function drive(tl, total, speed, draw) {
+              var clock = { t: 0 };
+              tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t * 30 * speed); } }, 0);
+              draw(0);
+            }
+
+            var total = parseFloat(root.dataset.duration || "10");
+            var DEFAULT_LINES = [
+              { text: "npm run build", type: "command", delay: 0 },
+              { text: "Resolving dependencies...", type: "log", delay: 6 },
+              { text: "> my-app@1.0.0 build", type: "log", delay: 4 },
+              { text: "> next build", type: "log", delay: 4 },
+              { text: "Compiling...", type: "log", delay: 12 },
+              { text: "Compiled successfully in 4.2s", type: "success", delay: 14 },
+              { text: "Generating static pages (24/24)", type: "log", delay: 10 },
+              { text: "Build completed without errors", type: "success", delay: 12 }
+            ];
+            var TYPE_COLORS = { command: "#fafafa", log: "#a1a1aa", success: "#22c55e", error: "#ef4444" };
+            var lines = DEFAULT_LINES;
+            try {
+              var parsed = typeof vars.lines === "string" ? JSON.parse(vars.lines) : vars.lines;
+              if (Array.isArray(parsed) && parsed.length) {
+                lines = parsed.filter(function (l) { return l && typeof l.text === "string"; }).map(function (l) {
+                  return { text: l.text, type: TYPE_COLORS[l.type] ? l.type : "log", delay: l.delay, pause: l.pause };
+                });
+                if (!lines.length) lines = DEFAULT_LINES;
+              }
+            } catch (e) { lines = DEFAULT_LINES; }
+            var prompt = str(vars.prompt, "$");
+            var fontSize = num(vars.font_size, 18, 10, 32);
+            var charsPerFrame = num(vars.chars_per_frame, 1, 0.25, 6);
+            var chunkSize = Math.round(num(vars.chunk_size, 1, 1, 20));
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var win = document.getElementById("tsm-win");
+            var buffer = document.getElementById("tsm-buffer");
+            win.style.background = str(vars.background, "#0a0a0a");
+            document.getElementById("tsm-chrome").style.background = str(vars.chrome_color, "#1a1a1a");
+            document.getElementById("tsm-title").textContent = str(vars.title, "~/projects/my-app");
+            // The design-size window (900 x 480) scales to fit 90 % of the frame.
+            var k = Math.min(4, 0.9 * Math.min(root.clientWidth / 900, root.clientHeight / 480));
+            win.style.transform = "scale(" + k + ")";
+
+            var lineHeight = Math.round(fontSize * 1.6);
+            var visibleLines = 8;
+            function autoPause(l) {
+              if (l.pause !== undefined && l.pause !== null) return Number(l.pause) || 0;
+              return l.text.replace(/\s+$/, "").slice(-3) === "..." ? 18 : 0;
+            }
+            // Start frame of each line: 10 frames of lead-in, then each line's delay, its typing time and its pause.
+            var starts = [], acc = 10;
+            lines.forEach(function (l) {
+              acc += l.delay === undefined || l.delay === null ? 8 : Number(l.delay) || 0;
+              starts.push(acc);
+              acc += Math.ceil(l.text.length / (chunkSize * charsPerFrame)) + autoPause(l);
+            });
+
+            var rows = lines.map(function (l, i) {
+              var row = document.createElement("div");
+              row.id = "tsm-row-" + i;
+              row.className = "tsm-row";
+              row.style.height = lineHeight + "px";
+              row.style.fontSize = fontSize + "px";
+              row.style.color = TYPE_COLORS[l.type];
+              row.style.visibility = "hidden";
+              var p = null;
+              if (l.type === "command") {
+                p = document.createElement("span");
+                p.className = "tsm-prompt";
+                p.textContent = prompt;
+                row.appendChild(p);
+              }
+              var t = document.createElement("span");
+              row.appendChild(t);
+              var block = document.createElement("span");
+              block.className = "tsm-block";
+              block.style.width = fontSize * 0.55 + "px";
+              block.style.height = fontSize + "px";
+              block.style.background = TYPE_COLORS[l.type];
+              row.appendChild(block);
+              buffer.appendChild(row);
+              return { row: row, text: t, block: block, line: l };
+            });
+
+            // `frame` is remocn's useCurrentFrame() * speed. A row is mounted by a Sequence at
+            // round(start / speed) and counts its own frames from there, also times speed.
+            function draw(frame) {
+              var raw = frame / speed;
+              var ty = 0;
+              for (var i = visibleLines; i < lines.length; i++) if (frame >= starts[i]) ty -= lineHeight;
+              buffer.style.transform = "translateY(" + ty + "px)";
+              rows.forEach(function (r, i) {
+                var from = Math.round(starts[i] / speed);
+                if (raw < from) { r.row.style.visibility = "hidden"; return; }
+                r.row.style.visibility = "visible";
+                var local = (raw - from) * speed;
+                var n = r.line.text.length;
+                var linear = Math.floor(interp(local, 0, n / charsPerFrame, 0, n));
+                var revealed = Math.min(n, Math.ceil(linear / chunkSize) * chunkSize);
+                r.text.textContent = r.line.text.substring(0, revealed);
+                var done = revealed >= n;
+                r.block.style.display = !done && Math.floor((local / 30) * 2) % 2 === 0 ? "inline-block" : "none";
+              });
+            }
+            var tl = gsap.timeline({ paused: true });
+            drive(tl, total, speed, draw);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["terminal-simulator"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

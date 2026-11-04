@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shimmer-sweep",
+  "type": "hyperframes:component",
+  "title": "Shimmer Sweep",
+  "description": "A bright shine travels once across muted text, left to right: a refined metallic gleam that draws attention to text already on screen. It does not animate the text in.",
+  "tags": [
+    "text-effects",
+    "shine",
+    "shimmer",
+    "highlight",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "checkAt": [
+    1.0,
+    1.4,
+    1.8,
+    3.6
+  ],
+  "useWhen": [
+    "Highlighting a product name or pricing tier with a metallic gleam on a premium slide.",
+    "The text is already visible and you want an attention effect rather than an entrance."
+  ],
+  "avoidWhen": [
+    "The text needs to enter the scene: use tracking-in or soft-blur-in first, then layer a shimmer.",
+    "The tone is casual or energetic: use spring-scale-in or staggered-fade-up.",
+    "You want per-character colour control: the sweep is one beam."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shimmer-sweep/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shimmer-sweep.html",
+      "target": "compositions/components/shimmer-sweep.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text the shine travels across.", "default": "Generating" },
+    { "id": "base_color", "type": "color", "role": "style", "label": "Base color", "description": "Dim color of the text underneath the shine.", "default": "#3f3f46" },
+    { "id": "shine_color", "type": "color", "role": "style", "label": "Shine color", "description": "Color of the moving highlight.", "default": "#fafafa" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 96, "min": 12, "max": 260, "step": 1, "unit": "px" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }]},
+    { "id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier. The shine crosses in the first 80 % of the block at speed 1.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x" }
+  ]
+}

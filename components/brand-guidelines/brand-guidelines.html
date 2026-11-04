@@ -1,0 +1,401 @@
+<!doctype html>
+<!--
+  Brand Guidelines
+
+  A complete editorial identity film: a geometric brand mark, a terracotta, graphite, stone and paper palette, a type specimen that types and deletes itself through eight styles, a layered collage of drawn object plates, and three flipping tiles that become the closing wordmark. Silent: sound is added by the host. The object photos are drawn with SVG by default; pass image paths to use real photographs.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-templates/brand-guidelines/index.tsx
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-->
+<html
+  lang="en"
+  data-composition-id="brand-guidelines"
+  data-composition-duration="17.867"
+  data-composition-variables='[
+    {"id": "brand_name", "type": "string", "role": "content", "label": "Brand name", "description": "Name across the identity posters and the closing lockup.", "default": "Form Study"},
+    {"id": "opening_tagline", "type": "string", "role": "content", "label": "Opening tagline", "description": "Line under the mark in the first scene; also on the type plate.", "default": "Made with purpose."},
+    {"id": "guidelines_label", "type": "string", "role": "content", "label": "Guidelines label", "description": "Small caption above the type specimen.", "default": "Brand guidelines"},
+    {"id": "collage_title", "type": "string", "role": "content", "label": "Collage title", "description": "Headline on the accent poster in the collage.", "default": "Objects for everyday living."},
+    {"id": "collection_label", "type": "string", "role": "content", "label": "Collection label", "description": "Small label on the accent poster.", "default": "Material studies / No. 01"},
+    {"id": "footer", "type": "string", "role": "content", "label": "Footer", "description": "Fine print at the foot of the closing scene.", "default": "A fictional identity. Made to be yours."},
+    {"id": "phrase_1", "type": "string", "role": "content", "label": "Phrase 1", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Material matters."},
+    {"id": "phrase_2", "type": "string", "role": "content", "label": "Phrase 2", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Keep it simple."},
+    {"id": "phrase_3", "type": "string", "role": "content", "label": "Phrase 3", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Find your form."},
+    {"id": "phrase_4", "type": "string", "role": "content", "label": "Phrase 4", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Quiet by design."},
+    {"id": "phrase_5", "type": "string", "role": "content", "label": "Phrase 5", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Make space."},
+    {"id": "phrase_6", "type": "string", "role": "content", "label": "Phrase 6", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Feel the texture."},
+    {"id": "phrase_7", "type": "string", "role": "content", "label": "Phrase 7", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.", "default": "Shape the everyday."},
+    {"id": "phrase_8", "type": "string", "role": "content", "label": "Phrase 8", "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts. The last one stays under the collage.", "default": "Made with purpose."},
+    {"id": "closing_word_1", "type": "string", "role": "content", "label": "Closing word 1", "description": "Word on one of the three flipping tiles.", "default": "Make"},
+    {"id": "closing_word_2", "type": "string", "role": "content", "label": "Closing word 2", "description": "Word on one of the three flipping tiles.", "default": "Ideas"},
+    {"id": "closing_word_3", "type": "string", "role": "content", "label": "Closing word 3", "description": "Word on one of the three flipping tiles.", "default": "Real."},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Mark, palette panel, active typography and the poster.", "default": "#A64B38"},
+    {"id": "ink", "type": "color", "role": "style", "label": "Ink", "description": "Dark color: text and the palette and closing backgrounds.", "default": "#242321"},
+    {"id": "stone", "type": "color", "role": "style", "label": "Stone", "description": "Light neutral: hairlines, plates and fine print.", "default": "#D6CFC4"},
+    {"id": "paper", "type": "color", "role": "style", "label": "Paper", "description": "Light background.", "default": "#F5F1E9"},
+    {"id": "logo_src", "type": "string", "role": "content", "label": "Logo image", "description": "Optional path to a transparent mark (PNG or SVG) your host provides; the drawn mark is used when empty.", "default": ""},
+    {"id": "photo_ceramics", "type": "string", "role": "content", "label": "Ceramics photo", "description": "Optional path to a photo for the ceramics plates; a drawn still life is used when empty.", "default": ""},
+    {"id": "photo_materials", "type": "string", "role": "content", "label": "Materials photo", "description": "Optional path to a photo for the materials plates; drawn swatches are used when empty.", "default": ""},
+    {"id": "photo_chair", "type": "string", "role": "content", "label": "Chair photo", "description": "Optional path to a photo for the chair plates; a drawn chair is used when empty.", "default": ""},
+    {"id": "reduced_motion", "type": "boolean", "role": "motion", "label": "Reduced motion", "description": "Static layouts without typing, collage travel or tile flips.", "default": false}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Brand Guidelines</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;800&amp;family=Inter:ital,wght@0,400;1,300;1,500&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--bgl-paper, #F5F1E9); color: var(--bgl-ink, #242321); font-family: Manrope, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+        .bgl-stage { position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; }
+        .bgl-scene { position: absolute; left: 0; top: 0; width: 960px; height: 540px; display: none; }
+        .bgl-bg { position: absolute; left: 0; width: 960px; top: -3000px; height: 6540px; }
+        .bgl-abs { position: absolute; }
+        .bgl-label { font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 400; line-height: 1.25; white-space: nowrap; }
+        .bgl-mark { display: block; }
+        .bgl-mark-img { background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .bgl-plate { position: absolute; top: 0; overflow: hidden; box-shadow: 0 8px 24px rgb(0 0 0 / 0.07); }
+        .bgl-fill { position: absolute; inset: 0; }
+        .bgl-photo { position: absolute; inset: 0; background-size: cover; background-position: center; }
+        .bgl-photo svg { width: 100%; height: 100%; display: block; }
+        .bgl-spec { display: flex; align-items: center; letter-spacing: -0.055em; line-height: 1.1; white-space: nowrap; }
+        .bgl-caret { display: inline-block; width: 3px; height: 88px; margin-left: 5px; }
+        .bgl-tile { text-align: center; perspective: 600px; }
+        .bgl-tile-text { font-weight: 800; letter-spacing: -0.05em; line-height: 1.2; }
+      </style>
+
+      <div id="root" data-composition-id="brand-guidelines" data-duration="17.867" data-fps="30">
+        <div id="bgl-clip" class="clip" data-start="0" data-duration="17.867" data-track-index="0" style="position:absolute;inset:0">
+          <div id="bgl-stage" class="bgl-stage">
+            <div id="bgl-s-identity" class="bgl-scene"></div>
+            <div id="bgl-s-palette" class="bgl-scene"></div>
+            <div id="bgl-s-type" class="bgl-scene"></div>
+            <div id="bgl-s-collage" class="bgl-scene"></div>
+            <div id="bgl-s-closing" class="bgl-scene"></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var k = 0; k < 30; k++) {
+                  var mt = 1 - t;
+                  var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                  if (bx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var m = 1 - t;
+                return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+              };
+            }
+            function progress(f, a, b) { return clamp01((f - a) / (b - a)); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            // interpolate(frame, [a, b], [from, to]) with an optional easing and clamped ends.
+            function interp(f, a, b, from, to, easing) {
+              var t = progress(f, a, b);
+              return lerp(from, to, easing ? easing(t) : t);
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+            function graphemes(text) {
+              if (typeof Intl !== "undefined" && Intl.Segmenter) {
+                return Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (p) { return p.segment; });
+              }
+              return Array.from(text);
+            }
+
+            var T = {
+              accent: str(vars.accent_color, "#A64B38"), ink: str(vars.ink, "#242321"),
+              stone: str(vars.stone, "#D6CFC4"), paper: str(vars.paper, "#F5F1E9")
+            };
+            var C = {
+              brand: str(vars.brand_name, "Form Study"), tagline: str(vars.opening_tagline, "Made with purpose."),
+              label: str(vars.guidelines_label, "Brand guidelines"), collageTitle: str(vars.collage_title, "Objects for everyday living."),
+              collection: str(vars.collection_label, "Material studies / No. 01"), footer: str(vars.footer, "A fictional identity. Made to be yours.")
+            };
+            var PHRASE_DEFAULTS = ["Material matters.", "Keep it simple.", "Find your form.", "Quiet by design.", "Make space.", "Feel the texture.", "Shape the everyday.", "Made with purpose."];
+            var phrases = PHRASE_DEFAULTS.map(function (d, i) { return str(vars["phrase_" + (i + 1)], d); });
+            var WORD_DEFAULTS = ["Make", "Ideas", "Real."];
+            var words = WORD_DEFAULTS.map(function (d, i) { return str(vars["closing_word_" + (i + 1)], d); });
+            var logoSrc = typeof vars.logo_src === "string" ? vars.logo_src.trim() : "";
+            var reduced = vars.reduced_motion === true || vars.reduced_motion === "true";
+            root.style.setProperty("--bgl-paper", T.paper);
+            root.style.setProperty("--bgl-ink", T.ink);
+            document.getElementById("bgl-clip").style.background = T.paper;
+
+            // Design space 960x540, contained in the frame and centred; scene backgrounds
+            // reach past it vertically so a portrait frame is filled.
+            var CW = root.clientWidth || 1080, CH = root.clientHeight || 1920;
+            var S = Math.min(CW / 960, CH / 540);
+            var stage = document.getElementById("bgl-stage");
+            stage.style.left = (CW - 960 * S) / 2 + "px";
+            stage.style.top = (CH - 540 * S) / 2 + "px";
+            stage.style.transform = "scale(" + S + ")";
+
+            var slideEase = bezier(0.65, 0, 0.25, 1);
+            function slide(f, a, b) { return slideEase(progress(f, a, b)); }
+            function fitSize(text, max, width) {
+              var units = graphemes(text).reduce(function (sum, ch) {
+                if (/\s/.test(ch)) return sum + 0.29;
+                if (/[ilI.,'!|]/.test(ch)) return sum + 0.29;
+                if (/[MW@%]/.test(ch)) return sum + 0.96;
+                if ((ch.codePointAt(0) || 0) > 0x024f) return sum + 1;
+                return sum + 0.62;
+              }, 0);
+              return Math.min(max, width / Math.max(1, units));
+            }
+            function el(parent, css, cls, text) {
+              var d = document.createElement("div");
+              if (cls) d.className = cls;
+              if (css) d.style.cssText = css;
+              if (text != null) d.textContent = text;
+              if (parent) parent.appendChild(d);
+              return d;
+            }
+            function bgOf(parent, color) { var b = el(parent, "background:" + color, "bgl-bg"); return b; }
+            function mark(parent, color, size, css) {
+              var wrap = el(parent, "width:" + size + "px;height:" + size + "px;" + (css || ""), "bgl-abs");
+              if (logoSrc) {
+                var im = el(wrap, "width:100%;height:100%;background-image:url('" + logoSrc.replace(/'/g, "%27") + "')", "bgl-mark-img");
+                return { wrap: wrap, paint: function () {} };
+              }
+              wrap.innerHTML = '<svg class="bgl-mark" viewBox="0 0 100 100" width="' + size + '" height="' + size + '" fill="' + color + '" role="img"><rect x="9" y="7" width="25" height="86"/><path d="M42 7h49v9c0 18-14 32-32 32H42Z"/><path d="M42 56h36v5c0 17-13 30-30 30h-6Z"/></svg>';
+              return { wrap: wrap };
+            }
+            function label(parent, css, text) { return el(parent, css, "bgl-label", text); }
+
+            // ---- Scene: identity
+            var sId = document.getElementById("bgl-s-identity");
+            bgOf(sId, T.paper);
+            mark(sId, T.accent, 104, "left:428px;top:185px");
+            var idTag = el(sId, "top:321px;left:100px;width:760px;text-align:center;font-weight:800;letter-spacing:-0.04em;font-size:" + fitSize(C.tagline, 32, 760) + "px", "bgl-abs", C.tagline);
+
+            // ---- Scene: palette
+            var sPal = document.getElementById("bgl-s-palette");
+            bgOf(sPal, T.ink);
+            var palLabelInk = label(sPal, "top:258px;color:" + T.paper + ";font-size:16px", T.ink.toUpperCase());
+            palLabelInk.className += " bgl-abs"; palLabelInk.style.position = "absolute";
+            var panels = [[T.accent, T.paper], [T.stone, T.ink], [T.paper, T.ink]].map(function (p) {
+              var pan = el(sPal, "top:-3000px;height:6540px;width:960px;background:" + p[0] + ";color:" + p[1], "bgl-abs");
+              var lb = label(pan, "position:absolute;left:16px;top:3258px;font-size:16px", p[0].toUpperCase());
+              return pan;
+            });
+
+            // ---- Scene: type specimen
+            var sTy = document.getElementById("bgl-s-type");
+            bgOf(sTy, T.paper);
+            var guides = el(sTy, "inset:0", "bgl-abs");
+            var gl = label(guides, "top:195px;width:100%;text-align:center", C.label); gl.style.position = "absolute";
+            [226, 268, 310].forEach(function (y) { el(guides, "left:48px;right:48px;top:" + y + "px;height:1px;background:" + T.stone, "bgl-abs"); });
+            var specLabel = label(guides, "top:335px;width:100%;text-align:center", ""); specLabel.style.position = "absolute";
+            var STYLES = [
+              ["Manrope", 800, "normal", "Manrope / ExtraBold"], ["Manrope", 400, "normal", "Manrope / Regular"],
+              ["Inter", 500, "italic", "Inter / Medium Italic"], ["Inter", 300, "italic", "Inter / Light Italic"],
+              ["Manrope", 800, "normal", "Manrope / ExtraBold"], ["Manrope", 500, "normal", "Manrope / Medium"],
+              ["Inter", 500, "italic", "Inter / Medium Italic"], ["Manrope", 800, "normal", "Manrope / ExtraBold"]
+            ];
+            var spec = el(sTy, "left:48px;top:216px;height:104px", "bgl-abs bgl-spec");
+            var specText = document.createElement("span"); spec.appendChild(specText);
+            var specSettled = document.createElement("span"); var specActive = document.createElement("span");
+            specActive.style.color = T.accent;
+            specText.appendChild(specSettled); specText.appendChild(specActive);
+            var caret = document.createElement("span"); caret.className = "bgl-caret"; caret.style.background = T.accent; spec.appendChild(caret);
+
+            var QUICK = [512, 538, 550, 562, 578, 594];
+            function specimenState(f) {
+              var index = 0, visible = 0, chars;
+              if (f < 434) {
+                chars = graphemes(phrases[0]);
+                var reveal = progress(f, 324, 380), erase = progress(f, 395, 430);
+                visible = reduced ? (f < 422 ? chars.length : 0) : Math.floor(chars.length * (f < 395 ? reveal : 1 - erase));
+              } else if (f < 512) {
+                index = 1; chars = graphemes(phrases[1]);
+                visible = reduced ? chars.length : Math.floor(chars.length * progress(f, 443, 493));
+              } else {
+                index = 2;
+                for (var i = 0; i < QUICK.length; i++) if (f >= QUICK[i]) index = i + 2;
+                if (reduced) index = 7;
+                chars = graphemes(phrases[index]); visible = chars.length;
+              }
+              var caretOn = !reduced && f < 594;
+              return {
+                index: index, full: phrases[index],
+                text: chars.slice(0, visible).join(""),
+                settled: chars.slice(0, Math.max(0, visible - 3)).join(""),
+                active: chars.slice(Math.max(0, visible - 3), visible).join(""),
+                caret: caretOn
+              };
+            }
+
+            // ---- Scene: collage
+            var sCo = document.getElementById("bgl-s-collage");
+            var collageInner = el(sCo, "inset:0", "bgl-abs");
+            var SVG_CERAMICS = '<svg viewBox="0 0 100 128" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="bgl-cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EDE5D8"/><stop offset="1" stop-color="#D9CEBC"/></linearGradient><linearGradient id="bgl-cv1" x1="0" x2="1"><stop offset="0" stop-color="#C4624B"/><stop offset="0.45" stop-color="#A64B38"/><stop offset="1" stop-color="#7C3425"/></linearGradient><linearGradient id="bgl-cv2" x1="0" x2="1"><stop offset="0" stop-color="#F3EEE4"/><stop offset="1" stop-color="#CFC6B6"/></linearGradient><linearGradient id="bgl-cv3" x1="0" x2="1"><stop offset="0" stop-color="#4A4743"/><stop offset="1" stop-color="#242321"/></linearGradient></defs><rect width="100" height="128" fill="url(#bgl-cw)"/><rect y="92" width="100" height="36" fill="#C9BDA8"/><ellipse cx="34" cy="104" rx="20" ry="3.5" fill="#000" opacity=".14"/><ellipse cx="72" cy="108" rx="18" ry="3.2" fill="#000" opacity=".14"/><path d="M27 100c-7-8-9-22-4-34 2-5 2-9 1-13l-1-6h22l-1 6c-1 4-1 8 1 13 5 12 3 26-4 34z" fill="url(#bgl-cv1)"/><ellipse cx="34" cy="47" rx="11" ry="2.4" fill="#5E2418"/><path d="M58 108c-8 0-14-5-14-12 0-3 2-5 4-5h40c2 0 4 2 4 5 0 7-6 12-14 12z" fill="url(#bgl-cv2)"/><ellipse cx="72" cy="91" rx="20" ry="3" fill="#E7DFD0"/><path d="M80 90c-3-14 0-24 5-30 3-3 4-6 4-10h-9c0 4 1 7 4 10-5 6-4 16-4 30z" fill="url(#bgl-cv3)" opacity="0"/><rect x="12" y="76" width="8" height="24" rx="3" fill="url(#bgl-cv3)"/></svg>';
+            var SVG_MATERIALS = '<svg viewBox="0 0 100 76" preserveAspectRatio="xMidYMid slice"><rect width="100" height="76" fill="#E4DCCD"/><rect x="3" y="3" width="45" height="33" fill="#B88A5E"/><g stroke="#9C7249" stroke-width=".6" opacity=".7"><path d="M3 8h45M3 13.5h45M3 19h45M3 24.5h45M3 30h45"/></g><rect x="52" y="3" width="45" height="33" fill="#E9E2D3"/><g stroke="#CFC5B1" stroke-width=".5"><path d="M52 7h45M52 11h45M52 15h45M52 19h45M52 23h45M52 27h45M52 31h45"/><path d="M56 3v33M60 3v33M64 3v33M68 3v33M72 3v33M76 3v33M80 3v33M84 3v33M88 3v33M92 3v33"/></g><rect x="3" y="40" width="45" height="33" fill="#8E8A84"/><g fill="#CFCAC2"><circle cx="9" cy="46" r=".9"/><circle cx="17" cy="60" r=".7"/><circle cx="26" cy="49" r="1"/><circle cx="35" cy="66" r=".8"/><circle cx="41" cy="52" r=".7"/><circle cx="14" cy="68" r=".9"/><circle cx="30" cy="58" r=".6"/></g><g fill="#6D6A65"><circle cx="12" cy="52" r=".8"/><circle cx="22" cy="64" r=".9"/><circle cx="38" cy="45" r=".7"/><circle cx="44" cy="62" r=".8"/></g><rect x="52" y="40" width="45" height="33" fill="#A64B38"/><path d="M52 40h45v33H52z" fill="#7C3425" opacity=".18"/><path d="M52 62c10-6 20 4 45-4v15H52z" fill="#7C3425" opacity=".25"/></svg>';
+            var SVG_CHAIR = '<svg viewBox="0 0 100 130" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="bgl-ch" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6DDCD"/><stop offset="1" stop-color="#D3C7B3"/></linearGradient></defs><rect width="100" height="130" fill="url(#bgl-ch)"/><rect y="92" width="100" height="38" fill="#C2B49C"/><ellipse cx="50" cy="106" rx="30" ry="4" fill="#000" opacity=".16"/><g fill="#8A5A3A"><rect x="24" y="22" width="7" height="82" rx="2"/><rect x="26" y="22" width="40" height="5" rx="2"/><rect x="26" y="34" width="40" height="5" rx="2"/><rect x="24" y="58" width="52" height="7" rx="2"/><rect x="66" y="64" width="7" height="42" rx="2"/><rect x="30" y="64" width="6" height="36" rx="2"/></g><rect x="24" y="58" width="52" height="3" rx="1.5" fill="#B07C55"/><rect x="24" y="22" width="3" height="82" rx="1.5" fill="#A8744C"/></svg>';
+            var photoVar = { ceramics: str(vars.photo_ceramics, ""), materials: str(vars.photo_materials, ""), chair: str(vars.photo_chair, "") };
+            var photoSvg = { ceramics: SVG_CERAMICS, materials: SVG_MATERIALS, chair: SVG_CHAIR };
+            var PLATES = [
+              ["materials", 35, -135, 245, 190, 1.15, 0, -1, 0.7], ["specimen", 645, -145, 260, 205, -1.1, 2, -1, 0],
+              ["chair", 695, 330, 210, 280, -1.6, 6, 1, 0], ["poster", 23, 88, 252, 178, 1.15, 2, -1, 0],
+              ["materials", 666, 72, 265, 195, -1.6, 3, 1, 0], ["ceramics", 62, 280, 266, 340, 1.15, 5, 1, 0],
+              ["mark", 317, -118, 260, 193, -1.05, 10, -1, 0.5], ["specimen", 403, 452, 285, 225, -1.05, 7, 1, 0],
+              ["chair", 290, 86, 276, 362, -1.05, 4, -1, 0], ["mark", 554, 268, 260, 204, -1.6, 9, 1, 0]
+            ].map(function (p, n) {
+              var plate = { kind: p[0], x: p[1], y: p[2], w: p[3], h: p[4], velocity: p[5], delay: p[6], dir: p[7], depth: p[8] };
+              var box = el(collageInner, "left:" + plate.x + "px;width:" + plate.w + "px;height:" + plate.h + "px" + (plate.depth ? ";filter:blur(" + plate.depth + "px)" : ""), "bgl-plate");
+              plate.box = box;
+              var k = plate.kind;
+              if (k === "ceramics" || k === "materials" || k === "chair") {
+                var ph = el(box, "", "bgl-photo");
+                if (photoVar[k]) ph.style.backgroundImage = "url('" + photoVar[k].replace(/'/g, "%27") + "')";
+                else ph.innerHTML = photoSvg[k].replace(/id="bgl-/g, 'id="bgl-' + n + "-").replace(/url\(#bgl-/g, "url(#bgl-" + n + "-");
+              } else if (k === "mark") {
+                var f1 = el(box, "background:" + T.ink + ";color:" + T.paper + ";display:flex;align-items:center;justify-content:center", "bgl-fill");
+                mark(f1, T.paper, 74, "position:relative");
+                label(f1, "position:absolute;bottom:17px;left:18px;font-size:10px", C.brand);
+              } else if (k === "poster") {
+                var f2 = el(box, "background:" + T.accent + ";color:" + T.paper + ";padding:19px;box-sizing:border-box", "bgl-fill");
+                label(f2, "font-size:9px", C.collection);
+                el(f2, "margin-top:17px;line-height:1.02;letter-spacing:-0.045em;font-weight:500;max-width:200px;font-size:" + fitSize(C.collageTitle, 32, 490) + "px", "", C.collageTitle);
+                mark(f2, T.paper, 27, "right:16px;bottom:13px");
+              } else {
+                var f3 = el(box, "background:" + T.stone + ";color:" + T.ink + ";padding:21px;box-sizing:border-box", "bgl-fill");
+                el(f3, "line-height:1;letter-spacing:-0.06em;font-weight:800;font-size:" + fitSize(C.brand, 44, 238) + "px", "", C.brand);
+                var sw = el(f3, "display:flex;gap:6px;margin-top:26px");
+                [T.ink, T.accent, T.stone, T.paper].forEach(function (c, i) { el(sw, "width:45px;height:45px;background:" + c + (i === 1 ? ";border-radius:50%" : "")); });
+                label(f3, "position:absolute;bottom:20px;font-size:10px", C.tagline);
+              }
+              return plate;
+            });
+
+            // ---- Scene: closing
+            var sCl = document.getElementById("bgl-s-closing");
+            bgOf(sCl, T.ink);
+            sCl.style.color = T.paper;
+            var tiles = words.map(function (w, i) {
+              var tile = el(sCl, "top:241px;left:" + (88 + i * 292) + "px;width:200px;height:65px", "bgl-abs bgl-tile");
+              var blockW = i === 0 ? 94 : 50;
+              var block = el(tile, "margin:9px auto;width:" + blockW + "px;height:39px;background:" + T.paper);
+              var txt = el(tile, "font-size:" + fitSize(w, 42, 196) + "px", "bgl-tile-text", w);
+              return { tile: tile, block: block, txt: txt };
+            });
+            var lock = el(sCl, "left:100px;width:760px;top:175px;height:190px", "bgl-abs");
+            var lockMark = mark(lock, T.paper, 94, "left:333px;top:0");
+            var lockName = el(lock, "top:113px;width:100%;text-align:center;font-weight:800;letter-spacing:-0.05em;font-size:" + fitSize(C.brand, 40, 660) + "px", "bgl-abs", C.brand);
+            var foot = label(sCl, "bottom:26px;left:70px;right:70px;text-align:center;font-size:11px;color:" + T.stone, C.footer);
+            foot.style.position = "absolute";
+
+            var scenes = [
+              [sId, 0, 118], [sPal, 118, 326], [sTy, 294, 806], [sCo, 614, 806], [sCl, 806, 100000]
+            ];
+
+            function draw(t) {
+              var f = Math.min(1071, t * 60);
+              scenes.forEach(function (s) { s[0].style.display = f >= s[1] && f < s[2] ? "block" : "none"; });
+              // identity
+              var rv = reduced ? 1 : slide(f, 18, 33);
+              idTag.style.opacity = rv; idTag.style.transform = "translateY(" + 10 * (1 - rv) + "px)";
+              // palette
+              var px = function (a, b, to) { return reduced ? to : 960 + (to - 960) * slide(f, a, b); };
+              var accentX = px(166, 201, 422);
+              panels[0].style.left = accentX + "px"; panels[1].style.left = px(211, 241, 566) + "px"; panels[2].style.left = px(249, 279, 744) + "px";
+              palLabelInk.style.left = accentX / 2 + "px"; palLabelInk.style.transform = "translateX(-50%)";
+              sPal.style.transform = reduced ? "none" : "translateX(" + -960 * slide(f, 294, 326) + "px)";
+              // type
+              sTy.style.transform = reduced ? "none" : "translateX(" + 960 * (1 - slide(f, 294, 326)) + "px)";
+              if (f >= 294) {
+                var st = specimenState(f), sp = STYLES[st.index];
+                spec.style.fontFamily = sp[0] + ", sans-serif"; spec.style.fontWeight = sp[1]; spec.style.fontStyle = sp[2];
+                spec.style.fontSize = fitSize(st.full, 80, 850) + "px";
+                spec.style.filter = !reduced && f > 636 ? "blur(" + progress(f, 636, 660) * 2 + "px)" : "none";
+                specLabel.textContent = sp[3];
+                guides.style.opacity = 1 - progress(f, 600, 620);
+                if (st.caret) { specSettled.textContent = st.settled; specActive.textContent = st.active; }
+                else { specSettled.textContent = st.text; specActive.textContent = ""; }
+                caret.style.display = st.caret ? "inline-block" : "none";
+              }
+              // collage
+              if (f >= 614) {
+                collageInner.style.transform = reduced ? "none" : "scale(" + (1 + 0.045 * slide(f, 640, 806)) + ")";
+                PLATES.forEach(function (p) {
+                  var enter = slide(f, 614 + p.delay, 642 + p.delay);
+                  var y = reduced ? p.y : p.y + (f - 710) * p.velocity + (1 - enter) * 730 * p.dir;
+                  p.box.style.transform = "translateY(" + y + "px)";
+                });
+              }
+              // closing
+              if (f >= 806) {
+                var wordsOut = reduced ? (f >= 942 ? 1 : 0) : slide(f, 930, 944);
+                var markIn = reduced ? (f >= 944 ? 1 : 0) : slide(f, 944, 959);
+                var nameOut = reduced ? (f >= 1000 ? 1 : 0) : slide(f, 988, 1008);
+                tiles.forEach(function (tl, i) {
+                  tl.tile.style.display = f < 944 ? "block" : "none";
+                  var turn = slide(f, 860 + i * 3, 883 + i * 3);
+                  var bounce = reduced ? 0 : Math.sin(progress(f, 806, 860) * Math.PI * 2 + i * 1.1) * (1 - turn) * 17;
+                  tl.tile.style.opacity = 1 - wordsOut;
+                  tl.tile.style.transform = "translateY(" + (bounce - 20 * wordsOut) + "px)";
+                  var showBlock = !reduced && turn < 0.5;
+                  tl.block.style.display = showBlock ? "block" : "none";
+                  tl.txt.style.display = showBlock ? "none" : "block";
+                  tl.block.style.transform = "rotateX(" + 180 * turn + "deg)";
+                  tl.txt.style.transform = reduced ? "none" : "rotateX(" + -180 * (1 - turn) + "deg)";
+                });
+                lock.style.display = f >= 944 ? "block" : "none";
+                lock.style.opacity = markIn;
+                lock.style.transform = "scale(" + (reduced ? 1 : 0.88 + 0.12 * markIn) + ")";
+                lockMark.wrap.style.top = 44 * nameOut + "px";
+                lockName.style.opacity = 1 - nameOut;
+                lockName.style.transform = "translateY(" + -12 * nameOut + "px)";
+                foot.style.opacity = reduced ? (f >= 1008 ? 1 : 0) : slide(f, 1006, 1024);
+              }
+            }
+
+            var TOTAL = parseFloat(root.dataset.duration || "17.867");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: TOTAL, duration: TOTAL, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["brand-guidelines"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

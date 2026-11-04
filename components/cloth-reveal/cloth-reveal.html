@@ -1,0 +1,335 @@
+<!doctype html>
+<!--
+  Cloth Reveal
+
+  A satin sheet draped over your content is yanked from one corner, folding and fluttering as a simulated cloth before it clears the frame. The Verlet simulation runs once at load with a fixed timestep and a seeded rest shape (a 32×20 grid), every frame's points are stored, and the timeline only draws the stored frame. The content under the sheet is a neutral lockup with editable text.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/cloth-reveal/index.tsx
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-->
+<html
+  lang="en"
+  data-composition-id="cloth-reveal"
+  data-composition-duration="2.133"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Wordmark of the placeholder lockup hidden under the sheet.", "default": "Unveiled"},
+    {"id": "direction", "type": "enum", "role": "motion", "label": "Direction", "description": "Which corner is pinched and which way the sheet is pulled.", "default": "right", "options": [{"value": "right", "label": "Right"}, {"value": "left", "label": "Left"}, {"value": "up", "label": "Up"}, {"value": "down", "label": "Down"}]},
+    {"id": "cloth_color", "type": "color", "role": "style", "label": "Cloth", "description": "Top side of the sheet (hex).", "default": "#E5322D"},
+    {"id": "underside_color", "type": "color", "role": "style", "label": "Underside", "description": "Underside tint, seen where the sheet folds over (hex).", "default": "#8E1A16"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background behind the content.", "default": "#111111"},
+    {"id": "delay", "type": "number", "role": "motion", "label": "Delay", "description": "Frame (at 30 fps) when the tug starts.", "default": 6, "min": 0, "max": 30, "step": 1, "unit": "frames"},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Changes the fold pattern and waves of the resting sheet.", "default": 2, "min": 1, "max": 24, "step": 1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Scales the timeline after the simulation; it does not change how the cloth moves.", "default": 1, "min": 0.25, "max": 3, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cloth Reveal</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--cr-bg, #111111); }
+        #cr-content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        #cr-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+      </style>
+
+      <div id="root" data-composition-id="cloth-reveal" data-duration="2.133" data-fps="30">
+        <div id="cr-clip" class="clip" data-start="0" data-duration="2.133" data-track-index="0" style="position:absolute;inset:0">
+          <div id="cr-content"></div>
+          <svg id="cr-svg" aria-hidden="true">
+            <defs id="cr-defs"></defs>
+            <g id="cr-shadow" opacity="0.45"></g>
+            <g id="cr-cloth"></g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var k = 0; k < 30; k++) {
+                  var mt = 1 - t;
+                  var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                  if (bx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var m = 1 - t;
+                return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+              };
+            }
+            function progress(f, a, b) { return clamp01((f - a) / (b - a)); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            // interpolate(frame, [a, b], [from, to]) with an optional easing and clamped ends.
+            function interp(f, a, b, from, to, easing) {
+              var t = progress(f, a, b);
+              return lerp(from, to, easing ? easing(t) : t);
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+            function graphemes(text) {
+              if (typeof Intl !== "undefined" && Intl.Segmenter) {
+                return Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (p) { return p.segment; });
+              }
+              return Array.from(text);
+            }
+            function hex(v, fallback) { return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(v || "").trim()) ? String(v).trim() : fallback; }
+            function parseHex(h) {
+              h = h.replace("#", "");
+              var full = h.length === 3 ? h.replace(/./g, function (ch) { return ch + ch; }) : h.slice(0, 6);
+              var v = parseInt(full, 16);
+              return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+            }
+            var clothColor = hex(vars.cloth_color, "#E5322D");
+            var undersideColor = hex(vars.underside_color, "#8E1A16");
+            var background = hex(vars.background, "#111111");
+            var direction = ["right", "left", "up", "down"].indexOf(vars.direction) >= 0 ? vars.direction : "right";
+            var delay = num(vars.delay, 6, 0, 30);
+            var seed = Math.round(num(vars.seed, 2, 1, 24));
+            var speed = num(vars.speed, 1, 0.25, 3);
+            var text = str(vars.text, "Unveiled");
+            root.style.setProperty("--cr-bg", background);
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var COLS = 32, ROWS = 20, FRAMES = 72, SUBSTEPS = 5, ITERATIONS = 8;
+            // ---- seeded random (the same seed always gives the same folds)
+            function hashSeed(s) { var h = 1779033703 ^ s.length; for (var i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^ (h >>> 16)) >>> 0; }
+            function seededRandom(key) { var a = hashSeed(key); a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
+            function smoothstep(v) { var t = Math.min(1, Math.max(0, v)); return t * t * (3 - 2 * t); }
+            var PATHS = { right: { corner: [1, 0], dir: [1, -0.32] }, left: { corner: [0, 0], dir: [-1, -0.32] }, up: { corner: [1, 0], dir: [0.4, -1] }, down: { corner: [0, 1], dir: [-0.4, 1] } };
+
+            // Verlet cloth in table space: x/y on the table, z up toward the camera. The sheet rests
+            // on a soft bump with seeded wrinkles baked into its rest shape. It is stepped once, at
+            // load, with a fixed timestep; every frame is stored, and the timeline only reads them.
+            function simulate(width, height, direction, delay, seed) {
+              var n = COLS * ROWS;
+              var pos = new Float64Array(n * 3), prev = new Float64Array(n * 3), floorZ = new Float64Array(n), pinned = new Uint8Array(n);
+              var unit = Math.min(width, height);
+              function bump(x, y) {
+                var dx = (x - width / 2) / (width * 0.3), dy = (y - height / 2) / (height * 0.34);
+                return unit * 0.09 * Math.exp(-(dx * dx + dy * dy) * 1.4);
+              }
+              var folds = 7 + Math.floor(seededRandom("cloth-" + seed + "-n") * 4);
+              var twist = seededRandom("cloth-" + seed + "-t") * Math.PI * 2;
+              var waves = [0, 1].map(function (k) {
+                return { a: seededRandom("cloth-" + seed + "-a" + k) * Math.PI, f: 0.8 + seededRandom("cloth-" + seed + "-f" + k) * 1.2, p: seededRandom("cloth-" + seed + "-p" + k) * Math.PI * 2 };
+              });
+              for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) {
+                var i = r * COLS + c, u = c / (COLS - 1), v = r / (ROWS - 1);
+                var x = width * (-0.06 + u * 1.12), y = height * (-0.08 + v * 1.16);
+                var dx = (x - width / 2) / width, dy = (y - height / 2) / width;
+                var rho = Math.hypot(dx, dy), theta = Math.atan2(dy, dx);
+                var radial = Math.pow(0.5 + 0.5 * Math.sin(theta * folds + twist + rho * 9), 1.6) * smoothstep((rho - 0.12) / 0.35);
+                var wave = 0;
+                for (var w = 0; w < waves.length; w++) {
+                  var s = u * Math.cos(waves[w].a) + v * Math.sin(waves[w].a);
+                  wave += 0.5 + 0.5 * Math.sin(s * waves[w].f * Math.PI * 2 + waves[w].p);
+                }
+                floorZ[i] = unit * (0.045 * radial + 0.012 * wave);
+                pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = floorZ[i] + bump(x, y);
+              }
+              prev.set(pos);
+              var heights = new Float32Array(n);
+              for (var q = 0; q < n; q++) heights[q] = pos[q * 3 + 2];
+              var links = [];
+              function add(a, b, stiff) {
+                var dx = pos[a * 3] - pos[b * 3], dy = pos[a * 3 + 1] - pos[b * 3 + 1], dz = pos[a * 3 + 2] - pos[b * 3 + 2];
+                links.push(a, b, Math.hypot(dx, dy, dz), stiff);
+              }
+              for (var r2 = 0; r2 < ROWS; r2++) for (var c2 = 0; c2 < COLS; c2++) {
+                var i2 = r2 * COLS + c2;
+                if (c2 + 1 < COLS) add(i2, i2 + 1, 1);
+                if (r2 + 1 < ROWS) add(i2, i2 + COLS, 1);
+                if (c2 + 1 < COLS && r2 + 1 < ROWS) { add(i2, i2 + COLS + 1, 0.7); add(i2 + 1, i2 + COLS, 0.7); }
+                if (c2 + 2 < COLS) add(i2, i2 + 2, 0.25);
+                if (r2 + 2 < ROWS) add(i2, i2 + COLS * 2, 0.25);
+              }
+              var L = new Float64Array(links);
+              var path = PATHS[direction];
+              var cc = path.corner[0] * (COLS - 1), cr = path.corner[1] * (ROWS - 1);
+              var grip = [];
+              for (var r3 = 0; r3 < ROWS; r3++) for (var c3 = 0; c3 < COLS; c3++) if (Math.abs(c3 - cc) + Math.abs(r3 - cr) <= 3) grip.push(r3 * COLS + c3);
+              var gripStart = grip.map(function (i) { return [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]]; });
+              grip.forEach(function (i) { pinned[i] = 1; });
+              var len = Math.hypot(path.dir[0], path.dir[1]), dir = [path.dir[0] / len, path.dir[1] / len];
+              var reach = Math.abs(dir[0]) * width + Math.abs(dir[1]) * height;
+              var g = unit * 0.006, dt = 1 / SUBSTEPS;
+              function hand(t) {
+                var s = Math.max(0, t - delay);
+                var lift = unit * 0.5 * smoothstep(s / 9);
+                var travel = s < 30 ? reach * 1.25 * Math.pow(s / 30, 2) : reach * 1.25 * (1 + ((s - 30) * 2) / 30);
+                return [dir[0] * travel, dir[1] * travel, lift];
+              }
+              var frames = [];
+              function record() { var out = new Float32Array(n * 3); for (var i = 0; i < n * 3; i++) out[i] = pos[i]; frames.push(out); }
+              record();
+              for (var f = 1; f <= FRAMES; f++) {
+                for (var st = 1; st <= SUBSTEPS; st++) {
+                  var t = f - 1 + st * dt, hd = hand(t);
+                  for (var p = 0; p < n; p++) {
+                    var k = p * 3;
+                    if (pinned[p]) continue;
+                    var z = pos[k + 2];
+                    var lifted = z - floorZ[p] - bump(pos[k], pos[k + 1]) > 1;
+                    var drag = lifted ? 0.985 : 0.6;
+                    var vx = (pos[k] - prev[k]) * drag, vy = (pos[k + 1] - prev[k + 1]) * drag, vz = (pos[k + 2] - prev[k + 2]) * 0.985;
+                    prev[k] = pos[k]; prev[k + 1] = pos[k + 1]; prev[k + 2] = z;
+                    var speedXY = Math.sqrt(vx * vx + vy * vy);
+                    var flutter = Math.sin(pos[k] * 0.02 + pos[k + 1] * 0.013 + t * 1.7) * speedXY * 0.06;
+                    pos[k] += vx; pos[k + 1] += vy; pos[k + 2] += vz + flutter - g * dt * dt;
+                  }
+                  for (var j = 0; j < grip.length; j++) {
+                    pos[grip[j] * 3] = gripStart[j][0] + hd[0];
+                    pos[grip[j] * 3 + 1] = gripStart[j][1] + hd[1];
+                    pos[grip[j] * 3 + 2] = gripStart[j][2] + hd[2];
+                  }
+                  for (var it = 0; it < ITERATIONS; it++) {
+                    for (var l = 0; l < L.length; l += 4) {
+                      var a = L[l], b = L[l + 1], rest = L[l + 2], stiff = L[l + 3], ka = a * 3, kb = b * 3;
+                      var dx2 = pos[kb] - pos[ka], dy2 = pos[kb + 1] - pos[ka + 1], dz2 = pos[kb + 2] - pos[ka + 2];
+                      var d = Math.sqrt(dx2 * dx2 + dy2 * dy2 + dz2 * dz2) || 1e-6;
+                      var wa = pinned[a] ? 0 : 1, wb = pinned[b] ? 0 : 1;
+                      if (wa + wb === 0) continue;
+                      var diff = ((d - rest) / d / (wa + wb)) * stiff;
+                      pos[ka] += dx2 * diff * wa; pos[ka + 1] += dy2 * diff * wa; pos[ka + 2] += dz2 * diff * wa;
+                      pos[kb] -= dx2 * diff * wb; pos[kb + 1] -= dy2 * diff * wb; pos[kb + 2] -= dz2 * diff * wb;
+                    }
+                    for (var m = 0; m < n; m++) {
+                      var km = m * 3, ground = floorZ[m] + bump(pos[km], pos[km + 1]);
+                      if (pos[km + 2] < ground) pos[km + 2] = ground;
+                    }
+                  }
+                }
+                record();
+              }
+              return { frames: frames, heights: heights };
+            }
+
+            var sim = simulate(W, H, direction, delay, seed);
+
+            // ---- the content hidden under the sheet
+            var lum = 0.299 * parseHex(background)[0] + 0.587 * parseHex(background)[1] + 0.114 * parseHex(background)[2];
+            var ink = lum > 150 ? "#111111" : "#FFFFFF";
+            var ls = Math.min(W, H) / 1080;
+            var textSize = Math.min(104, (W * 0.9 / ls - 120 - 28) / Math.max(2, text.length * 0.62)) * ls;
+            var content = document.getElementById("cr-content");
+            content.innerHTML = '<div style="display:flex;align-items:center;gap:' + 28 * ls + 'px"><div style="width:' + 120 * ls + "px;height:" + 120 * ls + "px;border-radius:" + 32 * ls + "px;background:" + clothColor + ';display:flex;align-items:center;justify-content:center"><div style="width:' + 36 * ls + "px;height:" + 36 * ls + "px;border-radius:50%;background:" + background + '"></div></div><span id="cr-text" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Inter,Helvetica,Arial,sans-serif;font-size:' + textSize + "px;font-weight:800;letter-spacing:-0.04em;color:" + ink + '"></span></div>';
+            document.getElementById("cr-text").textContent = text;
+
+            // ---- filters
+            var svg = document.getElementById("cr-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            document.getElementById("cr-defs").innerHTML =
+              '<filter id="cr-shadow-f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="' + Math.min(W, H) * 0.02 + '"/></filter>' +
+              '<filter id="cr-soften" filterUnits="userSpaceOnUse" x="' + -W + '" y="' + -H + '" width="' + W * 3 + '" height="' + H * 3 + '" color-interpolation-filters="sRGB">' +
+              '<feGaussianBlur in="SourceGraphic" stdDeviation="' + (W * 1.12) / (COLS - 1) / 2.2 + " " + (H * 1.16) / (ROWS - 1) / 2.2 + '" result="blur"/>' +
+              '<feColorMatrix in="blur" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 1" result="smooth"/>' +
+              '<feGaussianBlur in="SourceAlpha" stdDeviation="' + Math.min(W, H) / 600 + '" result="edge"/>' +
+              '<feComposite in="smooth" in2="edge" operator="in"/></filter>';
+            var shadowG = document.getElementById("cr-shadow"), clothG = document.getElementById("cr-cloth");
+            shadowG.setAttribute("filter", "url(#cr-shadow-f)");
+            clothG.setAttribute("filter", "url(#cr-soften)");
+
+            var LIGHT = (function () { var l = [-0.45, -0.6, 0.75], m = Math.hypot(l[0], l[1], l[2]); return l.map(function (v) { return v / m; }); })();
+            var HALF = (function () { var h = [LIGHT[0], LIGHT[1], LIGHT[2] + 1], m = Math.hypot(h[0], h[1], h[2]); return h.map(function (v) { return v / m; }); })();
+            var front = parseHex(clothColor), back = parseHex(undersideColor);
+            var N = COLS * ROWS;
+            var world = new Float64Array(N * 3), screen = new Float64Array(N * 2), shades = new Float64Array(N * 3);
+            var camera = Math.max(W, H) * 1.6, cx = W / 2, cy = H / 2;
+
+            function draw(time) {
+              var t = Math.min(FRAMES, Math.max(0, time * speed * 30));
+              var f0 = Math.floor(t), f1 = Math.min(FRAMES, f0 + 1), mix = t - f0;
+              var A = sim.frames[f0], B = sim.frames[f1];
+              var i, k, r, c;
+              for (i = 0; i < N * 3; i++) world[i] = A[i] + (B[i] - A[i]) * mix;
+              for (i = 0; i < N; i++) {
+                var z = Math.min(world[i * 3 + 2], camera * 0.8), s = camera / (camera - z);
+                screen[i * 2] = cx + (world[i * 3] - cx) * s;
+                screen[i * 2 + 1] = cy + (world[i * 3 + 1] - cy) * s;
+              }
+              function at(cc, rr, kk) { return world[(Math.min(ROWS - 1, Math.max(0, rr)) * COLS + Math.min(COLS - 1, Math.max(0, cc))) * 3 + kk]; }
+              for (r = 0; r < ROWS; r++) for (c = 0; c < COLS; c++) {
+                var ux = at(c + 1, r, 0) - at(c - 1, r, 0), uy = at(c + 1, r, 1) - at(c - 1, r, 1), uz = at(c + 1, r, 2) - at(c - 1, r, 2);
+                var vx = at(c, r + 1, 0) - at(c, r - 1, 0), vy = at(c, r + 1, 1) - at(c, r - 1, 1), vz = at(c, r + 1, 2) - at(c, r - 1, 2);
+                var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+                var m = Math.hypot(nx, ny, nz) || 1, flip = nz < 0 ? -1 : 1;
+                nx = (nx / m) * flip; ny = (ny / m) * flip; nz = (nz / m) * flip;
+                var diffuse = Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
+                var spec = Math.pow(Math.max(0, nx * HALF[0] + ny * HALF[1] + nz * HALF[2]), 36) * 0.28;
+                var base = flip < 0 ? back : front, shade = 0.22 + 0.95 * diffuse, idx = r * COLS + c;
+                for (k = 0; k < 3; k++) shades[idx * 3 + k] = Math.min(255, base[k] * shade + 255 * spec);
+              }
+              var quads = [];
+              function off(x, y) { return x < -W * 0.1 || x > W * 1.1 || y < -H * 0.1 || y > H * 1.1; }
+              for (r = 0; r < ROWS - 1; r++) for (c = 0; c < COLS - 1; c++) {
+                var ids = [r * COLS + c, r * COLS + c + 1, (r + 1) * COLS + c + 1, (r + 1) * COLS + c];
+                var pts = ids.map(function (id) { return [screen[id * 2], screen[id * 2 + 1]]; });
+                if (pts.every(function (p) { return off(p[0], p[1]); })) {
+                  var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+                  var spans = (Math.min.apply(null, xs) < 0 && Math.max.apply(null, xs) > W) || (Math.min.apply(null, ys) < 0 && Math.max.apply(null, ys) > H);
+                  if (!spans) continue;
+                }
+                var rgb = [0, 1, 2].map(function (kk) { return Math.round(ids.reduce(function (sum, id) { return sum + shades[id * 3 + kk]; }, 0) / 4); });
+                var P = ids.map(function (id) { return [world[id * 3], world[id * 3 + 1], world[id * 3 + 2]]; });
+                var zq = (P[0][2] + P[1][2] + P[2][2] + P[3][2]) / 4;
+                var d = "M" + pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join("L") + "Z";
+                var lift = zq - (sim.heights[ids[0]] || 0);
+                var shadow = lift > 4 ? "M" + P.map(function (p) { return (p[0] + p[2] * 0.35).toFixed(1) + "," + (p[1] + p[2] * 0.45).toFixed(1); }).join("L") + "Z" : null;
+                quads.push({ d: d, fill: "rgb(" + rgb.join(",") + ")", z: zq, shadow: shadow });
+              }
+              quads.sort(function (a, b) { return a.z - b.z; });
+              var sh = "", cl = "";
+              quads.forEach(function (q) {
+                if (q.shadow) sh += '<path d="' + q.shadow + '" fill="#000000"/>';
+                cl += '<path d="' + q.d + '" fill="' + q.fill + '" shape-rendering="crispEdges"/>';
+              });
+              shadowG.innerHTML = sh;
+              clothG.innerHTML = cl;
+            }
+
+            var TOTAL = parseFloat(root.dataset.duration || "2.133");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: TOTAL, duration: TOTAL, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["cloth-reveal"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

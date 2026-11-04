@@ -1,0 +1,183 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-dithering",
+  "type": "hyperframes:component",
+  "title": "Shader Dithering",
+  "description": "An animated gradient field rendered as a two-color ordered dither, like 1-bit print or an old screen: a lo-fi WebGL backdrop.",
+  "tags": [
+    "shader",
+    "background",
+    "dithering",
+    "retro",
+    "pixel",
+    "loop",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "You want a retro or print-like 1-bit ordered-dither texture over a moving gradient.",
+    "A tech or lo-fi scene benefits from visible Bayer dot structure; pick the matrix with `type`."
+  ],
+  "avoidWhen": [
+    "You want a centered dithered sphere: set `shape` to sphere (the default is the full-bleed wave).",
+    "You want smooth, untextured color: use shader-mesh-gradient.",
+    "The dot pattern would hurt the legibility of small text: raise `size` or use a solid backdrop."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-dithering/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-dithering.html",
+      "target": "compositions/components/shader-dithering.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color of the empty dots.",
+      "default": "#12121a"
+    },
+    {
+      "id": "color_front",
+      "type": "color",
+      "role": "style",
+      "label": "Front",
+      "description": "Color of the lit dots.",
+      "default": "#6a6a85"
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Shape",
+      "description": "The gradient field under the dither.",
+      "default": "wave",
+      "options": [
+        {
+          "value": "simplex",
+          "label": "Simplex noise"
+        },
+        {
+          "value": "warp",
+          "label": "Warp"
+        },
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "wave",
+          "label": "Wave"
+        },
+        {
+          "value": "ripple",
+          "label": "Ripple"
+        },
+        {
+          "value": "swirl",
+          "label": "Swirl"
+        },
+        {
+          "value": "sphere",
+          "label": "Sphere"
+        }
+      ]
+    },
+    {
+      "id": "type",
+      "type": "enum",
+      "role": "style",
+      "label": "Dither",
+      "description": "Dither matrix: random noise or an ordered Bayer grid.",
+      "default": "4x4",
+      "options": [
+        {
+          "value": "random",
+          "label": "Random"
+        },
+        {
+          "value": "2x2",
+          "label": "Bayer 2×2"
+        },
+        {
+          "value": "4x4",
+          "label": "Bayer 4×4"
+        },
+        {
+          "value": "8x8",
+          "label": "Bayer 8×8"
+        }
+      ]
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Dot size",
+      "description": "Size of one dither dot in pixels.",
+      "default": 2,
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast the field moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the field.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the field in or out.",
+      "default": 0.6,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up without smoothing. It is rounded so every dither dot covers whole pixels, so 0.5 with size 2 looks the same as 1.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

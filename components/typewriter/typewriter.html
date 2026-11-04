@@ -1,0 +1,178 @@
+<!doctype html>
+<!--
+  Typewriter
+
+  Character-by-character text reveal with a deterministic blinking cursor.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/typewriter/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="typewriter"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Text that gets typed.", "default": "console.log(&#39;hello, world&#39;)"},
+    {"id": "cursor", "type": "boolean", "role": "style", "label": "Cursor", "description": "Show the bar cursor after the text.", "default": true},
+    {"id": "chars_per_second", "type": "number", "role": "motion", "label": "Characters per second", "description": "Typing rate.", "default": 22, "min": 4, "max": 60, "step": 1, "unit": "cps"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 220, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "cursor_color", "type": "color", "role": "style", "label": "Cursor color", "description": "Color of the cursor bar.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Typewriter</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          color: var(--color, #171717);
+          font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif);
+        }
+        .twr-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .twr-line { letter-spacing: -0.03em; white-space: pre; line-height: 1.2; }
+        .twr-caret { display: inline-block; flex-shrink: 0; width: 0.08em; height: 1em; margin-left: 0.04em; vertical-align: text-bottom; background: var(--cursor-color, #171717); }
+      </style>
+
+      <div id="root" data-composition-id="typewriter" data-duration="4" data-fps="30">
+        <div id="twr-clip" class="twr-stage clip" data-start="0" data-duration="4" data-track-index="0">
+          <span id="twr-line" class="twr-line" role="img"><span id="twr-text"></span><span id="twr-caret" class="twr-caret"></span></span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            // Easing.bezier(x1, y1, x2, y2) as a function of t (Newton, then bisection).
+            function bez(x1, y1, x2, y2) {
+              function cx(s) { return 3 * x1 * s * (1 - s) * (1 - s) + 3 * x2 * s * s * (1 - s) + s * s * s; }
+              function cy(s) { return 3 * y1 * s * (1 - s) * (1 - s) + 3 * y2 * s * s * (1 - s) + s * s * s; }
+              return function (t) {
+                if (t <= 0) return 0;
+                if (t >= 1) return 1;
+                var lo = 0, hi = 1, s = t;
+                for (var i = 0; i < 40; i++) {
+                  var x = cx(s);
+                  if (Math.abs(x - t) < 1e-6) break;
+                  if (x < t) lo = s; else hi = s;
+                  s = (lo + hi) / 2;
+                }
+                return cy(s);
+              };
+            }
+            // interpolate(f, [a, b], [from, to]) with both ends clamped, like Remotion's extrapolate "clamp".
+            function interp(f, a, b, from, to, ease) {
+              var t = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(t) : t);
+            }
+            // Fit one line to 90 % of the frame width: shrinks the font size when it overflows.
+            function fit(root, line, size) {
+              line.style.fontSize = size + "px";
+              var maxWidth = Math.max(1, root.clientWidth * 0.9);
+              if (line.scrollWidth > maxWidth) {
+                size = Math.max(12, size * (maxWidth / line.scrollWidth));
+                line.style.fontSize = size + "px";
+              }
+              return size;
+            }
+            // Drives draw(frame) from the paused timeline: frame = time * 30 * speed (Remotion's useCurrentFrame() * speed).
+            function drive(tl, total, speed, draw) {
+              var clock = { t: 0 };
+              tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t * 30 * speed); } }, 0);
+              draw(0);
+            }
+
+            var total = parseFloat(root.dataset.duration || "4");
+            var text = str(vars.text, "console.log('hello, world')");
+            var showCursor = bool(vars.cursor, true);
+            var cps = num(vars.chars_per_second, 22, 4, 60);
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var line = document.getElementById("twr-line");
+            var textEl = document.getElementById("twr-text");
+            var caret = document.getElementById("twr-caret");
+            line.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700"], "600");
+            line.setAttribute("aria-label", text);
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            if (typeof vars.cursor_color === "string" && vars.cursor_color) root.style.setProperty("--cursor-color", vars.cursor_color);
+            if (!showCursor) caret.style.display = "none";
+            // Size is fitted against the full text, then the typing starts from empty.
+            textEl.textContent = text;
+            fit(root, line, num(vars.font_size, 72, 12, 220));
+            var len = text.length;
+
+            // remocn: count = floor(frame / (len / cps * 30) * len); the bar is solid while typing,
+            // and blinks (15 frames on, 15 off) before the first and after the last character.
+            function draw(frame) {
+              var over = (len / cps) * 30;
+              var count = frame <= 0 ? 0 : over <= 0 ? len : Math.max(0, Math.min(len, Math.floor((frame / over) * len)));
+              textEl.textContent = text.slice(0, count);
+              var typing = count > 0 && count < len;
+              var rawFrame = frame / speed;
+              caret.style.opacity = typing ? 1 : (Math.floor((rawFrame * speed) / 15) % 2 === 0 ? 1 : 0);
+            }
+            var tl = gsap.timeline({ paused: true });
+            drive(tl, total, speed, draw);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["typewriter"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-weave",
+  "type": "hyperframes:component",
+  "title": "Weave",
+  "description": "Warp and weft threads interlace on a gently warped grid while a slow sheen of light travels across the cloth, drawn in WebGL. An accent color can run through the threads.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "texture",
+    "fabric",
+    "craft",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "Tactile, crafted, made-of textures: fabric, mesh, or substrate metaphors.",
+    "A scene wants a slow sheen of light traveling across a textured surface.",
+    "The brand voice is handcrafted or material rather than digital and smooth."
+  ],
+  "avoidWhen": [
+    "You want a smooth gradient field: use shader-mesh-gradient.",
+    "You want organic noise instead of a woven structure: use shader-neuro-noise."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-weave/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-weave.html",
+      "target": "compositions/components/shader-weave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Four colors, comma separated: fabric shadow, fabric mid, fabric warm, thread highlight.",
+      "default": "#12121a, #22223a, #3a3a5c, #c8c8d0"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Tint carried by the threads (see Accent amount).",
+      "default": "#6733FF"
+    },
+    {
+      "id": "accent_amount",
+      "type": "number",
+      "role": "style",
+      "label": "Accent amount",
+      "description": "How much of the accent shows, 0 to 1. The original animates it from the host timeline.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Thread density",
+      "description": "Threads across the frame height.",
+      "default": 22,
+      "min": 6,
+      "max": 60,
+      "step": 1
+    },
+    {
+      "id": "warp",
+      "type": "number",
+      "role": "style",
+      "label": "Warp",
+      "description": "How hand-woven the threads bend, as a fraction of the frame.",
+      "default": 0.03,
+      "min": 0,
+      "max": 0.15,
+      "step": 0.005
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

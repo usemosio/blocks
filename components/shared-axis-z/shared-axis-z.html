@@ -1,0 +1,176 @@
+<!doctype html>
+<!--
+  Shared Axis Z
+
+  A depth swap: the old phrase scales up, blurs and fades away while the new phrase rises from a
+  smaller scale and sharpens into focus.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/shared-axis-z/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="shared-axis-z"
+  data-composition-duration="3"
+  data-composition-variables='[
+    { "id": "from_text", "type": "string", "role": "content", "label": "From text", "description": "Outgoing phrase; it scales up and fades away.", "default": "Zooming between states." },
+    { "id": "to_text", "type": "string", "role": "content", "label": "To text", "description": "Incoming phrase; it rises from a smaller scale into focus.", "default": "Elevate and settle." },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 220, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }] },
+    { "id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shared Axis Z</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          color: var(--color, #171717);
+          font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif);
+          pointer-events: none;
+        }
+        .saz-stage { position: absolute; inset: 0; }
+        .saz-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .saz-line { display: inline-block; letter-spacing: -0.03em; white-space: nowrap; line-height: 1.2; transform-origin: 50% 50%; }
+      </style>
+
+      <div id="root" data-composition-id="shared-axis-z" data-duration="3" data-fps="30">
+        <div id="saz-clip" class="saz-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <div class="saz-layer"><span id="saz-from" class="saz-line"></span></div>
+          <div class="saz-layer"><span id="saz-to" class="saz-line"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            // Cubic-bezier easing (Remotion's Easing.bezier), solved by bisection: a pure function of x.
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 30; i++) {
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            // interpolate(frame, [a, b], [from, to], { easing, clamp }).
+            function ip(f, a, b, from, to, ease) {
+              var p = b === a ? 1 : Math.min(1, Math.max(0, (f - a) / (b - a)));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+
+            var fromText = str(vars.from_text, "Zooming between states.");
+            var toText = str(vars.to_text, "Elevate and settle.");
+            var weight = pick(vars.font_weight, ["400", "500", "600", "700"], "600");
+            var speed = num(vars.speed, 1, 0.25, 4);
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+
+            var fromEl = document.getElementById("saz-from");
+            var toEl = document.getElementById("saz-to");
+            fromEl.textContent = fromText;
+            toEl.textContent = toText;
+            fromEl.style.fontWeight = toEl.style.fontWeight = weight;
+
+            // Both phrases share one size: shrink so the wider (at its 1.06 peak scale) fits 90 % of the frame.
+            var size = num(vars.font_size, 72, 12, 220);
+            fromEl.style.fontSize = toEl.style.fontSize = size + "px";
+            var widest = Math.max(fromEl.scrollWidth * 1.06, toEl.scrollWidth);
+            var maxWidth = Math.max(1, root.clientWidth * 0.9);
+            if (widest > maxWidth) {
+              size = Math.max(12, size * (maxWidth / widest));
+              fromEl.style.fontSize = toEl.style.fontSize = size + "px";
+            }
+            // remocn's blur radii are drawn for 72 px text; keep them in proportion to the size.
+            var k = size / 72;
+
+            // remocn timings (frames at 30 fps): exit over 11 frames; the incoming phrase starts
+            // 3 frames before the exit ends, plus a 1-frame micro delay, and settles over 16 frames.
+            var ENTER = 16, EXIT = 11, OVERLAP = 3, MICRO_DELAY = 1;
+            var newStart = Math.max(0, EXIT - OVERLAP + MICRO_DELAY);
+            var exitEase = bez(0.4, 0, 1, 1);
+            var enterEase = bez(0.2, 0, 0, 1);
+
+            function draw(frame) {
+              var fo = ip(frame, 0, EXIT, 1, 0, exitEase);
+              var fs = ip(frame, 0, EXIT, 1, 1.06, exitEase);
+              var fb = ip(frame, 0, EXIT, 0, 1, exitEase) * k;
+              fromEl.style.opacity = fo;
+              fromEl.style.transform = "scale(" + fs + ")";
+              fromEl.style.filter = fb > 0.01 ? "blur(" + fb + "px)" : "none";
+              var local = frame - newStart;
+              var to = ip(local, 0, ENTER, 0, 1, enterEase);
+              var ts = ip(local, 0, ENTER, 0.9, 1, enterEase);
+              var tb = ip(local, 0, ENTER, 2, 0, enterEase) * k;
+              toEl.style.opacity = to;
+              toEl.style.transform = "scale(" + ts + ")";
+              toEl.style.filter = tb > 0.01 ? "blur(" + tb + "px)" : "none";
+            }
+
+            var total = parseFloat(root.dataset.duration || "3");
+            var clock = { t: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: function () { draw(clock.t * 30 * speed); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shared-axis-z"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

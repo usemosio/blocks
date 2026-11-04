@@ -1,0 +1,181 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-god-rays",
+  "type": "hyperframes:component",
+  "title": "God Rays",
+  "description": "Volumetric light rays fan out from a source just above the frame: soft, slowly moving shafts of light in your palette, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "light",
+    "rays",
+    "atmosphere",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A hero or reveal scene wants cinematic volumetric light rays from a corner source.",
+    "You want atmosphere and depth behind a title without geometric structure.",
+    "The palette is dark and you want soft neutral rays (override `colors` to brand-tint)."
+  ],
+  "avoidWhen": [
+    "The brief bans decorative glow: keep `bloom` and `intensity` restrained so it does not read as a generic glow.",
+    "You want structured or cellular motion: use shader-dot-orbit or shader-voronoi.",
+    "Bright rays would wash out foreground text: lower `intensity` and `bloom`."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-god-rays/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-god-rays.html",
+      "target": "compositions/components/shader-god-rays.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Ray colors",
+      "description": "Up to 5 colors, comma separated, for the rays.",
+      "default": "#5a5a7e, #8a8a95, #ffffff, #3a3a5c"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color behind the rays.",
+      "default": "#12121a"
+    },
+    {
+      "id": "color_bloom",
+      "type": "color",
+      "role": "style",
+      "label": "Bloom color",
+      "description": "Color overlay blended with the rays; needs bloom above 0.",
+      "default": "#3a3a5c"
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "Visibility of the rays.",
+      "default": 0.8,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "density",
+      "type": "number",
+      "role": "style",
+      "label": "Density",
+      "description": "The number of rays.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "spotty",
+      "type": "number",
+      "role": "style",
+      "label": "Spotty",
+      "description": "Higher gives shorter rays and more spots.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "bloom",
+      "type": "number",
+      "role": "style",
+      "label": "Bloom",
+      "description": "Strength of the overlay: 0 blends it normally, 1 adds it.",
+      "default": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "mid_size",
+      "type": "number",
+      "role": "style",
+      "label": "Glow size",
+      "description": "Size of the circular glow at the source.",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "mid_intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Glow intensity",
+      "description": "Brightness of that glow.",
+      "default": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

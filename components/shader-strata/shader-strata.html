@@ -1,0 +1,325 @@
+<!doctype html>
+<!--
+  Shader Strata
+
+  Fine horizontal sediment layers displaced by fbm noise, each drifting at its own depth.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/shader-strata/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="shader-strata"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "How fast the layers drift. 0 holds still.", "default": 1, "min": 0, "max": 10, "step": 0.05},
+    {"id": "colors", "type": "string", "role": "style", "label": "Colors", "description": "Four colors, comma separated, from the deepest layer to the surface layer.", "default": "#1a1a28, #3a3a5c, #6a6a95, #b0b0c8"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Tint carried by the light or layers (see Accent amount).", "default": "#6733FF"},
+    {"id": "accent_amount", "type": "number", "role": "style", "label": "Accent amount", "description": "How much of the accent shows, 0 to 1. The original animates it from the host timeline.", "default": 0, "min": 0, "max": 1, "step": 0.01},
+    {"id": "layers", "type": "number", "role": "style", "label": "Layers", "description": "Number of strata bands across the frame height.", "default": 14, "min": 3, "max": 40, "step": 1},
+    {"id": "amplitude", "type": "number", "role": "style", "label": "Amplitude", "description": "Edge waviness of each layer, as a fraction of the frame height.", "default": 0.16, "min": 0, "max": 0.5, "step": 0.01},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Strata</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--sst-fallback, #12121a);
+          pointer-events: none;
+        }
+        .sst-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .sst-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="shader-strata" data-duration="5" data-fps="30">
+        <div id="sst-clip" class="sst-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <canvas id="sst-canvas" class="sst-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("sst-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function pick(value, allowed, fallback) {
+              return allowed.indexOf(value) >= 0 ? value : fallback;
+            }
+            function parseColor(s) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(String(s).trim());
+              if (!m) return null;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              var a = h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1;
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255, a];
+            }
+            function colorList(value, fallback, max) {
+              var list = String(typeof value === "string" && value.trim() ? value : fallback)
+                .split(",").map(parseColor).filter(Boolean).slice(0, max);
+              return list.length ? list : fallback.split(",").map(parseColor).slice(0, max);
+            }
+            function color(value, fallback) {
+              return parseColor(value) || parseColor(fallback);
+            }
+            function css(c) {
+              return "rgba(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + "," + c[3] + ")";
+            }
+            function mulberry32(seed) {
+              return function () {
+                seed = (seed + 0x6d2b79f5) | 0;
+                var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function colorArray(list, max) {
+              var flat = new Float32Array(max * 4);
+              list.forEach(function (c, i) { flat.set(c, i * 4); });
+              return flat;
+            }
+            var speed = num(vars.speed, 1, 0, 10);
+            var colors = colorList(vars.colors, "#1a1a28, #3a3a5c, #6a6a95, #b0b0c8", 4);
+            var accent = color(vars.accent, "#6733FF");
+            var accentAmount = num(vars.accent_amount, 0, 0, 1);
+            var layers = num(vars.layers, 14, 3, 40);
+            var amplitude = num(vars.amplitude, 0.16, 0, 0.5);
+            var resolution = num(vars.resolution, 0.5, 0.25, 1);
+            while (colors.length < 4) colors.push(colors[colors.length - 1]);
+
+            // Without WebGL the block still shows its palette as a plain gradient.
+            root.style.setProperty("--sst-fallback", "linear-gradient(160deg, " + [colors[3], colors[2], colors[1], colors[0]].map(css).join(", ") + ")");
+
+            var VERTEX = [
+              "attribute vec2 a_pos;",
+              "void main() {",
+              "  gl_Position = vec4(a_pos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+
+            var FRAGMENT = [
+              "precision highp float;",
+              "",
+              "uniform vec2 u_res;",
+              "uniform float u_time;",
+              "uniform float u_layers;",
+              "uniform float u_amp;",
+              "uniform vec3 u_c0;",
+              "uniform vec3 u_c1;",
+              "uniform vec3 u_c2;",
+              "uniform vec3 u_c3;",
+              "uniform vec3 u_accent;",
+              "uniform float u_accentAmt;",
+              "",
+              "float hash(vec2 p) {",
+              "  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);",
+              "}",
+              "",
+              "float noise(vec2 p) {",
+              "  vec2 i = floor(p);",
+              "  vec2 f = fract(p);",
+              "  vec2 u = f * f * (3.0 - 2.0 * f);",
+              "  return mix(",
+              "    mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),",
+              "    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),",
+              "    u.y",
+              "  );",
+              "}",
+              "",
+              "float fbm(vec2 p) {",
+              "  float v = 0.0;",
+              "  float a = 0.5;",
+              "  for (int i = 0; i < 4; i++) {",
+              "    v += a * noise(p);",
+              "    p *= 2.03;",
+              "    a *= 0.5;",
+              "  }",
+              "  return v;",
+              "}",
+              "",
+              "void main() {",
+              "  vec2 uv = gl_FragCoord.xy / u_res;",
+              "  float aspect = u_res.x / u_res.y;",
+              "",
+              "  // Deeper layers drift faster \u2014 parallax without per-band recursion.",
+              "  float drift = u_time * (0.012 + 0.05 * (1.0 - uv.y));",
+              "  float w = fbm(vec2(uv.x * 2.6 * aspect + drift, uv.y * 2.2 - u_time * 0.01));",
+              "",
+              "  float yd = uv.y + (w - 0.5) * u_amp;",
+              "  float band = yd * u_layers;",
+              "  float idx = floor(band);",
+              "  float f = fract(band);",
+              "",
+              "  // Per-band value jitter + a soft sediment shadow at each band's lower edge.",
+              "  float j = hash(vec2(idx, 7.0));",
+              "  float edge = smoothstep(0.0, 0.4, f) * (1.0 - 0.3 * smoothstep(0.8, 1.0, f));",
+              "",
+              "  float depth = clamp(idx / u_layers, 0.0, 1.0);",
+              "  vec3 col = mix(u_c0, u_c1, smoothstep(0.0, 0.4, depth));",
+              "  col = mix(col, u_c2, smoothstep(0.35, 0.75, depth));",
+              "  col = mix(col, u_c3, smoothstep(0.7, 1.0, depth));",
+              "  col *= 0.84 + 0.16 * j;",
+              "  col *= 0.92 + 0.08 * edge;",
+              "",
+              "  // The accent rises from the deep strata and thins toward the surface.",
+              "  float mask = (1.0 - uv.y);",
+              "  mask *= mask;",
+              "  col = mix(col, u_accent, clamp(u_accentAmt, 0.0, 1.0) * mask * 0.38);",
+              "",
+              "  // A whisper of living grain, time-derived so it stays deterministic.",
+              "  col += (hash(gl_FragCoord.xy + floor(u_time * 9.0)) - 0.5) * 0.012;",
+              "",
+              "  gl_FragColor = vec4(col, 1.0);",
+              "}"
+            ].join("\n");
+
+            // The canvas is drawn at `resolution` × the frame size and stretched to fill it.
+            var width = Math.max(2, Math.round(root.clientWidth * resolution));
+            var height = Math.max(2, Math.round(root.clientHeight * resolution));
+            canvas.width = width;
+            canvas.height = height;
+            var gl = canvas.getContext("webgl2", { alpha: false, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+
+            function compile(type, source) {
+              var s = gl.createShader(type);
+              gl.shaderSource(s, source);
+              gl.compileShader(s);
+              if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader compile failed");
+              return s;
+            }
+            function program(vertex, fragment) {
+              var p = gl.createProgram();
+              gl.attachShader(p, compile(gl.VERTEX_SHADER, vertex));
+              gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fragment));
+              gl.linkProgram(p);
+              if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || "link failed");
+              return p;
+            }
+            function texture(unit) {
+              var t = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0 + unit);
+              gl.bindTexture(gl.TEXTURE_2D, t);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              return t;
+            }
+            // A texture the shader can render into.
+            function target(unit) {
+              var t = texture(unit);
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+              var f = gl.createFramebuffer();
+              gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+              gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+              if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error("incomplete framebuffer");
+              gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+              return { tex: t, fbo: f };
+            }
+            function bindTex(t, unit) {
+              gl.activeTexture(gl.TEXTURE0 + unit);
+              gl.bindTexture(gl.TEXTURE_2D, t);
+            }
+            var draw = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program_ = program(VERTEX, FRAGMENT);
+              gl.useProgram(program_);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(program_, "a_pos");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, width, height);
+              function u(name) { return gl.getUniformLocation(program_, name); }
+              gl.uniform2f(u("u_res"), width, height);
+              gl.uniform1f(u("u_layers"), layers);
+              gl.uniform1f(u("u_amp"), amplitude);
+              gl.uniform3f(u("u_c0"), colors[0][0], colors[0][1], colors[0][2]);
+              gl.uniform3f(u("u_c1"), colors[1][0], colors[1][1], colors[1][2]);
+              gl.uniform3f(u("u_c2"), colors[2][0], colors[2][1], colors[2][2]);
+              gl.uniform3f(u("u_c3"), colors[3][0], colors[3][1], colors[3][2]);
+              gl.uniform3f(u("u_accent"), accent[0], accent[1], accent[2]);
+              gl.uniform1f(u("u_accentAmt"), accentAmount);
+              var timeLoc = u("u_time");
+              draw = function (frame) {
+                // remocn: u_time = (frame / fps) * speed
+                gl.uniform1f(timeLoc, (frame / 30) * speed);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn("shader-strata:", err.message);
+            }
+
+            var total = parseFloat(root.dataset.duration || "5");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { draw(clock.frame); }
+            }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shader-strata"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

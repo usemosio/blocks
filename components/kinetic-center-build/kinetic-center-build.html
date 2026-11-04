@@ -1,0 +1,246 @@
+<!doctype html>
+<!--
+  Kinetic Center Build
+
+  Words enter from the right one at a time and push the line left so the sentence builds around the centre.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/kinetic-center-build/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="kinetic-center-build"
+  data-composition-duration="2"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Sentence built word by word.", "default": "Words push left."},
+    {"id": "entry_offset", "type": "number", "role": "motion", "label": "Entry offset", "description": "How far right of its place each new word starts.", "default": 88, "min": 0, "max": 400, "step": 2, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kinetic Center Build</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: var(--color, #171717); font-family: Geist, -apple-system, BlinkMacSystemFont, sans-serif; }
+        .kcb-stage { position: absolute; inset: 0; }
+        .kcb-line { position: absolute; inset: 0; letter-spacing: -0.03em; white-space: nowrap; }
+        .kcb-word { position: absolute; left: 50%; top: 50%; white-space: nowrap; backface-visibility: hidden; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="kinetic-center-build" data-duration="2" data-fps="30">
+        <div id="kcb-clip" class="kcb-stage clip" data-start="0" data-duration="2" data-track-index="0">
+          <div id="kcb-line" class="kcb-line" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 to 1, rest at 0 velocity (mass, stiffness, damping), at `frame` of 30 fps.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass, k = cfg.stiffness, c = cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var TOTAL = 2;
+            var FRAMES = Math.round(TOTAL * 30);
+            var clock = { frame: 0 };
+            function frameNow() { return Math.round(clock.frame * 1000) / 1000; }
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: FRAMES, duration: TOTAL, ease: "none", onUpdate: function () { draw(frameNow()); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["kinetic-center-build"] = tl;
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            function fit(el, size, frac, hfrac) {
+              el.style.fontSize = size + "px";
+              var maxW = Math.max(1, root.clientWidth * frac);
+              var maxH = Math.max(1, root.clientHeight * (hfrac || 0.9));
+              var k = Math.min(1, maxW / Math.max(1, el.scrollWidth), maxH / Math.max(1, el.scrollHeight));
+              if (k < 1) { size = Math.max(8, size * k); el.style.fontSize = size + "px"; }
+              return size;
+            }
+
+
+            var text = str(vars.text, "Words push left.");
+            var entryOffset = num(vars.entry_offset, 88, 0, 400), size = num(vars.font_size, 72, 12, 240), speed = num(vars.speed, 1, 0.25, 4);
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            var wt = pick(vars.font_weight, ["400", "500", "600", "700"], "600");
+            var words = text.split(" ").filter(function (w) { return w.length; });
+            var line = document.getElementById("kcb-line");
+            line.setAttribute("aria-label", text);
+            line.style.fontWeight = wt;
+            var spans = words.map(function (w, j) {
+              var sp = document.createElement("span");
+              sp.id = "kcb-word-" + j; sp.className = "kcb-word"; sp.textContent = w;
+              line.appendChild(sp); return sp;
+            });
+            var n = words.length, gap = 10, firstDur = 10, pushDur = 13, travelDur = 7;
+            var entryScale = 0.992, entryBlur = 3.5, reflowBlur = 0.8, firstWordY = 6;
+            var easing = bezier(0.2, 0.8, 0.2, 1);
+            var positionsAt = [], fsize = size, scaleK = 1;
+            function measure() {
+              line.style.fontSize = fsize + "px";
+              var widths = spans.map(function (s) { return s.getBoundingClientRect().width / (s.getBoundingClientRect().width ? 1 : 1); });
+              widths = spans.map(function (s) { return s.offsetWidth; });
+              gap = 10 * fsize / 72; // remocn's 10 px gap at 72 px, kept in proportion
+              var total = gap * (n - 1);
+              widths.forEach(function (w) { total += w; });
+              return { widths: widths, total: total };
+            }
+            function layout() {
+              fsize = size;
+              var m = measure();
+              var maxW = root.clientWidth * 0.9;
+              if (m.total > maxW) { fsize = Math.max(8, size * maxW / m.total); m = measure(); }
+              scaleK = fsize / size;
+              positionsAt = [];
+              for (var k = 1; k <= n; k++) {
+                var tot = gap * (k - 1);
+                for (var j = 0; j < k; j++) tot += m.widths[j];
+                var cursor = -tot / 2, xs = [];
+                for (var j2 = 0; j2 < k; j2++) { xs.push(cursor + m.widths[j2] / 2); cursor += m.widths[j2] + gap; }
+                positionsAt.push(xs);
+              }
+            }
+            layout();
+            onFonts(function () { layout(); draw(frameNow()); });
+            function draw(raw) {
+              var frame = raw * speed;
+              spans.forEach(function (sp, j) {
+                var entryStart = j === 0 ? 0 : firstDur + (j - 1) * pushDur;
+                var entryEnd = entryStart + (j === 0 ? firstDur : pushDur);
+                var targetX = positionsAt[j][j];
+                var xFrom = j === 0 ? 0 : targetX + entryOffset * scaleK;
+                var x = targetX, opacity = 1, scale = 1, blur = 0, y = 0;
+                if (frame < entryStart) {
+                  opacity = 0; x = xFrom; scale = entryScale; blur = entryBlur; y = j === 0 ? firstWordY : 0;
+                } else if (frame <= entryEnd) {
+                  var tEnd = Math.min(entryStart + travelDur, entryEnd);
+                  x = ip(frame, entryStart, tEnd, xFrom, targetX, easing);
+                  opacity = ip(frame, entryStart, entryEnd, 0, 1, easing);
+                  scale = ip(frame, entryStart, entryEnd, entryScale, 1, easing);
+                  blur = ip(frame, entryStart, entryEnd, entryBlur, 0, easing);
+                  y = j === 0 ? ip(frame, entryStart, tEnd, firstWordY, 0, easing) : 0;
+                } else {
+                  for (var w = j + 1; w < n; w++) {
+                    var pS = firstDur + (w - 1) * pushDur, pE = pS + pushDur;
+                    var fromX = positionsAt[w - 1][j], toX = positionsAt[w][j];
+                    if (frame >= pE) { x = toX; }
+                    else if (frame >= pS) {
+                      x = ip(frame, pS, Math.min(pS + travelDur, pE), fromX, toX, easing);
+                      var mid = (pS + pE) / 2;
+                      blur = frame < mid ? ip(frame, pS, mid, 0, reflowBlur) : ip(frame, mid, pE, reflowBlur, 0);
+                      break;
+                    } else { x = fromX; break; }
+                  }
+                }
+                sp.style.opacity = opacity;
+                sp.style.transform = "translate(-50%, -50%) translate3d(" + x + "px," + y + "px,0) scale(" + scale + ")";
+                sp.style.filter = blur > 0.01 ? "blur(" + blur + "px)" : "none";
+              });
+            }
+            start(draw);
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

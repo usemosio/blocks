@@ -1,4 +1,4 @@
-// Writes registry.json: every block's name, type, title, description, category and tags.
+// Writes registry.json: every block's name, type, title, description, category, tags and webgl flag.
 //   node scripts/build-registry.mjs
 import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -17,6 +17,7 @@ const items = readdirSync(join(root, "components"))
       description: item.description,
       category: item.category,
       tags: item.tags,
+      ...(item.webgl ? { webgl: true } : {}),
     };
   });
 writeFileSync(

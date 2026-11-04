@@ -1,29 +1,37 @@
 # blocks
 
-Animated text, captions, transitions, motion graphics, UI and icons for
+Animated text, captions, transitions, shaders, motion graphics, UI and icons for
 [Hyperframes](https://github.com/heygen-com/hyperframes) videos: plain HTML, CSS and GSAP, one file per
 block. No React, no build step, no runtime to install. A person or an AI agent reads the file and edits any
 line of it.
 
 Most blocks are ports of [remocn](https://github.com/Remocn/remocn) (MIT), the shadcn-style registry of
 Remotion components: the same motion (timings, easing, order, look), rewritten so it runs in a Hyperframes
-composition. The list of remocn components that are not here, and why, is in [SKIPPED.md](SKIPPED.md).
+composition. Every remocn component is here except one helper module; components that copied a real
+product's look are here under generic names with a generic look. Both are listed in [SKIPPED.md](SKIPPED.md).
 
 ## What's inside
 
-301 blocks:
+427 blocks:
 
 | | |
 |---|---|
-| Typography | 45: reveals, kinetic type, highlights, glitch, vector type (outline trace, glyph anatomy, path ride) |
+| Typography | 70: reveals, kinetic type, typewriter, highlights, glitch, vector type (outline trace, glyph anatomy, path ride) |
 | Captions | 31: word-timed captions (karaoke, highlight box, scramble, split-flap, teleprompter…) from a `captions` variable |
-| Transitions | 24: dissolves, wipes, zooms, page turn, pixel sort, hyperspace, between built-in A/B panels a host swaps for its scenes |
-| Motion graphics, looks and scenes | 56: cursors, bursts, generative patterns (flow field, life grid, phyllotaxis), paper, risograph, blueprint, camera moves, logo stings, code and chart scenes |
-| UI | 45: buttons, inputs, menus, dialogs, toasts, sliders, steppers, and short app flows, each acting out its interaction |
+| Transitions | 31: dissolves, wipes, zooms, whip pan, light leak, page turn, pixel sort, hyperspace, between built-in A/B panels a host swaps for its scenes |
+| Shaders | 61: animated WebGL backdrops (mesh, grain and warp gradients, swirls, god rays, liquid metal, caustics, metaballs, voronoi…), 36 of them ready-made palettes |
+| Motion graphics, looks, filters and scenes | 75: cursors, bursts, generative patterns, CRT, VHS, ASCII, halftone and security-cam looks, cloth reveal, camera moves, logo stings, code, chart, chat and terminal scenes |
+| Templates | 5: multi-scene launch, brand and product films |
+| UI | 54: buttons, inputs, menus, dialogs, toasts, sliders, steppers, and short app flows, each acting out its interaction |
 | Icons | 100: Lucide-based icons that draw themselves and act (bell rings, heart beats, rocket lifts) |
 
 Each one reads its text, colours, sizes and timing from composition variables, so it can carry a brand without
 editing the file.
+
+78 blocks draw with WebGL (`"webgl": true` in their `registry-item.json`). A render machine without a GPU
+runs WebGL in software, so these draw their canvas at a reduced size set by their `resolution` variable: at
+0.5 a 1080×1920 frame costs about what a text block costs, at 1 about 2.5 times that. The filter looks
+(CRT, VHS, ASCII…) apply to a scene the block draws itself from its variables, not to the host's video.
 
 ## Use one
 
@@ -77,6 +85,6 @@ python3 scripts/check.py --size 1920x1080 <name>   # mounted landscape
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). Ported blocks keep remocn's MIT notice in their header; third-party notices are
-in [THIRD_PARTY.md](THIRD_PARTY.md). "Hyperframes", "HeyGen", "Remotion", "remocn" and "GSAP" are the names
+MIT, see [LICENSE](LICENSE). Ported blocks keep remocn's MIT notice in their header; the shader blocks built on
+Paper Shaders also carry its Apache-2.0 notice. Third-party notices are in [THIRD_PARTY.md](THIRD_PARTY.md). "Hyperframes", "HeyGen", "Remotion", "remocn", "Paper" and "GSAP" are the names
 of their owners' projects; this library is not affiliated with them.

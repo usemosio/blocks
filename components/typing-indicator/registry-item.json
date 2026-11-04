@@ -1,0 +1,140 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "typing-indicator",
+  "type": "hyperframes:component",
+  "title": "Typing Indicator",
+  "description": "Bouncing dots that signal a reply is being composed, driven by staggered sine waves: a small continuous working-on-it motion that never resolves.",
+  "tags": [
+    "ui",
+    "chat",
+    "loading",
+    "dots",
+    "typing",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 3,
+  "useWhen": [
+    "Signalling that a reply or an answer is being composed, inside a message bubble or any container.",
+    "You need a small continuous working-on-it motion that never resolves, tinted through its colour.",
+    "You are timing the typing beat yourself instead of letting a flow block schedule it."
+  ],
+  "avoidWhen": [
+    "The wait is an async operation rather than a conversation: use spinner, or skeleton when the placeholder resolves to content.",
+    "The dots should appear and disappear on a scripted conversation timeline: chat-flow already sequences them.",
+    "You want a caret blinking at the end of typed text: use caret."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/typing-indicator/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "typing-indicator.html",
+      "target": "compositions/components/typing-indicator.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "dot_count",
+      "type": "number",
+      "role": "style",
+      "label": "Dots",
+      "description": "Number of bouncing dots.",
+      "default": 3,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Diameter of each dot in design pixels.",
+      "default": 8,
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "gap",
+      "type": "number",
+      "role": "style",
+      "label": "Gap",
+      "description": "Space between dots in design pixels.",
+      "default": 5,
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "amplitude",
+      "type": "number",
+      "role": "motion",
+      "label": "Amplitude",
+      "description": "Vertical bounce in design pixels.",
+      "default": 5,
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "cycles_per_second",
+      "type": "number",
+      "role": "motion",
+      "label": "Cycles per second",
+      "description": "Full bounce cycles per second.",
+      "default": 1.1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "Hz"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Dot color",
+      "description": "Colour of the dots. Empty uses the theme's muted foreground.",
+      "default": ""
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Mode",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

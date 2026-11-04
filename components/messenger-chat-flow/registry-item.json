@@ -1,0 +1,130 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "messenger-chat-flow",
+  "type": "hyperframes:component",
+  "title": "Messenger Chat Flow",
+  "description": "A scripted messaging conversation with delivery details: timestamps and read ticks or a delivered receipt, a typing status in the header, a send button that morphs from mic to send, typing dots and reactions that pop onto bubbles.",
+  "tags": [
+    "chat",
+    "messaging",
+    "conversation",
+    "receipts",
+    "typing",
+    "product-demo",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 12,
+  "useWhen": [
+    "A scene needs a messaging conversation with delivery details (timestamps, ticks, a delivered receipt) without naming a messenger.",
+    "The whole beat should be scripted from a messages list: outgoing text types into the composer, dots precede replies, reactions pop in.",
+    "A customer-chat or notification story wants the header to flip between online and typing."
+  ],
+  "avoidWhen": [
+    "You only need the bare conversation without receipts: use chat-flow.",
+    "You only need one message landing on a beat you time yourself: use message-bubble.",
+    "The video must read as a specific messenger with its own chrome."
+  ],
+  "checkAt": [
+    4,
+    7,
+    10,
+    11.8
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/imessage-chat-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "messenger-chat-flow.html",
+      "target": "compositions/components/messenger-chat-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "messages",
+      "type": "string",
+      "role": "content",
+      "label": "Messages",
+      "description": "JSON array of {\"from\":\"me\"|\"them\",\"text\",\"reaction\",\"time\"}; reaction and time are optional. Three short messages fit the 12 second default; lengthen the clip for more.",
+      "default": "[{\"from\": \"me\", \"text\": \"Hey — ready for the demo?\", \"time\": \"9:40\"}, {\"from\": \"them\", \"text\": \"Yep, pushing it live now\", \"reaction\": \"🔥\", \"time\": \"9:41\"}, {\"from\": \"me\", \"text\": \"Perfect, sending the link over\", \"reaction\": \"👍\", \"time\": \"9:41\"}]"
+    },
+    {
+      "id": "contact_name",
+      "type": "string",
+      "role": "content",
+      "label": "Contact name",
+      "description": "Name in the header and on the avatar next to replies. Leave empty to show \"Chat\".",
+      "default": "Sam"
+    },
+    {
+      "id": "style",
+      "type": "enum",
+      "role": "style",
+      "label": "Style",
+      "description": "Ticks: timestamps and read ticks, typing status in the header, mic-to-send button. Receipt: centered header, a Delivered line under the last message, a field with an inline send button.",
+      "default": "ticks",
+      "options": [
+        {
+          "value": "ticks",
+          "label": "Timestamps and ticks"
+        },
+        {
+          "value": "receipt",
+          "label": "Delivered receipt"
+        }
+      ]
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of outgoing bubbles, the send button and the online status.",
+      "default": "#7c5cff"
+    },
+    {
+      "id": "theme",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the conversation sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

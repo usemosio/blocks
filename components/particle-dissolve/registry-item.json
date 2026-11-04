@@ -1,0 +1,205 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "particle-dissolve",
+  "type": "hyperframes:component",
+  "title": "Particle Dissolve",
+  "description": "The frame breaks into drifting grey dust, bright parts throwing theirs furthest, with specks that twinkle and a little colour fringing; the next scene coalesces back out of the dust. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 60 frames of the first panel, a 36-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+  "tags": [
+    "transition",
+    "shader",
+    "particles",
+    "dust",
+    "dissolve",
+    "tech",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 5.2,
+  "useWhen": [
+    "A scene change should read as the picture breaking down into matter and reassembling, not one image fading through another.",
+    "The moment can afford well over a second; the dust needs time to form, drift and gather.",
+    "The outgoing scene has bright content worth watching disintegrate: highlights throw their dust furthest."
+  ],
+  "avoidWhen": [
+    "You only need texture over a plain crossfade: use grain-dissolve.",
+    "You want an organic flowing break-up rather than a granular one: use perlin-dissolve."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/particle-dissolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "particle-dissolve.html",
+      "target": "compositions/components/particle-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "particle_size",
+      "type": "number",
+      "role": "style",
+      "label": "Particle size",
+      "description": "Size of one speck. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 4,
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "scatter",
+      "type": "number",
+      "role": "style",
+      "label": "Scatter",
+      "description": "How far the dust drifts.",
+      "default": 0.08,
+      "min": 0.01,
+      "max": 0.4,
+      "step": 0.01
+    },
+    {
+      "id": "shimmer",
+      "type": "number",
+      "role": "style",
+      "label": "Shimmer",
+      "description": "Brightness of the twinkling specks.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "aberration",
+      "type": "number",
+      "role": "style",
+      "label": "Aberration",
+      "description": "Colour fringing on the drifting picture.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "style",
+      "label": "Direction",
+      "description": "Where the dissolve starts: from the centre, or sweeping one way.",
+      "default": "reveal",
+      "options": [
+        {
+          "value": "reveal",
+          "label": "Reveal"
+        },
+        {
+          "value": "up",
+          "label": "Up"
+        },
+        {
+          "value": "down",
+          "label": "Down"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "id": "stagger",
+      "type": "number",
+      "role": "style",
+      "label": "Stagger",
+      "description": "How much the break-up is spread over the transition.",
+      "default": 0.55,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Specks are a few pixels; 0.75 is the floor for them.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "checkAt": [
+    1.8,
+    2.3,
+    2.7,
+    3.2
+  ],
+  "webgl": true
+}

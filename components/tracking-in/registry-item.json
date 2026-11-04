@@ -1,0 +1,134 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "tracking-in",
+  "type": "hyperframes:component",
+  "title": "Tracking In",
+  "description": "Wide letter-spacing collapses to tight while blur clears, on a spring: the word focuses into place.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "blur",
+    "tracking",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "useWhen": [
+    "A title word or brand name should feel like it is focusing into place: precision, clarity, sharpness.",
+    "The design is typographic and the letter-spacing motion is the centerpiece of the entrance.",
+    "A premium or cinematic tone is wanted: the spring-driven collapse reads as designed."
+  ],
+  "avoidWhen": [
+    "You want per-character stagger: use soft-blur-in.",
+    "The text is a sentence rather than one bold word: wide tracking on a long phrase is illegible; use staggered-fade-up.",
+    "The scene is playful or casual: use spring-scale-in."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/tracking-in/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "tracking-in.html",
+      "target": "compositions/components/tracking-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Title word or short phrase.",
+      "default": "tracking in"
+    },
+    {
+      "id": "start_tracking",
+      "type": "number",
+      "role": "motion",
+      "label": "Start tracking",
+      "description": "Letter-spacing at the start, in em.",
+      "default": 0.5,
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "unit": "em"
+    },
+    {
+      "id": "start_blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Start blur",
+      "description": "Blur radius at the start.",
+      "default": 12,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 220,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

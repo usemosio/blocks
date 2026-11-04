@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "whip-pan",
+  "type": "hyperframes:component",
+  "title": "Whip Pan",
+  "description": "A fast directional cut: both scenes fly through the frame in one camera whip, with motion blur and a slight smear at peak speed. Plays between two placeholder panels.",
+  "tags": [
+    "transition",
+    "whip",
+    "directional",
+    "blur",
+    "energetic",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 3.8,
+  "checkAt": [
+    1.5,
+    1.8,
+    2.1,
+    3.0
+  ],
+  "useWhen": [
+    "Cuts need to feel fast and energetic: feature-to-feature jumps, montage rhythm, tech demos.",
+    "Scenes are peers in a sequence and the narrative moves sideways (or up and down a stack).",
+    "You need the workhorse directional cut."
+  ],
+  "avoidWhen": [
+    "The moment is calm or contemplative: use focus-pull.",
+    "More than about 3 whips in a row in the same direction: vary direction or alternate with fade-through."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/whip-pan/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "whip-pan.html",
+      "target": "compositions/components/whip-pan.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Direction the camera whips.",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "up",
+          "label": "Up"
+        },
+        {
+          "value": "down",
+          "label": "Down"
+        }
+      ]
+    },
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Peak motion blur in pixels.",
+      "default": 24,
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "scene_a_text",
+      "type": "string",
+      "role": "content",
+      "label": "Scene A text",
+      "description": "Label on the outgoing panel.",
+      "default": "Scene A"
+    },
+    {
+      "id": "scene_b_text",
+      "type": "string",
+      "role": "content",
+      "label": "Scene B text",
+      "description": "Label on the incoming panel.",
+      "default": "Scene B"
+    },
+    {
+      "id": "scene_a_color",
+      "type": "color",
+      "role": "style",
+      "label": "Scene A background",
+      "description": "Background of the outgoing panel.",
+      "default": "#141318"
+    },
+    {
+      "id": "scene_b_color",
+      "type": "color",
+      "role": "style",
+      "label": "Scene B background",
+      "description": "Background of the incoming panel.",
+      "default": "#1a1922"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Panel text color.",
+      "default": "#f2f2f2"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shared-axis-z",
+  "type": "hyperframes:component",
+  "title": "Shared Axis Z",
+  "description": "A depth swap between two phrases: the old one scales up, blurs and fades away while the new one rises from a smaller scale and sharpens into focus, like a camera push forward.",
+  "tags": [
+    "text-effects",
+    "swap",
+    "depth",
+    "blur",
+    "scale",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.15,
+    0.4,
+    0.6,
+    2
+  ],
+  "useWhen": [
+    "Moving from a broad idea to a more specific or deeper one: a zoom-in narrative.",
+    "Chaining topic shifts where each swap should feel like a camera push forward."
+  ],
+  "avoidWhen": [
+    "The swap is a lateral topic change with no depth: use shared-axis-y.",
+    "The text only needs to come in, with nothing going out: use scale-down-fade or soft-blur-in.",
+    "The scene already has a lot of scale motion: alternate with shared-axis-y."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shared-axis-z/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shared-axis-z.html",
+      "target": "compositions/components/shared-axis-z.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "from_text", "type": "string", "role": "content", "label": "From text", "description": "Outgoing phrase; it scales up and fades away.", "default": "Zooming between states." },
+    { "id": "to_text", "type": "string", "role": "content", "label": "To text", "description": "Incoming phrase; it rises from a smaller scale into focus.", "default": "Elevate and settle." },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 220, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }]},
+    { "id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x" }
+  ]
+}

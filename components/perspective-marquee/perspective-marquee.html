@@ -1,0 +1,215 @@
+<!doctype html>
+<!--
+  Perspective Marquee
+
+  A row of words scrolls sideways on a 3D tilt, fading and blurring toward the edges.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/perspective-marquee/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="perspective-marquee"
+  data-composition-duration="8"
+  data-composition-variables='[
+    {"id": "items", "type": "string", "role": "content", "label": "Items", "description": "Comma-separated words that scroll by.", "default": "Studio, Launch, Motion, Design, Craft, Story, Frame, Pulse"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Text size in pixels at a 1280 px wide frame; it scales with the frame width.", "default": 84, "min": 24, "max": 200, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#fafafa"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "pixels_per_frame", "type": "number", "role": "motion", "label": "Pixels per frame", "description": "Scroll speed at a 1280 px wide frame.", "default": 2, "min": 0.25, "max": 10, "step": 0.25, "unit": "px"},
+    {"id": "rotate_y", "type": "number", "role": "motion", "label": "Rotate Y", "description": "Tilt around the vertical axis.", "default": -28, "min": -60, "max": 60, "step": 1, "unit": "deg"},
+    {"id": "rotate_x", "type": "number", "role": "motion", "label": "Rotate X", "description": "Tilt around the horizontal axis.", "default": 8, "min": -30, "max": 30, "step": 1, "unit": "deg"},
+    {"id": "perspective", "type": "number", "role": "motion", "label": "Perspective", "description": "Camera distance in pixels.", "default": 1200, "min": 400, "max": 3000, "step": 50, "unit": "px"},
+    {"id": "fade_color", "type": "color", "role": "style", "label": "Fade color", "description": "Color the edges fade into; match the background.", "default": "#050505"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Perspective Marquee</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { background: #050505; font-family: Geist, -apple-system, BlinkMacSystemFont, sans-serif; }
+        .pm-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .pm-tilt { width: 100%; display: flex; align-items: center; justify-content: flex-start; transform-style: preserve-3d; }
+        .pm-row { display: flex; white-space: nowrap; }
+        .pm-item { display: inline-block; letter-spacing: -0.03em; }
+        .pm-fade { position: absolute; inset: 0; pointer-events: none; }
+      </style>
+
+      <div id="root" data-composition-id="perspective-marquee" data-duration="8" data-fps="30">
+        <div id="pm-clip" class="pm-stage clip" data-start="0" data-duration="8" data-track-index="0">
+          <div id="pm-tilt" class="pm-tilt"><div id="pm-row" class="pm-row"></div></div>
+          <div id="pm-fade-x" class="pm-fade"></div>
+          <div id="pm-fade-y" class="pm-fade"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 to 1, rest at 0 velocity (mass, stiffness, damping), at `frame` of 30 fps.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass, k = cfg.stiffness, c = cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var q = Math.sqrt(z * z - 1), r1 = w0 * (-z + q), r2 = w0 * (-z - q);
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var TOTAL = 8;
+            var FRAMES = Math.round(TOTAL * 30);
+            var clock = { frame: 0 };
+            function frameNow() { return Math.round(clock.frame * 1000) / 1000; }
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: FRAMES, duration: TOTAL, ease: "none", onUpdate: function () { draw(frameNow()); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["perspective-marquee"] = tl;
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            function fit(el, size, frac, hfrac) {
+              el.style.fontSize = size + "px";
+              var maxW = Math.max(1, root.clientWidth * frac);
+              var maxH = Math.max(1, root.clientHeight * (hfrac || 0.9));
+              var k = Math.min(1, maxW / Math.max(1, el.scrollWidth), maxH / Math.max(1, el.scrollHeight));
+              if (k < 1) { size = Math.max(8, size * k); el.style.fontSize = size + "px"; }
+              return size;
+            }
+
+
+            var items = String(str(vars.items, "")).split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!items.length) items = ["Studio", "Launch", "Motion", "Design", "Craft", "Story", "Frame", "Pulse"];
+            var W = root.clientWidth;
+            var k = W / 1280; // remocn is tuned for a 1280 px wide frame
+            var fontSize = num(vars.font_size, 84, 24, 200) * k;
+            var color = str(vars.color, "#fafafa"), wt = pick(vars.font_weight, ["400", "500", "600", "700"], "700");
+            var ppf = num(vars.pixels_per_frame, 2, 0.25, 10) * k;
+            var rotY = num(vars.rotate_y, -28, -60, 60), rotX = num(vars.rotate_x, 8, -30, 30), persp = num(vars.perspective, 1200, 400, 3000) * k;
+            var fade = str(vars.fade_color, "#050505"), speed = num(vars.speed, 1, 0.25, 4);
+            root.style.background = fade;
+            var stage = document.getElementById("pm-clip");
+            stage.style.perspective = persp + "px";
+            var tilt = document.getElementById("pm-tilt"), row = document.getElementById("pm-row");
+            tilt.style.transform = "rotateX(" + rotX + "deg) rotateY(" + rotY + "deg)";
+            document.getElementById("pm-fade-x").style.background = "linear-gradient(90deg, " + fade + " 0%, transparent 18%, transparent 82%, " + fade + " 100%)";
+            document.getElementById("pm-fade-y").style.background = "linear-gradient(180deg, " + fade + " 0%, transparent 25%, transparent 75%, " + fade + " 100%)";
+            var itemPadding = fontSize * 0.9;
+            var approxWidth = items.reduce(function (acc, it) { return acc + it.length * fontSize * 0.6 + itemPadding; }, 0);
+            var rendered = items.concat(items, items);
+            var spans = rendered.map(function (it, i) {
+              var sp = document.createElement("span");
+              sp.id = "pm-item-" + i; sp.className = "pm-item"; sp.textContent = it;
+              sp.style.fontSize = fontSize + "px"; sp.style.fontWeight = wt; sp.style.color = color; sp.style.paddingRight = itemPadding + "px";
+              row.appendChild(sp); return sp;
+            });
+            start(function (raw) {
+              var frame = raw * speed;
+              var offset = -((frame * ppf) % approxWidth);
+              row.style.transform = "translateX(" + offset + "px)";
+              spans.forEach(function (sp, i) {
+                var center = i * (approxWidth / items.length) + approxWidth / items.length / 2 + offset;
+                var norm = (center - W / 2) / (W / 2);
+                var dist = Math.min(1, Math.abs(norm));
+                var blur = dist * 6 * k;
+                sp.style.filter = blur > 0.01 ? "blur(" + blur + "px)" : "none";
+                sp.style.opacity = 1 - dist * 0.4;
+              });
+            });
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

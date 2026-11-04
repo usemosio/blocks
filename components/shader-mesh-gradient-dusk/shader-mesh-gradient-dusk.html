@@ -1,0 +1,367 @@
+<!doctype html>
+<!--
+  Shader Mesh Gradient Dusk
+
+  Violet dusk with coral and peach light drifting through deep indigo.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/shader-mesh-gradient-dusk/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  The vertex and fragment shaders below are from Paper Shaders
+  (@paper-design/shaders 0.0.82, dist/vertex-shader.js and dist/shaders/mesh-gradient.js),
+  https://github.com/paper-design/shaders
+
+  Copyright 2026 Paper. Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by
+  applicable law or agreed to in writing, software distributed under the License is
+  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied. See the License for the specific language governing permissions
+  and limitations under the License.
+
+  NOTICE: Paper Shaders. Copyright 2026 Paper. Powered by Paper Shaders:
+  https://shaders.paper.design
+
+  Changes by usemosio/blocks: the shared GLSL helpers are inlined, the vertex shader keeps
+  only the object UV it needs, and the shader mount is rewritten: the canvas is drawn at a
+  reduced resolution (the `resolution` variable) and its time comes from the timeline.
+-->
+<html
+  lang="en"
+  data-composition-id="shader-mesh-gradient-dusk"
+  data-composition-duration="5"
+  data-composition-variables='[
+    { "id": "colors", "type": "string", "role": "style", "label": "Colors", "description": "Up to 10 colors, comma separated, that blend into the gradient.", "default": "#1a1446, #5b2a86, #f2709c, #ff9472, #2b1e5c" },
+    { "id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "How fast the colors drift. 0 holds still.", "default": 1, "min": 0, "max": 4, "step": 0.05 },
+    { "id": "distortion", "type": "number", "role": "style", "label": "Distortion", "description": "How much the color shapes bend.", "default": 0.9, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "swirl", "type": "number", "role": "style", "label": "Swirl", "description": "How much the colors twist around the center.", "default": 0.3, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "grain_mixer", "type": "number", "role": "style", "label": "Grain in the blend", "description": "Grain that roughens the edges between colors.", "default": 0, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "grain_overlay", "type": "number", "role": "style", "label": "Grain overlay", "description": "Film-like grain over the whole gradient.", "default": 0, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "rotation", "type": "number", "role": "style", "label": "Rotation", "description": "Turns the whole gradient.", "default": 200, "min": 0, "max": 360, "step": 1, "unit": "deg" },
+    { "id": "scale", "type": "number", "role": "style", "label": "Scale", "description": "Zooms the gradient in or out.", "default": 1, "min": 0.1, "max": 4, "step": 0.01 },
+    { "id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; a soft gradient looks the same at 0.5.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05 }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Mesh Gradient Dusk</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--smgdusk-fallback, #12121a);
+          pointer-events: none;
+        }
+        .smgdusk-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .smgdusk-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="shader-mesh-gradient-dusk" data-duration="5" data-fps="30">
+        <div id="smgdusk-clip" class="smgdusk-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <canvas id="smgdusk-canvas" class="smgdusk-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("smgdusk-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function parseColor(s) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(String(s).trim());
+              if (!m) return null;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              var a = h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1;
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255, a];
+            }
+
+            var colors = String(typeof vars.colors === "string" && vars.colors.trim() ? vars.colors : "#1a1446, #5b2a86, #f2709c, #ff9472, #2b1e5c")
+              .split(",").map(parseColor).filter(Boolean).slice(0, 10);
+            if (!colors.length) colors = ["#1a1446", "#5b2a86", "#f2709c", "#ff9472", "#2b1e5c"].map(parseColor);
+            var speed = num(vars.speed, 1, 0, 4);
+            var distortion = num(vars.distortion, 0.9, 0, 1);
+            var swirl = num(vars.swirl, 0.3, 0, 1);
+            var grainMixer = num(vars.grain_mixer, 0, 0, 1);
+            var grainOverlay = num(vars.grain_overlay, 0, 0, 1);
+            var rotation = num(vars.rotation, 200, 0, 360);
+            var scale = num(vars.scale, 1, 0.1, 4);
+            var resolution = num(vars.resolution, 0.5, 0.25, 1);
+
+            // Without WebGL the block still shows the palette as a plain gradient.
+            root.style.setProperty("--smgdusk-fallback", "linear-gradient(160deg, " + colors.map(function (c) {
+              return "rgba(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + "," + c[3] + ")";
+            }).join(", ") + ")");
+
+            // Paper Shaders vertex shader, object UV only (the other outputs are unused here).
+            var VERTEX = [
+              "#version 300 es",
+              "precision mediump float;",
+              "layout(location = 0) in vec4 a_position;",
+              "uniform vec2 u_resolution;",
+              "uniform float u_pixelRatio;",
+              "uniform float u_originX;",
+              "uniform float u_originY;",
+              "uniform float u_worldWidth;",
+              "uniform float u_worldHeight;",
+              "uniform float u_fit;",
+              "uniform float u_scale;",
+              "uniform float u_rotation;",
+              "uniform float u_offsetX;",
+              "uniform float u_offsetY;",
+              "out vec2 v_objectUV;",
+              "vec3 getBoxSize(float boxRatio, vec2 givenBoxSize) {",
+              "  vec2 box = vec2(0.);",
+              "  box.x = boxRatio * min(givenBoxSize.x / boxRatio, givenBoxSize.y);",
+              "  float noFitBoxWidth = box.x;",
+              "  if (u_fit == 1.) { box.x = boxRatio * min(u_resolution.x / boxRatio, u_resolution.y); }",
+              "  else if (u_fit == 2.) { box.x = boxRatio * max(u_resolution.x / boxRatio, u_resolution.y); }",
+              "  box.y = box.x / boxRatio;",
+              "  return vec3(box, noFitBoxWidth);",
+              "}",
+              "void main() {",
+              "  gl_Position = a_position;",
+              "  vec2 uv = gl_Position.xy * .5;",
+              "  vec2 boxOrigin = vec2(.5 - u_originX, u_originY - .5);",
+              "  vec2 givenBoxSize = vec2(u_worldWidth, u_worldHeight);",
+              "  givenBoxSize = max(givenBoxSize, vec2(1.)) * u_pixelRatio;",
+              "  float r = u_rotation * 3.14159265358979323846 / 180.;",
+              "  mat2 graphicRotation = mat2(cos(r), sin(r), -sin(r), cos(r));",
+              "  vec2 graphicOffset = vec2(-u_offsetX, u_offsetY);",
+              "  float fixedRatio = 1.;",
+              "  vec2 fixedRatioBoxGivenSize = vec2(",
+              "    (u_worldWidth == 0.) ? u_resolution.x : givenBoxSize.x,",
+              "    (u_worldHeight == 0.) ? u_resolution.y : givenBoxSize.y);",
+              "  vec2 objectBoxSize = getBoxSize(fixedRatio, fixedRatioBoxGivenSize).xy;",
+              "  vec2 objectWorldScale = u_resolution.xy / objectBoxSize;",
+              "  v_objectUV = uv;",
+              "  v_objectUV *= objectWorldScale;",
+              "  v_objectUV += boxOrigin * (objectWorldScale - 1.);",
+              "  v_objectUV += graphicOffset;",
+              "  v_objectUV /= u_scale;",
+              "  v_objectUV = graphicRotation * v_objectUV;",
+              "}"
+            ].join("\n");
+
+            // Paper Shaders mesh-gradient fragment shader.
+            var FRAGMENT = [
+              "#version 300 es",
+              "precision mediump float;",
+              "uniform float u_time;",
+              "uniform vec4 u_colors[10];",
+              "uniform float u_colorsCount;",
+              "uniform float u_distortion;",
+              "uniform float u_swirl;",
+              "uniform float u_grainMixer;",
+              "uniform float u_grainOverlay;",
+              "in vec2 v_objectUV;",
+              "out vec4 fragColor;",
+              "#define TWO_PI 6.28318530718",
+              "#define PI 3.14159265358979323846",
+              "vec2 rotate(vec2 uv, float th) { return mat2(cos(th), sin(th), -sin(th), cos(th)) * uv; }",
+              "float hash21(vec2 p) {",
+              "  p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;",
+              "  p += dot(p, p + 19.19);",
+              "  return fract(p.x * p.y);",
+              "}",
+              "float valueNoise(vec2 st) {",
+              "  vec2 i = floor(st);",
+              "  vec2 f = fract(st);",
+              "  float a = hash21(i);",
+              "  float b = hash21(i + vec2(1.0, 0.0));",
+              "  float c = hash21(i + vec2(0.0, 1.0));",
+              "  float d = hash21(i + vec2(1.0, 1.0));",
+              "  vec2 u = f * f * (3.0 - 2.0 * f);",
+              "  float x1 = mix(a, b, u.x);",
+              "  float x2 = mix(c, d, u.x);",
+              "  return mix(x1, x2, u.y);",
+              "}",
+              "float noise(vec2 n, vec2 seedOffset) { return valueNoise(n + seedOffset); }",
+              "vec2 getPosition(int i, float t) {",
+              "  float a = float(i) * .37;",
+              "  float b = .6 + fract(float(i) / 3.) * .9;",
+              "  float c = .8 + fract(float(i + 1) / 4.);",
+              "  float x = sin(t * b + a);",
+              "  float y = cos(t * c + a * 1.5);",
+              "  return .5 + .5 * vec2(x, y);",
+              "}",
+              "void main() {",
+              "  vec2 uv = v_objectUV;",
+              "  uv += .5;",
+              "  vec2 grainUV = uv * 1000.;",
+              "  float mixerGrain = 0.;",
+              "  if (u_grainMixer > 0.) {",
+              "    mixerGrain = .4 * u_grainMixer * (noise(grainUV, vec2(0.)) - .5);",
+              "  }",
+              "  const float firstFrameOffset = 41.5;",
+              "  float t = .5 * (u_time + firstFrameOffset);",
+              "  float radius = smoothstep(0., 1., length(uv - .5));",
+              "  float center = 1. - radius;",
+              "  for (float i = 1.; i <= 2.; i++) {",
+              "    uv.x += u_distortion * center / i * sin(t + i * .4 * smoothstep(.0, 1., uv.y)) * cos(.2 * t + i * 2.4 * smoothstep(.0, 1., uv.y));",
+              "    uv.y += u_distortion * center / i * cos(t + i * 2. * smoothstep(.0, 1., uv.x));",
+              "  }",
+              "  vec2 uvRotated = uv;",
+              "  uvRotated -= vec2(.5);",
+              "  float angle = 3. * u_swirl * radius;",
+              "  uvRotated = rotate(uvRotated, -angle);",
+              "  uvRotated += vec2(.5);",
+              "  vec3 color = vec3(0.);",
+              "  float opacity = 0.;",
+              "  float totalWeight = 0.;",
+              "  for (int i = 0; i < 10; i++) {",
+              "    if (i >= int(u_colorsCount)) break;",
+              "    vec2 pos = getPosition(i, t) + mixerGrain;",
+              "    vec3 colorFraction = u_colors[i].rgb * u_colors[i].a;",
+              "    float opacityFraction = u_colors[i].a;",
+              "    float dist = length(uvRotated - pos);",
+              "    dist = pow(dist, 3.5);",
+              "    float weight = 1. / (dist + 1e-3);",
+              "    color += colorFraction * weight;",
+              "    opacity += opacityFraction * weight;",
+              "    totalWeight += weight;",
+              "  }",
+              "  color /= max(1e-4, totalWeight);",
+              "  opacity /= max(1e-4, totalWeight);",
+              "  if (u_grainOverlay > 0.) {",
+              "    float grainOverlay = valueNoise(rotate(grainUV, 1.) + vec2(3.));",
+              "    grainOverlay = mix(grainOverlay, valueNoise(rotate(grainUV, 2.) + vec2(-1.)), .5);",
+              "    grainOverlay = pow(grainOverlay, 1.3);",
+              "    float grainOverlayV = grainOverlay * 2. - 1.;",
+              "    vec3 grainOverlayColor = vec3(step(0., grainOverlayV));",
+              "    float grainOverlayStrength = u_grainOverlay * abs(grainOverlayV);",
+              "    grainOverlayStrength = pow(grainOverlayStrength, .8);",
+              "    color = mix(color, grainOverlayColor, .35 * grainOverlayStrength);",
+              "    opacity += .5 * grainOverlayStrength;",
+              "  }",
+              "  opacity = clamp(opacity, 0., 1.);",
+              "  fragColor = vec4(color, opacity);",
+              "}"
+            ].join("\n");
+
+            // The canvas is drawn at `resolution` × the frame size and stretched to fill it.
+            var width = Math.max(2, Math.round(root.clientWidth * resolution));
+            var height = Math.max(2, Math.round(root.clientHeight * resolution));
+            canvas.width = width;
+            canvas.height = height;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+
+            function compile(type, source) {
+              var s = gl.createShader(type);
+              gl.shaderSource(s, source);
+              gl.compileShader(s);
+              if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader compile failed");
+              return s;
+            }
+            var draw = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, width, height);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              gl.uniform2f(u("u_resolution"), width, height);
+              gl.uniform1f(u("u_pixelRatio"), resolution);
+              gl.uniform1f(u("u_originX"), 0.5);
+              gl.uniform1f(u("u_originY"), 0.5);
+              gl.uniform1f(u("u_worldWidth"), 0);
+              gl.uniform1f(u("u_worldHeight"), 0);
+              gl.uniform1f(u("u_fit"), 2); // cover, as remocn sets it
+              gl.uniform1f(u("u_scale"), scale);
+              gl.uniform1f(u("u_rotation"), rotation);
+              gl.uniform1f(u("u_offsetX"), 0);
+              gl.uniform1f(u("u_offsetY"), 0);
+              var flat = new Float32Array(40);
+              colors.forEach(function (c, i) { flat.set(c, i * 4); });
+              gl.uniform4fv(u("u_colors"), flat);
+              gl.uniform1f(u("u_colorsCount"), colors.length);
+              gl.uniform1f(u("u_distortion"), distortion);
+              gl.uniform1f(u("u_swirl"), swirl);
+              gl.uniform1f(u("u_grainMixer"), grainMixer);
+              gl.uniform1f(u("u_grainOverlay"), grainOverlay);
+              var timeLoc = u("u_time");
+              draw = function (frame) {
+                // remocn: frame = (frame / fps) * speed * 1000 ms; Paper's u_time is that in seconds.
+                gl.uniform1f(timeLoc, (frame / 30) * speed);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn("shader-mesh-gradient-dusk:", err.message);
+            }
+
+            var total = parseFloat(root.dataset.duration || "5");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { draw(clock.frame); }
+            }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shader-mesh-gradient-dusk"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

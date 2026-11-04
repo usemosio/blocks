@@ -1,0 +1,487 @@
+<!doctype html>
+<!--
+  Grid Wave
+
+  A wave sent across the frame that raises the picture into a grid of solid blocks and
+  sets them back down carrying the next scene.
+  The block plays the cut between two built-in panels: a stat and a bar chart, then a render queue.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/grid-wave/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  remocn captures its React children with the HTML-in-Canvas API, which a render machine does
+  not have. This block draws remocn's preview scene (a stat and a bar chart and then a render queue) (text and colours from the variables) on a
+  2D canvas and runs remocn's fragment shader over it, so it applies the look to its own content,
+  not to the host video behind it.
+-->
+<html
+  lang="en"
+  data-composition-id="grid-wave"
+  data-composition-duration="5.2"
+  data-composition-variables='[{"id": "label", "type": "string", "role": "content", "label": "Label", "description": "Small caption above the number in the sample scene.", "default": "Deploys this week"}, {"id": "value", "type": "string", "role": "content", "label": "Value", "description": "The big number in the sample scene.", "default": "2,481"}, {"id": "bars", "type": "string", "role": "content", "label": "Bars", "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.", "default": "32,51,43,68,57,86,64,100"}, {"id": "accent", "type": "color", "role": "style", "label": "Highlight", "description": "Colour of the last bar.", "default": "#a1eebd"}, {"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Small heading above the list in the sample scene.", "default": "Render queue"}, {"id": "items", "type": "string", "role": "content", "label": "Rows", "description": "Rows of the list as name | status, separated by semicolons (up to 5).", "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"}, {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background of the list scene.", "default": "#101828"}, {"id": "tile_size", "type": "number", "role": "style", "label": "Tile size", "description": "Width of one tile. Pixel sizes are for a 1280×720 frame and scale with the frame.", "default": 90, "min": 30, "max": 260, "step": 10, "unit": "px"}, {"id": "wave_width", "type": "number", "role": "style", "label": "Wave width", "description": "Width of the wave front, as a share of the frame.", "default": 0.16, "min": 0.04, "max": 0.5, "step": 0.02}, {"id": "lift", "type": "number", "role": "style", "label": "Lift", "description": "How far tiles rise as the wave passes.", "default": 2, "min": 0, "max": 4, "step": 0.1}, {"id": "gap", "type": "number", "role": "style", "label": "Gap", "description": "Gap between tiles.", "default": 0.12, "min": 0, "max": 0.45, "step": 0.01}, {"id": "tint", "type": "color", "role": "style", "label": "Tint", "description": "Colour the rising tiles pick up.", "default": "#8fb4ff"}, {"id": "direction", "type": "enum", "role": "style", "label": "Direction", "description": "Where the wave starts and which way it travels.", "default": "ripple", "options": [{"value": "ripple", "label": "Ripple"}, {"value": "left", "label": "Left"}, {"value": "right", "label": "Right"}, {"value": "up", "label": "Up"}, {"value": "down", "label": "Down"}]}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Tiles are large and flat; 0.5 matches 1 in the stills and keeps the nine-tile search cheap.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Grid Wave</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .gdw-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .gdw-canvas,
+        .gdw-scene {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .gdw-scene {
+          display: none;
+        }
+        .gdw-off .gdw-canvas {
+          display: none;
+        }
+        .gdw-off .gdw-fb {
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="grid-wave" data-duration="5.2" data-fps="30">
+        <div id="gdw-clip" class="gdw-stage clip" data-start="0" data-duration="5.2" data-track-index="0">
+          <canvas id="gdw-scene0" class="gdw-scene"></canvas>
+          <canvas id="gdw-scene1" class="gdw-scene gdw-fb"></canvas>
+          <canvas id="gdw-canvas" class="gdw-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "grid-wave";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("gdw-clip");
+            var canvas = document.getElementById("gdw-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#ffffff").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "label", "type": "string", "default": "Deploys this week"}, {"id": "value", "type": "string", "default": "2,481"}, {"id": "bars", "type": "string", "default": "32,51,43,68,57,86,64,100"}, {"id": "accent", "type": "color", "default": "#a1eebd"}, {"id": "title", "type": "string", "default": "Render queue"}, {"id": "items", "type": "string", "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"}, {"id": "background", "type": "color", "default": "#101828"}, {"id": "tile_size", "type": "number", "default": 90, "min": 30, "max": 260}, {"id": "wave_width", "type": "number", "default": 0.16, "min": 0.04, "max": 0.5}, {"id": "lift", "type": "number", "default": 2, "min": 0, "max": 4}, {"id": "gap", "type": "number", "default": 0.12, "min": 0, "max": 0.45}, {"id": "tint", "type": "color", "default": "#8fb4ff"}, {"id": "direction", "type": "enum", "default": "ripple", "options": ["ripple", "left", "right", "up", "down"]}, {"id": "resolution", "type": "number", "default": 0.5, "min": 0.25, "max": 1}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else if (d.type === "enum") V[d.id] = d.options.indexOf(raw) >= 0 ? raw : d.default;
+              else V[d.id] = typeof raw === "string" && raw.trim() ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var res = V.resolution;
+            var cw = Math.max(2, Math.round(W * res));
+            var ch = Math.max(2, Math.round(H * res));
+            var sceneCanvases = ["gdw-scene0", "gdw-scene1"].map(function (id) {
+              var el = document.getElementById(id);
+              el.width = cw;
+              el.height = ch;
+              return el;
+            });
+
+            var SANS = "Geist, -apple-system, BlinkMacSystemFont, sans-serif";
+            var MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+            var INK = "#f2f2f2";
+            var MUTED = "#8b8f9a";
+            var TONES = ["#a1eebd", "#ffb38e", "#d4b3ff"];
+            var S = Math.min(W / 940, H / 720);
+            function setFont(ctx, weight, size, family) { ctx.font = weight + " " + size + "px " + family; }
+            function fitFont(ctx, text, maxWidth, weight, size, family) {
+              setFont(ctx, weight, size, family);
+              var w = ctx.measureText(text).width;
+              if (w > maxWidth) { size *= maxWidth / w; setFont(ctx, weight, size, family); }
+              return size;
+            }
+            function setSpacing(ctx, px) { if ("letterSpacing" in ctx) ctx.letterSpacing = px + "px"; }
+            function wrapLines(ctx, text, maxWidth) {
+              var words = String(text).split(/\s+/).filter(Boolean);
+              var lines = [];
+              var line = "";
+              words.forEach(function (word) {
+                var next = line ? line + " " + word : word;
+                if (line && ctx.measureText(next).width > maxWidth) { lines.push(line); line = word; }
+                else line = next;
+              });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function pairs(text, max) {
+              return String(text).split(";")
+                .map(function (row) { return row.split("|").map(function (part) { return part.trim(); }); })
+                .filter(function (row) { return row[0]; })
+                .slice(0, max);
+            }
+            function begin(ctx, cw, ch, fill) {
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = fill;
+              ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "middle";
+              ctx.textAlign = "left";
+              setSpacing(ctx, 0);
+            }
+
+
+            // Sample scene "A": a stat and a bar chart (remocn's CanvasSceneA), laid out for any frame size.
+            var barValues = String(V.bars).split(",").map(function (n) { return Math.min(100, Math.max(4, Number(n) || 0)); }).slice(0, 12);
+            if (!barValues.length) barValues = [32, 51, 43, 68, 57, 86, 64, 100];
+            function drawA(canvas) {
+              var ctx = canvas.getContext("2d");
+              begin(ctx, canvas.width, canvas.height, "#0a0a0a");
+              var s = S, pad = 96 * s, inner = W - pad * 2;
+              var labelH = 41 * s, valueSize = 152 * s, barsH = 190 * s;
+              var total = labelH + 6 * s + valueSize + 52 * s + barsH;
+              var y = (H - total) / 2;
+              ctx.fillStyle = MUTED;
+              fitFont(ctx, V.label, inner, 400, 34 * s, SANS);
+              ctx.fillText(V.label, pad, y + labelH / 2);
+              y += labelH + 6 * s;
+              ctx.fillStyle = INK;
+              setSpacing(ctx, -0.04 * valueSize);
+              fitFont(ctx, V.value, inner, 600, valueSize, SANS);
+              ctx.fillText(V.value, pad, y + valueSize / 2);
+              setSpacing(ctx, 0);
+              y += valueSize + 52 * s;
+              var n = barValues.length;
+              var bs = Math.min(1, inner / ((n * 74 + (n - 1) * 16) * s));
+              var bw = 74 * s * bs, gap = 16 * s * bs, base = y + barsH;
+              barValues.forEach(function (v, i) {
+                var h = barsH * v / 100;
+                ctx.fillStyle = i === n - 1 ? V.accent : "#23262e";
+                ctx.beginPath();
+                ctx.roundRect(pad + i * (bw + gap), base - h, bw, h, 10 * s * bs);
+                ctx.fill();
+              });
+            }
+
+
+            // Sample scene "B": a render queue (remocn's CanvasSceneB), laid out for any frame size.
+            var rows = pairs(V.items, 5);
+            function drawB(canvas) {
+              var ctx = canvas.getContext("2d");
+              begin(ctx, canvas.width, canvas.height, V.background);
+              var s = S, pad = 96 * s, inner = W - pad * 2;
+              var titleH = 41 * s, rowH = 120 * s, line = Math.max(1, s);
+              var total = titleH + 34 * s + rows.length * (rowH + line);
+              var y = (H - total) / 2;
+              ctx.fillStyle = MUTED;
+              fitFont(ctx, V.title, inner, 400, 34 * s, SANS);
+              ctx.fillText(V.title, pad, y + titleH / 2);
+              y += titleH + 34 * s;
+              rows.forEach(function (row, i) {
+                ctx.fillStyle = "#23304a";
+                ctx.fillRect(pad, y, inner, line);
+                var mid = y + line + rowH / 2;
+                var label = row[1] || "";
+                var pillW = 0;
+                if (label) {
+                  var labelSize = fitFont(ctx, label, inner * 0.4, 500, 30 * s, SANS);
+                  pillW = ctx.measureText(label).width + 52 * s;
+                  var pillH = labelSize * 1.2 + 24 * s;
+                  var px = pad + inner - pillW;
+                  ctx.fillStyle = TONES[i % TONES.length];
+                  ctx.beginPath();
+                  ctx.roundRect(px, mid - pillH / 2, pillW, pillH, pillH / 2);
+                  ctx.fill();
+                  ctx.fillStyle = V.background;
+                  ctx.textAlign = "center";
+                  ctx.fillText(label, px + pillW / 2, mid);
+                  ctx.textAlign = "left";
+                }
+                ctx.fillStyle = INK;
+                fitFont(ctx, row[0], inner - pillW - 24 * s, 400, 44 * s, MONO);
+                ctx.fillText(row[0], pad, mid);
+                y += rowH + line;
+              });
+            }
+
+            function drawScenes() {
+              drawA(sceneCanvases[0]);
+              drawB(sceneCanvases[1]);
+            }
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 a_pos;",
+              "out vec2 v_uv;",
+              "void main() {",
+              "  v_uv = vec2(a_pos.x * 0.5 + 0.5, 0.5 - a_pos.y * 0.5);",
+              "  gl_Position = vec4(a_pos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+
+uniform sampler2D u_from;
+uniform sampler2D u_to;
+uniform float u_progress;
+uniform float u_aspect;
+uniform vec2 u_grid;
+uniform float u_wave;
+uniform float u_lift;
+uniform float u_gap;
+uniform vec3 u_tint;
+uniform vec2 u_dir;
+uniform float u_radial;
+
+in vec2 v_uv;
+out vec4 outColor;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float waveCoord(vec2 p) {
+  vec2 off = (p - 0.5) * vec2(u_aspect, 1.0);
+  float ring = length(off) / (0.5 * sqrt(u_aspect * u_aspect + 1.0));
+  float sweep = clamp(dot(p - 0.5, u_dir) + 0.5, 0.0, 1.0);
+  return mix(sweep, ring, u_radial);
+}
+
+void main() {
+  float front = u_progress * (1.0 + 6.0 * u_wave) - 3.0 * u_wave;
+
+  float selfPass =
+    smoothstep(-u_wave * 0.4, u_wave * 0.4, front - waveCoord(v_uv));
+  vec4 base = mix(texture(u_from, v_uv), texture(u_to, v_uv), selfPass);
+
+  float edge = 0.5 - u_gap * 0.5;
+  vec2 anchor = floor(v_uv * u_grid);
+
+  vec4 face = vec4(0.0);
+  float depth = -1.0;
+
+  for (int oy = -1; oy <= 1; oy++) {
+    for (int ox = -1; ox <= 1; ox++) {
+      vec2 cell = anchor + vec2(float(ox), float(oy));
+      vec2 centre = (cell + 0.5) / u_grid;
+
+      float stagger = (hash(cell) - 0.5) * u_wave * 0.4;
+      float w = front - waveCoord(centre) + stagger;
+      float band = w / u_wave;
+      float pulse = exp(-band * band);
+      if (pulse <= depth) {
+        continue;
+      }
+
+      float rise = pulse * u_lift;
+      vec2 lean = centre - 0.5;
+      lean = lean / max(length(lean), 0.0001) * rise * 0.15;
+      float grow = 1.0 + rise * 0.5;
+
+      vec2 q = (v_uv - centre) * u_grid;
+      vec2 top = (q - lean) / grow;
+      float onTop = max(abs(top.x), abs(top.y));
+      float onFoot = max(abs(q.x), abs(q.y));
+      bool lit = onTop <= edge;
+      if (!lit && onFoot > edge) {
+        continue;
+      }
+      depth = pulse;
+
+      float pass = smoothstep(-u_wave * 0.4, u_wave * 0.4, w);
+      vec2 local = lit ? top : clamp(top, -edge, edge);
+      vec2 src = centre + local / u_grid;
+      vec4 col = mix(texture(u_from, src), texture(u_to, src), pass);
+
+      if (lit) {
+        col.rgb = mix(col.rgb, u_tint, pulse * 0.12);
+        col.rgb *= 1.0 + pulse * 0.06;
+      } else {
+        col.rgb = mix(col.rgb, u_tint, pulse * 0.06);
+        col.rgb *= 1.0 - pulse * 0.24;
+      }
+
+      face = col;
+    }
+  }
+
+  outColor = face + base * (1.0 - face.a);
+}`;
+
+            canvas.width = cw;
+            canvas.height = ch;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            var upload = function () {};
+            var extraUpload = function () {};
+            var frameFn = function () {};
+            var texUnits = [];
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(program, "a_pos");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+              function makeTexture(unit) {
+                var texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                return texture;
+              }
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              ["u_from", "u_to"].forEach(function (name, unit) {
+                makeTexture(unit);
+                gl.uniform1i(u(name), unit);
+              });
+              gl.uniform1f(u("u_aspect"), W / H);
+              var frameLoc = u("u_frame");
+              var timeLoc = u("u_time");
+              upload = function () {
+                sceneCanvases.forEach(function (el, unit) {
+                  gl.activeTexture(gl.TEXTURE0 + unit);
+                  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, el);
+                });
+                extraUpload();
+              };
+
+              var HOLD = 60, LEN = 36;
+              var progressLoc = u("u_progress");
+              frameFn = function (frame) {
+                gl.uniform1f(progressLoc, Math.min(1, Math.max(0, (frame - HOLD) / LEN)));
+              };
+
+              var AXES = { ripple: [0, 0], left: [1, 0], right: [-1, 0], up: [0, -1], down: [0, 1] };
+              var tileSize = Math.max(V.tile_size * S, 8);
+              var axis = AXES[V.direction] || AXES.ripple;
+              var tint = rgb(V.tint);
+              gl.uniform2f(u("u_grid"), Math.max(Math.round(W / tileSize), 2), Math.max(Math.round(H / tileSize), 2));
+              gl.uniform1f(u("u_wave"), Math.max(V.wave_width, 0.02));
+              gl.uniform1f(u("u_lift"), Math.max(V.lift, 0) * 0.35);
+              gl.uniform1f(u("u_gap"), Math.min(Math.max(V.gap, 0), 0.45));
+              gl.uniform3f(u("u_tint"), tint[0], tint[1], tint[2]);
+              gl.uniform2f(u("u_dir"), axis[0], axis[1]);
+              gl.uniform1f(u("u_radial"), V.direction === "ripple" ? 1 : 0);
+
+              paint = function (frame) {
+                gl.uniform1f(frameLoc, frame);
+                gl.uniform1f(timeLoc, frame / 30);
+                frameFn(frame, frame / 30);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+              };
+            } catch (err) {
+              stage.classList.add("gdw-off");
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            // The scenes are redrawn whenever a web font finishes loading, so no frame keeps a fallback face.
+            var fontEpoch = 0;
+            var sceneEpoch = -1;
+            var lastFrame = 0;
+            function render(frame) {
+              lastFrame = frame;
+              if (sceneEpoch !== fontEpoch) {
+                sceneEpoch = fontEpoch;
+                drawScenes();
+                upload();
+              }
+              if (paint) paint(frame);
+            }
+            if (document.fonts && document.fonts.load) {
+              ["400 34px Geist", "500 30px Geist", "600 44px Geist", "400 44px 'Geist Mono'"].forEach(function (face) {
+                document.fonts.load(face).then(function () { fontEpoch++; render(lastFrame); }, function () {});
+              });
+            }
+
+            var total = parseFloat(root.dataset.duration || "5.2");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { render(Math.round(clock.frame)); }
+            }, 0);
+            render(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

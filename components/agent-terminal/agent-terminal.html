@@ -1,0 +1,252 @@
+<!doctype html>
+<!--
+  Agent Terminal
+
+  An unbranded coding-agent terminal: the window or launcher eases in, panels fade up and a task types itself into the prompt with a blinking caret.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/claude-code/index.tsx
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/opencode/index.tsx
+  Two remocn components share this motion (spring intro, staggered fade-ups, typing from 1.6 s); they became the two layouts of one block. The motion follows the sources. The look was made generic: no product names, wordmarks, mascots, signature colours or model names; labels and accent are variables.
+
+  MIT License
+
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="agent-terminal"
+  data-composition-duration="5.34"
+  data-composition-variables='[
+    {"id": "layout", "type": "enum", "role": "style", "label": "Layout", "description": "A framed terminal window with a welcome panel, or a centered launcher with a prompt box.", "default": "panel", "options": [
+    {"value": "panel", "label": "Window panel"},
+    {"value": "launcher", "label": "Launcher"}
+  ]},
+    {"id": "app_name", "type": "string", "role": "content", "label": "App name", "description": "Generic name shown as the panel title (with a version) or the launcher wordmark.", "default": "Agent"},
+    {"id": "user_name", "type": "string", "role": "content", "label": "User name", "description": "Name in the panel greeting (panel layout).", "default": "Sam"},
+    {"id": "model_label", "type": "string", "role": "content", "label": "Model label", "description": "Muted line under the glyph (panel layout).", "default": "Model One • Pro plan"},
+    {"id": "cwd", "type": "string", "role": "content", "label": "Working directory", "description": "Muted path under the model label (panel layout).", "default": "/users/sam/code/app"},
+    {"id": "tips", "type": "string", "role": "content", "label": "Tips", "description": "Pipe-separated lines in the right-hand panel (panel layout).", "default": "/plan to outline a task|/review to check a change|ctrl+b to run in the background"},
+    {"id": "placeholder", "type": "string", "role": "content", "label": "Placeholder", "description": "Muted hint shown in the empty prompt.", "default": "Try \"edit <filepath> to ...\""},
+    {"id": "prompt", "type": "string", "role": "content", "label": "Prompt", "description": "Task that types itself into the prompt.", "default": "edit src/theme.ts to add a dark mode toggle"},
+    {"id": "agent_name", "type": "string", "role": "content", "label": "Agent mode", "description": "Highlighted mode label under the launcher prompt (launcher layout).", "default": "Build"},
+    {"id": "model_name", "type": "string", "role": "content", "label": "Model name", "description": "Model shown under the launcher prompt (launcher layout).", "default": "Model One"},
+    {"id": "provider", "type": "string", "role": "content", "label": "Provider", "description": "Muted provider name next to the model (launcher layout).", "default": "Provider Co"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the frame, title and mode label.", "default": "#2dd4bf"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Dark or light terminal.", "default": "dark", "options": [
+    {"value": "dark", "label": "Dark"},
+    {"value": "light", "label": "Light"}
+  ]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the terminal sits over your own scene.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Agent Terminal</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          background: var(--at-page, #22252d); color: var(--at-fg, #e6e6ea);
+          font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .at-clip { position: absolute; inset: 0; }
+        .at-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .at-win { background: var(--at-body); border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px -20px rgba(0,0,0,0.6); transform-origin: 50% 0; display: flex; flex-direction: column; }
+        .at-bar { height: 40px; background: var(--at-bar); display: flex; align-items: center; gap: 8px; padding-left: 16px; flex-shrink: 0; }
+        .at-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--at-dim); opacity: 0.7; }
+        .at-inner { padding: 28px; display: flex; flex-direction: column; }
+        .at-frame { position: relative; border: 1px dashed var(--at-accent); border-radius: 6px; padding: 28px 24px 24px; display: flex; }
+        .at-frame.col { flex-direction: column; }
+        .at-title { position: absolute; top: -11px; left: 22px; padding: 0 10px; background: var(--at-body); color: var(--at-accent); font-size: 16px; font-weight: 700; }
+        .at-left { width: 42%; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding-right: 24px; }
+        .col .at-left { width: 100%; padding: 0 0 20px; }
+        .at-hello { font-size: 20px; }
+        .at-glyph { align-self: center; }
+        .col .at-glyph { align-self: flex-start; }
+        .at-muted { font-size: 15px; color: var(--at-muted); line-height: 1.5; }
+        .at-right { width: 58%; border-left: 1px dashed var(--at-accent); padding-left: 24px; }
+        .col .at-right { width: 100%; border-left: 0; border-top: 1px dashed var(--at-accent); padding: 20px 0 0; }
+        .at-h { font-size: 15px; font-weight: 700; color: var(--at-accent); margin-bottom: 10px; }
+        .at-tip { font-size: 14px; margin-bottom: 6px; }
+        .at-prompt { margin-top: 32px; }
+        .at-rule { height: 1px; background: var(--at-dim); opacity: 0.4; margin-bottom: 16px; }
+        .at-line { display: flex; align-items: center; font-size: 17px; white-space: pre; overflow: hidden; }
+        .at-gt { color: var(--at-muted); }
+        .at-typed { color: var(--at-fg); }
+        .at-caret { display: inline-block; flex-shrink: 0; width: 11px; height: 22px; background: var(--at-fg); opacity: 0.55; }
+        .at-hint { color: var(--at-muted); margin-left: 6px; }
+        .at-word { font-size: 84px; font-weight: 700; letter-spacing: 0.18em; text-indent: 0.18em; color: var(--at-fg); line-height: 1; }
+        .at-box { margin-top: 40px; min-height: 150px; background: var(--at-box); border-left: 4px solid var(--at-accent); padding: 26px 28px; display: flex; flex-direction: column; justify-content: center; gap: 26px; transform-origin: 50% 0; }
+        .at-q { display: block; font-size: 22px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+        .at-q .at-hint { margin: 0; }
+        .at-q .at-caret { width: 12px; height: 24px; vertical-align: middle; }
+        .at-meta { display: flex; gap: 16px; font-size: 20px; }
+        .at-keys { margin-top: 18px; display: flex; justify-content: flex-end; gap: 22px; font-size: 18px; }
+        .at-keys b { color: var(--at-fg); margin-right: 8px; }
+      </style>
+
+      <div id="root" data-composition-id="agent-terminal" data-duration="5.34" data-fps="30">
+        <div id="at-clip" class="at-clip clip" data-start="0" data-duration="5.34" data-track-index="0">
+          <div id="at-stage" class="at-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("at-stage");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+
+            function fadeUp(f, a, b) { var p = clamp((f - a) / (b - a), 0, 1); return { o: p, y: 12 * (1 - p) }; }
+            var launcher = String(vars.layout) === "launcher";
+            var appName = str(vars.app_name, "Agent");
+            var user = str(vars.user_name, "Sam");
+            var modelLabel = txt(vars.model_label, "Model One • Pro plan");
+            var cwd = txt(vars.cwd, "/users/sam/code/app");
+            var tips = txt(vars.tips, "/plan to outline a task|/review to check a change|ctrl+b to run in the background").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+            var placeholder = txt(vars.placeholder, 'Try "edit <filepath> to ..."');
+            var prompt = str(vars.prompt, "edit src/theme.ts to add a dark mode toggle");
+            var agentName = txt(vars.agent_name, "Build"), modelName = txt(vars.model_name, "Model One"), provider = txt(vars.provider, "Provider Co");
+            var accent = colr(vars.accent_color, "#2dd4bf");
+            var light = String(vars.theme) === "light";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = light
+              ? { page: "#e9e7e2", body: "#fbfaf8", bar: "#dcd9d3", box: "#efefed", fg: "#1f1f22", muted: "#6f6f76", dim: "#a0a0a8" }
+              : { page: "#22252d", body: "#14161b", bar: "#2b2e37", box: "#1c1f26", fg: "#e6e6ea", muted: "#8a8a94", dim: "#62626c" };
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--at-" + k, T[k]); });
+            root.style.setProperty("--at-accent", accent);
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, portrait = H > W;
+            var RW = portrait ? 720 : 1280, RH = portrait ? 1280 : 720, k = Math.min(W / RW, H / RH);
+            stage.style.width = RW + "px"; stage.style.height = RH + "px";
+            stage.style.marginLeft = -RW / 2 + "px"; stage.style.marginTop = -RH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+
+            var a, b, c, typed, caret, hint, intro1, intro2, TYPE_AT = 48, CPS = launcher ? 20 : 18;
+            if (!launcher) {
+              var win = el("div", "at-win", stage);
+              win.style.width = (portrait ? 640 : 1100) + "px";
+              var bar = el("div", "at-bar", win);
+              for (var i = 0; i < 3; i++) el("div", "at-dot", bar);
+              var inner = el("div", "at-inner", win);
+              a = el("div", "at-frame" + (portrait ? " col" : ""), inner);
+              el("span", "at-title", a).textContent = appName + " v1.0";
+              var left = el("div", "at-left", a);
+              el("div", "at-hello", left).textContent = "Hi " + user + ", ready when you are.";
+              el("div", "at-glyph", left, '<svg width="84" height="84" viewBox="0 0 84 84" fill="none"><rect x="6" y="6" width="72" height="72" rx="16" stroke="' + accent + '" stroke-width="5"/><path d="M26 32l14 10-14 10" stroke="' + accent + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M46 54h14" stroke="' + accent + '" stroke-width="6" stroke-linecap="round"/></svg>');
+              var meta = el("div", "", left);
+              el("div", "at-muted", meta).textContent = modelLabel;
+              el("div", "at-muted", meta).textContent = cwd;
+              b = el("div", "at-right", a);
+              el("div", "at-h", b).textContent = "Tips";
+              tips.forEach(function (t) { el("div", "at-tip", b).textContent = t; });
+              var more = el("div", "at-tip", b); more.textContent = "... /help for more"; more.style.color = T.dim;
+              c = el("div", "at-prompt", inner);
+              el("div", "at-rule", c);
+              var line = el("div", "at-line", c);
+              el("span", "at-gt", line).textContent = "> ";
+              typed = el("span", "at-typed", line); caret = el("span", "at-caret", line); hint = el("span", "at-hint", line); hint.textContent = placeholder;
+              intro1 = win;
+            } else {
+              a = el("div", "at-word", stage); a.textContent = appName.toLowerCase();
+              b = el("div", "at-box", stage); b.style.width = (portrait ? 640 : 1000) + "px";
+              var q = el("div", "at-q", b);
+              hint = el("span", "at-hint", q); hint.textContent = placeholder;
+              typed = el("span", "at-typed", q); typed.style.color = T.muted; typed.style.color = light ? "#55555c" : "#a8a8b0";
+              caret = el("span", "at-caret", q);
+              var m = el("div", "at-meta", b);
+              var an = el("span", "", m); an.textContent = agentName; an.style.color = accent; an.style.fontWeight = "600";
+              el("span", "", m).textContent = modelName;
+              var pv = el("span", "", m); pv.textContent = provider; pv.style.color = T.muted;
+              c = el("div", "at-keys", stage); c.style.width = b.style.width;
+              c.innerHTML = '<span><b>tab</b><span style="color:' + T.muted + '">agents</span></span><span><b>ctrl+p</b><span style="color:' + T.muted + '">commands</span></span>';
+              intro1 = b;
+            }
+            var INTRO = { damping: 14, stiffness: 110, mass: 0.7 };
+            var chars = Array.from(prompt);
+            function draw(f) {
+              var s = spring(f, INTRO), introY = 28 * (1 - s), introS = 0.97 + 0.03 * s;
+              var local = f - TYPE_AT, over = (chars.length / CPS) * FPS;
+              var count = local <= 0 ? 0 : clamp(Math.floor((local / over) * chars.length), 0, chars.length);
+              var typing = count > 0 && count < chars.length;
+              typed.textContent = chars.slice(0, count).join("");
+              caret.style.opacity = typing ? 0.55 : Math.floor(f / 15) % 2 === 0 ? 0.55 : 0;
+              if (launcher) {
+                hint.style.display = count > 0 ? "none" : "inline";
+                var lf = fadeUp(f, 4, 22), bf = fadeUp(f, 12, 30), hf = fadeUp(f, 20, 38);
+                a.style.opacity = lf.o; a.style.transform = "translateY(" + (lf.y + introY * 0.4) + "px)";
+                b.style.opacity = bf.o; b.style.transform = "translateY(" + (bf.y + introY * 0.6) + "px) scale(" + introS + ")";
+                c.style.opacity = hf.o; c.style.transform = "translateY(" + hf.y + "px)";
+              } else {
+                hint.style.display = count > 0 ? "none" : "inline";
+                caret.style.marginLeft = count > 0 ? "2px" : "0";
+                var wf = clamp(introS, 0, 1);
+                intro1.style.opacity = wf; intro1.style.transform = "translateY(" + introY + "px) scale(" + introS + ")";
+                var l = fadeUp(f, 6, 22), r = fadeUp(f, 12, 30), p = fadeUp(f, 18, 36);
+                a.style.opacity = l.o; a.style.transform = "translateY(" + l.y + "px)";
+                b.style.opacity = r.o; b.style.transform = "translateY(" + r.y + "px)";
+                c.style.opacity = p.o; c.style.transform = "translateY(" + p.y + "px)";
+              }
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "5.34");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["agent-terminal"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

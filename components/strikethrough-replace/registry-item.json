@@ -1,0 +1,126 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "strikethrough-replace",
+  "type": "hyperframes:component",
+  "title": "Strikethrough Replace",
+  "description": "A strike line is drawn through the old text, then the new text fades in: an editorial correction.",
+  "tags": [
+    "text-effects",
+    "swap",
+    "strikethrough",
+    "editorial",
+    "pricing",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 4,
+  "useWhen": [
+    "Showing a problem being replaced by a solution: the strike says it is crossed out on purpose.",
+    "A pricing or comparison beat needs the old value visibly struck out before the new one appears.",
+    "You want editorial correction grammar: old thinking struck through, new thinking revealed."
+  ],
+  "avoidWhen": [
+    "There is no old text to cross out and you just need an entrance: use staggered-fade-up or soft-blur-in.",
+    "The swap should feel smooth and spatial rather than editorial: use shared-axis-y or shared-axis-z.",
+    "Both strings are long: the struck line gets hard to read."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/strikethrough-replace/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "strikethrough-replace.html",
+      "target": "compositions/components/strikethrough-replace.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "from_text",
+      "type": "string",
+      "role": "content",
+      "label": "From text",
+      "description": "Old text that gets struck out.",
+      "default": "$49/mo"
+    },
+    {
+      "id": "to_text",
+      "type": "string",
+      "role": "content",
+      "label": "To text",
+      "description": "New text that replaces it.",
+      "default": "Free"
+    },
+    {
+      "id": "line_color",
+      "type": "color",
+      "role": "style",
+      "label": "Line color",
+      "description": "Color of the strike line.",
+      "default": "#ff5e3a"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 96,
+      "min": 12,
+      "max": 220,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

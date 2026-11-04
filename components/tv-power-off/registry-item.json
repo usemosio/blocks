@@ -1,0 +1,143 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "tv-power-off",
+  "type": "hyperframes:component",
+  "title": "TV Power Off",
+  "description": "Ends a scene like a switched-off tube: the picture squashes into a bright horizontal line, the line pinches to a phosphor dot, the dot fades and the frame is dead black. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video. Plays once: 25 frames of picture, an 18-frame collapse, then black.",
+  "tags": [
+    "effect",
+    "shader",
+    "crt",
+    "power-off",
+    "retro",
+    "ending",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "effects",
+  "duration": 2.0667,
+  "useWhen": [
+    "A scene should end like a device being switched off rather than fading out.",
+    "The video is about something that lives on a screen (a terminal, a dashboard, a retro build) and powering it down is the punctuation.",
+    "A beat needs a hard end: everything after the collapse is black."
+  ],
+  "avoidWhen": [
+    "The tube look should hold for the whole scene instead of ending it: use crt-screen.",
+    "Both scenes should be visible while the change happens: reach for a transition such as glitch-cut.",
+    "The frame has to stay transparent once the scene is gone: what this leaves behind is opaque black."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/tv-power-off/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "tv-power-off.html",
+      "target": "compositions/components/tv-power-off.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "delay",
+      "type": "number",
+      "role": "style",
+      "label": "Delay",
+      "description": "Frames of untouched picture before the power-off starts (30 per second).",
+      "default": 25,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "role": "style",
+      "label": "Length",
+      "description": "Frames the collapse takes.",
+      "default": 18,
+      "min": 8,
+      "max": 30,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "gain",
+      "type": "number",
+      "role": "style",
+      "label": "Gain",
+      "description": "How much the squashed picture brightens as it collapses.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "afterglow",
+      "type": "number",
+      "role": "style",
+      "label": "Afterglow",
+      "description": "Size of the glowing line and dot.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "phosphor",
+      "type": "color",
+      "role": "style",
+      "label": "Phosphor",
+      "description": "Colour of the glow.",
+      "default": "#d8ecff"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. The collapsed line is a pixel thin at the end; lower renders faster but softens it.",
+      "default": 1,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "checkAt": [
+    0.4,
+    0.95,
+    1.1,
+    1.3,
+    1.6
+  ],
+  "webgl": true
+}

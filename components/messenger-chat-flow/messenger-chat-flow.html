@@ -1,0 +1,344 @@
+<!doctype html>
+<!--
+  Messenger Chat Flow
+
+  A scripted messaging conversation with delivery details: timestamps and read ticks or a delivered receipt, a typing status in the header, a send button that morphs from mic to send, typing dots and reactions that pop onto bubbles.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-ui/imessage-chat-flow/index.tsx
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-ui/telegram-chat-flow/index.tsx
+  Both remocn components run the same schedule as chat-flow (type, send, typing, reveal, react); they became the two styles of one block, adding the delivery details chat-flow does not show. The motion follows the sources. The look was made generic: no product names, bubble tails, signature colours (no blue and green pair), icons or fonts; the contact, messages, accent and theme are variables.
+
+  MIT License
+
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="messenger-chat-flow"
+  data-composition-duration="12"
+  data-composition-variables='[
+    {"id": "messages", "type": "string", "role": "content", "label": "Messages", "description": "JSON array of {\"from\":\"me\"|\"them\",\"text\",\"reaction\",\"time\"}; reaction and time are optional. Three short messages fit the 12 second default; lengthen the clip for more.", "default": "[
+    {\"from\": \"me\", \"text\": \"Hey — ready for the demo?\", \"time\": \"9:40\"},
+    {\"from\": \"them\", \"text\": \"Yep, pushing it live now\", \"reaction\": \"🔥\", \"time\": \"9:41\"},
+    {\"from\": \"me\", \"text\": \"Perfect, sending the link over\", \"reaction\": \"👍\", \"time\": \"9:41\"}
+  ]"},
+    {"id": "contact_name", "type": "string", "role": "content", "label": "Contact name", "description": "Name in the header and on the avatar next to replies. Leave empty to show \"Chat\".", "default": "Sam"},
+    {"id": "style", "type": "enum", "role": "style", "label": "Style", "description": "Ticks: timestamps and read ticks, typing status in the header, mic-to-send button. Receipt: centered header, a Delivered line under the last message, a field with an inline send button.", "default": "ticks", "options": [
+    {"value": "ticks", "label": "Timestamps and ticks"},
+    {"value": "receipt", "label": "Delivered receipt"}
+  ]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of outgoing bubbles, the send button and the online status.", "default": "#7c5cff"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark neutral theme.", "default": "light", "options": [
+    {"value": "light", "label": "Light"},
+    {"value": "dark", "label": "Dark"}
+  ]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the conversation sits over your own scene.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Messenger Chat Flow</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          background: var(--mf-bg, #eceef2); color: var(--mf-fg, #14171c);
+          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .mf-clip { position: absolute; inset: 0; }
+        .mf-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; display: flex; flex-direction: column; }
+        .mf-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--mf-bar); box-shadow: 0 1px 0 var(--mf-line); }
+        .mf-head.center { justify-content: space-between; padding: 10px 12px; }
+        .mf-av { flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; background: var(--mf-accent); }
+        .mf-body { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+        .mf-stack { display: flex; flex-direction: column; justify-content: flex-end; min-height: 100%; }
+        .mf-row { display: flex; flex-direction: column; width: 100%; }
+        .mf-line { display: flex; align-items: flex-end; width: 100%; }
+        .mf-bub { position: relative; max-width: 74%; font-size: 16px; line-height: 1.32; border-radius: 18px; }
+        .mf-bub.out { background: var(--mf-accent); color: #fff; }
+        .mf-bub.in { background: var(--mf-in); color: var(--mf-in-fg); }
+        .mf-txt { word-break: break-word; overflow-wrap: break-word; }
+        .mf-meta { float: right; margin: 6px 0 -3px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 3px; opacity: 0.8; }
+        .mf-react { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--mf-in); display: flex; align-items: center; justify-content: center; font-size: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+        .mf-dots { display: inline-flex; align-items: center; gap: 5px; height: 18px; }
+        .mf-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--mf-muted); display: block; }
+        .mf-comp { display: flex; align-items: flex-end; gap: 8px; background: var(--mf-bar); }
+        .mf-field { flex: 1; display: flex; align-items: center; gap: 8px; }
+        .mf-input { flex: 1; display: flex; align-items: center; color: var(--mf-fg); }
+        .mf-caret { display: inline-block; width: 2px; height: 18px; border-radius: 1px; background: var(--mf-accent); }
+        .mf-send { flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .mf-send > * { position: absolute; display: flex; }
+        .mf-pill { align-self: center; padding: 3px 11px; border-radius: 14px; font-size: 12px; font-weight: 500; background: var(--mf-pill); color: #fff; margin-bottom: 8px; }
+      </style>
+
+      <div id="root" data-composition-id="messenger-chat-flow" data-duration="12" data-fps="30">
+        <div id="mf-clip" class="mf-clip clip" data-start="0" data-duration="12" data-track-index="0">
+          <div id="mf-stage" class="mf-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("mf-stage");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0; if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  t = (lo + hi) / 2;
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            var EASE_OUT = bez(0.22, 1, 0.36, 1), EASE_IN = bez(0.64, 0, 0.78, 0);
+            // Remotion-style interpolate on two points, clamped, with an easing.
+            function interp(x, a, b, from, to, ease) { var p = clamp((x - a) / (b - a), 0, 1); if (ease) p = ease(p); return from + (to - from) * p; }
+
+            function jsonOr(v, d) { if (Array.isArray(v)) return v; if (typeof v === "string" && v.trim()) { try { var j = JSON.parse(v); if (Array.isArray(j)) return j; } catch (e) {} } return d; }
+            var msgs = jsonOr(vars.messages, []).filter(function (m) { return m && (m.from === "me" || m.from === "them") && typeof m.text === "string"; });
+            if (!msgs.length) msgs = [{ from: "me", text: "Hey — ready for the demo?", time: "9:40" }, { from: "them", text: "Yep, pushing it live now", reaction: "🔥", time: "9:41" }, { from: "me", text: "Perfect, sending the link over", reaction: "👍", time: "9:41" }];
+            var contact = txt(vars.contact_name, "Sam").trim();
+            var receipt = String(vars.style) === "receipt";
+            var accent = colr(vars.accent_color, "#7c5cff");
+            var dark = String(vars.theme) === "dark";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = dark
+              ? { bg: "#0d0f13", bar: "#16181d", line: "rgba(255,255,255,0.07)", fg: "#ececef", muted: "#8b8f98", in: "#22252c", "in-fg": "#ececef", pill: "rgba(255,255,255,0.18)", field: "#22252c", border: "#363a42" }
+              : { bg: "#eceef2", bar: "#ffffff", line: "rgba(0,0,0,0.07)", fg: "#14171c", muted: "#8a93a0", in: "#ffffff", "in-fg": "#14171c", pill: "rgba(0,0,0,0.2)", field: "#f0f2f5", border: "#d5d9df" };
+            if (receipt) { T["bg"] = dark ? "#0d0f13" : "#ffffff"; T["in"] = dark ? "#2a2d34" : "#e9ebef"; T["bar"] = dark ? "#0d0f13" : "#ffffff"; }
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--mf-" + k, T[k]); });
+            root.style.setProperty("--mf-accent", accent);
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, portrait = H > W;
+            var CW = 460, k, CH;
+            if (portrait) { k = W / CW; CH = H / k; } else { CH = 720; k = H / CH; }
+            stage.style.width = CW + "px"; stage.style.height = CH + "px";
+            stage.style.marginLeft = -CW / 2 + "px"; stage.style.marginTop = -CH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+
+            // Schedule: the same timing as chat-flow (frames at 30 fps).
+            var LEAD_IN = 12, FPC = 2.2, MIN_TYPE = 18, MAX_TYPE = 86, SEND_GAP = 10, REVEAL = 14, REACT_DELAY = 8, REACT_DUR = 14, MSG_GAP = 18, TYPING_MIN = 34, TYPING_MAX = 70, PRESS = 7;
+            var items = [], cur = LEAD_IN;
+            msgs.forEach(function (m, index) {
+              var hasR = typeof m.reaction === "string" && m.reaction !== "";
+              var it = { index: index, out: m.from === "me", text: m.text, time: typeof m.time === "string" ? m.time : "", reaction: hasR ? m.reaction : "" };
+              if (it.out) {
+                it.typeStart = cur; it.sendAt = it.typeStart + clamp(Math.round(m.text.length * FPC), MIN_TYPE, MAX_TYPE) + SEND_GAP;
+                it.revealAt = it.sendAt; it.presenceStart = it.sendAt - 2;
+              } else {
+                it.typingStart = cur; it.revealAt = cur + clamp(Math.round(m.text.length * FPC), TYPING_MIN, TYPING_MAX);
+                it.presenceStart = receipt ? cur : it.revealAt;
+              }
+              if (hasR) it.reactAt = it.revealAt + REVEAL + REACT_DELAY;
+              cur = it.revealAt + REVEAL + (hasR ? REACT_DELAY + REACT_DUR : 0) + MSG_GAP;
+              items.push(it);
+            });
+            var lastMe = -1; items.forEach(function (it) { if (it.out) lastMe = it.index; });
+            var deliveredIdx = lastMe === items.length - 1 ? lastMe : -1;
+
+            function svg(p, size, color, sw) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="' + (sw || 2) + '" stroke-linecap="round" stroke-linejoin="round">' + p + "</svg>"; }
+            var ICON = {
+              mic: '<rect x="9" y="2" width="6" height="13" rx="3"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v3"/>',
+              up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+              smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>',
+              clip: '<path d="M21 11l-8.6 8.6a5 5 0 01-7-7L14 4a3.5 3.5 0 015 5l-8.6 8.6a2 2 0 01-2.8-2.8L15 7"/>',
+              phone: '<path d="M5 3h3l2 5-2.5 1.5a11 11 0 006 6L15 13l5 2v3a2 2 0 01-2 2A16 16 0 013 5a2 2 0 012-2z"/>',
+              more: '<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>',
+              plus: '<path d="M12 5v14M5 12h14"/>',
+              back: '<path d="M15 5l-7 7 7 7"/>',
+              info: '<circle cx="12" cy="12" r="10"/><path d="M12 11v5M12 8h.01"/>',
+              check2: '<path d="M18 6L7 17l-5-5M22 10l-7.5 7.5L13 16"/>'
+            };
+            var initial = Array.from(contact || "C")[0].toUpperCase();
+            function av(parent, size) { var a = el("div", "mf-av", parent); a.style.width = a.style.height = size + "px"; a.style.fontSize = size * 0.42 + "px"; a.textContent = initial; return a; }
+
+            // Header
+            var head = el("div", "mf-head" + (receipt ? " center" : ""), stage), status = null;
+            if (!receipt) {
+              av(head, 38);
+              var hc = el("div", "", head); hc.style.cssText = "display:flex;flex-direction:column;flex:1";
+              var hn = el("span", "", hc); hn.textContent = contact || "Chat"; hn.style.cssText = "font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-0.01em";
+              status = el("span", "", hc); status.style.cssText = "font-size:13px;line-height:1.15;color:" + accent;
+              var ic = el("div", "", head); ic.style.cssText = "display:flex;gap:18px;align-items:center";
+              el("span", "", ic, svg(ICON.phone, 22, T.muted)); el("span", "", ic, svg(ICON.more, 22, T.muted));
+            } else {
+              el("span", "", head, svg(ICON.back, 28, accent, 2.25));
+              var mid = el("div", "", head); mid.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:2px;flex:1";
+              av(mid, 30); var mn = el("span", "", mid); mn.textContent = contact || "Chat"; mn.style.cssText = "font-size:12px;font-weight:600";
+              el("span", "", head, svg(ICON.info, 24, accent));
+            }
+            var body = el("div", "mf-body", stage);
+            if (!receipt) body.style.background = T.bg;
+            var stack = el("div", "mf-stack", body);
+            stack.style.gap = (receipt ? 18 : 6) + "px"; stack.style.padding = receipt ? "16px 14px 12px" : "16px 12px 14px";
+            if (!receipt) { var pill = el("span", "mf-pill", stack); pill.textContent = "Today"; }
+
+            // Rows
+            var rows = items.map(function (it) {
+              var row = el("div", "mf-row", stack); row.style.alignItems = it.out ? "flex-end" : "flex-start"; row.style.gap = "2px";
+              row.style.transformOrigin = it.out ? "bottom right" : "bottom left";
+              var line = el("div", "mf-line", row); line.style.justifyContent = it.out ? "flex-end" : "flex-start"; line.style.gap = "7px";
+              if (!it.out && receipt) av(line, 28);
+              var typ = null;
+              if (!it.out && receipt) {
+                typ = el("div", "mf-bub in", line); typ.style.padding = "11px 14px";
+                var dw = el("span", "mf-dots", typ); for (var i = 0; i < 3; i++) el("i", "", dw);
+                typ.dots = dw.children;
+              }
+              var real = el("div", "mf-bub " + (it.out ? "out" : "in"), line);
+              real.style.padding = receipt ? "7px 13px 8px" : "7px 11px 6px";
+              real.style.borderBottomRightRadius = it.out ? "6px" : "18px"; real.style.borderBottomLeftRadius = it.out ? "18px" : "6px";
+              var t = el("span", "mf-txt", real); t.textContent = it.text;
+              if (!receipt && (it.time || it.out)) {
+                var mt = el("span", "mf-meta", real); mt.style.color = it.out ? "rgba(255,255,255,0.9)" : T.muted;
+                if (it.time) el("span", "", mt).textContent = it.time;
+                if (it.out) el("span", "", mt, svg(ICON.check2, 15, "#fff", 2));
+              }
+              var rc = null;
+              if (it.reaction) {
+                rc = el("div", "mf-react", real); rc.textContent = it.reaction;
+                if (receipt) { rc.style.top = "-16px"; if (it.out) { rc.style.left = "-14px"; rc.style.transformOrigin = "bottom left"; } else { rc.style.right = "-14px"; rc.style.transformOrigin = "bottom right"; } }
+                else { rc.style.bottom = "-17px"; rc.style[it.out ? "right" : "left"] = "10px"; rc.style.transformOrigin = "top center"; row.style.paddingBottom = "10px"; }
+              }
+              var dl = null;
+              if (receipt && it.index === deliveredIdx) { dl = el("span", "", row); dl.textContent = "Delivered"; dl.style.cssText = "font-size:11px;color:" + T.muted + ";padding-right:4px"; }
+              return { it: it, row: row, typ: typ, real: real, rc: rc, dl: dl };
+            });
+
+            // Composer
+            var comp = el("div", "mf-comp", stage);
+            var sendBtn, inputTxt, caret, hintEl;
+            if (!receipt) {
+              comp.style.padding = "8px 10px 12px"; comp.style.boxShadow = "0 -1px 0 " + T.line;
+              var fld = el("div", "mf-field", comp); fld.style.cssText += ";min-height:44px;padding:0 12px;border-radius:22px;background:" + T.field;
+              el("span", "", fld, svg(ICON.smile, 22, T.muted));
+              var inp = el("div", "mf-input", fld); inp.style.fontSize = "15px";
+              inputTxt = el("span", "", inp); inputTxt.style.cssText = "white-space:pre-wrap;word-break:break-word";
+              caret = el("span", "mf-caret", inp);
+              el("span", "", fld, svg(ICON.clip, 22, T.muted));
+              sendBtn = el("div", "mf-send", comp); sendBtn.style.cssText += ";width:46px;height:46px;background:" + accent;
+              var mi = el("span", "", sendBtn, svg(ICON.mic, 22, "#fff")), up = el("span", "", sendBtn, svg(ICON.up, 22, "#fff", 2.5));
+              sendBtn.mic = mi; sendBtn.up = up;
+            } else {
+              comp.style.padding = "8px 12px 12px";
+              var pl = el("div", "", comp, svg(ICON.plus, 22, T.fg)); pl.style.cssText = "width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:" + T.field + ";flex-shrink:0";
+              var fld2 = el("div", "mf-field", comp); fld2.style.cssText += ";gap:6px;min-height:36px;padding:0 6px 0 14px;border-radius:18px;border:1px solid " + T.border;
+              var inp2 = el("div", "mf-input", fld2); inp2.style.fontSize = "16px";
+              inputTxt = el("span", "", inp2); inputTxt.style.cssText = "white-space:pre-wrap;word-break:break-word";
+              caret = el("span", "mf-caret", inp2);
+              sendBtn = el("div", "mf-send", fld2); sendBtn.style.cssText += ";width:28px;height:28px";
+              el("span", "", sendBtn, svg(ICON.up, 20, "#fff", 2.75));
+            }
+            var placeholder = receipt ? "Message" : "Message";
+            var hintSpan = el("span", "", inputTxt.parentNode); hintSpan.textContent = placeholder; hintSpan.style.color = T.muted;
+            inputTxt.parentNode.insertBefore(hintSpan, inputTxt);
+
+            function draw(f) {
+              // composer text and typing status
+              var text = "", typing = false, active = null;
+              items.forEach(function (it) { if (it.out && f >= it.typeStart && f < it.sendAt) active = it; });
+              if (active) {
+                var dur = Math.max(active.sendAt - SEND_GAP - active.typeStart, 1);
+                var p = clamp((f - active.typeStart) / dur, 0, 1);
+                text = Array.from(active.text).slice(0, Math.floor(p * Array.from(active.text).length)).join("");
+                typing = true;
+              }
+              var sendActive = text.length > 0;
+              inputTxt.textContent = text; hintSpan.style.display = sendActive ? "none" : "inline";
+              caret.style.display = typing ? "inline-block" : "none"; caret.style.marginLeft = text.length ? "2px" : "0";
+              caret.style.opacity = Math.floor(f / 15) % 2 === 0 ? 1 : 0.15;
+              var best = 0; items.forEach(function (it) { if (it.sendAt !== undefined) { var d = Math.abs(f - it.sendAt); if (d <= PRESS) best = Math.max(best, 1 - d / PRESS); } });
+              var ss = 1 - 0.16 * best;
+              if (receipt) { sendBtn.style.background = sendActive ? accent : (dark ? "#4a4e57" : "#c6c9d0"); sendBtn.style.transform = "scale(" + ss + ")"; }
+              else { sendBtn.mic.style.opacity = sendActive ? 0 : 1; sendBtn.up.style.opacity = sendActive ? 1 : 0; sendBtn.style.transform = "scale(" + ss + ")"; }
+              if (status) {
+                var themTyping = items.some(function (it) { return !it.out && f >= it.typingStart && f < it.revealAt; });
+                status.textContent = themTyping ? "typing…" : "online"; status.style.fontStyle = themTyping ? "italic" : "normal";
+              }
+              rows.forEach(function (r) {
+                var it = r.it;
+                if (f < it.presenceStart) { r.row.style.display = "none"; return; }
+                r.row.style.display = "flex";
+                var showTyping = !!r.typ && f < it.revealAt;
+                var enter = spring(f - (showTyping ? it.typingStart : it.revealAt), { damping: 16, stiffness: 200, mass: 0.7 });
+                r.row.style.opacity = clamp(enter, 0, 1);
+                r.row.style.transform = "translateY(" + 10 * (1 - enter) + "px) scale(" + (0.92 + 0.08 * enter) + ")";
+                if (r.typ) {
+                  r.typ.style.display = showTyping ? "block" : "none"; r.real.style.display = showTyping ? "none" : "block";
+                  if (showTyping) for (var i = 0; i < 3; i++) { var ph = f / 30 * 6 - i * 0.9; r.typ.dots[i].style.opacity = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(ph * 1.5)); }
+                }
+                if (r.rc) {
+                  var rs = it.reactAt === undefined ? 0 : spring(f - it.reactAt, { damping: 11, stiffness: 220, mass: 0.6 });
+                  r.rc.style.opacity = it.reactAt === undefined ? 0 : interp(f, it.reactAt, it.reactAt + 5, 0, 1);
+                  r.rc.style.transform = "scale(" + Math.max(0, rs) + ")";
+                }
+                if (r.dl) r.dl.style.display = !showTyping && f > it.revealAt + REVEAL ? "inline" : "none";
+              });
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "12");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["messenger-chat-flow"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

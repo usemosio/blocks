@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "kinetic-center-build",
+  "type": "hyperframes:component",
+  "title": "Kinetic Center Build",
+  "description": "Words enter from the right one at a time and push the line left so the sentence builds around the centre.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "words",
+    "push",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "checkAt": [
+    0.2,
+    0.5,
+    0.9,
+    1.8
+  ],
+  "useWhen": [
+    "A short sentence should assemble word by word, each new word nudging the earlier ones sideways.",
+    "A title card for a confident statement that builds toward the centre."
+  ],
+  "avoidWhen": [
+    "The sentence must stay fixed while words appear: use a per-word fade.",
+    "Text enters from below or above: use line-by-line-slide or bottom-up-letters."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/kinetic-center-build/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "kinetic-center-build.html",
+      "target": "compositions/components/kinetic-center-build.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Sentence built word by word.",
+      "default": "Words push left."
+    },
+    {
+      "id": "entry_offset",
+      "type": "number",
+      "role": "motion",
+      "label": "Entry offset",
+      "description": "How far right of its place each new word starts.",
+      "default": 88,
+      "min": 0,
+      "max": 400,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

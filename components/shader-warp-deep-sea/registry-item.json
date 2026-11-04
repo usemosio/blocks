@@ -1,0 +1,208 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-warp-deep-sea",
+  "type": "hyperframes:component",
+  "title": "Shader Warp Deep Sea",
+  "description": "Diagonal teal bands rippling through midnight blue. A WebGL shader backdrop; the deep-sea preset of shader-warp.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "gradient",
+    "loop",
+    "preset",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5.0,
+  "useWhen": [
+    "A rhythmic, banded background with steady directional motion.",
+    "Foreground is light text or a bright product shot that needs a dark field around it.",
+    "You want a finished Warp look without tuning the palette and parameters yourself."
+  ],
+  "avoidWhen": [
+    "The video must use your brand colors: start from `shader-warp` and set `colors`.",
+    "You want a lighter, contrasting mood from the same shader: use `shader-warp-sunset`."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-warp-deep-sea/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-warp-deep-sea.html",
+      "target": "compositions/components/shader-warp-deep-sea.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 10 colors, comma separated, blended along the folds.",
+      "default": "#020617, #0f3d5e, #1fb5a5"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast the folds move. 0 holds still.",
+      "default": 4,
+      "min": 0,
+      "max": 8,
+      "step": 0.05
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Pattern",
+      "description": "The pattern that gets warped.",
+      "default": "stripes",
+      "options": [
+        {
+          "value": "checks",
+          "label": "Checks"
+        },
+        {
+          "value": "stripes",
+          "label": "Stripes"
+        },
+        {
+          "value": "edge",
+          "label": "Edge"
+        }
+      ]
+    },
+    {
+      "id": "proportion",
+      "type": "number",
+      "role": "style",
+      "label": "Proportion",
+      "description": "Balance between the colors in the pattern.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How softly the colors blend. 0 gives hard bands.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Distortion",
+      "description": "How far noise pushes the pattern around.",
+      "default": 0.15,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "swirl",
+      "type": "number",
+      "role": "style",
+      "label": "Swirl",
+      "description": "How strongly the pattern is folded into swirls.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "swirl_iterations",
+      "type": "number",
+      "role": "style",
+      "label": "Swirl iterations",
+      "description": "How many times the swirl is applied. More makes finer folds.",
+      "default": 4,
+      "min": 1,
+      "max": 20,
+      "step": 1
+    },
+    {
+      "id": "shape_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Pattern scale",
+      "description": "Size of the pattern cells or stripes.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole pattern.",
+      "default": 60,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the pattern in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "offset_x",
+      "type": "number",
+      "role": "style",
+      "label": "Offset X",
+      "description": "Moves the pattern sideways, in frame widths.",
+      "default": 0,
+      "min": -2,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "offset_y",
+      "type": "number",
+      "role": "style",
+      "label": "Offset Y",
+      "description": "Moves the pattern up or down, in frame heights.",
+      "default": 0,
+      "min": -2,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster but softens fine detail.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

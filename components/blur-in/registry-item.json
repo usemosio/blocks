@@ -1,0 +1,117 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "blur-in",
+  "type": "hyperframes:component",
+  "title": "Blur In",
+  "description": "A single element is revealed with blur, opacity and a directional offset, settling in place: a premium entrance for a card, image or composed scene.",
+  "tags": [
+    "ui",
+    "blur",
+    "reveal",
+    "entrance",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "ui",
+  "duration": 4,
+  "checkAt": [
+    0.2,
+    0.7,
+    1.0,
+    3.5
+  ],
+  "useWhen": [
+    "Revealing a card, image or composed scene with a premium blur entrance.",
+    "Staggering several elements into view by revealing each one at a different time."
+  ],
+  "avoidWhen": [
+    "You are animating a text-only line: use a text reveal such as soft-blur-in or staggered-fade-up.",
+    "You need a full-opacity slide with no blur: use a translation only."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/blur-in/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "blur-in.html",
+      "target": "compositions/components/blur-in.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Text on the revealed card.",
+      "default": "Blur In"
+    },
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Starting blur radius in design pixels.",
+      "default": 8,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Distance",
+      "description": "How far the card travels into place, in design pixels. 0 reveals in place.",
+      "default": 12,
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Direction",
+      "description": "Direction the card travels into place: up starts below, down starts above, left starts to the right, right starts to the left.",
+      "default": "up",
+      "options": [
+        {
+          "value": "up",
+          "label": "Up"
+        },
+        {
+          "value": "down",
+          "label": "Down"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

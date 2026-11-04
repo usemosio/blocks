@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "camera-lens",
+  "type": "hyperframes:component",
+  "title": "Camera Lens",
+  "description": "A scene seen through a lens instead of rendered flat: softness growing toward the corners, bright text blooming, red and blue fringing at the edges, a gentle barrel bend and a falloff in the light. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video. Subtle enough to leave running under a whole shot.",
+  "tags": [
+    "filter",
+    "shader",
+    "lens",
+    "camera",
+    "bloom",
+    "premium",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3.0,
+  "useWhen": [
+    "A screencast looks sterile and should read as filmed: the cheapest way to stop a recording looking like a render.",
+    "You want a treatment subtle enough to leave running under a whole demo."
+  ],
+  "avoidWhen": [
+    "The story is a tube being watched: use crt-screen.",
+    "The story is a worn signal: use vhs-filter.",
+    "The story is the recorder the shot was written to: use security-cam."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/camera-lens/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "camera-lens.html",
+      "target": "compositions/components/camera-lens.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How soft the corners get.",
+      "default": 0.5,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "bloom",
+      "type": "number",
+      "role": "style",
+      "label": "Bloom",
+      "description": "Glow around bright areas.",
+      "default": 0.5,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "aberration",
+      "type": "number",
+      "role": "style",
+      "label": "Aberration",
+      "description": "Red and blue fringing toward the edges.",
+      "default": 0.5,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "vignette",
+      "type": "number",
+      "role": "style",
+      "label": "Vignette",
+      "description": "Falloff of the light toward the corners.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Distortion",
+      "description": "Barrel bend of the lens.",
+      "default": 0.05,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. The lens look is soft; 0.75 matches 1 in the stills.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "static": true,
+  "webgl": true
+}

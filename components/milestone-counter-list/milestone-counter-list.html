@@ -1,0 +1,268 @@
+<!doctype html>
+<!--
+  Milestone Counter List
+
+  A follower or fan milestone: a rolling odometer counts up to a total while a list of named entries flies past and settles on the last one, with an accent star and underline.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/github-stars/index.tsx
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/number-wheel/index.tsx
+  The motion follows the sources (elastic list scroll, a monotonic odometer ramp, last row highlighted). The look was made generic: no product name, avatars or lettering; entries are names with initial discs, and the label, subject line, accent and total are variables.
+
+  MIT License
+
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="milestone-counter-list"
+  data-composition-duration="4"
+  data-composition-variables='[
+    {"id": "subject", "type": "string", "role": "content", "label": "Subject", "description": "Small line under the counter (name of the project, page or account).", "default": "Open Studio"},
+    {"id": "total", "type": "number", "role": "content", "label": "Total", "description": "Number the odometer counts up to.", "default": 24813, "min": 0, "max": 999999999, "step": 1},
+    {"id": "entries", "type": "string", "role": "content", "label": "Entries", "description": "Semicolon-separated rows, each \"Name|Date text\" (date optional). Shown in order; the last row is highlighted and numbered with its position.", "default": "Ada Rowe|Mar 4, 2021; Ben Ito|Jun 12, 2021; Chloe Park|Sep 21, 2021; Dev Rao|Dec 8, 2021; Eli Novak|Mar 17, 2022; Fay Lund|Jun 29, 2022; Gus Okoye|Sep 14, 2022; Hana Sato|Dec 23, 2022; Ivo Marin|Mar 9, 2023; June Wells|Jul 19, 2023; Kai Moreau|Nov 2, 2023; Lena Voss|Feb 15, 2024; Milo Duarte|Mar 4, 2021; Nia Hart|Jun 12, 2021; Omar Silva|Sep 21, 2021; Pia Berg|Dec 8, 2021; Quin Alder|Mar 17, 2022; Rhea Cole|Jun 29, 2022; Sol Varga|Sep 14, 2022; Tess Quinn|Dec 23, 2022; Uma Pillai|Mar 9, 2023; Vik Larsen|Jul 19, 2023; Wren Cho|Nov 2, 2023; Zoe Ferrer|Feb 15, 2024"},
+    {"id": "orientation", "type": "enum", "role": "style", "label": "Orientation", "description": "Counter beside the list, or above it. Auto follows the host&#39;s shape.", "default": "auto", "options": [
+    {"value": "auto", "label": "Auto"},
+    {"value": "horizontal", "label": "Horizontal"},
+    {"value": "vertical", "label": "Vertical"}
+  ]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the star, underline and highlighted row.", "default": "#f5a300"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark neutral theme.", "default": "light", "options": [
+    {"value": "light", "label": "Light"},
+    {"value": "dark", "label": "Dark"}
+  ]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the card sits over your own scene.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Milestone Counter List</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          background: var(--mc-bg, #fff); color: var(--mc-fg, #171717);
+          font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .mc-clip { position: absolute; inset: 0; }
+        .mc-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; }
+        .mc-zone { position: absolute; display: flex; flex-direction: column; }
+        .mc-odo { display: flex; align-items: baseline; font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 1; color: var(--mc-fg); }
+        .mc-odo > span { color: inherit; }
+        .mc-line { height: 4px; border-radius: 2px; background: var(--mc-accent); }
+        .mc-subj { display: flex; align-items: center; gap: 12px; color: var(--mc-muted); font-weight: 500; }
+        .mc-disc { border-radius: 50%; border: 1px solid var(--mc-border); background: var(--mc-subtle); color: var(--mc-muted); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
+        .mc-subj span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mc-view { position: absolute; overflow: hidden; border: 1px solid var(--mc-border); background: var(--mc-bg); }
+        .mc-fade { position: absolute; left: 0; right: 0; }
+        .mc-row { position: relative; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--mc-border); }
+        .mc-row.last { border-bottom: 0; }
+        .mc-hi { position: absolute; inset: 0; background: var(--mc-subtle); opacity: 0; }
+        .mc-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--mc-accent); opacity: 0; }
+        .mc-main { position: relative; display: flex; align-items: center; width: 100%; }
+        .mc-txt { margin-left: 20px; min-width: 0; flex: 1; }
+        .mc-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .mc-date { font-size: 18px; color: var(--mc-muted); line-height: 1.3; }
+        .mc-rank { display: flex; align-items: center; gap: 8px; color: var(--mc-muted); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 18px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+      </style>
+
+      <div id="root" data-composition-id="milestone-counter-list" data-duration="4" data-fps="30">
+        <div id="mc-clip" class="mc-clip clip" data-start="0" data-duration="4" data-track-index="0">
+          <div id="mc-stage" class="mc-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("mc-stage");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0; if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  t = (lo + hi) / 2;
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            var EASE_OUT = bez(0.22, 1, 0.36, 1), EASE_IN = bez(0.64, 0, 0.78, 0);
+            // Remotion-style interpolate on two points, clamped, with an easing.
+            function interp(x, a, b, from, to, ease) { var p = clamp((x - a) / (b - a), 0, 1); if (ease) p = ease(p); return from + (to - from) * p; }
+
+            // Odometer: every place is a wheel that rolls over the last tenth of its cycle with an overdamped spring.
+            var SPR = { damping: 200, stiffness: 100, mass: 1 };
+            var SPR_END = spring(30, SPR);
+            function springEased(t) { return spring(t * 30, SPR) / SPR_END; }
+            function wheelAt(cur, place) {
+              if (cur <= 0) return 0;
+              if (place === 0) return cur % 10;
+              var digit = Math.floor(cur / Math.pow(10, place)) % 10;
+              var v = cur / Math.pow(10, place), fr = v - Math.floor(v);
+              if (fr <= 0.9) return digit;
+              return digit + springEased((fr - 0.9) / 0.1);
+            }
+            function placeOpacity(cur, place) { return place === 0 ? 1 : clamp((cur - Math.pow(10, place) * 0.9) / (Math.pow(10, place) * 0.1), 0, 1); }
+            function odometerHTML(cur, fontSize) {
+              var n = Math.max(0, Math.round(cur)), tpl = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              var cell = fontSize * 1.1, out = [], place = 0;
+              for (var i = tpl.length - 1; i >= 0; i--) {
+                var ch = tpl[i];
+                if (ch === ",") out.unshift('<span style="display:inline-block;width:0.32em;font-size:0.85em;text-align:center;opacity:' + placeOpacity(cur, place) + '">,</span>');
+                else {
+                  var w = wheelAt(cur, place), col = "";
+                  for (var d = 0; d <= 10; d++) col += '<span style="height:' + cell + "px;line-height:" + cell + 'px">' + (d % 10) + "</span>";
+                  out.unshift('<span style="display:inline-block;overflow:hidden;height:' + cell + 'px;width:0.62em;vertical-align:top;text-align:center;opacity:' + placeOpacity(cur, place) + '"><span style="display:flex;flex-direction:column;transform:translateY(' + -w * cell + 'px)">' + col + "</span></span>");
+                  place++;
+                }
+              }
+              return out.join("");
+            }
+
+            var STAR = "M13.7276 3.44418L15.4874 6.99288C15.7274 7.48687 16.3673 7.9607 16.9073 8.05143L20.0969 8.58575C22.1367 8.92853 22.6167 10.4206 21.1468 11.8925L18.6671 14.3927C18.2471 14.8161 18.0172 15.6327 18.1471 16.2175L18.8571 19.3125C19.417 21.7623 18.1271 22.71 15.9774 21.4296L12.9877 19.6452C12.4478 19.3226 11.5579 19.3226 11.0079 19.6452L8.01827 21.4296C5.8785 22.71 4.57865 21.7522 5.13859 19.3125L5.84851 16.2175C5.97849 15.6327 5.74852 14.8161 5.32856 14.3927L2.84884 11.8925C1.389 10.4206 1.85895 8.92853 3.89872 8.58575L7.08837 8.05143C7.61831 7.9607 8.25824 7.48687 8.49821 6.99288L10.258 3.44418C11.2179 1.51861 12.7777 1.51861 13.7276 3.44418Z";
+            function starSvg(size, fill) { return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="' + fill + '" stroke="' + fill + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="' + STAR + '"/></svg>'; }
+            var subject = txt(vars.subject, "Open Studio").trim();
+            var total = num(vars.total, 24813, 0, 999999999);
+            var raw = txt(vars.entries, "").split(";").map(function (s) { return s.trim(); }).filter(Boolean);
+            var rows = raw.map(function (r) { var p = r.split("|"); return { name: p[0].trim(), date: (p[1] || "").trim() }; }).filter(function (r) { return r.name; });
+            if (!rows.length) rows = [{ name: "Ada Rowe", date: "Mar 4, 2021" }, { name: "Ben Ito", date: "Jun 12, 2021" }, { name: "Chloe Park", date: "Sep 21, 2021" }, { name: "Dev Rao", date: "Dec 8, 2021" }, { name: "Eli Novak", date: "Mar 17, 2022" }, { name: "Fay Lund", date: "Jun 29, 2022" }, { name: "Gus Okoye", date: "Sep 14, 2022" }, { name: "Hana Sato", date: "Dec 23, 2022" }];
+            if (rows.length > 60) { var s0 = []; for (var q = 0; q < 60; q++) s0.push(rows[Math.round(q * (rows.length - 1) / 59)]); rows = s0; }
+            var N = rows.length;
+            var accent = colr(vars.accent_color, "#f5a300");
+            var dark = String(vars.theme) === "dark";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = dark ? { bg: "#0b0b0d", subtle: "#141416", fg: "#fafafa", muted: "#a1a1aa", border: "#262629" }
+                         : { bg: "#ffffff", subtle: "#fafafa", fg: "#171717", muted: "#737373", border: "#ededed" };
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--mc-" + k, T[k]); });
+            root.style.setProperty("--mc-accent", accent);
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var o = String(vars.orientation);
+            var vertical = o === "vertical" || (o !== "horizontal" && H > W);
+            var RW = vertical ? 720 : 1280, RH = vertical ? 1280 : 720, k = Math.min(W / RW, H / RH);
+            stage.style.width = RW + "px"; stage.style.height = RH + "px";
+            stage.style.marginLeft = -RW / 2 + "px"; stage.style.marginTop = -RH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+
+            var rowH = vertical ? 96 : 88, avSize = vertical ? 60 : 56, nameSize = vertical ? 30 : 28;
+            var vp = vertical ? { x: 48, y: 320, w: 624, h: 888, r: 28 } : { x: 560, y: 60, w: 640, h: 600, r: 24 };
+            var visibleRows = Math.floor(vp.h / rowH);
+            var D = Math.max(0, (N - visibleRows + 1) * rowH);
+            var OVER = 1.0658;
+            var spacerRows = Math.max(0, Math.ceil((0.88 * vp.h - N * rowH + OVER * D) / rowH));
+            var counterSize = vertical ? 96 : 120, starSize = vertical ? 56 : 64, ulMax = vertical ? 200 : 240;
+
+            // Counter zone
+            var zone = el("div", "mc-zone", stage);
+            if (vertical) { zone.style.cssText += "left:0;top:0;width:" + RW + "px;height:300px;padding-top:72px;align-items:center;gap:14px"; }
+            else { zone.style.cssText += "left:80px;top:0;width:392px;height:" + RH + "px;justify-content:center;align-items:flex-start"; }
+            var odoWrap = zone, odo, star;
+            if (vertical) { var top = el("div", "", zone); top.style.cssText = "display:flex;align-items:center;gap:20px"; star = el("div", "", top, starSvg(starSize, accent)); odo = el("div", "mc-odo", top); }
+            else { star = el("div", "", zone, starSvg(starSize, accent)); el("div", "", zone).style.height = "20px"; odo = el("div", "mc-odo", zone); el("div", "", zone).style.height = "16px"; }
+            odo.style.fontSize = counterSize + "px";
+            var ul = el("div", "mc-line", zone);
+            if (!vertical) el("div", "", zone).style.height = "20px";
+            if (subject) {
+              var sj = el("div", "mc-subj", zone);
+              sj.style.maxWidth = (vertical ? 600 : 392) + "px"; sj.style.fontSize = (vertical ? 20 : 24) + "px";
+              var dsc = el("div", "mc-disc", sj); dsc.style.width = dsc.style.height = (vertical ? 28 : 32) + "px"; dsc.style.fontSize = (vertical ? 12 : 13) + "px"; dsc.textContent = Array.from(subject)[0].toUpperCase();
+              el("span", "t", sj).textContent = subject;
+            }
+
+            // List viewport
+            var view = el("div", "mc-view", stage);
+            view.style.cssText += "left:" + vp.x + "px;top:" + vp.y + "px;width:" + vp.w + "px;height:" + vp.h + "px;border-radius:" + vp.r + "px";
+            var list = el("div", "", view);
+            var hi, bar;
+            rows.forEach(function (r, i) {
+              var row = el("div", "mc-row" + (i === N - 1 ? " last" : ""), list); row.style.height = rowH + "px";
+              if (i === N - 1) { hi = el("div", "mc-hi", row); bar = el("div", "mc-bar", row); }
+              var main = el("div", "mc-main", row);
+              var d = el("div", "mc-disc", main); d.style.width = d.style.height = avSize + "px"; d.style.fontSize = avSize * 0.42 + "px"; d.textContent = Array.from(r.name)[0].toUpperCase();
+              var t = el("div", "mc-txt", main);
+              var nm = el("div", "mc-name", t); nm.style.fontSize = nameSize + "px"; nm.textContent = r.name;
+              if (r.date) el("div", "mc-date", t).textContent = r.date;
+              var rk = el("div", "mc-rank", main, starSvg(20, accent)); var sp = el("span", "", rk); sp.textContent = "#" + (i + 1);
+            });
+            var sp2 = el("div", "", list); sp2.style.height = spacerRows * rowH + "px";
+            var fadeH = Math.round(vp.h * 0.12);
+            var f1 = el("div", "mc-fade", view); f1.style.cssText += "top:0;height:" + fadeH + "px;background:linear-gradient(to bottom," + T.bg + ",transparent)";
+            var f2 = el("div", "mc-fade", view); f2.style.cssText += "bottom:0;height:" + fadeH + "px;background:linear-gradient(to top," + T.bg + ",transparent)";
+
+            // elastic(0.8): 1 - cos(t*pi/2)^3 * cos(t*0.8*pi)
+            function elastic(t) { return 1 - Math.pow(Math.cos(t * Math.PI / 2), 3) * Math.cos(t * 0.8 * Math.PI); }
+            var DUR = 120, countEase = bez(0.5, 1, 0.5, 1);
+            function draw(f) {
+              var cp = interp(f, 0, DUR * 0.8, 0, 1, countEase);
+              var sp = clamp(f / DUR, 0, 1);
+              list.style.transform = "translateY(" + (-elastic(sp) * D) + "px)";
+              odo.innerHTML = odometerHTML(cp * total, counterSize);
+              ul.style.width = cp * ulMax + "px";
+              var settle = interp(sp, 0.92, 1, 0, 1);
+              if (hi) { hi.style.opacity = settle; bar.style.opacity = settle; }
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "4");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["milestone-counter-list"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

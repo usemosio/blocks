@@ -1,0 +1,128 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "crt-screen",
+  "type": "hyperframes:component",
+  "title": "CRT Screen",
+  "description": "A scene behind curved tube glass: barrel distortion, an RGB phosphor mask, scanlines that bow with the picture, bloom around bright text and corners that run off into black. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video. The only motion is a 1 % brightness breath, so it holds as a look.",
+  "tags": [
+    "filter",
+    "shader",
+    "webgl",
+    "crt",
+    "retro",
+    "scanlines",
+    "screen",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3,
+  "useWhen": [
+    "Something should read as shown on a tube rather than rendered flat: retro terminals, arcade beats, an old dashboard being demoed.",
+    "The content is high contrast, bright text on a dark field, which the phosphor mask and bloom were built for."
+  ],
+  "avoidWhen": [
+    "The story is worn tape rather than a monitor: use vhs-filter.",
+    "It should read as photographed rather than displayed: use camera-lens.",
+    "The tube should switch off rather than run: use tv-power-off.",
+    "Content sits close to the frame edge: the barrel warp pushes the corners into the dark rim."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/crt-screen/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "crt-screen.html",
+      "target": "compositions/components/crt-screen.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the scene on the glass.",
+      "default": "#101828"
+    },
+    {
+      "id": "curvature",
+      "type": "number",
+      "role": "style",
+      "label": "Curvature",
+      "description": "How far the tube bulges. At 0 the frame stays flat and nothing is clipped at the corners.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "scanlines",
+      "type": "number",
+      "role": "style",
+      "label": "Scanlines",
+      "description": "Strength of the horizontal lines, which bow with the picture.",
+      "default": 1,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "mask_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Mask scale",
+      "description": "Width of one phosphor stripe in frame pixels; a triad is three times this. Low reads as a fine grille, high as a coarse arcade tube.",
+      "default": 2,
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "vignette",
+      "type": "number",
+      "role": "style",
+      "label": "Vignette",
+      "description": "How hard the picture falls off toward the rim.",
+      "default": 1,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. The phosphor mask needs 1; lower renders faster but softens it.",
+      "default": 1,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "static": true,
+  "webgl": true
+}

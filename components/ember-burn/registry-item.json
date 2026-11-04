@@ -1,0 +1,182 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ember-burn",
+  "type": "hyperframes:component",
+  "title": "Ember Burn",
+  "description": "The outgoing frame is set on fire: a noisy burn front eats the bright parts first, the edge boils and glows, charred rims fall away and sparks drift off carrying the frame's colour, uncovering the next scene. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 60 frames of the first panel, a 40-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+  "tags": [
+    "transition",
+    "shader",
+    "fire",
+    "burn",
+    "cinematic",
+    "premium",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 5.3333,
+  "useWhen": [
+    "A scene change should feel cinematic and physical: the frame is destroyed rather than blended away.",
+    "The moment can afford well over a second; the burn is meant to be watched.",
+    "The outgoing scene has real content worth consuming: the fire takes the bright parts first."
+  ],
+  "avoidWhen": [
+    "The cut has to be quick: a burn compressed under 24 frames reads as a smear; use zoom-blur.",
+    "The scenes are cool-toned or clinical and a warm flare would fight the palette: use grain-dissolve."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/ember-burn/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ember-burn.html",
+      "target": "compositions/components/ember-burn.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "patches",
+      "type": "number",
+      "role": "style",
+      "label": "Patches",
+      "description": "Size of the burn patches; higher is finer.",
+      "default": 5,
+      "min": 2,
+      "max": 16,
+      "step": 1
+    },
+    {
+      "id": "edge_softness",
+      "type": "number",
+      "role": "style",
+      "label": "Edge softness",
+      "description": "Width of the burning edge.",
+      "default": 0.07,
+      "min": 0.005,
+      "max": 0.2,
+      "step": 0.005
+    },
+    {
+      "id": "content_bias",
+      "type": "number",
+      "role": "style",
+      "label": "Content bias",
+      "description": "How much bright parts burn before dark ones.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "heat",
+      "type": "number",
+      "role": "style",
+      "label": "Heat",
+      "description": "Heat shimmer at the edge.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "glow_color",
+      "type": "color",
+      "role": "style",
+      "label": "Glow",
+      "description": "Colour of the flame.",
+      "default": "#ff7a2f"
+    },
+    {
+      "id": "ember_amount",
+      "type": "number",
+      "role": "style",
+      "label": "Embers",
+      "description": "How many sparks fly off.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Smoke and flame are soft; sparks are single cells, so 0.75 is the floor.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "checkAt": [
+    1.9,
+    2.3,
+    2.7,
+    3.1
+  ],
+  "webgl": true
+}

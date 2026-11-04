@@ -1,0 +1,130 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "supporter-grid",
+  "type": "hyperframes:component",
+  "title": "Supporter Grid",
+  "description": "A thank-you lockup for backers: a heart draws itself, pulses and docks upward while supporter avatars blur-stagger into a grid, then a headline, a supporter count and a call-to-action pill arrive.",
+  "tags": [
+    "social",
+    "thank-you",
+    "sponsors",
+    "community",
+    "grid",
+    "avatars",
+    "remocn-port"
+  ],
+  "category": "social",
+  "duration": 9,
+  "useWhen": [
+    "A thank-you beat for funders or backers: the heart draws itself, docks upward, and every supporter avatar staggers into a grid.",
+    "A funding ask needs to end on a call-to-action pill and a link line.",
+    "The grid and the \"Powered by N supporters\" line should size themselves to a supporter list."
+  ],
+  "avoidWhen": [
+    "The milestone is a count that climbs (stars, followers): use star-counter or followers-overview.",
+    "The subject is one person's profile instead of a group of supporters: use profile-follow-card.",
+    "You need a neutral partner or integration lineup without the heart and CTA: use logo-enter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/github-sponsors/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "supporter-grid.html",
+      "target": "compositions/components/supporter-grid.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "supporters",
+      "type": "string",
+      "role": "content",
+      "label": "Supporters",
+      "description": "Comma-separated names; each becomes an initial avatar and the count feeds the \"Powered by\" line.",
+      "default": "Ada, Ben, Chloe, Dev, Eli, Fay, Gus, Hana, Ivo, June, Kai, Lena, Milo, Nia, Omar, Pia, Quin, Rhea, Sol, Tess, Uma, Vik, Wren, Zoe"
+    },
+    {
+      "id": "heading",
+      "type": "string",
+      "role": "content",
+      "label": "Heading",
+      "description": "Headline that blurs in under the grid.",
+      "default": "Thank you"
+    },
+    {
+      "id": "subline",
+      "type": "string",
+      "role": "content",
+      "label": "Subline",
+      "description": "Line under the heading; {count} becomes the number of supporters.",
+      "default": "Powered by {count} supporters"
+    },
+    {
+      "id": "cta_label",
+      "type": "string",
+      "role": "content",
+      "label": "Button label",
+      "description": "Text of the call-to-action pill.",
+      "default": "Become a supporter"
+    },
+    {
+      "id": "link_text",
+      "type": "string",
+      "role": "content",
+      "label": "Link line",
+      "description": "Small muted line under the button. Leave empty to hide it.",
+      "default": "example.org/support"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the heart and the button.",
+      "default": "#f97316"
+    },
+    {
+      "id": "theme",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the lockup sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

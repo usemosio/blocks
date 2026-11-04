@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "inline-highlight",
+  "type": "hyperframes:component",
+  "title": "Inline Highlight",
+  "description": "A sentence where one word is picked out by fading from the base colour to an accent colour.",
+  "tags": [
+    "text-effects",
+    "highlight",
+    "color",
+    "emphasis",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.2,
+    1.0,
+    1.6,
+    2.8
+  ],
+  "useWhen": [
+    "One word in a sentence deserves the eye: a product name, a number, a key phrase.",
+    "A quiet emphasis that does not move the layout."
+  ],
+  "avoidWhen": [
+    "The emphasis should look hand-drawn: use marker-highlight.",
+    "Several words should be picked out in turn: use a caption highlight."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/inline-highlight/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "inline-highlight.html",
+      "target": "compositions/components/inline-highlight.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "before",
+      "type": "string",
+      "role": "content",
+      "label": "Before",
+      "description": "Text before the highlighted word.",
+      "default": "Ship faster with "
+    },
+    {
+      "id": "highlight",
+      "type": "string",
+      "role": "content",
+      "label": "Highlight",
+      "description": "The word that changes colour.",
+      "default": "motion"
+    },
+    {
+      "id": "after",
+      "type": "string",
+      "role": "content",
+      "label": "After",
+      "description": "Text after the highlighted word.",
+      "default": "."
+    },
+    {
+      "id": "base_color",
+      "type": "color",
+      "role": "style",
+      "label": "Base color",
+      "description": "Color of the sentence.",
+      "default": "#171717"
+    },
+    {
+      "id": "highlight_color",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight color",
+      "description": "Color the highlighted word fades to.",
+      "default": "#ff5e3a"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

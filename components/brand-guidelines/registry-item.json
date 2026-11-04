@@ -1,0 +1,251 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "brand-guidelines",
+  "type": "hyperframes:component",
+  "title": "Brand Guidelines",
+  "description": "A complete editorial identity film: a geometric brand mark, a terracotta, graphite, stone and paper palette, a type specimen that types and deletes itself through eight styles, a layered collage of drawn object plates, and three flipping tiles that become the closing wordmark. Silent: sound is added by the host. The object photos are drawn with SVG by default; pass image paths to use real photographs.",
+  "tags": [
+    "template",
+    "brand",
+    "identity",
+    "editorial",
+    "typography",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "templates",
+  "duration": 17.867,
+  "useWhen": [
+    "You want to introduce a brand system through its mark, colors, typography, and photography.",
+    "You need a complete 17.9-second identity film with editable content and a layered object collage."
+  ],
+  "avoidWhen": [
+    "You need a multi-feature software demo rather than an identity film: use launch-anything.",
+    "You only need a short typed title with an exit: use typed-split-wipe."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-templates/brand-guidelines/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "brand-guidelines.html",
+      "target": "compositions/components/brand-guidelines.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "brand_name",
+      "type": "string",
+      "role": "content",
+      "label": "Brand name",
+      "description": "Name across the identity posters and the closing lockup.",
+      "default": "Form Study"
+    },
+    {
+      "id": "opening_tagline",
+      "type": "string",
+      "role": "content",
+      "label": "Opening tagline",
+      "description": "Line under the mark in the first scene; also on the type plate.",
+      "default": "Made with purpose."
+    },
+    {
+      "id": "guidelines_label",
+      "type": "string",
+      "role": "content",
+      "label": "Guidelines label",
+      "description": "Small caption above the type specimen.",
+      "default": "Brand guidelines"
+    },
+    {
+      "id": "collage_title",
+      "type": "string",
+      "role": "content",
+      "label": "Collage title",
+      "description": "Headline on the accent poster in the collage.",
+      "default": "Objects for everyday living."
+    },
+    {
+      "id": "collection_label",
+      "type": "string",
+      "role": "content",
+      "label": "Collection label",
+      "description": "Small label on the accent poster.",
+      "default": "Material studies / No. 01"
+    },
+    {
+      "id": "footer",
+      "type": "string",
+      "role": "content",
+      "label": "Footer",
+      "description": "Fine print at the foot of the closing scene.",
+      "default": "A fictional identity. Made to be yours."
+    },
+    {
+      "id": "phrase_1",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 1",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Material matters."
+    },
+    {
+      "id": "phrase_2",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 2",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Keep it simple."
+    },
+    {
+      "id": "phrase_3",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 3",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Find your form."
+    },
+    {
+      "id": "phrase_4",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 4",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Quiet by design."
+    },
+    {
+      "id": "phrase_5",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 5",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Make space."
+    },
+    {
+      "id": "phrase_6",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 6",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Feel the texture."
+    },
+    {
+      "id": "phrase_7",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 7",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts.",
+      "default": "Shape the everyday."
+    },
+    {
+      "id": "phrase_8",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase 8",
+      "description": "Type specimen text. Phrases 1 and 2 type in; 3 to 8 are quick style cuts. The last one stays under the collage.",
+      "default": "Made with purpose."
+    },
+    {
+      "id": "closing_word_1",
+      "type": "string",
+      "role": "content",
+      "label": "Closing word 1",
+      "description": "Word on one of the three flipping tiles.",
+      "default": "Make"
+    },
+    {
+      "id": "closing_word_2",
+      "type": "string",
+      "role": "content",
+      "label": "Closing word 2",
+      "description": "Word on one of the three flipping tiles.",
+      "default": "Ideas"
+    },
+    {
+      "id": "closing_word_3",
+      "type": "string",
+      "role": "content",
+      "label": "Closing word 3",
+      "description": "Word on one of the three flipping tiles.",
+      "default": "Real."
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Mark, palette panel, active typography and the poster.",
+      "default": "#A64B38"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Dark color: text and the palette and closing backgrounds.",
+      "default": "#242321"
+    },
+    {
+      "id": "stone",
+      "type": "color",
+      "role": "style",
+      "label": "Stone",
+      "description": "Light neutral: hairlines, plates and fine print.",
+      "default": "#D6CFC4"
+    },
+    {
+      "id": "paper",
+      "type": "color",
+      "role": "style",
+      "label": "Paper",
+      "description": "Light background.",
+      "default": "#F5F1E9"
+    },
+    {
+      "id": "logo_src",
+      "type": "string",
+      "role": "content",
+      "label": "Logo image",
+      "description": "Optional path to a transparent mark (PNG or SVG) your host provides; the drawn mark is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_ceramics",
+      "type": "string",
+      "role": "content",
+      "label": "Ceramics photo",
+      "description": "Optional path to a photo for the ceramics plates; a drawn still life is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_materials",
+      "type": "string",
+      "role": "content",
+      "label": "Materials photo",
+      "description": "Optional path to a photo for the materials plates; drawn swatches are used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_chair",
+      "type": "string",
+      "role": "content",
+      "label": "Chair photo",
+      "description": "Optional path to a photo for the chair plates; a drawn chair is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "reduced_motion",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Reduced motion",
+      "description": "Static layouts without typing, collage travel or tile flips.",
+      "default": false
+    }
+  ]
+}

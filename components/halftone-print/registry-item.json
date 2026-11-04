@@ -1,0 +1,126 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "halftone-print",
+  "type": "hyperframes:component",
+  "title": "Halftone Print",
+  "description": "A scene printed instead of displayed: cyan, magenta and yellow dot screens at their own angles on warm paper, each plate a touch out of register. Runs its WebGL shader over its own built-in scene (a paper poster; kicker, headline and paragraph from variables), not over the host video. Best on light, graphic scenes with real midtones.",
+  "tags": [
+    "filter",
+    "shader",
+    "halftone",
+    "print",
+    "paper",
+    "riso",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3.0,
+  "useWhen": [
+    "A scene should read as printed rather than displayed: zine intros, riso posters, editorial title cards.",
+    "The scene is light and graphic with real midtones, which is where a dot screen has something to render."
+  ],
+  "avoidWhen": [
+    "Only one element should feel papery while the rest stays clean: use paper-sticker or paper-wobble.",
+    "The scene is dark: nearly every cell saturates to full ink and the screen disappears into a solid field.",
+    "Small type has to stay readable: a dot screen keeps only a cell's colour."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/halftone-print/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "halftone-print.html",
+      "target": "compositions/components/halftone-print.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "kicker",
+      "type": "string",
+      "role": "content",
+      "label": "Kicker",
+      "description": "Small line above the headline in the sample poster.",
+      "default": "Issue 04"
+    },
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Headline",
+      "description": "Headline of the sample poster.",
+      "default": "Ship the demo, not the deck"
+    },
+    {
+      "id": "body",
+      "type": "string",
+      "role": "content",
+      "label": "Body",
+      "description": "Paragraph under the headline.",
+      "default": "A recorded product beats a rehearsed one. Cut it in the afternoon and send it before the meeting."
+    },
+    {
+      "id": "dot_size",
+      "type": "number",
+      "role": "style",
+      "label": "Dot size",
+      "description": "Spacing of the dot screen. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 10,
+      "min": 4,
+      "max": 32,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "angle",
+      "type": "number",
+      "role": "style",
+      "label": "Angle",
+      "description": "Rotation of the whole screen set.",
+      "default": 0,
+      "min": 0,
+      "max": 90,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "misregistration",
+      "type": "number",
+      "role": "style",
+      "label": "Misregistration",
+      "description": "How far the plates sit out of register. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 1.2,
+      "min": 0,
+      "max": 6,
+      "step": 0.2,
+      "unit": "px"
+    },
+    {
+      "id": "paper_tint",
+      "type": "color",
+      "role": "style",
+      "label": "Paper",
+      "description": "Colour of the paper.",
+      "default": "#f4efe4"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Fine dots need 1; lower renders faster but the screen turns soft.",
+      "default": 1,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "static": true,
+  "webgl": true
+}

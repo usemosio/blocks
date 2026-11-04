@@ -1,0 +1,139 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hologram",
+  "type": "hyperframes:component",
+  "title": "Hologram",
+  "description": "A scene played as projected light: a ghost double shimmers off the image, emission lines structure it, a halo spills from bright areas, and everything leans toward its tint. WebGL.",
+  "tags": [
+    "filter",
+    "hologram",
+    "sci-fi",
+    "glow",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3,
+  "webgl": true,
+  "useWhen": [
+    "A feature should present as a projection rather than as a screen: a sci-fi flavoured reveal, a beat about what is coming.",
+    "The scene is high contrast, since only what is bright enough carries through the projection.",
+    "You want the projection to materialize on entry: raise intensity from 0 and the scene resolves into light."
+  ],
+  "avoidWhen": [
+    "The story is a physical display being watched rather than light standing in the air: use crt-screen.",
+    "You want damage rather than projection: use sustained-glitch."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/hologram/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "hologram.html",
+      "target": "compositions/components/hologram.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "tint",
+      "type": "color",
+      "role": "style",
+      "label": "Tint",
+      "description": "Colour of the projected light. Sets the whole character.",
+      "default": "#63e8ff"
+    },
+    {
+      "id": "glow",
+      "type": "number",
+      "role": "style",
+      "label": "Glow",
+      "description": "Emission strength: light off the edges of shapes and the halo bright areas throw.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "ghost",
+      "type": "number",
+      "role": "style",
+      "label": "Ghost",
+      "description": "How unstable the projection is: how far the doubled image sits from the original and how far scanlines slip sideways.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "flicker",
+      "type": "number",
+      "role": "motion",
+      "label": "Flicker",
+      "description": "Depth of the brightness pulse, on a 15-frame cycle with per-frame jitter.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "How much of the effect shows. 0 shows the plain scene.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small label above the number in the scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "Large number in the scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Scene background",
+      "description": "Background of the scene.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ]
+}

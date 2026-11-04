@@ -1,0 +1,155 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "followers-overview",
+  "type": "hyperframes:component",
+  "title": "Followers Overview",
+  "description": "Follow notifications flip through in 3D, one name at a time, then the total follower count blurs in with a spring pop, the account handle and a confetti burst.",
+  "tags": [
+    "social",
+    "followers",
+    "notifications",
+    "milestone",
+    "confetti",
+    "counter",
+    "remocn-port"
+  ],
+  "category": "social",
+  "duration": 12,
+  "useWhen": [
+    "A milestone or social-proof scene needs cycling follow notifications that build to a total reveal.",
+    "You want a confetti-backed audience count as the payoff of a growth story.",
+    "Several recent followers should be shown, not a single profile."
+  ],
+  "avoidWhen": [
+    "You are highlighting one profile and a follow click: use profile-follow-card.",
+    "The scene needs a count-up with a list fly-through: use milestone-counter-list.",
+    "You only need a bare count-up with no feed or confetti: use rolling-number."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/x-followers-overview/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "followers-overview.html",
+      "target": "compositions/components/followers-overview.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "notifications",
+      "type": "string",
+      "role": "content",
+      "label": "Notifications",
+      "description": "Semicolon-separated entries \"Name|time|v\"; add |v to show a check mark after the name.",
+      "default": "Maya Lindqvist|7h|v; Jonas Reyes|7h|v; marcus|8h; Lena Okoro|9h|v; dev_jay|10h; Priya Nair|11h|v; Tomas Brandt|13h|v; hana.k|15h; Will Archer|18h|v; Yuki Mori|21h|v; benoit|23h; Amara Diallo|1d|v; Leo Martins|1d|v; sol|2d"
+    },
+    {
+      "id": "event_text",
+      "type": "string",
+      "role": "content",
+      "label": "Event text",
+      "description": "Text after the name; the entry's time follows it.",
+      "default": "followed you"
+    },
+    {
+      "id": "total",
+      "type": "number",
+      "role": "content",
+      "label": "Total",
+      "description": "Follower total revealed at the end.",
+      "default": 1709,
+      "min": 0,
+      "max": 999999999,
+      "step": 1
+    },
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Count label",
+      "description": "Word next to the total.",
+      "default": "Followers"
+    },
+    {
+      "id": "handle",
+      "type": "string",
+      "role": "content",
+      "label": "Handle",
+      "description": "Account handle shown above the total (an @ is added). Leave empty to hide the account.",
+      "default": "studio"
+    },
+    {
+      "id": "orientation",
+      "type": "enum",
+      "role": "style",
+      "label": "Orientation",
+      "description": "Auto follows the host's shape.",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "Vertical"
+        }
+      ]
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the check marks and the first confetti colour.",
+      "default": "#6366f1"
+    },
+    {
+      "id": "theme",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the scene sits over your own footage.",
+      "default": false
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

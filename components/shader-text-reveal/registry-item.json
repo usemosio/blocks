@@ -1,0 +1,115 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-text-reveal",
+  "type": "hyperframes:component",
+  "title": "Text Reveal",
+  "description": "Words appear one at a time: a flowing, halftone-textured light material fills the letters, then clears to clean white type before a dark wave removes the word. Drawn in WebGL over a transparent background.",
+  "tags": [
+    "shader",
+    "webgl",
+    "text",
+    "reveal",
+    "typography",
+    "halftone",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 2.5,
+  "useWhen": [
+    "A short headline needs a shader reveal, one word at a time.",
+    "The material should appear inside letters before they settle into white."
+  ],
+  "avoidWhen": [
+    "A quiet text entrance is enough: use soft-blur-in.",
+    "Words should physically morph into each other: use kinetic-morph-text."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-text-reveal/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-text-reveal.html",
+      "target": "compositions/components/shader-text-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Words appear one at a time. Separate phrases with new lines to keep them together.",
+      "default": "Your product"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Largest type size, for a 720-pixel-tall frame; it scales with the frame and shrinks to fit the width.",
+      "default": 400,
+      "min": 24,
+      "max": 500,
+      "step": 1
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "CSS font family for the type.",
+      "default": "Arial, sans-serif"
+    },
+    {
+      "id": "font_weight",
+      "type": "number",
+      "role": "style",
+      "label": "Weight",
+      "description": "Font weight, 100 to 900.",
+      "default": 500,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "word_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Frames per word",
+      "description": "Frames each word takes, including its entrance and exit. The final word stays.",
+      "default": 30,
+      "min": 12,
+      "max": 90,
+      "step": 1
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Shader strength",
+      "description": "Strength of the shader material inside the letters, 0 to 1.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders much faster: the light field is costly to draw in software.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

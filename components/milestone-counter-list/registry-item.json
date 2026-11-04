@@ -1,0 +1,139 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "milestone-counter-list",
+  "type": "hyperframes:component",
+  "title": "Milestone Counter List",
+  "description": "A follower or fan milestone: a rolling odometer counts up to a total while a list of named entries flies past and settles on the last one, with an accent star and underline.",
+  "tags": [
+    "data",
+    "counter",
+    "milestone",
+    "odometer",
+    "social-proof",
+    "list",
+    "remocn-port"
+  ],
+  "category": "data",
+  "duration": 4,
+  "useWhen": [
+    "Celebrating a milestone: a count-up odometer lands on a total while entries fly past.",
+    "A social-proof scene needs a believable list of supporters or early users next to a big number.",
+    "You want one self-contained card that pairs the list fly-through with a synced counter."
+  ],
+  "avoidWhen": [
+    "You only need the number to roll up without a list: use rolling-number.",
+    "The metric is a comparison between values: use a chart block.",
+    "You need a growth dashboard with a chart: use followers-overview."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/github-stars/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "milestone-counter-list.html",
+      "target": "compositions/components/milestone-counter-list.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "subject",
+      "type": "string",
+      "role": "content",
+      "label": "Subject",
+      "description": "Small line under the counter (name of the project, page or account).",
+      "default": "Open Studio"
+    },
+    {
+      "id": "total",
+      "type": "number",
+      "role": "content",
+      "label": "Total",
+      "description": "Number the odometer counts up to.",
+      "default": 24813,
+      "min": 0,
+      "max": 999999999,
+      "step": 1
+    },
+    {
+      "id": "entries",
+      "type": "string",
+      "role": "content",
+      "label": "Entries",
+      "description": "Semicolon-separated rows, each \"Name|Date text\" (date optional). Shown in order; the last row is highlighted and numbered with its position.",
+      "default": "Ada Rowe|Mar 4, 2021; Ben Ito|Jun 12, 2021; Chloe Park|Sep 21, 2021; Dev Rao|Dec 8, 2021; Eli Novak|Mar 17, 2022; Fay Lund|Jun 29, 2022; Gus Okoye|Sep 14, 2022; Hana Sato|Dec 23, 2022; Ivo Marin|Mar 9, 2023; June Wells|Jul 19, 2023; Kai Moreau|Nov 2, 2023; Lena Voss|Feb 15, 2024; Milo Duarte|Mar 4, 2021; Nia Hart|Jun 12, 2021; Omar Silva|Sep 21, 2021; Pia Berg|Dec 8, 2021; Quin Alder|Mar 17, 2022; Rhea Cole|Jun 29, 2022; Sol Varga|Sep 14, 2022; Tess Quinn|Dec 23, 2022; Uma Pillai|Mar 9, 2023; Vik Larsen|Jul 19, 2023; Wren Cho|Nov 2, 2023; Zoe Ferrer|Feb 15, 2024"
+    },
+    {
+      "id": "orientation",
+      "type": "enum",
+      "role": "style",
+      "label": "Orientation",
+      "description": "Counter beside the list, or above it. Auto follows the host's shape.",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "Vertical"
+        }
+      ]
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the star, underline and highlighted row.",
+      "default": "#f5a300"
+    },
+    {
+      "id": "theme",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the card sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    }
+  ]
+}

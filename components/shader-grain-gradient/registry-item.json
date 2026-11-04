@@ -1,0 +1,179 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-grain-gradient",
+  "type": "hyperframes:component",
+  "title": "Shader Grain Gradient",
+  "description": "A grainy multi-stop gradient shape drifts slowly under film-grain texture: an analog, premium WebGL backdrop in any palette and one of seven shapes.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "gradient",
+    "grain",
+    "loop",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A gradient backdrop needs analog texture: the grain reads as film or print rather than flat digital.",
+    "The tone is premium and editorial and the motion should stay subtle.",
+    "The field should be quieter: raise `softness` and `noise`."
+  ],
+  "avoidWhen": [
+    "You need crisp, clean color with no texture: use shader-mesh-gradient.",
+    "Foreground text is tiny: heavy grain lowers contrast, so lower `intensity` and `noise` or use a solid backdrop.",
+    "You want structured geometry: use shader-dot-orbit or shader-voronoi.",
+    "You want a finished look without choosing colors: use a preset such as shader-grain-gradient-sunrise."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-grain-gradient/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-grain-gradient.html",
+      "target": "compositions/components/shader-grain-gradient.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 7 colors, comma separated, from the edge of the shape to its core.",
+      "default": "#3a3a52, #4a4a68, #5a5a7e"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color behind the shape.",
+      "default": "#12121a"
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Shape",
+      "description": "The form the gradient takes.",
+      "default": "corners",
+      "options": [
+        {
+          "value": "wave",
+          "label": "Wave"
+        },
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "truchet",
+          "label": "Truchet tiles"
+        },
+        {
+          "value": "corners",
+          "label": "Corners"
+        },
+        {
+          "value": "ripple",
+          "label": "Ripple"
+        },
+        {
+          "value": "blob",
+          "label": "Blob"
+        },
+        {
+          "value": "sphere",
+          "label": "Sphere"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast the shape drifts. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How softly the colors blend. 0 gives hard bands.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "How strongly the grain distorts the shape.",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "noise",
+      "type": "number",
+      "role": "style",
+      "label": "Noise",
+      "description": "Amount of grain speckle over the colors.",
+      "default": 0.15,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole gradient.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the gradient in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster but coarsens the grain.",
+      "default": 1,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

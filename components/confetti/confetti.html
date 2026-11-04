@@ -1,0 +1,210 @@
+<!doctype html>
+<!--
+  Confetti
+
+  A deterministic burst of confetti pieces that fall, spin and flutter with gravity.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/confetti/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="confetti"
+  data-composition-duration="3"
+  data-composition-variables='[
+    {"id": "particle_count", "type": "number", "role": "style", "label": "Particles", "description": "Number of confetti pieces.", "default": 140, "min": 10, "max": 400, "step": 1},
+    {"id": "colors", "type": "string", "role": "style", "label": "Colors", "description": "Comma-separated piece colors.", "default": "#1d9bf0, #ff5da2, #ffd23f, #22c55e, #a855f7, #ff7a45"},
+    {"id": "origin_x", "type": "number", "role": "motion", "label": "Origin X", "description": "Burst origin as a fraction of the frame width.", "default": 0.5, "min": 0, "max": 1, "step": 0.01},
+    {"id": "origin_y", "type": "number", "role": "motion", "label": "Origin Y", "description": "Burst origin as a fraction of the frame height.", "default": 0.5, "min": 0, "max": 1, "step": 0.01},
+    {"id": "start_frame", "type": "number", "role": "motion", "label": "Start frame", "description": "Frame the burst fires on.", "default": 0, "min": 0, "max": 60, "step": 1, "unit": "frames"},
+    {"id": "lifetime", "type": "number", "role": "motion", "label": "Lifetime", "description": "Lifetime of the burst, in frames.", "default": 90, "min": 20, "max": 240, "step": 1, "unit": "frames"},
+    {"id": "power", "type": "number", "role": "motion", "label": "Power", "description": "Initial launch speed (px per frame at a 720 px tall frame).", "default": 17, "min": 2, "max": 40, "step": 0.5},
+    {"id": "gravity", "type": "number", "role": "motion", "label": "Gravity", "description": "Downward acceleration (px per frame squared at a 720 px tall frame).", "default": 0.45, "min": 0, "max": 2, "step": 0.05},
+    {"id": "size", "type": "number", "role": "style", "label": "Size", "description": "Base piece size in px at a 720 px tall frame.", "default": 13, "min": 4, "max": 40, "step": 1, "unit": "px"},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Same seed draws an identical burst every time.", "default": 1, "min": 0, "max": 9999, "step": 1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Confetti</title>
+  </head>
+  <body>
+    <template>
+      
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        .co-stage { position: absolute; inset: 0; overflow: hidden; }
+        .co-piece { position: absolute; left: 0; top: 0; border-radius: 2px; opacity: 0; will-change: transform; }
+      </style>
+
+      <div id="root" data-composition-id="confetti" data-duration="3" data-fps="30">
+        <div id="c-clip" class="c-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <div id="co-field"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 to 1, rest at 0 velocity (mass, stiffness, damping), at `frame` of 30 fps.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass, k = cfg.stiffness, c = cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var TOTAL = 3;
+            var FRAMES = Math.round(TOTAL * 30);
+            var clock = { frame: 0 };
+            function frameNow() { return Math.round(clock.frame * 1000) / 1000; }
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: FRAMES, duration: TOTAL, ease: "none", onUpdate: function () { draw(frameNow()); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["confetti"] = tl;
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            function fit(el, size, frac, hfrac) {
+              el.style.fontSize = size + "px";
+              var maxW = Math.max(1, root.clientWidth * frac);
+              var maxH = Math.max(1, root.clientHeight * (hfrac || 0.9));
+              var k = Math.min(1, maxW / Math.max(1, el.scrollWidth), maxH / Math.max(1, el.scrollHeight));
+              if (k < 1) { size = Math.max(8, size * k); el.style.fontSize = size + "px"; }
+              return size;
+            }
+
+
+            var count = Math.round(num(vars.particle_count, 140, 10, 400));
+            var palette = String(str(vars.colors, "")).split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!palette.length) palette = ["#1d9bf0", "#ff5da2", "#ffd23f", "#22c55e", "#a855f7", "#ff7a45"];
+            var ox = num(vars.origin_x, 0.5, 0, 1), oy = num(vars.origin_y, 0.5, 0, 1);
+            var startFrame = num(vars.start_frame, 0, 0, 60), lifetime = num(vars.lifetime, 90, 20, 240);
+            var power = num(vars.power, 17, 2, 40), gravity = num(vars.gravity, 0.45, 0, 2);
+            var size = num(vars.size, 13, 4, 40), seed = Math.round(num(vars.seed, 1, 0, 9999));
+            var field = document.getElementById("co-field");
+            var rand = rng(seed);
+            var parts = [];
+            for (var i = 0; i < count; i++) {
+              var p = { angle: rand() * Math.PI * 2, speed: 0.35 + 0.65 * rand() };
+              p.color = palette[Math.floor(rand() * palette.length)];
+              p.size = 0.7 + 0.6 * rand();
+              p.rot0 = rand() * Math.PI * 2;
+              p.spin = (rand() - 0.5) * 0.6;
+              p.drift = (rand() - 0.5) * 2;
+              var d = document.createElement("div");
+              d.className = "co-piece"; d.id = "co-piece-" + i;
+              d.style.background = p.color;
+              field.appendChild(d); p.el = d; parts.push(p);
+            }
+            var W = root.clientWidth, H = root.clientHeight, sc = H / 720;
+            start(function (frame) {
+              var tt = frame - startFrame;
+              var fadeIn = ip(tt, 0, 4, 0, 1), fadeOut = ip(tt, lifetime * 0.7, lifetime, 1, 0);
+              var op = tt < 0 || tt > lifetime ? 0 : Math.min(fadeIn, fadeOut);
+              parts.forEach(function (p) {
+                if (op <= 0) { p.el.style.opacity = 0; return; }
+                var vx = Math.cos(p.angle) * p.speed * power + p.drift;
+                var vy = Math.sin(p.angle) * p.speed * power;
+                var x = W * ox + vx * tt * sc;
+                var y = H * oy + (vy * tt + 0.5 * gravity * tt * tt) * sc;
+                var rot = p.rot0 + p.spin * tt;
+                var flutter = Math.cos(p.rot0 + p.spin * tt * 1.6);
+                var w = size * p.size * sc;
+                p.el.style.width = w + "px"; p.el.style.height = w * 0.62 + "px";
+                p.el.style.opacity = op;
+                p.el.style.transform = "translate(" + x + "px," + y + "px) translate(-50%,-50%) rotate(" + rot + "rad) scale(" + flutter + ",1)";
+              });
+            });
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

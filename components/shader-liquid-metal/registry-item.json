@@ -1,0 +1,215 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-liquid-metal",
+  "type": "hyperframes:component",
+  "title": "Liquid Metal",
+  "description": "A molten metal surface with flowing, chromatic highlights fills the frame, drawn in WebGL. Pick a shape to make it an emblem instead.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "metal",
+    "material",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A premium, industrial or luxury scene wants a brushed, molten metal surface.",
+    "You want reflective, flowing highlights that read as material rather than color.",
+    "The palette is neutral or monochrome and you want the tint to lead subtly."
+  ],
+  "avoidWhen": [
+    "You want a centered metallic emblem: set `shape` to circle, daisy, diamond or metaballs (it defaults to a full-bleed surface).",
+    "The brief calls for color: liquid-metal is tonal; use shader-mesh-gradient.",
+    "High contrast highlights would fight fine text: lower `contour` and `repetition`."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-liquid-metal/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-liquid-metal.html",
+      "target": "compositions/components/shader-liquid-metal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Metal color",
+      "description": "Base color of the metal.",
+      "default": "#2a2a30"
+    },
+    {
+      "id": "color_tint",
+      "type": "color",
+      "role": "style",
+      "label": "Tint",
+      "description": "Color of the light running through the metal.",
+      "default": "#8a8a95"
+    },
+    {
+      "id": "distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Distortion",
+      "description": "How much the highlights bend.",
+      "default": 0.1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "repetition",
+      "type": "number",
+      "role": "style",
+      "label": "Repetition",
+      "description": "How many highlight bands repeat.",
+      "default": 1.5,
+      "min": 1,
+      "max": 10,
+      "step": 0.1
+    },
+    {
+      "id": "contour",
+      "type": "number",
+      "role": "style",
+      "label": "Contour",
+      "description": "Strength of the contour lines.",
+      "default": 0.4,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "Blends the highlight edges.",
+      "default": 0.05,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "shift_red",
+      "type": "number",
+      "role": "style",
+      "label": "Red shift",
+      "description": "Chromatic split of the red channel.",
+      "default": 0.3,
+      "min": -1,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "shift_blue",
+      "type": "number",
+      "role": "style",
+      "label": "Blue shift",
+      "description": "Chromatic split of the blue channel.",
+      "default": 0.3,
+      "min": -1,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "angle",
+      "type": "number",
+      "role": "style",
+      "label": "Angle",
+      "description": "Direction the highlights flow.",
+      "default": 70,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Shape",
+      "description": "None fills the frame; the others draw a metal emblem.",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "None (full frame)"
+        },
+        {
+          "value": "circle",
+          "label": "Circle"
+        },
+        {
+          "value": "daisy",
+          "label": "Daisy"
+        },
+        {
+          "value": "diamond",
+          "label": "Diamond"
+        },
+        {
+          "value": "metaballs",
+          "label": "Metaballs"
+        }
+      ]
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

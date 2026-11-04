@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "line-by-line-slide",
+  "type": "hyperframes:component",
+  "title": "Line by Line Slide",
+  "description": "Lines of text slide in from the left one after another, then slide out to the right in turn.",
+  "tags": [
+    "text-effects",
+    "lines",
+    "slide",
+    "stagger",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.3,
+    0.8,
+    2.5,
+    2.85
+  ],
+  "useWhen": [
+    "A multi-line statement should arrive line by line with a calm lateral glide and leave the same way.",
+    "Taglines, quotes and short stanzas where each line has its own beat."
+  ],
+  "avoidWhen": [
+    "A single short word: use a letter or word effect.",
+    "The lines should rise from below: use a mask or rise reveal."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/line-by-line-slide/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "line-by-line-slide.html",
+      "target": "compositions/components/line-by-line-slide.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Lines of text; a new line starts a new row.",
+      "default": "Think different.\nDo more."
+    },
+    {
+      "id": "distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Distance",
+      "description": "How far left of its place each line starts and how far right it leaves.",
+      "default": 48,
+      "min": 0,
+      "max": 300,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

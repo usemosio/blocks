@@ -1,0 +1,128 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "onboarding-stepper-flow",
+  "type": "hyperframes:component",
+  "title": "Onboarding Stepper Flow",
+  "description": "A multi-step onboarding scene: a stepper advances across three panels (an input, a radio, a switch) while the Next button presses, and the last press runs the Finish button to success.",
+  "tags": [
+    "ui",
+    "flow",
+    "onboarding",
+    "stepper",
+    "form",
+    "product-demo",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 5.85,
+  "checkAt": [
+    0.8,
+    2.2,
+    3.6,
+    5.5
+  ],
+  "useWhen": [
+    "Demoing a multi-step onboarding experience (account setup, plan choice, preferences) in one scene.",
+    "Showing progressive form completion with a stepper indicator advancing across panels.",
+    "A product video needs a complete new-user flow from first input to success without custom orchestration."
+  ],
+  "avoidWhen": [
+    "The flow is a payment checkout: use checkout-flow.",
+    "It is a single account sign-up (email and password, then success): use signup-flow.",
+    "You need custom panel content like images or code blocks: the panels are fixed, so orchestrate manually."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/onboarding-stepper-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "onboarding-stepper-flow.html",
+      "target": "compositions/components/onboarding-stepper-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "steps",
+      "type": "string",
+      "role": "content",
+      "label": "Steps",
+      "description": "JSON array of step labels.",
+      "default": "[\"Account\", \"Plan\", \"Settings\"]"
+    },
+    {
+      "id": "name",
+      "type": "string",
+      "role": "content",
+      "label": "Name",
+      "description": "Text typed into the first panel's input.",
+      "default": "jane@acme.com"
+    },
+    {
+      "id": "plans",
+      "type": "string",
+      "role": "content",
+      "label": "Plans",
+      "description": "JSON array of plan names; the second one is picked in the second panel.",
+      "default": "[\"Free\", \"Pro\", \"Team\"]"
+    },
+    {
+      "id": "next_label",
+      "type": "string",
+      "role": "content",
+      "label": "Next label",
+      "description": "Label of the button on the first panels.",
+      "default": "Next"
+    },
+    {
+      "id": "finish_label",
+      "type": "string",
+      "role": "content",
+      "label": "Finish label",
+      "description": "Label of the button on the last panel.",
+      "default": "Finish"
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Mode",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the control sits over your own scene.",
+      "default": false
+    }
+  ]
+}

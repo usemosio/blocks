@@ -1,0 +1,169 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "perspective-marquee",
+  "type": "hyperframes:component",
+  "title": "Perspective Marquee",
+  "description": "A row of words scrolls sideways on a 3D tilt, fading and blurring toward the edges.",
+  "tags": [
+    "text-effects",
+    "marquee",
+    "3d",
+    "scroll",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 8,
+  "checkAt": [
+    0.5,
+    2.5,
+    5.0,
+    7.5
+  ],
+  "useWhen": [
+    "A logo-wall style strip: partners, features or keywords that should scroll past in depth.",
+    "A tech or product-launch scene that needs a moving, dimensional backdrop of words."
+  ],
+  "avoidWhen": [
+    "The items must stay readable and still: use a static row.",
+    "A flat, straight ticker is wanted: no 3D tilt."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/perspective-marquee/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "perspective-marquee.html",
+      "target": "compositions/components/perspective-marquee.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Items",
+      "description": "Comma-separated words that scroll by.",
+      "default": "Studio, Launch, Motion, Design, Craft, Story, Frame, Pulse"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in pixels at a 1280 px wide frame; it scales with the frame width.",
+      "default": 84,
+      "min": 24,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "700",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "pixels_per_frame",
+      "type": "number",
+      "role": "motion",
+      "label": "Pixels per frame",
+      "description": "Scroll speed at a 1280 px wide frame.",
+      "default": 2,
+      "min": 0.25,
+      "max": 10,
+      "step": 0.25,
+      "unit": "px"
+    },
+    {
+      "id": "rotate_y",
+      "type": "number",
+      "role": "motion",
+      "label": "Rotate Y",
+      "description": "Tilt around the vertical axis.",
+      "default": -28,
+      "min": -60,
+      "max": 60,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "rotate_x",
+      "type": "number",
+      "role": "motion",
+      "label": "Rotate X",
+      "description": "Tilt around the horizontal axis.",
+      "default": 8,
+      "min": -30,
+      "max": 30,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "perspective",
+      "type": "number",
+      "role": "motion",
+      "label": "Perspective",
+      "description": "Camera distance in pixels.",
+      "default": 1200,
+      "min": 400,
+      "max": 3000,
+      "step": 50,
+      "unit": "px"
+    },
+    {
+      "id": "fade_color",
+      "type": "color",
+      "role": "style",
+      "label": "Fade color",
+      "description": "Color the edges fade into; match the background.",
+      "default": "#050505"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

@@ -45,6 +45,38 @@
       ]
     },
     {
+      "name": "agent-terminal",
+      "type": "hyperframes:component",
+      "title": "Agent Terminal",
+      "description": "An unbranded coding-agent terminal: the window or launcher eases in, panels fade up and a task types itself into the prompt with a blinking caret.",
+      "category": "ai",
+      "tags": [
+        "ai",
+        "terminal",
+        "cli",
+        "agent",
+        "typing",
+        "product-demo",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "ai-prompt-composer",
+      "type": "hyperframes:component",
+      "title": "AI Prompt Composer",
+      "description": "An unbranded AI chat composer: the greeting and input ease in, a prompt types itself and the voice button morphs into the send button while the suggestion chips fade.",
+      "category": "ai",
+      "tags": [
+        "ai",
+        "chat",
+        "prompt",
+        "composer",
+        "typing",
+        "product-demo",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "ai-prompt-flow",
       "type": "hyperframes:component",
       "title": "AI Prompt Flow",
@@ -90,6 +122,20 @@
       ]
     },
     {
+      "name": "animated-bar-chart",
+      "type": "hyperframes:component",
+      "title": "Animated Bar Chart",
+      "description": "Bars spring up from the baseline with a staggered cascade.",
+      "category": "ui-blocks",
+      "tags": [
+        "data-viz",
+        "chart",
+        "bars",
+        "spring",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "animated-line-chart",
       "type": "hyperframes:component",
       "title": "Animated Line Chart",
@@ -118,6 +164,23 @@
         "terminal",
         "remocn-port"
       ]
+    },
+    {
+      "name": "ascii-render",
+      "type": "hyperframes:component",
+      "title": "ASCII Render",
+      "description": "A scene redrawn as text, one character per cell chosen by the cell's brightness, in green ink or in the scene's own colours. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "ascii",
+        "text",
+        "terminal",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "backdrop",
@@ -164,6 +227,66 @@
       ]
     },
     {
+      "name": "blur-in",
+      "type": "hyperframes:component",
+      "title": "Blur In",
+      "description": "A single element is revealed with blur, opacity and a directional offset, settling in place: a premium entrance for a card, image or composed scene.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "blur",
+        "reveal",
+        "entrance",
+        "premium",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "blur-out-up",
+      "type": "hyperframes:component",
+      "title": "Blur Out Up",
+      "description": "Words arrive clean and depart upward with increasing blur for airy exits.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "blur",
+        "words",
+        "exit",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "bottom-up-letters",
+      "type": "hyperframes:component",
+      "title": "Bottom-Up Letters",
+      "description": "Letters rise from below in a pronounced staircase, one symbol at a time.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "kinetic-type",
+        "letters",
+        "stagger",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "brand-guidelines",
+      "type": "hyperframes:component",
+      "title": "Brand Guidelines",
+      "description": "A complete editorial identity film: a geometric brand mark, a terracotta, graphite, stone and paper palette, a type specimen that types and deletes itself through eight styles, a layered collage of drawn object plates, and three flipping tiles that become the closing wordmark. Silent: sound is added by the host. The object photos are drawn with SVG by default; pass image paths to use real photographs.",
+      "category": "templates",
+      "tags": [
+        "template",
+        "brand",
+        "identity",
+        "editorial",
+        "typography",
+        "premium",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "brick-mosaic",
       "type": "hyperframes:component",
       "title": "Brick Mosaic",
@@ -191,6 +314,24 @@
         "ui",
         "remocn-port"
       ]
+    },
+    {
+      "name": "camera-lens",
+      "type": "hyperframes:component",
+      "title": "Camera Lens",
+      "description": "A scene seen through a lens instead of rendered flat: softness growing toward the corners, bright text blooming, red and blue fringing at the edges, a gentle barrel bend and a falloff in the light. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video. Subtle enough to leave running under a whole shot.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "lens",
+        "camera",
+        "bloom",
+        "premium",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "caption-active-pop",
@@ -672,6 +813,20 @@
       ]
     },
     {
+      "name": "caret-swap",
+      "type": "hyperframes:component",
+      "title": "Caret Swap",
+      "description": "A gradient caret expands into a block that consumes the first text, then types the second.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typewriter",
+        "caret",
+        "swap",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "caret-wipe",
       "type": "hyperframes:component",
       "title": "Caret Wipe",
@@ -791,6 +946,35 @@
       ]
     },
     {
+      "name": "cloth-reveal",
+      "type": "hyperframes:component",
+      "title": "Cloth Reveal",
+      "description": "A satin sheet draped over your content is yanked from one corner, folding and fluttering as a simulated cloth before it clears the frame. The Verlet simulation runs once at load with a fixed timestep and a seeded rest shape (a 32×20 grid), every frame's points are stored, and the timeline only draws the stored frame. The content under the sheet is a neutral lockup with editable text.",
+      "category": "camera",
+      "tags": [
+        "camera",
+        "reveal",
+        "cloth",
+        "premium",
+        "simulation",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "code-morph",
+      "type": "hyperframes:component",
+      "title": "Code Morph",
+      "description": "A code panel morphs between versions of a file: surviving tokens glide to their new line and column, removed code blurs out and new code fades in. The clip is 4.6 s long for the default two versions and 36-frame morph.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui-blocks",
+        "code",
+        "morph",
+        "developer",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "combobox",
       "type": "hyperframes:component",
       "title": "Combobox",
@@ -849,6 +1033,20 @@
       ]
     },
     {
+      "name": "confetti",
+      "type": "hyperframes:component",
+      "title": "Confetti",
+      "description": "A deterministic burst of confetti pieces that fall, spin and flutter with gravity.",
+      "category": "effects",
+      "tags": [
+        "effects",
+        "celebration",
+        "particles",
+        "seeded",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "context-menu",
       "type": "hyperframes:component",
       "title": "Context Menu",
@@ -861,6 +1059,24 @@
         "cursor",
         "remocn-port"
       ]
+    },
+    {
+      "name": "crt-screen",
+      "type": "hyperframes:component",
+      "title": "CRT Screen",
+      "description": "A scene behind curved tube glass: barrel distortion, an RGB phosphor mask, scanlines that bow with the picture, bloom around bright text and corners that run off into black. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video. The only motion is a 1 % brightness breath, so it holds as a look.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "webgl",
+        "crt",
+        "retro",
+        "scanlines",
+        "screen",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "crumple-toss",
@@ -919,6 +1135,23 @@
         "ui",
         "remocn-port"
       ]
+    },
+    {
+      "name": "displacement",
+      "type": "hyperframes:component",
+      "title": "Displacement",
+      "description": "The frame shears into a grid of tiles that slide out of register with red/blue fringing and film grain, swap to the next scene mid-slide, then settle back. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 45 frames of the first panel, a 18-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "shader",
+        "displacement",
+        "glitch",
+        "tech",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "dither-dissolve",
@@ -1050,6 +1283,24 @@
       ]
     },
     {
+      "name": "ember-burn",
+      "type": "hyperframes:component",
+      "title": "Ember Burn",
+      "description": "The outgoing frame is set on fire: a noisy burn front eats the bright parts first, the edge boils and glows, charred rims fall away and sparks drift off carrying the frame's colour, uncovering the next scene. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 60 frames of the first panel, a 40-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "shader",
+        "fire",
+        "burn",
+        "cinematic",
+        "premium",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "exploded-view",
       "type": "hyperframes:component",
       "title": "Exploded View",
@@ -1075,6 +1326,20 @@
         "extrude",
         "pop",
         "poster",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "fade-through",
+      "type": "hyperframes:component",
+      "title": "Fade Through",
+      "description": "One text fades out and a second fades in with a slight rise, scale and blur, so scenes change calmly.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "fade",
+        "swap",
+        "calm",
         "remocn-port"
       ]
     },
@@ -1108,6 +1373,20 @@
       ]
     },
     {
+      "name": "focus-blur-resolve",
+      "type": "hyperframes:component",
+      "title": "Focus Blur Resolve",
+      "description": "Text starts blurred and resolves to crisp, holds, then drifts up and blurs out.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "blur",
+        "focus",
+        "reveal",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "focus-pull",
       "type": "hyperframes:component",
       "title": "Focus Pull",
@@ -1133,6 +1412,38 @@
         "blur",
         "3d",
         "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "followers-overview",
+      "type": "hyperframes:component",
+      "title": "Followers Overview",
+      "description": "Follow notifications flip through in 3D, one name at a time, then the total follower count blurs in with a spring pop, the account handle and a confetti burst.",
+      "category": "social",
+      "tags": [
+        "social",
+        "followers",
+        "notifications",
+        "milestone",
+        "confetti",
+        "counter",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "fomo-limit-orders",
+      "type": "hyperframes:component",
+      "title": "Order Flow",
+      "description": "An 18.5-second trading-interface demo with fictional data, graphite surfaces and amber controls: three opening lines over drifting bars, a phone with a position card that the camera pushes into and orbits, a limit-order ticket whose slider contracts into a price field, a confirmation card, and the closing wordmark. Silent: sound is added by the host. All figures are illustrative.",
+      "category": "templates",
+      "tags": [
+        "template",
+        "product",
+        "fintech",
+        "ui",
+        "trading",
+        "premium",
         "remocn-port"
       ]
     },
@@ -1165,6 +1476,23 @@
         "tech",
         "remocn-port"
       ]
+    },
+    {
+      "name": "glitch-cut",
+      "type": "hyperframes:component",
+      "title": "Glitch Cut",
+      "description": "A hard cut torn into displaced horizontal slices with red/blue channel split and corrupted blocks that leak the other scene; each band hands over at its own moment. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 45 frames of the first panel, a 12-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "shader",
+        "glitch",
+        "cut",
+        "tech",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "glyph-anatomy",
@@ -1240,6 +1568,42 @@
       ]
     },
     {
+      "name": "grid-wave",
+      "type": "hyperframes:component",
+      "title": "Grid Wave",
+      "description": "A wave crosses the frame (outward from the centre, or left, right, up or down) and lifts the picture into a grid of solid tiles with a gap between them, tinted and shaded as they rise, then sets them down carrying the next scene. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 60 frames of the first panel, a 36-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "shader",
+        "grid",
+        "tiles",
+        "wave",
+        "tech",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "halftone-print",
+      "type": "hyperframes:component",
+      "title": "Halftone Print",
+      "description": "A scene printed instead of displayed: cyan, magenta and yellow dot screens at their own angles on warm paper, each plate a touch out of register. Runs its WebGL shader over its own built-in scene (a paper poster; kicker, headline and paragraph from variables), not over the host video. Best on light, graphic scenes with real midtones.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "halftone",
+        "print",
+        "paper",
+        "riso",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "hand-count",
       "type": "hyperframes:component",
       "title": "Hand Count",
@@ -1268,6 +1632,22 @@
         "reveal",
         "remocn-port"
       ]
+    },
+    {
+      "name": "hologram",
+      "type": "hyperframes:component",
+      "title": "Hologram",
+      "description": "A scene played as projected light: a ghost double shimmers off the image, emission lines structure it, a halo spills from bright areas, and everything leans toward its tint. WebGL.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "hologram",
+        "sci-fi",
+        "glow",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "hyperspace",
@@ -2687,6 +3067,20 @@
       ]
     },
     {
+      "name": "inline-highlight",
+      "type": "hyperframes:component",
+      "title": "Inline Highlight",
+      "description": "A sentence where one word is picked out by fading from the base colour to an accent colour.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "highlight",
+        "color",
+        "emphasis",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "inline-pill-takeover",
       "type": "hyperframes:component",
       "title": "Inline Pill Takeover",
@@ -2774,6 +3168,20 @@
       ]
     },
     {
+      "name": "kinetic-center-build",
+      "type": "hyperframes:component",
+      "title": "Kinetic Center Build",
+      "description": "Words enter from the right one at a time and push the line left so the sentence builds around the centre.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "words",
+        "push",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "kinetic-morph-text",
       "type": "hyperframes:component",
       "title": "Kinetic Morph Text",
@@ -2800,6 +3208,22 @@
         "kinetic-type",
         "beat",
         "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "launch-anything",
+      "type": "hyperframes:component",
+      "title": "Product Showcase",
+      "description": "A 26.7-second editorial product film in cream and forest green: chrome-like words open onto a dusk horizon, a button becomes a portal into a desk, a laptop camera move steps through seven product screens, a symbol field, architectural linework, two launch plates, a typed address and a frame-shaped mark. Silent: sound is added by the host. Photographs are drawn with SVG by default (the chrome type is a 2D approximation of the shader); pass image paths to use real photos.",
+      "category": "templates",
+      "tags": [
+        "template",
+        "product",
+        "launch",
+        "editorial",
+        "ui",
+        "premium",
         "remocn-port"
       ]
     },
@@ -2834,6 +3258,20 @@
       ]
     },
     {
+      "name": "light-leak",
+      "type": "hyperframes:component",
+      "title": "Light Leak",
+      "description": "A warm analog light leak drifts across the frame, blows out at the cut and cools off on the next scene.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "light-leak",
+        "film",
+        "warm",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "line-boil",
       "type": "hyperframes:component",
       "title": "Line Boil",
@@ -2845,6 +3283,20 @@
         "outline",
         "playful",
         "shape",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "line-by-line-slide",
+      "type": "hyperframes:component",
+      "title": "Line by Line Slide",
+      "description": "Lines of text slide in from the left one after another, then slide out to the right in turn.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "lines",
+        "slide",
+        "stagger",
         "remocn-port"
       ]
     },
@@ -2908,6 +3360,20 @@
       ]
     },
     {
+      "name": "marker-highlight",
+      "type": "hyperframes:component",
+      "title": "Marker Highlight",
+      "description": "A highlighter-pen bar springs across one word of a sentence, like a marker stroke.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "highlight",
+        "marker",
+        "emphasis",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "mask-reveal-up",
       "type": "hyperframes:component",
       "title": "Mask Reveal Up",
@@ -2918,6 +3384,20 @@
         "reveal",
         "lines",
         "blur",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "matrix-decode",
+      "type": "hyperframes:component",
+      "title": "Matrix Decode",
+      "description": "Scrambled symbols resolve into the real text one character at a time, left to right, in a monospace face.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "decode",
+        "scramble",
+        "monospace",
         "remocn-port"
       ]
     },
@@ -2936,6 +3416,22 @@
       ]
     },
     {
+      "name": "messenger-chat-flow",
+      "type": "hyperframes:component",
+      "title": "Messenger Chat Flow",
+      "description": "A scripted messaging conversation with delivery details: timestamps and read ticks or a delivered receipt, a typing status in the header, a send button that morphs from mic to send, typing dots and reactions that pop onto bubbles.",
+      "category": "ui",
+      "tags": [
+        "chat",
+        "messaging",
+        "conversation",
+        "receipts",
+        "typing",
+        "product-demo",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "micro-scale-fade",
       "type": "hyperframes:component",
       "title": "Micro Scale Fade",
@@ -2946,6 +3442,22 @@
         "reveal",
         "fade",
         "subtle",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "milestone-counter-list",
+      "type": "hyperframes:component",
+      "title": "Milestone Counter List",
+      "description": "A follower or fan milestone: a rolling odometer counts up to a total while a list of named entries flies past and settles on the last one, with an accent star and underline.",
+      "category": "data",
+      "tags": [
+        "data",
+        "counter",
+        "milestone",
+        "odometer",
+        "social-proof",
+        "list",
         "remocn-port"
       ]
     },
@@ -2975,6 +3487,36 @@
         "neon",
         "glow",
         "retro",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "number-wheel",
+      "type": "hyperframes:component",
+      "title": "Number Wheel",
+      "description": "A mechanical odometer: each digit is a wheel that rolls to the next number as a count runs up.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "number",
+        "counter",
+        "odometer",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "onboarding-stepper-flow",
+      "type": "hyperframes:component",
+      "title": "Onboarding Stepper Flow",
+      "description": "A multi-step onboarding scene: a stepper advances across three panels (an input, a radio, a switch) while the Next button presses, and the last press runs the Finish button to success.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "flow",
+        "onboarding",
+        "stepper",
+        "form",
+        "product-demo",
         "remocn-port"
       ]
     },
@@ -3095,6 +3637,24 @@
       ]
     },
     {
+      "name": "particle-dissolve",
+      "type": "hyperframes:component",
+      "title": "Particle Dissolve",
+      "description": "The frame breaks into drifting grey dust, bright parts throwing theirs furthest, with specks that twinkle and a little colour fringing; the next scene coalesces back out of the dust. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 60 frames of the first panel, a 36-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "shader",
+        "particles",
+        "dust",
+        "dissolve",
+        "tech",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "path-ride",
       "type": "hyperframes:component",
       "title": "Path Ride",
@@ -3139,6 +3699,20 @@
       ]
     },
     {
+      "name": "per-word-crossfade",
+      "type": "hyperframes:component",
+      "title": "Per Word Crossfade",
+      "description": "A sentence dissolves word by word into a new one, each word rising slightly as it arrives.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "crossfade",
+        "words",
+        "swap",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "period-drop",
       "type": "hyperframes:component",
       "title": "Period Drop",
@@ -3164,6 +3738,20 @@
         "noise",
         "shader",
         "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "perspective-marquee",
+      "type": "hyperframes:component",
+      "title": "Perspective Marquee",
+      "description": "A row of words scrolls sideways on a 3D tilt, fading and blurring toward the edges.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "marquee",
+        "3d",
+        "scroll",
         "remocn-port"
       ]
     },
@@ -3212,6 +3800,24 @@
       ]
     },
     {
+      "name": "pixelate-region",
+      "type": "hyperframes:component",
+      "title": "Pixelate Region",
+      "description": "Covers chosen rectangles of a scene with an opaque mosaic and leaves the rest perfectly sharp, the way a demo hides keys, tokens and addresses. Runs its WebGL shader over its own built-in scene (a credentials page; title, rows and note from variables, with the values of the chosen rows covered), not over the host video.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "pixelate",
+        "redact",
+        "privacy",
+        "mosaic",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "polaroid",
       "type": "hyperframes:component",
       "title": "Polaroid",
@@ -3237,6 +3843,22 @@
         "popover",
         "hover-card",
         "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "profile-follow-card",
+      "type": "hyperframes:component",
+      "title": "Profile Follow Card",
+      "description": "A creator profile card springs in, its parts blur in one after another, then a cursor glides to the button and clicks it, flipping Follow to Following.",
+      "category": "social",
+      "tags": [
+        "social",
+        "profile",
+        "card",
+        "follow",
+        "cursor",
+        "creator",
         "remocn-port"
       ]
     },
@@ -3326,6 +3948,22 @@
       ]
     },
     {
+      "name": "release-teaser",
+      "type": "hyperframes:component",
+      "title": "Release Teaser",
+      "description": "A sixteen-second release announcement: five short statements resolve from the center outward over an extreme close-up of a dark, beveled open ring, then the camera pulls back to the ring behind the release lockup and the light recedes while the name holds. Silent: sound is added by the host.",
+      "category": "templates",
+      "tags": [
+        "template",
+        "release",
+        "announcement",
+        "kinetic-type",
+        "3d",
+        "premium",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "resizable",
       "type": "hyperframes:component",
       "title": "Resizable",
@@ -3337,6 +3975,20 @@
         "split",
         "drag",
         "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "rgb-glitch-text",
+      "type": "hyperframes:component",
+      "title": "RGB Glitch Text",
+      "description": "A short burst where red, green and blue copies of the text jitter apart, then snap back.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "glitch",
+        "rgb",
+        "distortion",
         "remocn-port"
       ]
     },
@@ -3415,6 +4067,23 @@
       ]
     },
     {
+      "name": "rush-type",
+      "type": "hyperframes:component",
+      "title": "Rush Type",
+      "description": "White words blast into vertical RGB shutter trails, one forceful word at a time: the word falls out of perspective, stretches into a tall red/green/blue-fringed smear, snaps to a sharp readable rest, then blasts away as the next word arrives. The fringing comes from motion alone, not from tinting the text; a tube mask and glow ride along with the blast. WebGL, over an opaque background colour.",
+      "category": "typography",
+      "tags": [
+        "typography",
+        "kinetic-type",
+        "shader",
+        "webgl",
+        "motion-blur",
+        "rgb",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "scale-down-fade",
       "type": "hyperframes:component",
       "title": "Scale Down Fade",
@@ -3457,6 +4126,24 @@
         "geometric",
         "remocn-port"
       ]
+    },
+    {
+      "name": "security-cam",
+      "type": "hyperframes:component",
+      "title": "Security Cam",
+      "description": "A scene as surveillance footage: luma and colour squeezed into blocks, colour drained, blacks crushed and a slow brightness pump with noise crawling in the shadows. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "security",
+        "cctv",
+        "compression",
+        "noise",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "select",
@@ -3516,6 +4203,635 @@
       ]
     },
     {
+      "name": "settings-toggle-flow",
+      "type": "hyperframes:component",
+      "title": "Settings Toggle Flow",
+      "description": "A two-column settings card: it blurs in, then a cursor flips the notifications switch, opens the theme select and picks an option, drags the volume slider, and clicks Save, ending on a confirmation toast.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "flow",
+        "settings",
+        "switch",
+        "select",
+        "slider",
+        "product-demo",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "shader-caustics",
+      "type": "hyperframes:component",
+      "title": "Caustics",
+      "description": "A web of refracted-light filaments, denser toward the bottom of the frame, drifts over a near-black floor, drawn in WebGL. An accent color can tint the filaments.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "light",
+        "water",
+        "caustics",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-color-panels",
+      "type": "hyperframes:component",
+      "title": "Shader Color Panels",
+      "description": "Translucent color panels swing through depth and slide past each other: a glassy, architectural WebGL backdrop in any palette.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "background",
+        "panels",
+        "glass",
+        "loop",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-dithering",
+      "type": "hyperframes:component",
+      "title": "Shader Dithering",
+      "description": "An animated gradient field rendered as a two-color ordered dither, like 1-bit print or an old screen: a lo-fi WebGL backdrop.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "background",
+        "dithering",
+        "retro",
+        "pixel",
+        "loop",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-dot-orbit",
+      "type": "hyperframes:component",
+      "title": "Shader Dot Orbit",
+      "description": "A loose grid of colored dots, each orbiting inside its own cell: a structured, network-like WebGL backdrop.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "background",
+        "dots",
+        "grid",
+        "loop",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-gem-smoke",
+      "type": "hyperframes:component",
+      "title": "Gem Smoke",
+      "description": "Smoke in your palette flows behind and inside a glassy silhouette: a built-in shape such as a diamond, or a bold glyph or logo letter you type. Drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "shape",
+        "smoke",
+        "logo",
+        "premium",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-god-rays",
+      "type": "hyperframes:component",
+      "title": "God Rays",
+      "description": "Volumetric light rays fan out from a source just above the frame: soft, slowly moving shafts of light in your palette, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "light",
+        "rays",
+        "atmosphere",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient",
+      "description": "A grainy multi-stop gradient shape drifts slowly under film-grain texture: an analog, premium WebGL backdrop in any palette and one of seven shapes.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "grain",
+        "loop",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-arcade",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Arcade",
+      "description": "Retro grainy dots in orange, yellow and green on black. A WebGL shader backdrop; the arcade preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-blush",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Blush",
+      "description": "Pastel pink and apricot blob morphing on warm off-white. A WebGL shader backdrop; the blush preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-dune",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Dune",
+      "description": "Sandy grain wave in tan, caramel and rust. A WebGL shader backdrop; the dune preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-horizon",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Horizon",
+      "description": "Peach horizon band rolling between navy and pale sky. A WebGL shader backdrop; the horizon preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-nebula",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Nebula",
+      "description": "Magenta and cyan glow blooming from the corners of deep space. A WebGL shader backdrop; the nebula preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-orb",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Orb",
+      "description": "Large grainy sphere in periwinkle, violet and pink. A WebGL shader backdrop; the orb preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-sunrise",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Sunrise",
+      "description": "Grainy wave of coral and gold rising over a plum night. A WebGL shader backdrop; the sunrise preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-tide",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Tide",
+      "description": "Teal ripple ring pulsing out of a dark sea-green core. A WebGL shader backdrop; the tide preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-grain-gradient-ultraviolet",
+      "type": "hyperframes:component",
+      "title": "Shader Grain Gradient Ultraviolet",
+      "description": "Electric magenta and blue blob morphing on ultraviolet black. A WebGL shader backdrop; the ultraviolet preset of shader-grain-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-light-tunnel",
+      "type": "hyperframes:component",
+      "title": "Light Tunnel",
+      "description": "A forward flight through a tunnel of luminous, twisting light ribbons with a halftone texture and a soft defocused vanishing point, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "tunnel",
+        "light",
+        "halftone",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-liquid-metal",
+      "type": "hyperframes:component",
+      "title": "Liquid Metal",
+      "description": "A molten metal surface with flowing, chromatic highlights fills the frame, drawn in WebGL. Pick a shape to make it an emblem instead.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "metal",
+        "material",
+        "premium",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient",
+      "description": "Soft color blobs drift and blend across the whole frame: a calm, looping WebGL backdrop in any palette.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-aurora",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Aurora",
+      "description": "Cyan and violet ribbons swirling out of a near-black sky. A WebGL shader backdrop; the aurora preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-dusk",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Dusk",
+      "description": "Violet dusk with coral and peach light drifting through deep indigo. A WebGL shader backdrop; the dusk preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-ember",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Ember",
+      "description": "Molten orange and amber pooling in dark oxblood. A WebGL shader backdrop; the ember preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-ink",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Ink",
+      "description": "Monochrome ink folds in charcoal and silver with grain. A WebGL shader backdrop; the ink preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-lagoon",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Lagoon",
+      "description": "Bright aqua and teal shallows with a deep-blue undertow. A WebGL shader backdrop; the lagoon preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-lavender",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Lavender",
+      "description": "Soft lilac and pink haze with grain-softened edges. A WebGL shader backdrop; the lavender preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-mint",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Mint",
+      "description": "Airy mint and sky-blue pastel wash around a deeper green core. A WebGL shader backdrop; the mint preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-peach",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Peach",
+      "description": "Warm peach and cream glow with a whisper of film grain. A WebGL shader backdrop; the peach preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-mesh-gradient-synthwave",
+      "type": "hyperframes:component",
+      "title": "Shader Mesh Gradient Synthwave",
+      "description": "Night-purple field lit by a warm coral sunset glow. A WebGL shader backdrop; the synthwave preset of shader-mesh-gradient.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-metaballs",
+      "type": "hyperframes:component",
+      "title": "Metaballs",
+      "description": "Soft blobs drift, merge and split like a lava lamp, each tinted from your palette, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "blobs",
+        "organic",
+        "loop",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-neuro-noise",
+      "type": "hyperframes:component",
+      "title": "Neuro Noise",
+      "description": "A web of glowing filaments that slowly morphs, in three colors over a dark field, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "noise",
+        "tech",
+        "ai",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-perlin-noise",
+      "type": "hyperframes:component",
+      "title": "Perlin Noise",
+      "description": "Soft Perlin-noise clouds drift across the frame as a duotone fog, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "noise",
+        "clouds",
+        "calm",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-pulsing-border",
+      "type": "hyperframes:component",
+      "title": "Pulsing Border",
+      "description": "A glowing, pulsing frame of light runs around the edges of the frame and leaves the center clear for content, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "border",
+        "glow",
+        "frame",
+        "overlay",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-seam",
+      "type": "hyperframes:component",
+      "title": "Seam",
+      "description": "A transition between two panels: a colored silk-and-halftone material appears across the frame, the scene underneath swaps while it is opaque, then it dissolves in place to uncover the next. The block plays it between its own panels A and B, with text from variables; WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "transition",
+        "dissolve",
+        "halftone",
+        "scene",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-simplex-noise",
+      "type": "hyperframes:component",
+      "title": "Simplex Noise",
+      "description": "A smooth simplex-noise flow field drifts through your palette in soft bands, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "noise",
+        "flow",
+        "gradient",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-smoke-ring",
+      "type": "hyperframes:component",
+      "title": "Smoke Ring",
+      "description": "A single soft ring of smoke curls and dissipates in the center of a dark field, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "smoke",
+        "ring",
+        "minimal",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-spiral",
+      "type": "hyperframes:component",
+      "title": "Spiral",
+      "description": "Two-tone spiral arms rotate out from the center of the frame, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "spiral",
+        "radial",
+        "hypnotic",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "shader-spiral-pass",
       "type": "hyperframes:component",
       "title": "Shader Spiral Pass",
@@ -3530,6 +4846,429 @@
       ]
     },
     {
+      "name": "shader-strata",
+      "type": "hyperframes:component",
+      "title": "Strata",
+      "description": "Fine horizontal layers of sediment, their edges bent by noise, drift at their own depths so the stack reads as a living foundation. Drawn in WebGL; an accent color can tint the deep layers.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "layers",
+        "texture",
+        "calm",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl",
+      "description": "Concentric bands swirling around a center point. A WebGL shader backdrop.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-candy",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Candy",
+      "description": "Pastel pink, lilac and sky-blue spiral, soft and sweet. A WebGL shader backdrop; the candy preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-citrus",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Citrus",
+      "description": "Juicy yellow, pink and green bands spiralling on cream. A WebGL shader backdrop; the citrus preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-ember",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Ember",
+      "description": "Gold and orange fire bands spinning around a dark core. A WebGL shader backdrop; the ember preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-hypno",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Hypno",
+      "description": "High-contrast black and white hypnotic spiral. A WebGL shader backdrop; the hypno preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-lilac",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Lilac",
+      "description": "Dreamy lilac and baby-blue swirl around a dark eye. A WebGL shader backdrop; the lilac preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-neon",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Neon",
+      "description": "Neon teal, purple and pink vortex around a dark core. A WebGL shader backdrop; the neon preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-retro",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Retro",
+      "description": "Seventies spiral in orange, sand and teal. A WebGL shader backdrop; the retro preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-sunburst",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Sunburst",
+      "description": "Retro cream and orange bands sweeping in from above. A WebGL shader backdrop; the sunburst preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-swirl-tide",
+      "type": "hyperframes:component",
+      "title": "Shader Swirl Tide",
+      "description": "Silky blue bands twisting into a deep navy whirlpool. A WebGL shader backdrop; the tide preset of shader-swirl.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-text-reveal",
+      "type": "hyperframes:component",
+      "title": "Text Reveal",
+      "description": "Words appear one at a time: a flowing, halftone-textured light material fills the letters, then clears to clean white type before a dark wave removes the word. Drawn in WebGL over a transparent background.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "text",
+        "reveal",
+        "typography",
+        "halftone",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-voronoi",
+      "type": "hyperframes:component",
+      "title": "Voronoi",
+      "description": "Voronoi cells in two colors shift and re-tessellate, with dark gaps between them, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "cells",
+        "crystal",
+        "tech",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp",
+      "type": "hyperframes:component",
+      "title": "Shader Warp",
+      "description": "Domain-warped color field that folds and stretches like liquid. A WebGL shader backdrop.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-acid",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Acid",
+      "description": "Loud lime and cyan fluid swirling over black. A WebGL shader backdrop; the acid preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-cream",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Cream",
+      "description": "Soft peach-to-coral cream gradient with a gentle drift. A WebGL shader backdrop; the cream preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-deep-sea",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Deep Sea",
+      "description": "Diagonal teal bands rippling through midnight blue. A WebGL shader backdrop; the deep-sea preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-marble",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Marble",
+      "description": "Cream and charcoal marble veins swirling together. A WebGL shader backdrop; the marble preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-ocean",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Ocean",
+      "description": "Glossy aqua currents traced with dark ink edges. A WebGL shader backdrop; the ocean preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-rose-gold",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Rose Gold",
+      "description": "Satin rose-gold folds with a soft sheen. A WebGL shader backdrop; the rose-gold preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-silk",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Silk",
+      "description": "Violet and pink liquid silk folding in slow waves. A WebGL shader backdrop; the silk preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-storm",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Storm",
+      "description": "Deep violet and lavender storm of marbled fluid. A WebGL shader backdrop; the storm preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-warp-sunset",
+      "type": "hyperframes:component",
+      "title": "Shader Warp Sunset",
+      "description": "Marbled coral, peach and wine flowing like warm liquid. A WebGL shader backdrop; the sunset preset of shader-warp.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "gradient",
+        "loop",
+        "preset",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-water",
+      "type": "hyperframes:component",
+      "title": "Water",
+      "description": "Caustic light ripples across a dark water surface with gentle refraction, drawn in WebGL.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "water",
+        "caustics",
+        "calm",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
+      "name": "shader-weave",
+      "type": "hyperframes:component",
+      "title": "Weave",
+      "description": "Warp and weft threads interlace on a gently warped grid while a slow sheen of light travels across the cloth, drawn in WebGL. An accent color can run through the threads.",
+      "category": "shaders",
+      "tags": [
+        "shader",
+        "webgl",
+        "background",
+        "texture",
+        "fabric",
+        "craft",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "shadow-sweep-text",
       "type": "hyperframes:component",
       "title": "Shadow Sweep Text",
@@ -3541,6 +5280,35 @@
         "shadow",
         "exit",
         "dark",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "shared-axis-y",
+      "type": "hyperframes:component",
+      "title": "Shared Axis Y",
+      "description": "A per-word hard-cut staircase: the old phrase snaps off word by word, then the new phrase snaps on word by word, with no fade or motion. A sharp editorial swap.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "swap",
+        "editorial",
+        "words",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "shared-axis-z",
+      "type": "hyperframes:component",
+      "title": "Shared Axis Z",
+      "description": "A depth swap between two phrases: the old one scales up, blurs and fades away while the new one rises from a smaller scale and sharpens into focus, like a camera push forward.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "swap",
+        "depth",
+        "blur",
+        "scale",
         "remocn-port"
       ]
     },
@@ -3574,6 +5342,21 @@
       ]
     },
     {
+      "name": "shimmer-sweep",
+      "type": "hyperframes:component",
+      "title": "Shimmer Sweep",
+      "description": "A bright shine travels once across muted text, left to right: a refined metallic gleam that draws attention to text already on screen. It does not animate the text in.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "shine",
+        "shimmer",
+        "highlight",
+        "premium",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "short-slide-down",
       "type": "hyperframes:component",
       "title": "Short Slide Down",
@@ -3599,6 +5382,21 @@
         "reveal",
         "slide",
         "words",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "signup-flow",
+      "type": "hyperframes:component",
+      "title": "Signup Flow",
+      "description": "A cursor-driven signup card: labeled Full Name, Email, Password and Confirm Password fields fill top to bottom, then Create account runs hover, press, loading and success as a confirmation toast slides in.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "flow",
+        "signup",
+        "form",
+        "product-demo",
         "remocn-port"
       ]
     },
@@ -3674,6 +5472,21 @@
       ]
     },
     {
+      "name": "slot-machine-roll",
+      "type": "hyperframes:component",
+      "title": "Slot Machine Roll",
+      "description": "Each character sits on its own vertical reel and springs from the old value to the new one, one column after another, like a casino drum. Values of different lengths are right-aligned.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "numbers",
+        "price",
+        "reel",
+        "spring",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "smoke-dissolve",
       "type": "hyperframes:component",
       "title": "Smoke Dissolve",
@@ -3684,6 +5497,21 @@
         "smoke",
         "shader",
         "dissolve",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "soft-blur-in",
+      "type": "hyperframes:component",
+      "title": "Soft Blur In",
+      "description": "Per-character fade-in with a gentle blur and upward motion: an airy, soft premium reveal.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "blur",
+        "letters",
+        "premium",
         "remocn-port"
       ]
     },
@@ -3805,6 +5633,20 @@
       ]
     },
     {
+      "name": "staggered-fade-up",
+      "type": "hyperframes:component",
+      "title": "Staggered Fade Up",
+      "description": "Words slide up and fade in one after another in a wave-like cascade: a neutral, versatile headline reveal.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "words",
+        "stagger",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "stepper",
       "type": "hyperframes:component",
       "title": "Stepper",
@@ -3830,6 +5672,21 @@
         "smear",
         "deformation",
         "display",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "strikethrough-replace",
+      "type": "hyperframes:component",
+      "title": "Strikethrough Replace",
+      "description": "A strike line is drawn through the old text, then the new text fades in: an editorial correction.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "swap",
+        "strikethrough",
+        "editorial",
+        "pricing",
         "remocn-port"
       ]
     },
@@ -3862,6 +5719,39 @@
         "transition",
         "remocn-port"
       ]
+    },
+    {
+      "name": "supporter-grid",
+      "type": "hyperframes:component",
+      "title": "Supporter Grid",
+      "description": "A thank-you lockup for backers: a heart draws itself, pulses and docks upward while supporter avatars blur-stagger into a grid, then a headline, a supporter count and a call-to-action pill arrive.",
+      "category": "social",
+      "tags": [
+        "social",
+        "thank-you",
+        "sponsors",
+        "community",
+        "grid",
+        "avatars",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "sustained-glitch",
+      "type": "hyperframes:component",
+      "title": "Sustained Glitch",
+      "description": "A scene that breaks up in short, scheduled bursts: torn slices, jumped blocks, red/blue channel split, then clean again until the next burst a second or so later. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video. The bursts are seeded, so the same seed breaks up at the same frames every render.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "glitch",
+        "broadcast",
+        "corruption",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "swirl-dissolve",
@@ -3935,6 +5825,21 @@
       ]
     },
     {
+      "name": "terminal-simulator",
+      "type": "hyperframes:component",
+      "title": "Terminal Simulator",
+      "description": "A console window that types out commands line by line, shows logs, success and error lines, and snaps older lines off the top as the buffer fills.",
+      "category": "ui-blocks",
+      "tags": [
+        "ui",
+        "terminal",
+        "cli",
+        "code",
+        "developer",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "tiny-planet",
       "type": "hyperframes:component",
       "title": "Tiny Planet",
@@ -3991,6 +5896,21 @@
       ]
     },
     {
+      "name": "top-down-letters",
+      "type": "hyperframes:component",
+      "title": "Top-Down Letters",
+      "description": "Letters descend from above in a pronounced staircase, one symbol at a time, with no blur: a sharp, graphic title.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "kinetic-type",
+        "letters",
+        "stagger",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "topo-lines",
       "type": "hyperframes:component",
       "title": "Topo Lines",
@@ -4002,6 +5922,21 @@
         "loop",
         "map",
         "lines",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "tracking-in",
+      "type": "hyperframes:component",
+      "title": "Tracking In",
+      "description": "Wide letter-spacing collapses to tight while blur clears, on a spring: the word focuses into place.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "reveal",
+        "blur",
+        "tracking",
+        "premium",
         "remocn-port"
       ]
     },
@@ -4048,6 +5983,24 @@
         "spin",
         "remocn-port"
       ]
+    },
+    {
+      "name": "tv-power-off",
+      "type": "hyperframes:component",
+      "title": "TV Power Off",
+      "description": "Ends a scene like a switched-off tube: the picture squashes into a bright horizontal line, the line pinches to a phosphor dot, the dot fades and the frame is dead black. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video. Plays once: 25 frames of picture, an 18-frame collapse, then black.",
+      "category": "effects",
+      "tags": [
+        "effect",
+        "shader",
+        "crt",
+        "power-off",
+        "retro",
+        "ending",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "type-fossil",
@@ -4109,6 +6062,54 @@
       ]
     },
     {
+      "name": "typewriter",
+      "type": "hyperframes:component",
+      "title": "Typewriter",
+      "description": "Text is typed out character by character at a steady rate, followed by a bar cursor that blinks once typing stops.",
+      "category": "typography",
+      "tags": [
+        "text-effects",
+        "typing",
+        "terminal",
+        "cursor",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "typing-indicator",
+      "type": "hyperframes:component",
+      "title": "Typing Indicator",
+      "description": "Bouncing dots that signal a reply is being composed, driven by staggered sine waves: a small continuous working-on-it motion that never resolves.",
+      "category": "ui",
+      "tags": [
+        "ui",
+        "chat",
+        "loading",
+        "dots",
+        "typing",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "underwater-ripple",
+      "type": "hyperframes:component",
+      "title": "Underwater Ripple",
+      "description": "A scene seen from under moving water: three crossing wave fields refract the picture and split its colour a little at every ripple. The ripple closes on a whole number of cycles across the block, so it loops cleanly. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "water",
+        "ripple",
+        "refraction",
+        "loop",
+        "premium",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
+    },
+    {
       "name": "value-swap",
       "type": "hyperframes:component",
       "title": "Value Swap",
@@ -4135,6 +6136,25 @@
         "wipe",
         "remocn-port"
       ]
+    },
+    {
+      "name": "vhs-filter",
+      "type": "hyperframes:component",
+      "title": "VHS Filter",
+      "description": "A scene as recovered tape footage: colour smeared sideways off the brightness, the lines wobbling, a head-switch tear along the bottom edge, scanlines and grain. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video.",
+      "category": "filters",
+      "tags": [
+        "filter",
+        "shader",
+        "vhs",
+        "analog",
+        "tape",
+        "retro",
+        "noise",
+        "webgl",
+        "remocn-port"
+      ],
+      "webgl": true
     },
     {
       "name": "warp-dissolve",
@@ -4165,6 +6185,21 @@
       ]
     },
     {
+      "name": "whip-pan",
+      "type": "hyperframes:component",
+      "title": "Whip Pan",
+      "description": "A fast directional cut: both scenes fly through the frame in one camera whip, with motion blur and a slight smear at peak speed. Plays between two placeholder panels.",
+      "category": "transitions",
+      "tags": [
+        "transition",
+        "whip",
+        "directional",
+        "blur",
+        "energetic",
+        "remocn-port"
+      ]
+    },
+    {
       "name": "word-push",
       "type": "hyperframes:component",
       "title": "Word Push",
@@ -4190,6 +6225,21 @@
         "words",
         "voiceover",
         "sequence",
+        "remocn-port"
+      ]
+    },
+    {
+      "name": "workflow-console",
+      "type": "hyperframes:component",
+      "title": "Workflow Console",
+      "description": "A 46.8-second release-automation film in navy and ice blue: a typed title, a command that types itself, terminal runs with tool calls, an environment carousel of node diagrams, a rollout response, pipeline metrics, a large recommendation with a camera push, a performance bar chart and a closing node mark. Silent: sound is added by the host. Commands, logs and metrics are fictional sample text.",
+      "category": "templates",
+      "tags": [
+        "template",
+        "developer",
+        "terminal",
+        "automation",
+        "tech",
         "remocn-port"
       ]
     },

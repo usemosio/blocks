@@ -1,0 +1,202 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "grid-wave",
+  "type": "hyperframes:component",
+  "title": "Grid Wave",
+  "description": "A wave crosses the frame (outward from the centre, or left, right, up or down) and lifts the picture into a grid of solid tiles with a gap between them, tinted and shaded as they rise, then sets them down carrying the next scene. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 60 frames of the first panel, a 36-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+  "tags": [
+    "transition",
+    "shader",
+    "grid",
+    "tiles",
+    "wave",
+    "tech",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 5.2,
+  "useWhen": [
+    "A product or interface demo needs a cut with craft: the frame is handled as a surface rather than blended away.",
+    "The moment can afford well over a second; the wave has to travel far enough to read as a wave.",
+    "The two scenes are both structured and graphic, so the grid reads as a deliberate device."
+  ],
+  "avoidWhen": [
+    "The cut needs to be quick or invisible: use zoom-blur.",
+    "You want the frame to come apart into matter rather than be handled as tiles: use particle-dissolve."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/grid-wave/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "grid-wave.html",
+      "target": "compositions/components/grid-wave.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "tile_size",
+      "type": "number",
+      "role": "style",
+      "label": "Tile size",
+      "description": "Width of one tile. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 90,
+      "min": 30,
+      "max": 260,
+      "step": 10,
+      "unit": "px"
+    },
+    {
+      "id": "wave_width",
+      "type": "number",
+      "role": "style",
+      "label": "Wave width",
+      "description": "Width of the wave front, as a share of the frame.",
+      "default": 0.16,
+      "min": 0.04,
+      "max": 0.5,
+      "step": 0.02
+    },
+    {
+      "id": "lift",
+      "type": "number",
+      "role": "style",
+      "label": "Lift",
+      "description": "How far tiles rise as the wave passes.",
+      "default": 2,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "gap",
+      "type": "number",
+      "role": "style",
+      "label": "Gap",
+      "description": "Gap between tiles.",
+      "default": 0.12,
+      "min": 0,
+      "max": 0.45,
+      "step": 0.01
+    },
+    {
+      "id": "tint",
+      "type": "color",
+      "role": "style",
+      "label": "Tint",
+      "description": "Colour the rising tiles pick up.",
+      "default": "#8fb4ff"
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "style",
+      "label": "Direction",
+      "description": "Where the wave starts and which way it travels.",
+      "default": "ripple",
+      "options": [
+        {
+          "value": "ripple",
+          "label": "Ripple"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "up",
+          "label": "Up"
+        },
+        {
+          "value": "down",
+          "label": "Down"
+        }
+      ]
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Tiles are large and flat; 0.5 matches 1 in the stills and keeps the nine-tile search cheap.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "checkAt": [
+    1.8,
+    2.3,
+    2.7,
+    3.2
+  ],
+  "webgl": true
+}

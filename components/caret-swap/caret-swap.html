@@ -1,0 +1,248 @@
+<!doctype html>
+<!--
+  Caret Swap
+
+  A gradient caret expands into a block that consumes the first text, then types the second.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/caret-swap/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="caret-swap"
+  data-composition-duration="2.2333"
+  data-composition-variables='[
+    {"id": "from_text", "type": "string", "role": "content", "label": "From text", "description": "Text that sits still until the caret eats it.", "default": "Executing it?"},
+    {"id": "to_text", "type": "string", "role": "content", "label": "To text", "description": "Text typed in after the swap.", "default": "That's where everyone quits"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "caret_color", "type": "color", "role": "style", "label": "Caret color", "description": "Top of the caret gradient.", "default": "#FF4DAA"},
+    {"id": "caret_color_end", "type": "color", "role": "style", "label": "Caret color end", "description": "Bottom of the caret gradient.", "default": "#8A5CF6"},
+    {"id": "swap_at", "type": "number", "role": "motion", "label": "Swap at", "description": "Frame at which the caret swells into a block.", "default": 20, "min": 0, "max": 60, "step": 1, "unit": "frames"},
+    {"id": "type_speed", "type": "number", "role": "motion", "label": "Type speed", "description": "Frames for the first typed character; later gaps shrink.", "default": 1, "min": 0.3, "max": 4, "step": 0.1, "unit": "frames"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Caret Swap</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: var(--color, #171717); font-family: Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .cs-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+        .cs-row { position: relative; display: inline-flex; align-items: center; letter-spacing: -0.02em; line-height: 1.15; }
+        .cs-from { display: inline-block; white-space: pre; }
+        .cs-caret { display: inline-block; flex-shrink: 0; background: linear-gradient(180deg, var(--c1, #FF4DAA), var(--c2, #8A5CF6)); }
+        .cs-ghost { visibility: hidden; }
+        .cs-over { position: absolute; top: 50%; transform: translateY(-50%); }
+        .cs-type { position: absolute; left: 0; top: 50%; display: inline-flex; align-items: center; white-space: pre; }
+        .cs-typed { display: inline-block; white-space: pre; }
+      </style>
+
+      <div id="root" data-composition-id="caret-swap" data-duration="2.2333" data-fps="30">
+        <div id="cs-clip" class="cs-stage clip" data-start="0" data-duration="2.2333" data-track-index="0">
+          <span id="cs-row" class="cs-row" role="img">
+            <span id="cs-from" class="cs-from"></span>
+            <span id="cs-ghost" class="cs-caret cs-ghost" aria-hidden="true"></span>
+            <span id="cs-over" class="cs-caret cs-over" aria-hidden="true"></span>
+            <span id="cs-type" class="cs-type"><span id="cs-typed" class="cs-typed"></span><span id="cs-caret2" class="cs-caret" aria-hidden="true"></span></span>
+          </span>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 to 1, rest at 0 velocity (mass, stiffness, damping), at `frame` of 30 fps.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass, k = cfg.stiffness, c = cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var TOTAL = 2.2333;
+            var FRAMES = Math.round(TOTAL * 30);
+            var clock = { frame: 0 };
+            function frameNow() { return Math.round(clock.frame * 1000) / 1000; }
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: FRAMES, duration: TOTAL, ease: "none", onUpdate: function () { draw(frameNow()); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["caret-swap"] = tl;
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            function fit(el, size, frac, hfrac) {
+              el.style.fontSize = size + "px";
+              var maxW = Math.max(1, root.clientWidth * frac);
+              var maxH = Math.max(1, root.clientHeight * (hfrac || 0.9));
+              var k = Math.min(1, maxW / Math.max(1, el.scrollWidth), maxH / Math.max(1, el.scrollHeight));
+              if (k < 1) { size = Math.max(8, size * k); el.style.fontSize = size + "px"; }
+              return size;
+            }
+
+
+            var fromText = str(vars.from_text, "Executing it?"), toText = str(vars.to_text, "That's where everyone quits");
+            var size = num(vars.font_size, 72, 12, 240);
+            var swapAt = num(vars.swap_at, 20, 0, 60), typeSpeed = num(vars.type_speed, 1, 0.3, 4);
+            var speed = num(vars.speed, 1, 0.25, 4);
+            if (typeof vars.color === "string" && vars.color) root.style.setProperty("--color", vars.color);
+            root.style.setProperty("--c1", str(vars.caret_color, "#FF4DAA"));
+            root.style.setProperty("--c2", str(vars.caret_color_end, "#8A5CF6"));
+            var row = document.getElementById("cs-row");
+            row.style.fontWeight = pick(vars.font_weight, ["400", "500", "600", "700"], "400");
+            row.setAttribute("aria-label", fromText + " " + toText);
+            var fromEl = document.getElementById("cs-from"), typedEl = document.getElementById("cs-typed");
+            var ghost = document.getElementById("cs-ghost"), over = document.getElementById("cs-over");
+            var typeWrap = document.getElementById("cs-type"), caret2 = document.getElementById("cs-caret2");
+            var CARET_LEAD = 7, EXPAND = 6, COLLAPSE = 7, IDLE = 7, BLINK = 8;
+            var CW = 0.08, CH = 1.1, GAP = 0.06, CHAR_W = 0.52, ACCEL = 0.96;
+            var toChars = Array.from(toText);
+            function typeElapsed(count) { return (typeSpeed * (1 - Math.pow(ACCEL, count))) / (1 - ACCEL); }
+            // Fit the font size to the wider of the two texts (measured on the row with that text).
+            fromEl.textContent = Array.from(fromText).length >= toChars.length ? fromText : toText;
+            size = fit(row, size, 0.9);
+            fromEl.textContent = fromText;
+            onFonts(function () { fromEl.textContent = Array.from(fromText).length >= toChars.length ? fromText : toText; size = fit(row, num(vars.font_size, 72, 12, 240), 0.9); fromEl.textContent = fromText; layout(); });
+            var caretW, caretH;
+            function layout() {
+              caretW = CW * size; caretH = CH * size;
+              [ghost, over, caret2].forEach(function (c) { c.style.width = caretW + "px"; c.style.height = caretH + "px"; c.style.borderRadius = size * 0.03 + "px"; });
+              ghost.style.marginLeft = GAP * size + "px";
+              caret2.style.marginLeft = GAP * size + "px";
+            }
+            layout();
+            var caretVisibleAt = Math.max(swapAt - CARET_LEAD, 0);
+            var expandEnd = swapAt + EXPAND, collapseEnd = expandEnd + COLLAPSE;
+            var typeStart = collapseEnd + IDLE, typeEnd = typeStart + typeElapsed(toChars.length);
+            var expandE = bezier(0.6, 0, 0.8, 0.4), collapseE = bezier(0.2, 0.7, 0.3, 1);
+            var anchorEm = Array.from(fromText).length * CHAR_W + CW + GAP;
+            var targetShiftEm = (anchorEm - toChars.length * CHAR_W) / 2;
+            start(function (raw) {
+              var frame = raw * speed;
+              var expand = ip(frame, swapAt, expandEnd, 0, 1, expandE);
+              var collapse = ip(frame, expandEnd, collapseEnd, 0, 1, collapseE);
+              var typing = frame >= typeStart;
+              var n = 0;
+              if (typing) while (n < toChars.length && typeElapsed(n) <= frame - typeStart) n++;
+              fromEl.style.visibility = frame < expandEnd ? "visible" : "hidden";
+              over.style.display = typing ? "none" : "block";
+              typeWrap.style.display = typing ? "inline-flex" : "none";
+              if (!typing) {
+                var w, mask = "none";
+                over.style.left = "auto"; over.style.right = "auto";
+                if (frame < swapAt) { over.style.right = "0px"; w = caretW + "px"; }
+                else if (frame < expandEnd) { over.style.right = "0px"; w = "calc(" + (expand * 100).toFixed(3) + "% + " + ((1 - expand) * caretW).toFixed(2) + "px)"; }
+                else { over.style.left = "0px"; w = "calc(" + ((1 - collapse) * 100).toFixed(3) + "% + " + (collapse * caretW).toFixed(2) + "px)"; }
+                over.style.width = w;
+                if (frame >= swapAt) {
+                  var stop = frame < expandEnd ? 100 - 90 * expand : 10 + 90 * collapse;
+                  mask = "linear-gradient(90deg, black " + stop.toFixed(1) + "%, transparent 100%)";
+                }
+                over.style.webkitMaskImage = mask; over.style.maskImage = mask;
+                over.style.opacity = frame >= caretVisibleAt ? 1 : 0;
+              } else {
+                typedEl.textContent = toChars.slice(0, n).join("");
+                var shift = targetShiftEm * (toChars.length > 0 ? n / toChars.length : 0) * size;
+                typeWrap.style.transform = "translate(" + shift.toFixed(1) + "px, -50%)";
+                var off = frame >= typeEnd + BLINK && Math.floor((frame - typeEnd) / BLINK) % 2 === 1;
+                caret2.style.opacity = off ? 0 : 1;
+              }
+            });
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

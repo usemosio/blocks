@@ -1,0 +1,429 @@
+<!doctype html>
+<!--
+  Product Showcase
+
+  A 26.7-second editorial product film in cream and forest green: chrome-like words open onto a dusk horizon, a button becomes a portal into a desk, a laptop camera move steps through seven product screens, a symbol field, architectural linework, two launch plates, a typed address and a frame-shaped mark. Silent: sound is added by the host. Photographs are drawn with SVG by default (the chrome type is a 2D approximation of the shader); pass image paths to use real photos.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-templates/launch-anything/index.tsx
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-->
+<html
+  lang="en"
+  data-composition-id="launch-anything"
+  data-composition-duration="26.667"
+  data-composition-variables='[
+    {"id": "opening", "type": "string", "role": "content", "label": "First word", "description": "First chrome word.", "default": "Good"},
+    {"id": "subject", "type": "string", "role": "content", "label": "Second word", "description": "Second chrome word.", "default": "ideas"},
+    {"id": "ready", "type": "string", "role": "content", "label": "Ready line", "description": "Line over the horizon after the two words.", "default": "deserve a stage"},
+    {"id": "next", "type": "string", "role": "content", "label": "Next line", "description": "Dark line before the button.", "default": "Let’s make"},
+    {"id": "action", "type": "string", "role": "content", "label": "Action label", "description": "Text on the button that becomes the portal.", "default": "them real"},
+    {"id": "proof", "type": "string", "role": "content", "label": "Proof line", "description": "Headline over the floating symbol field.", "default": "Your work.\nA clearer view."},
+    {"id": "industry", "type": "string", "role": "content", "label": "Industry line", "description": "First line of the dark scene.", "default": "Built around you"},
+    {"id": "promise", "type": "string", "role": "content", "label": "Promise line", "description": "Second line of the dark scene.", "default": "Made to be yours."},
+    {"id": "launch", "type": "string", "role": "content", "label": "Launch word", "description": "Big word over the closing photographs; the address types after it when it starts with the same text.", "default": "Begin"},
+    {"id": "shoppers", "type": "string", "role": "content", "label": "Shoppers headline", "description": "Headline on the storefront screen.", "default": "Small things. Well made."},
+    {"id": "builder", "type": "string", "role": "content", "label": "Builder headline", "description": "Headline above the prompt box.", "default": "Turn a brief into a workspace"},
+    {"id": "builder_prompt", "type": "string", "role": "content", "label": "Builder prompt", "description": "Prompt typed into the box.", "default": "Create a workspace for our next product release"},
+    {"id": "trading", "type": "string", "role": "content", "label": "Review headline", "description": "Text beside the review panel.", "default": "Review once.\nMove forward."},
+    {"id": "loyalty", "type": "string", "role": "content", "label": "Cards headline", "description": "Caption on the layered cards screen.", "default": "A place for every idea"},
+    {"id": "loyalty_payoff", "type": "string", "role": "content", "label": "Cards payoff", "description": "Caption after the cards fan out.", "default": "Room for the next one"},
+    {"id": "integration", "type": "string", "role": "content", "label": "Integrations lead", "description": "Text before the integration chips.", "default": "Bring your work together"},
+    {"id": "integration_1", "type": "string", "role": "content", "label": "Integration 1", "description": "First chip.", "default": "Files"},
+    {"id": "integration_2", "type": "string", "role": "content", "label": "Integration 2", "description": "Second chip.", "default": "Messages"},
+    {"id": "integration_3", "type": "string", "role": "content", "label": "Integration 3", "description": "Third chip.", "default": "Calendar"},
+    {"id": "shop_name", "type": "string", "role": "content", "label": "Shop name", "description": "Name on the phone storefront.", "default": "Object Study"},
+    {"id": "shop_headline", "type": "string", "role": "content", "label": "Shop headline", "description": "Headline on the storefront hero.", "default": "Everyday, considered."},
+    {"id": "shop_detail", "type": "string", "role": "content", "label": "Shop detail", "description": "Subhead on the storefront.", "default": "Useful objects. Quiet details."},
+    {"id": "shop_action", "type": "string", "role": "content", "label": "Shop action", "description": "Button label on the storefront.", "default": "Explore the objects"},
+    {"id": "connections", "type": "string", "role": "content", "label": "Connections headline", "description": "Headline on the dark connections screen.", "default": "Connect your tools.\nKeep work moving."},
+    {"id": "app_name", "type": "string", "role": "content", "label": "App name", "description": "Name in the dashboard sidebar.", "default": "Workroom"},
+    {"id": "brand_url", "type": "string", "role": "content", "label": "Brand URL", "description": "Closing website address (typed out).", "default": "yourproduct.example"},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Product interface accent.", "default": "#245744"},
+    {"id": "logo_src", "type": "string", "role": "content", "label": "Logo image", "description": "Optional path to a mark (PNG or SVG) your host provides for the closing; the drawn frame mark is used when empty.", "default": ""},
+    {"id": "photo_desk", "type": "string", "role": "content", "label": "Desk photo", "description": "Optional path to a photo for the desk; a drawn desk is used when empty.", "default": ""},
+    {"id": "photo_horizon", "type": "string", "role": "content", "label": "Horizon photo", "description": "Optional path to a photo behind the first headline; a drawn dusk horizon is used when empty.", "default": ""},
+    {"id": "photo_rocket", "type": "string", "role": "content", "label": "Rocket photo", "description": "Optional path to the launch photograph; a drawn rocket is used when empty.", "default": ""},
+    {"id": "photo_earth", "type": "string", "role": "content", "label": "Earth photo", "description": "Optional path to the planet photograph; a drawn planet is used when empty.", "default": ""}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Showcase</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: #122d24; color: #fff; font-family: Manrope, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+        #la-stage { position: absolute; left: 0; top: 0; width: 480px; height: 270px; transform-origin: 0 0; overflow: hidden; }
+        #la-stage div, #la-stage span, #la-stage b, #la-stage p, #la-stage small { box-sizing: border-box; }
+        #la-stage p { margin: 1em 0; }
+      </style>
+
+      <div id="root" data-composition-id="launch-anything" data-duration="26.667" data-fps="30">
+        <div id="la-clip" class="clip" data-start="0" data-duration="26.667" data-track-index="0" style="position:absolute;inset:0">
+          <div id="la-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var k = 0; k < 30; k++) {
+                  var mt = 1 - t;
+                  var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                  if (bx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var m = 1 - t;
+                return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+              };
+            }
+            function progress(f, a, b) { return clamp01((f - a) / (b - a)); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            // interpolate(frame, [a, b], [from, to]) with an optional easing and clamped ends.
+            function interp(f, a, b, from, to, easing) {
+              var t = progress(f, a, b);
+              return lerp(from, to, easing ? easing(t) : t);
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+            function graphemes(text) {
+              if (typeof Intl !== "undefined" && Intl.Segmenter) {
+                return Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (p) { return p.segment; });
+              }
+              return Array.from(text);
+            }
+            var DEF = {"opening": "Good", "subject": "ideas", "ready": "deserve a stage", "next": "Let’s make", "action": "them real", "proof": "Your work.\nA clearer view.", "industry": "Built around you", "promise": "Made to be yours.", "launch": "Begin", "shoppers": "Small things. Well made.", "builder": "Turn a brief into a workspace", "builder_prompt": "Create a workspace for our next product release", "trading": "Review once.\nMove forward.", "loyalty": "A place for every idea", "loyalty_payoff": "Room for the next one", "integration": "Bring your work together", "integration_1": "Files", "integration_2": "Messages", "integration_3": "Calendar", "shop_name": "Object Study", "shop_headline": "Everyday, considered.", "shop_detail": "Useful objects. Quiet details.", "shop_action": "Explore the objects", "connections": "Connect your tools.\nKeep work moving.", "app_name": "Workroom", "brand_url": "yourproduct.example"};
+            var c = {};
+            Object.keys(DEF).forEach(function (k) { c[k] = str(vars[k], DEF[k]); });
+            var names = [c.integration_1, c.integration_2, c.integration_3];
+            var accent = str(vars.accent_color, "#245744");
+            var logoSrc = typeof vars.logo_src === "string" ? vars.logo_src.trim() : "";
+            var photoVar = {};
+            ["desk", "horizon", "rocket", "earth"].forEach(function (k) { photoVar[k] = typeof vars["photo_" + k] === "string" ? vars["photo_" + k].trim() : ""; });
+
+            var CW = root.clientWidth || 1080, CH = root.clientHeight || 1920;
+            var S = Math.min(CW / 480, CH / 270);
+            var stage = document.getElementById("la-stage");
+            stage.style.left = (CW - 480 * S) / 2 + "px";
+            stage.style.top = (CH - 270 * S) / 2 + "px";
+            stage.style.transform = "scale(" + S + ")";
+
+            // ---- helpers (time is in seconds; every frame is drawn from the clock alone)
+            var settle = bezier(0.16, 1, 0.3, 1), smooth = bezier(0.65, 0, 0.25, 1);
+            function ramp(t, a, b) { return clamp01((t - a) / (b - a)); }
+            function tween(t, a, b, from, to, easing) {
+              if (from === undefined) from = 0;
+              if (to === undefined) to = 1;
+              return from + (to - from) * (easing || settle)(ramp(t, a, b));
+            }
+            function key(t, times, values) {
+              if (t <= times[0]) return values[0];
+              for (var i = 1; i < times.length; i++) {
+                if (t <= times[i]) return lerp(values[i - 1], values[i], (t - times[i - 1]) / (times[i] - times[i - 1]));
+              }
+              return values[values.length - 1];
+            }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+            function px(v) { return typeof v === "number" ? v + "px" : v; }
+            function L(x, y, w, h, style, inner) {
+              return '<div style="position:absolute;left:' + x + "px;top:" + y + "px;" + (w == null ? "" : "width:" + px(w) + ";") + (h == null ? "" : "height:" + px(h) + ";") + (style || "") + '">' + (inner || "") + "</div>";
+            }
+            function F(style, inner) { return '<div style="position:absolute;inset:0;' + (style || "") + '">' + (inner || "") + "</div>"; }
+            function center(inner, style) { return F("display:flex;align-items:center;justify-content:center;" + (style || ""), inner); }
+            function title(text, size, style) {
+              var longest = Math.max.apply(null, text.split("\n").map(function (l) { return l.length; }).concat([1]));
+              return '<div style="font-size:' + Math.min(size, 720 / longest) + 'px;font-weight:500;line-height:1.13;letter-spacing:-0.04em;word-spacing:0.025em;text-align:center;white-space:pre-line;' + (style || "") + '">' + esc(text) + "</div>";
+            }
+            function revealCopy(text, t, start, size, dark) {
+              var a = tween(t, start, start + 0.55);
+              var g = "linear-gradient(105deg," + (dark ? "#060609" : "#fff") + " " + (a * 140 - 35) + "%,#a0bea9 " + (a * 140 - 18) + "%,#497761 " + a * 140 + "%," + (dark ? "#070707" : "#cedbcb") + " " + (a * 140 + 26) + "%)";
+              return title(text, size, "opacity:" + clamp01((t - start) * 14) + ";background-image:" + g + ";-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;transform:translateY(" + (1 - a) * 6 + "px);filter:blur(" + (1 - a) * 1.4 + "px)");
+            }
+            function brandMark(size, color) {
+              if (logoSrc) return '<div style="width:' + size + "px;height:" + size * 1.25 + "px;background:url('" + logoSrc.replace(/'/g, "%27") + "') center/contain no-repeat\"></div>";
+              return '<svg width="' + size + '" height="' + size * 1.25 + '" viewBox="0 0 100 125" style="display:block"><path d="M12 12H78V28H28V78H12ZM38 42H88V108H22V92H72V58H38Z" fill="' + color + '" stroke="' + color + '" stroke-width="4" stroke-linejoin="round"/></svg>';
+            }
+            var GLYPHS = ["M5 5h21v8H13v13H5ZM19 19h16v16H19v-7h9v-9Z", "M4 4h8v8H4Zm12 0h8v8h-8Zm12 0h8v8h-8ZM4 16h8v8H4Zm12 0h8v8h-8ZM4 28h8v8H4Z", "M4 30V16a16 16 0 0 1 32 0v14h-7V16a9 9 0 0 0-18 0v14Z", "M4 4h12v12H4Zm20 20h12v12H24ZM9 20h5v9h6v5H9Zm11-11h14v11h-5v-6h-9Z", "M5 4h7v32H5Zm12 6h7v26h-7Zm12 6h7v20h-7Z", "M4 5h32v7H4Zm0 12h22v7H4Zm0 12h12v7H4Z"];
+            function glyph(variant, size, color) {
+              var type = ((variant % 6) + 6) % 6;
+              return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 40 40" style="display:block"><path d="' + GLYPHS[type] + '" fill="' + (color || "currentColor") + '"/></svg>';
+            }
+
+            // ---- drawn photographs (replaced by a host image when its variable is set)
+            function seeded(seed) { return function () { seed = (seed + 0x6d2b79f5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function svgBox(inner) { return '<svg viewBox="0 0 480 270" preserveAspectRatio="xMidYMid slice" style="position:absolute;left:0;top:0;width:100%;height:100%;display:block">' + inner + "</svg>"; }
+            var SVG = {};
+            SVG.desk = svgBox('<defs><linearGradient id="d-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe7d3"/><stop offset="1" stop-color="#e2d4b6"/></linearGradient><linearGradient id="d-t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d1b184"/><stop offset="1" stop-color="#a97d4f"/></linearGradient><linearGradient id="d-l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6dd" stop-opacity=".55"/><stop offset="1" stop-color="#fff6dd" stop-opacity="0"/></linearGradient></defs><rect width="480" height="270" fill="url(#d-w)"/><rect x="14" y="14" width="70" height="104" fill="#f7f1e2"/><path d="M14 14h70v104H14z" fill="none" stroke="#d6c7a4" stroke-width="2"/><path d="M49 14v104M14 66h70" stroke="#d6c7a4" stroke-width="1.5"/><path d="M0 0h200L120 150H0z" fill="url(#d-l)"/><rect y="150" width="480" height="120" fill="url(#d-t)"/><path d="M0 150h480" stroke="#8d6a40" stroke-width="1.2" opacity=".6"/><g stroke="#8d6a40" stroke-width=".5" opacity=".3"><path d="M0 170c120-6 240 6 480 0M0 196c140 6 260-6 480 2M0 226c110-6 250 6 480 0M0 252c150 4 280-4 480 0"/></g><ellipse cx="86" cy="170" rx="26" ry="5" fill="#000" opacity=".18"/><path d="M70 168l4-26h24l4 26z" fill="#b8613d"/><path d="M86 142c-18-6-30-26-24-46 12 8 20 22 24 46zM86 142c16-8 26-28 18-46-12 10-17 26-18 46zM86 142c-2-22 4-40 14-52 4 18-2 38-14 52z" fill="#4d7a52"/><path d="M86 142c-10-12-24-18-38-14 12 4 24 8 38 14z" fill="#6e9b6a"/><g><ellipse cx="400" cy="196" rx="22" ry="4" fill="#000" opacity=".2"/><path d="M386 168h28l-2 28h-24z" fill="#f3ede0"/><path d="M414 174c8 0 8 14 0 14" fill="none" stroke="#f3ede0" stroke-width="3"/></g><g transform="rotate(-8 430 232)"><rect x="396" y="222" width="70" height="36" rx="2" fill="#245744"/><rect x="396" y="222" width="6" height="36" fill="#173b2d"/></g>');
+            SVG.horizon = svgBox('<defs><linearGradient id="h-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c241d"/><stop offset=".55" stop-color="#2a5846"/><stop offset=".8" stop-color="#cf9b66"/><stop offset="1" stop-color="#f1cf9a"/></linearGradient><radialGradient id="h-g" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#ffe7b8" stop-opacity=".9"/><stop offset="1" stop-color="#ffe7b8" stop-opacity="0"/></radialGradient></defs><rect width="480" height="270" fill="url(#h-s)"/><rect width="480" height="270" fill="url(#h-g)"/><path d="M0 190c60-16 110-20 170-8s120 6 170-10 100-8 140 4v94H0z" fill="#183d31"/><path d="M0 214c70-14 130-10 200 0s150 6 280-8v64H0z" fill="#0f2a22"/><path d="M0 240c100-10 200-6 300 2s130 4 180-4v32H0z" fill="#081a15"/>');
+            function starfield(n, seed) { var r = seeded(seed), o = ""; for (var i = 0; i < n; i++) o += '<circle cx="' + (r() * 480).toFixed(1) + '" cy="' + (r() * 200).toFixed(1) + '" r="' + (0.3 + r() * 0.7).toFixed(2) + '" fill="#fff" opacity="' + (0.35 + r() * 0.6).toFixed(2) + '"/>'; return o; }
+            SVG.rocket = svgBox('<defs><linearGradient id="r-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#08131d"/><stop offset=".7" stop-color="#1f4048"/><stop offset="1" stop-color="#e4b27a"/></linearGradient><linearGradient id="r-p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9b0"/><stop offset=".5" stop-color="#f08a3c" stop-opacity=".8"/><stop offset="1" stop-color="#f08a3c" stop-opacity="0"/></linearGradient></defs><rect width="480" height="270" fill="url(#r-s)"/>' + starfield(60, 7) + '<ellipse cx="240" cy="232" rx="170" ry="22" fill="#f2dfc2" opacity=".35"/><path d="M215 150h50l-12 120h-26z" fill="url(#r-p)"/><path d="M240 40c14 20 20 46 20 80v34h-40v-34c0-34 6-60 20-80z" fill="#eef0ea"/><path d="M220 118c-12 10-18 26-18 42l18-8zM260 118c12 10 18 26 18 42l-18-8z" fill="#c3c8c0"/><circle cx="240" cy="92" r="9" fill="#2a4a58"/><path d="M240 40c8 12 13 26 16 42h-16z" fill="#fff" opacity=".55"/><path d="M0 252c120-8 240-10 480 0v18H0z" fill="#07110f"/>');
+            SVG.earth = svgBox('<defs><radialGradient id="e-p" cx=".4" cy=".25" r=".9"><stop offset="0" stop-color="#7fc7c0"/><stop offset=".45" stop-color="#2f7a8c"/><stop offset="1" stop-color="#0b2740"/></radialGradient><radialGradient id="e-a" cx=".5" cy=".5" r=".5"><stop offset=".9" stop-color="#8fe0ff" stop-opacity=".5"/><stop offset="1" stop-color="#8fe0ff" stop-opacity="0"/></radialGradient></defs><rect width="480" height="270" fill="#02060c"/>' + starfield(90, 21) + '<circle cx="250" cy="560" r="368" fill="url(#e-a)"/><circle cx="250" cy="560" r="340" fill="url(#e-p)"/><path d="M130 300c40-18 70-8 100-20s40-10 70-4 40 6 60-2c-30-6-60-14-100-12s-90 10-130 38z" fill="#d9efe9" opacity=".3"/><path d="M60 360c60-24 120-12 160-26s70-12 110-4" fill="none" stroke="#d9efe9" stroke-width="6" opacity=".18"/>');
+            function photo(k) {
+              if (photoVar[k]) return F("background:url('" + photoVar[k].replace(/'/g, "%27") + "') center/cover no-repeat");
+              return SVG[k];
+            }
+
+            // ---- opening
+            function chromeWord(text, size, age, sweepOut) {
+              var r = settle(clamp01(age / 0.75));
+              var solid = smooth(ramp(age, 0.5, 1));
+              var fill = "linear-gradient(105deg,#1f4a3a 0%,#d4e8d2 22%,#5f8a73 38%,#f2faf0 55%,#4f7a64 72%,#1f4a3a 100%)";
+              var mask = "linear-gradient(100deg,#000 " + (r * 150 - 30) + "%,transparent " + r * 150 + "%)";
+              var out = "";
+              if (sweepOut) out = "linear-gradient(125deg,transparent " + sweepOut[0] + "%,#000 " + sweepOut[1] + "%)";
+              var base = "font-size:" + size + "px;font-weight:500;letter-spacing:-0.04em;line-height:1;white-space:pre;";
+              var inner = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;-webkit-mask-image:' + mask + ";mask-image:" + mask + '">' +
+                '<div style="' + base + "background-image:" + fill + ";background-size:220% 100%;background-position:" + (100 - r * 100) + "% 0;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;opacity:" + (1 - solid) + '">' + esc(text) + "</div></div>" +
+                '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;-webkit-mask-image:' + mask + ";mask-image:" + mask + '"><div style="' + base + "color:#f3f6ee;opacity:" + solid + '">' + esc(text) + "</div></div>";
+              return F((out ? "-webkit-mask-image:" + out + ";mask-image:" + out : ""), inner);
+            }
+            function opening(t) {
+              var o = "";
+              if (t < 1) o += chromeWord(c.opening, 107, t, [tween(t, 0.7, 1, -70, 105), tween(t, 0.7, 1, -45, 130)]);
+              else if (t < 2.5) o += chromeWord(c.subject, 75, t - 1, t > 2.1 ? [tween(t, 2.1, 2.5, -70, 105), tween(t, 2.1, 2.5, -45, 130)] : null);
+              else {
+                o += F("opacity:" + tween(t, 2.5, 2.85) + ";transform:scale(" + tween(t, 2.5, 3.8, 1.1, 1) + ");filter:brightness(0.66) saturate(0.85) blur(0.4px)", photo("horizon"));
+                o += center(title(c.ready, 57, "color:#fff9ee;opacity:" + tween(t, 2.5, 2.7) + ";filter:blur(" + tween(t, 2.5, 2.9, 7, 0) + "px);text-shadow:0 0 3px #fff6"));
+              }
+              return { html: o, bg: t < 2.5 ? "#060908" : "#0c1f19" };
+            }
+
+            // ---- action, portal
+            var ACTION_BG = "linear-gradient(#f3edde,#faf6ec 75%)";
+            function actionFrame(t) {
+              var enter = tween(t, 4.65, 5.05, 0, 1, smooth), cen = tween(t, 5.47, 5.83, 0, 1, smooth), morph = tween(t, 5.83, 6.5, 0, 1, smooth);
+              return { enter: enter, center: cen, morph: morph, x: (600 - 253 * enter) * (1 - cen) + 240 * cen, y: 135, width: 210 + 240 * morph, height: 60 + 180 * morph, radius: 13 + 43 * morph, press: tween(t, 5.35, 5.47) - tween(t, 5.48, 5.65) };
+            }
+            function actionFrameHtml(t) {
+              var s = actionFrame(t), ap = tween(t, 6.7, 7.33, 0, 1, smooth), m = s.morph;
+              var inner = F("opacity:" + m + ";background:linear-gradient(140deg,#8ca48d,#d1d8c3 35%,#f8f4ea 60%,#9ca78a)") +
+                F("display:flex;align-items:center;justify-content:center;color:#070707;font-size:" + Math.min(36, 320 / Math.max(1, Array.from(c.action).length)) + "px;letter-spacing:-0.045em;font-weight:500;white-space:nowrap;opacity:" + (1 - tween(t, 5.55, 5.83)), esc(c.action));
+              var ins = 38 * (1 - ap) * m;
+              var win = F("inset:" + ins + "px;border-radius:" + (13 + 33 * m) + "px;border:" + 22 * (1 - ap) * m + "px solid #fff;border-right-width:" + 34 * (1 - ap) * m + "px;border-bottom-width:" + 30 * (1 - ap) * m + "px;opacity:" + m + ";overflow:hidden;background:linear-gradient(140deg,#f8f4ea 25%,#efecdf 46%,#d5d8c2 72%,#849b7b);box-shadow:inset 0 0 12px #ffffff9a",
+                F("background:linear-gradient(120deg,#cbdac2 6%,#8ca887 27%,#245744 51%,#6b8b65 75%,#e2e4cf);opacity:" + tween(t, 6.85, 7.07)) +
+                (t >= 7.08 ? F("opacity:" + tween(t, 7.08, 7.32) + ";transform:scale(1.02)", photo("desk")) : ""));
+              return L(s.x - s.width / 2, s.y - s.height / 2, s.width, s.height, "border-radius:" + s.radius + "px;opacity:" + s.enter + ";transform:scale(" + (1 - 0.07 * s.press) + ");overflow:hidden;background:linear-gradient(135deg,#fbf8ee 10%,#f5f1e5 36%,#d9dfc8 70%,#90a47f 100%);box-shadow:inset 1px 1px 2px #fff, 0 4px 18px #728b6415", inner + win);
+            }
+            function action(t) {
+              var s = actionFrame(t), travel = s.enter, press = s.press;
+              var o = F("background:" + ACTION_BG + ";color:#050608");
+              o += F("transform:translateX(" + -118 * travel + "px);opacity:" + (1 - tween(t, 5.4, 5.65)), center(revealCopy(c.next, t, 3.8, 47 - 11 * travel, true)));
+              o += actionFrameHtml(t);
+              var ptr = '<svg viewBox="0 0 60 72" width="46" height="55" style="position:absolute;left:110px;top:' + (tween(t, 5.02, 5.35, 92, 34) + press * 5) + "px;opacity:" + tween(t, 5.02, 5.18) * (1 - tween(t, 5.48, 5.75)) + ";filter:drop-shadow(0 6px 4px #365a342a);transform:scale(" + (1 - press * 0.12) + ') rotate(-12deg)"><defs><linearGradient id="la-ptr" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#93af8f"/><stop offset="0.5" stop-color="' + accent + '"/><stop offset="1" stop-color="#d3dfc2"/></linearGradient></defs><path d="M27 4Q30 0 33 4L57 57Q58 64 51 62L32 54 13 63Q5 66 9 56Z" fill="url(#la-ptr)" stroke="#b3c6a4" stroke-width="1"/></svg>';
+              o += L(s.x - 105, 105, 216, 61, "opacity:" + travel + ";perspective:600px", ptr);
+              return { html: o, bg: "#f6f1e3" };
+            }
+            function portal(t) { return { html: F("background:" + ACTION_BG + ";overflow:hidden", actionFrameHtml(t)), bg: "#f6f1e3" }; }
+
+            // ---- showcase screens (drawn in a 640x420 space)
+            var SURF = "position:absolute;inset:0;overflow:hidden;background:#fcfaf7;color:#302921;";
+            function dashboard(t) {
+              var p = tween(t, 7.33, 8.25);
+              var side = ["Workspace", "Overview", "Milestones", "Projects", "Teammates", "Reports", "Settings"].map(function (l, i) {
+                return '<div style="padding:10px 2px;color:' + (i === 1 ? accent : "#958b86") + ";" + (i === 1 ? "background:#e1e9dc;border-radius:4px" : "") + '">' + l + "</div>";
+              }).join("");
+              var cards = [["Tasks closed", "128"], ["Active projects", "12"], ["On track", "92%"]].map(function (a) {
+                return '<div style="flex:1;padding:13px;border:1px solid #e8e2dc;border-radius:7px"><div style="color:#a7978e">' + a[0] + '</div><div style="font-size:19px;margin-top:9px">' + a[1] + '</div><div style="color:#6b9869;font-size:7px;margin-top:5px">Demo workspace · this month</div></div>';
+              }).join("");
+              var chart = '<svg width="258" height="153" viewBox="0 0 258 153" style="display:block"><defs><linearGradient id="la-bar" x2="0" y2="1"><stop stop-color="' + accent + '"/><stop offset="1" stop-color="#b5c9ae"/></linearGradient></defs>';
+              [0, 1, 2, 3].forEach(function (n) { chart += '<path d="M0 ' + (20 + n * 35) + 'H258" stroke="#e8e3de"/>'; });
+              [53, 89, 68, 104, 75, 113, 81, 131].forEach(function (h, i) {
+                chart += '<rect x="' + (i * 31 + 5) + '" y="' + (145 - h * p) + '" width="10" height="' + h * p + '" rx="3" fill="url(#la-bar)"/><rect x="' + (i * 31 + 17) + '" y="' + (145 - h * 0.67 * p) + '" width="8" height="' + h * 0.67 * p + '" rx="3" fill="#d2b58e"/>';
+              });
+              chart += "</svg>";
+              var acts = ["Brief approved", "Review completed", "Project completed", "Files organized", "Milestone reached"].map(function (l, n) {
+                return '<div style="display:flex;gap:6px;margin-top:18px;font-size:8px"><span style="color:' + accent + '">●</span><span>' + l + '<small style="display:block;color:#b0a59e;margin-top:4px">' + (n * 4 + 2) + " minutes ago</small></span></div>";
+              }).join("");
+              return F(SURF + "font-size:9px",
+                L(0, 0, 112, null, "bottom:0;padding:17px;background:#faf8f6;border-right:1px solid #e8e4df", '<div style="font-weight:700;font-size:14px;margin-bottom:26px">◈ ' + esc(c.app_name) + "</div>" + side) +
+                L(134, 22, null, null, "right:20px", '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:600"><span>Your week, in focus</span><span style="font-size:9px;color:#94837a">This month ▾</span></div><div style="display:flex;gap:12px;margin-top:24px">' + cards + '</div><div style="display:flex;gap:14px;margin-top:20px"><div style="width:285px;padding:12px;border:1px solid #e8e2dc;border-radius:7px"><b>Project momentum</b>' + chart + '</div><div style="flex:1;border:1px solid #e8e2dc;padding:11px;border-radius:7px"><b>Recent activity</b>' + acts + "</div></div>"));
+            }
+            function shoppers(t) {
+              var p = tween(t, 8.433, 9.1);
+              var o = F(SURF + "background:#fdfbec", '<div style="text-align:center;color:' + accent + ';font-size:41px;font-weight:800;letter-spacing:-0.055em;padding-top:34px">' + esc(c.shoppers) + "</div>");
+              [[-80, 120, "#668d78"], [515, 280, "#b4916e"], [500, 85, "#d4c7a1"], [40, 310, "#a5b38e"]].forEach(function (a, i) {
+                o += L(a[0] + Math.sin(t * 3 + i) * 15, a[1], 50, 50, "background:" + a[2] + ";border-radius:" + (i % 2 ? "30%" : "4px") + ";transform:rotate(" + (i * 30 + t * 15) + "deg);box-shadow:inset 0 4px 5px #ffffff70, 3px 6px 2px #0002");
+              });
+              var phone = '<div style="width:78px;height:18px;border-radius:20px;background:#201c26;margin:6px auto"></div>' +
+                '<div style="padding:8px 18px;display:flex;justify-content:space-between;font-size:12px"><b>' + esc(c.shop_name) + "</b><span>♡ ☰</span></div>" +
+                '<div style="height:140px;margin:6px 10px;border-radius:11px;background:#153326;position:relative;overflow:hidden;display:flex;align-items:end;padding:12px;color:#fff;font-size:24px">' + photo("rocket") + '<div style="position:absolute;inset:0;background:linear-gradient(0deg,#153326aa,transparent)"></div><span style="position:relative">' + esc(c.shop_headline) + "</span></div>" +
+                '<div style="padding:12px 15px;font-size:13px"><b>' + esc(c.shop_detail) + '</b><p style="font-size:9px;color:#827c82">A collection for slower mornings.</p><div style="background:' + accent + ';color:#fff;padding:12px;border-radius:7px;text-align:center">' + esc(c.shop_action) + "</div></div>";
+              o += L(198, 115, 235, 406, "border-radius:38px;border:7px solid #293a2d;background:#f6f1e7;transform:translateY(" + (1 - p) * 135 + "px) rotateY(" + (1 - p) * 75 + "deg) rotateZ(" + tween(t, 8.43, 9.2, 8, -4) + "deg);overflow:hidden;box-shadow:10px 14px 25px #243b2424", phone);
+              return o;
+            }
+            function exchange(t) {
+              var p = tween(t, 9.25, 9.83);
+              var o = '<div style="padding-top:58px;font-size:22px;line-height:1.22;text-align:center;opacity:' + p + ';white-space:pre-line">' + esc(c.connections) + "</div>";
+              o += L(270, 196, 104, 123, "background:linear-gradient(120deg,#e0e6cb,#7ba385 48%,#345b40);clip-path:polygon(0 0,75% 0,75% 25%,25% 25%,25% 75%,100% 75%,100% 100%,0 100%);transform:rotateY(" + t * 30 + "deg)");
+              for (var i = 0; i < 12; i++) {
+                var a = (i * Math.PI) / 6 + t * 0.3;
+                o += L(308 + Math.cos(a) * 102 * p, 237 + Math.sin(a) * 103 * p, 23, 23, "border-radius:50%;display:grid;place-items:center;color:#d2dfbc;background:#244a38;border:1px solid #72937d;box-shadow:0 0 12px #62835e36", glyph(i, 14));
+              }
+              o += '<div style="position:absolute;left:0;bottom:0;width:100%;height:53px;border-top:1px solid #33313b;background:linear-gradient(#203d2d88,#12271c)"></div>';
+              return F(SURF + "background:#122d24;color:#fff", o);
+            }
+            function builder(t) {
+              var prompt = c.builder_prompt.slice(0, Math.floor(clamp01((t - 10.35) / 0.55) * c.builder_prompt.length));
+              return F(SURF, F("display:flex;flex-direction:column;align-items:center;justify-content:center;gap:27px",
+                '<div style="font-size:20px;color:#245744;letter-spacing:-0.02em">' + esc(c.builder) + "</div>" +
+                '<div style="border:1px solid #ded9d3;border-radius:8px;width:565px;height:65px;display:flex;align-items:center;padding:16px;font-size:11px;box-shadow:0 5px 15px #38291604"><span style="flex:1">' + esc(prompt) + '<span style="color:#245744">│</span></span><span style="width:21px;height:23px;border-radius:5px;background:linear-gradient(130deg,#749876,#245744);color:#fff;display:grid;place-items:center">↑</span></div>'));
+            }
+            function trading(t) {
+              var o = L(-28, 35, 215, 336, "background:#08100f;opacity:0.7;transform:rotateY(28deg) rotateZ(-7deg);overflow:hidden", '<div style="padding:12px;font-size:10px">Review activity</div>' + Array.apply(null, Array(25)).map(function (_, i) { return '<div style="margin-top:6px;height:5px;background:' + (i < 11 ? "#7d7654" : "#135d4c") + ";width:" + (35 + ((i * 17) % 160)) + 'px"></div>'; }).join(""));
+              var rows = ["Files reviewed", "Comments resolved", "Contributors", "Next milestone"].map(function (l, i) {
+                return '<div style="display:flex;justify-content:space-between;margin-top:18px;font-size:8px;color:#8a877a"><span>' + l + "</span><span>" + ["12 files", "28 / 28", "4 people", "Ready to share"][i] + "</span></div>";
+              }).join("");
+              o += L(158, 31, 217, 357, "background:linear-gradient(120deg,#1b382a,#152d23);border:1px solid #32312b;border-radius:8px;padding:16px;box-shadow:8px 0 15px #d5b77810;transform:perspective(900px) rotateY(" + tween(t, 11.25, 12.35, -12, 0) + "deg)",
+                '<div style="font-size:10px">Draft&emsp;Review&emsp;Ready</div><div style="height:1px;background:#34312a;margin-top:16px"></div><div style="font-size:9px;color:#aba694;margin-top:15px">Project</div><div style="font-size:13px;margin-top:8px">Autumn release&emsp;⌄</div><div style="font-size:9px;color:#9f9d8c;margin-top:22px">Review progress</div><div style="font-size:22px;margin-top:9px">12 / 12<span style="font-size:10px;float:right;color:#a09a81">DONE</span></div>' +
+                '<div style="display:flex;margin-top:18px;gap:6px"><span style="flex:1;background:#008963;text-align:center;padding:9px;font-size:13px;border-radius:4px">Approve</span><span style="flex:1;background:#705d41;text-align:center;padding:9px;font-size:13px;border-radius:4px">Revise</span></div>' + rows);
+              o += L(395, 175, 222, null, "white-space:pre-line;font-size:29px;line-height:1.14;letter-spacing:-0.045em;opacity:" + tween(t, 11.25, 11.55) + ";color:#d3dfbd", esc(c.trading));
+              return F(SURF + "background:#132a21;color:#f4f1df", o);
+            }
+            function loyalty(t) {
+              var age = t - 12.35, grow = tween(age, 0.68, 1.5, 0, 1);
+              var o = "";
+              [-1, 1].forEach(function (side) {
+                o += L(285 + side * (164 + grow * 68), 160 + side * grow * 21, 177, 130, "background:#fffefb;border-radius:8px;border:1px solid #e0dce4;padding:14px;box-shadow:" + side * 24 + "px 0 20px " + accent + "35;transform:rotate(" + side * grow * 14 + "deg) translateX(" + tween(age, 0, 0.4, side * 140, -70) + "px);font-size:10px",
+                  "<b>◫ Project notes</b><p>Collect ideas. Connect the details.</p>" + [80, 106, 63].map(function (w) { return '<div style="height:3px;width:' + w + 'px;background:#d9d5d9;margin-top:9px"></div>'; }).join(""));
+              });
+              o += '<svg viewBox="0 0 260 280" width="' + (95 + grow * 230) + '" height="' + (104 + grow * 248) + '" style="position:absolute;left:' + (265 - grow * 97) + "px;top:" + (173 - grow * 104) + "px;transform:rotate(" + key(age, [0, 0.65, 1.4, 1.66], [0, -10, 16, 4]) + 'deg)"><defs><linearGradient id="la-cards" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#92b195"/><stop offset="0.3" stop-color="' + accent + '"/><stop offset="1" stop-color="#153b2a"/></linearGradient></defs><rect x="24" y="30" width="170" height="215" rx="10" fill="#c8d2b9" transform="rotate(-12 130 140)"/><rect x="54" y="20" width="170" height="215" rx="10" fill="url(#la-cards)" transform="rotate(8 130 140)"/><path d="M88 74h89M88 96h64M88 163h80M88 181h53" stroke="#e8efda" stroke-width="8" stroke-linecap="round"/><path d="M90 122l13 13 29-31" fill="none" stroke="#d5dfaa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+              [[-1, 65], [1, 70], [-1, 317]].forEach(function (a, i) {
+                o += L(302 + a[0] * (205 + Math.sin(age * 3 + i) * 24), a[1], 26 + i * 5, 26 + i * 5, "border-radius:5px;background:" + (i === 1 ? "#d3bb7b" : accent) + ";transform:rotate(" + (age * 70 + i * 30) + "deg);opacity:" + tween(age, 0.1 + i * 0.1, 0.45 + i * 0.1));
+              });
+              o += '<div style="position:absolute;left:0;right:0;bottom:21px;text-align:center">' +  '<span style="background:#554941bf;color:#fff;font-size:14px;padding:3px 7px">' + esc(age > 1.35 ? c.loyalty_payoff : c.loyalty) + "</span></div>";
+              return F(SURF + "background:#fffef9", o);
+            }
+            function integrations(t) {
+              var n = names.length, index = Math.min(n - 1, Math.floor(clamp01((t - 14.017) / 1.1) * n));
+              var pr = (((t - 14.017) * n) / 1.1) % 1;
+              if (!(pr >= 0)) pr = 0;
+              return F(SURF + "display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px",
+                "<span>" + esc(c.integration) + '</span><span style="width:33px;height:33px;display:grid;place-items:center;border-radius:50%;background:' + (index === 0 ? "#204732" : "#2b4938") + ";color:" + (index === 0 ? "#e6a749" : "white") + ";transform:scale(" + tween(pr, 0, 0.3, 0.6, 1) + ')">' + glyph([2, 1, 6][index % 3], 22) + "</span>" +
+                '<span style="border-radius:5px;color:#fff;background:' + accent + ";padding:10px 13px;transform:translateY(" + tween(pr, 0, 0.3, 12, 0) + "px);opacity:" + tween(pr, 0, 0.17) + '">' + esc(names[index]) + "</span>");
+            }
+            var SHOTS = [["dashboard", 440, 506], ["shoppers", 506, 555], ["exchange", 555, 621], ["builder", 621, 675], ["trading", 675, 741], ["loyalty", 741, 841], ["integrations", 841, 907]];
+            var SCREENS = { dashboard: dashboard, shoppers: shoppers, exchange: exchange, builder: builder, trading: trading, loyalty: loyalty, integrations: integrations };
+            function showcaseId(t) {
+              var f = Math.max(440, Math.min(906, Math.round(t * 60)));
+              for (var i = 0; i < SHOTS.length; i++) if (f >= SHOTS[i][1] && f < SHOTS[i][2]) return SHOTS[i][0];
+              return "dashboard";
+            }
+            var LAPTOP = '<svg width="480" height="270" viewBox="0 0 480 270" style="position:absolute;left:0;top:0"><ellipse cx="250" cy="208" rx="94" ry="7" fill="#2d241a" opacity="0.2"/><rect x="180.8" y="99.3" width="138.4" height="96" rx="5" fill="#202820" stroke="#778272" stroke-width="0.7"/><circle cx="250" cy="102.5" r="0.6" fill="#6a7764"/><path d="M180.8 194.5H319.2L337 206H163Z" fill="#a6ab98" stroke="#666f5d" stroke-width="0.5"/><path d="M190 197H310L318 202H182Z" fill="#4b5645"/><path d="M163 206H337L332 209H168Z" fill="#7e8875"/><path d="M234 203H265L268 205H231Z" fill="#d0d3bc"/></svg>';
+            function showcase(t) {
+              var cam = { scale: key(t, [7.333, 8, 9.25, 10.35, 11.25, 12.35, 13.3, 15.117], [1, 1.03, 1.3, 1.58, 1.85, 2.1, 2.26, 2.3]), x: key(t, [7.333, 15.117], [0, -10]), y: key(t, [7.333, 15.117], [0, -22]) };
+              var sx = ((480 * 447) / 1672) / 640, sy = ((270 * 291) / 941) / 420;
+              var screen = L((480 * 647) / 1672, (270 * 368) / 941, (480 * 447) / 1672, (270 * 291) / 941, "clip-path:polygon(0.8% 0,99.2% 0,100% 100%,0 100%);overflow:hidden;background:#fcfaf7",
+                L(0, 0, 640, 420, "transform-origin:0 0;transform:scale(" + sx + "," + sy + ")", SCREENS[showcaseId(t)](t)) + F("background:linear-gradient(135deg,#ffc79906,transparent 55%,#99683206)"));
+              var o = F("transform-origin:52% 55%;transform:translate(" + cam.x + "px," + cam.y + "px) scale(" + cam.scale + ")", photo("desk") + LAPTOP + screen);
+              o += F("border:" + tween(t, 7.333, 7.55, 12, 0) + "px solid #f7f2e6;border-radius:" + tween(t, 7.333, 7.55, 36, 0) + "px;opacity:" + (1 - tween(t, 7.4, 7.6)));
+              return { html: F("overflow:hidden;background:#e8dcc2", o), bg: "#e8dcc2" };
+            }
+
+            // ---- proof
+            var POS = [[26, -6], [107, 6], [190, -8], [282, 2], [371, -8], [455, 5], [43, 65], [114, 76], [188, 55], [253, 72], [317, 58], [393, 73], [465, 61], [34, 135], [443, 135], [35, 203], [109, 211], [183, 199], [253, 223], [315, 199], [387, 211], [459, 200], [28, 277], [118, 266], [198, 284], [286, 266], [375, 283], [468, 270]];
+            function proof(t) {
+              var age = t - 907 / 60, reveal = tween(age, 0.06, 0.73), zoom = tween(age, 0.13, 1.1, 1.43, 1);
+              var inner = "";
+              POS.forEach(function (p, i) {
+                var blur = [0.2, 1.3, 0, 0.7, 0.1, 1.7][i % 6];
+                inner += L(p[0] - 12, p[1] - 12 + Math.sin(age * 0.7 + i) * 2, 27, 27, "display:grid;place-items:center;color:#51735b;opacity:" + [0.73, 0.3, 0.58, 0.19, 0.4][i % 5] * reveal + ";filter:blur(" + blur + "px);transform:rotate(" + Math.sin(i * 2.8) * 9 + "deg);" + (i % 7 === 0 ? "background:#dce3cf;border-radius:7px;box-shadow:0 3px 12px #34492812" : ""), glyph(i * 5 + 2, 24));
+              });
+              inner += center(title(c.proof, 32, "font-weight:500;letter-spacing:-0.033em;opacity:" + reveal + ";filter:blur(" + (1 - reveal) * 5 + "px)"));
+              return { html: F("background:linear-gradient(#f2ecdf,#faf6ec 65%,#eee8da);color:#17392b;overflow:hidden", F("transform:scale(" + zoom + ") translateX(" + (1 - reveal) * 340 + "px);transform-origin:50% 50%", inner)), bg: "#f6f1e4" };
+            }
+
+            // ---- industry
+            function industry(t) {
+              var age = t - 1021 / 60, second = t >= 18.58, start = second ? 18.58 : 1021 / 60;
+              var arcs = '<svg viewBox="0 0 480 270" width="480" height="270" style="position:absolute;left:0;top:0;transform:rotate(' + (age * 2 - 3) + 'deg) scale(1.12)">';
+              for (var i = 0; i < 6; i++) arcs += '<path d="M' + (-70 + i * 21) + " 310V" + (90 - i * 22) + "Q240 " + (-140 - i * 24) + " " + (550 - i * 21) + " " + (90 - i * 22) + 'V310" fill="none" stroke="' + (i % 2 ? "#b6c7ad" : "#688d73") + '" stroke-width="0.7" opacity="' + (0.12 + i * 0.04) + '"/>';
+              arcs += "</svg>";
+              var txt = center(revealCopy(second ? c.promise : c.industry, t, start, 43, false), "transform:perspective(700px) rotateY(" + tween(t, start, start + 0.5, -8, 0) + "deg) rotateZ(" + tween(t, start, start + 0.55, 4, 0) + "deg)");
+              return { html: F("background:#122d24;color:#f7f1e4;overflow:hidden", arcs + txt), bg: "#122d24" };
+            }
+
+            // ---- space, address, mark
+            function space(t) {
+              var first = t < 20.62, inset = !first && t < 21.02;
+              var age = t - (first ? 20.22 : inset ? 20.62 : 21.02);
+              var img = L(inset ? 32 : 0, inset ? 20 : 0, inset ? 416 : 480, inset ? 230 : 270, "overflow:hidden;transform:translateX(" + tween(age, 0, 0.53, -3, 3) + "px) scale(" + tween(age, 0, 0.53, 1.07, 1.02) + ");filter:brightness(" + (first ? 0.8 : 0.68) + ")", photo(first ? "rocket" : "earth"));
+              var o = F("overflow:hidden;background:#eee8d9", img + F("inset:18px;border:0.65px solid #f4f0e970;opacity:" + (inset ? 0 : 0.8)) + center(title(c.launch, 92, "letter-spacing:-0.05em;font-weight:400;color:#f8f2e5")));
+              return { html: o, bg: inset ? "#eee8d9" : first ? "#0b1a1c" : "#02060c" };
+            }
+            function address(t) {
+              var url = c.brand_url;
+              var prefix = url.toLowerCase().indexOf(c.launch.toLowerCase()) === 0 ? c.launch.length : 0;
+              var typing = clamp01((t - 21.94) / 0.59);
+              var text = url.slice(0, prefix + Math.floor((url.length - prefix) * typing));
+              var glow = tween(t, 22.15, 22.45) * (1 - tween(t, 22.6, 23.25));
+              return { html: center(title(text, tween(t, 21.55, 21.9, 43, 32, smooth), "font-weight:400;letter-spacing:-0.06em;color:" + (glow > 0.5 ? "#d5e2bd" : "#fff9f3") + ";text-shadow:0 0 " + glow * 5 + "px #fff, 0 0 " + glow * 20 + "px #72935c, 0 0 " + glow * 32 + "px #496b4d"), "background:#122d24;color:#fff9f3"), bg: "#122d24" };
+            }
+            function mark(t) {
+              return { html: center('<div style="transform:scale(' + tween(t, 23.717, 26.666, 1, 0.63, smooth) + ')">' + brandMark(64, "#245744") + "</div>", "background:linear-gradient(#f4efdf,#faf5e9);color:#245744"), bg: "#f6f1e3" };
+            }
+
+            function frame(t) {
+              if (t < 3.8) return opening(t);
+              if (t < 5.9) return action(t);
+              if (t < 7.333) return portal(t);
+              if (t < 15.117) return showcase(t);
+              if (t < 17.017) return proof(t);
+              if (t < 20.217) return industry(t);
+              if (t < 21.55) return space(t);
+              if (t < 23.717) return address(t);
+              return mark(t);
+            }
+            function draw(t) {
+              var f = frame(t);
+              stage.innerHTML = f.html;
+              root.style.background = f.bg;
+            }
+
+            var TOTAL = parseFloat(root.dataset.duration || "26.667");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: TOTAL, duration: TOTAL, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["launch-anything"] = tl;
+          })();
+        </script>
+      </div>
+
+    </template>
+  </body>
+</html>

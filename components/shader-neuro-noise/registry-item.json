@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-neuro-noise",
+  "type": "hyperframes:component",
+  "title": "Neuro Noise",
+  "description": "A web of glowing filaments that slowly morphs, in three colors over a dark field, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "noise",
+    "tech",
+    "ai",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "An AI, ML or tech scene wants an organic neural-web texture that reads as intelligence.",
+    "You want slow morphing structure behind text without hard geometry.",
+    "The palette is dark and you want a filamentary web to sit low-contrast in the back."
+  ],
+  "avoidWhen": [
+    "You want smooth cloud noise instead of web filaments: use shader-perlin-noise or shader-simplex-noise.",
+    "The brief is playful or warm: neuro-noise reads technical.",
+    "Bright filaments would fight small text: lower `brightness` and `contrast`."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-neuro-noise/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-neuro-noise.html",
+      "target": "compositions/components/shader-neuro-noise.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "color_front",
+      "type": "color",
+      "role": "style",
+      "label": "Filament color",
+      "description": "Color of the brightest filaments.",
+      "default": "#8a8a95"
+    },
+    {
+      "id": "color_mid",
+      "type": "color",
+      "role": "style",
+      "label": "Mid color",
+      "description": "Color of the softer glow around them.",
+      "default": "#4a4a68"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color behind the web.",
+      "default": "#12121a"
+    },
+    {
+      "id": "brightness",
+      "type": "number",
+      "role": "style",
+      "label": "Brightness",
+      "description": "Overall glow of the web.",
+      "default": 0.05,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "contrast",
+      "type": "number",
+      "role": "style",
+      "label": "Contrast",
+      "description": "How sharply the filaments stand out.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

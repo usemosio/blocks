@@ -1,0 +1,96 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "light-leak",
+  "type": "hyperframes:component",
+  "title": "Light Leak",
+  "description": "A warm analog light leak drifts across the frame, blows out at the cut and cools off on the next scene.",
+  "tags": [
+    "transition",
+    "light-leak",
+    "film",
+    "warm",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 0.6667,
+  "useWhen": [
+    "The video has a film, lifestyle or nostalgic look and the cut should feel like light hitting the negative.",
+    "A warm, soft cut between two scenes that would otherwise hard-cut, such as a montage of shots.",
+    "The palette should match a brand: the leak takes any colours."
+  ],
+  "avoidWhen": [
+    "The video is a crisp UI or data piece where a warm burn looks out of place: use fade-through.",
+    "The cut should feel like a camera move rather than light: use whip-pan.",
+    "Both scenes are very bright: the blow-out loses contrast."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/light-leak/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "light-leak.html",
+      "target": "compositions/components/light-leak.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "origin",
+      "type": "enum",
+      "role": "motion",
+      "label": "Origin",
+      "description": "Edge the leak drifts in from.",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        }
+      ]
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "motion",
+      "label": "Intensity",
+      "description": "Strength of the leak and the blow-out, 0 to 1.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "leak_color",
+      "type": "color",
+      "role": "style",
+      "label": "Leak color",
+      "description": "Color that leads the leak.",
+      "default": "#FF5A1F"
+    },
+    {
+      "id": "blowout_color",
+      "type": "color",
+      "role": "style",
+      "label": "Blow-out color",
+      "description": "Tint the frame blows out to at the cut.",
+      "default": "#FFF3E0"
+    }
+  ]
+}

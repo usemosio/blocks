@@ -1,0 +1,162 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-smoke-ring",
+  "type": "hyperframes:component",
+  "title": "Smoke Ring",
+  "description": "A single soft ring of smoke curls and dissipates in the center of a dark field, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "smoke",
+    "ring",
+    "minimal",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "You want a single soft, centered smoke ring as a focal atmospheric element.",
+    "A minimal, premium scene benefits from one curling shape on a dark field.",
+    "You want a neutral, near-monochrome look (override `colors` to tint)."
+  ],
+  "avoidWhen": [
+    "You need a full-bleed edge-to-edge texture: this is a centered object; use a noise or gradient shader.",
+    "The center sits behind key text: the ring draws the eye inward.",
+    "You want multiple elements or busy motion: smoke-ring is deliberately singular."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-smoke-ring/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-smoke-ring.html",
+      "target": "compositions/components/shader-smoke-ring.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 10 colors, comma separated, the smoke moves through.",
+      "default": "#c8c8d0"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color behind the ring.",
+      "default": "#12121a"
+    },
+    {
+      "id": "radius",
+      "type": "number",
+      "role": "style",
+      "label": "Radius",
+      "description": "Radius of the ring.",
+      "default": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "thickness",
+      "type": "number",
+      "role": "style",
+      "label": "Thickness",
+      "description": "How thick the ring is.",
+      "default": 0.65,
+      "min": 0.01,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "inner_shape",
+      "type": "number",
+      "role": "style",
+      "label": "Inner shape",
+      "description": "How the inside of the ring fades.",
+      "default": 0.7,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "noise_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Noise scale",
+      "description": "Size of the smoke detail.",
+      "default": 3,
+      "min": 0.01,
+      "max": 5,
+      "step": 0.05
+    },
+    {
+      "id": "noise_iterations",
+      "type": "number",
+      "role": "style",
+      "label": "Noise detail",
+      "description": "Layers of smoke detail; lower renders faster.",
+      "default": 8,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 0.8,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

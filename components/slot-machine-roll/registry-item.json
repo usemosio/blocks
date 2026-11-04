@@ -1,0 +1,55 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "slot-machine-roll",
+  "type": "hyperframes:component",
+  "title": "Slot Machine Roll",
+  "description": "Each character sits on its own vertical reel and springs from the old value to the new one, one column after another, like a casino drum. Values of different lengths are right-aligned.",
+  "tags": [
+    "text-effects",
+    "numbers",
+    "price",
+    "reel",
+    "spring",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.15,
+    0.3,
+    0.5,
+    2.5
+  ],
+  "useWhen": [
+    "Revealing a price change, plan upgrade or before/after value that includes symbols ($, %, x).",
+    "A playful, casino-reel feel on a pricing or comparison slide, with short values (1 to 6 characters)."
+  ],
+  "avoidWhen": [
+    "The value is a large plain number like 1,240,000: use rolling-number.",
+    "The text is longer than about 6 characters: it gets hard to read while the reels spin; use staggered-fade-up.",
+    "The tone is formal or data-driven: use rolling-number for a composed odometer."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/slot-machine-roll/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "slot-machine-roll.html",
+      "target": "compositions/components/slot-machine-roll.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    { "id": "from", "type": "string", "role": "content", "label": "From", "description": "Starting value shown before the reels roll.", "default": "$99" },
+    { "id": "to", "type": "string", "role": "content", "label": "To", "description": "Value the reels settle on. Keep it short (1 to 6 characters).", "default": "$199" },
+    { "id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels; it also sets the reel travel. Long values shrink to fit the frame.", "default": 120, "min": 12, "max": 400, "step": 1, "unit": "px" },
+    { "id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717" },
+    { "id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "700", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }]},
+    { "id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x" }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-metaballs",
+  "type": "hyperframes:component",
+  "title": "Metaballs",
+  "description": "Soft blobs drift, merge and split like a lava lamp, each tinted from your palette, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "blobs",
+    "organic",
+    "loop",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A playful or organic scene wants lava-lamp blobs merging and splitting.",
+    "You want soft, rounded motion that reads as fun without being childish.",
+    "You want blob count and size tunable via `count` and `size`."
+  ],
+  "avoidWhen": [
+    "The brand is strictly serious or corporate: metaballs read playful.",
+    "You want structured or geometric motion: use shader-dot-orbit or shader-voronoi.",
+    "Blobs would obscure dense foreground content: lower `count` and `size`."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-metaballs/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-metaballs.html",
+      "target": "compositions/components/shader-metaballs.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 8 colors, comma separated, for the blobs.",
+      "default": "#3a3a5c, #52527a, #8a8a95"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color behind the blobs.",
+      "default": "#12121a"
+    },
+    {
+      "id": "count",
+      "type": "number",
+      "role": "style",
+      "label": "Count",
+      "description": "Number of blobs.",
+      "default": 10,
+      "min": 1,
+      "max": 20,
+      "step": 1
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Blob size.",
+      "default": 0.83,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

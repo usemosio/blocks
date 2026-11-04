@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "terminal-simulator",
+  "type": "hyperframes:component",
+  "title": "Terminal Simulator",
+  "description": "A console window that types out commands line by line, shows logs, success and error lines, and snaps older lines off the top as the buffer fills.",
+  "tags": [
+    "ui",
+    "terminal",
+    "cli",
+    "code",
+    "developer",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 10,
+  "useWhen": [
+    "Demoing a CLI tool install sequence (package install, scaffold, build output).",
+    "Showing an AI agent or script executing a multi-step task in a terminal session.",
+    "A developer tool launch video needs the authentic feel of commands running and output streaming."
+  ],
+  "avoidWhen": [
+    "You only need to type a single short string: use typewriter, which is lighter and pairs with any layout.",
+    "The code should be shown as a formatted, highlighted editor window: use glass-code-block."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/terminal-simulator/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "terminal-simulator.html",
+      "target": "compositions/components/terminal-simulator.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "lines",
+      "type": "string",
+      "role": "content",
+      "label": "Lines",
+      "description": "JSON array of lines: [{\"text\", \"type\": \"command\" | \"log\" | \"success\" | \"error\", \"delay\": frames before the line starts (default 8), \"pause\": extra frames to hold after it (lines ending in ... hold 18)}].",
+      "default": "[{\"text\":\"npm run build\",\"type\":\"command\",\"delay\":0},{\"text\":\"Resolving dependencies...\",\"type\":\"log\",\"delay\":6},{\"text\":\"> my-app@1.0.0 build\",\"type\":\"log\",\"delay\":4},{\"text\":\"> next build\",\"type\":\"log\",\"delay\":4},{\"text\":\"Compiling...\",\"type\":\"log\",\"delay\":12},{\"text\":\"Compiled successfully in 4.2s\",\"type\":\"success\",\"delay\":14},{\"text\":\"Generating static pages (24/24)\",\"type\":\"log\",\"delay\":10},{\"text\":\"Build completed without errors\",\"type\":\"success\",\"delay\":12}]"
+    },
+    {
+      "id": "prompt",
+      "type": "string",
+      "role": "content",
+      "label": "Prompt",
+      "description": "Prompt character before commands.",
+      "default": "$"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Window title in the title bar.",
+      "default": "~/projects/my-app"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Terminal background.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "chrome_color",
+      "type": "color",
+      "role": "style",
+      "label": "Chrome color",
+      "description": "Title bar background.",
+      "default": "#1a1a1a"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Terminal text size in design pixels (the window scales to fit the frame).",
+      "default": 18,
+      "min": 10,
+      "max": 32,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "chars_per_frame",
+      "type": "number",
+      "role": "motion",
+      "label": "Characters per frame",
+      "description": "Typing speed.",
+      "default": 1,
+      "min": 0.25,
+      "max": 6,
+      "step": 0.25
+    },
+    {
+      "id": "chunk_size",
+      "type": "number",
+      "role": "motion",
+      "label": "Chunk size",
+      "description": "Characters revealed per step.",
+      "default": 1,
+      "min": 1,
+      "max": 20,
+      "step": 1
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

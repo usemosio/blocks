@@ -1,0 +1,180 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rush-type",
+  "type": "hyperframes:component",
+  "title": "Rush Type",
+  "description": "White words blast into vertical RGB shutter trails, one forceful word at a time: the word falls out of perspective, stretches into a tall red/green/blue-fringed smear, snaps to a sharp readable rest, then blasts away as the next word arrives. The fringing comes from motion alone, not from tinting the text; a tube mask and glow ride along with the blast. WebGL, over an opaque background colour.",
+  "tags": [
+    "typography",
+    "kinetic-type",
+    "shader",
+    "webgl",
+    "motion-blur",
+    "rgb",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3.4667,
+  "useWhen": [
+    "A short phrase should cycle one forceful word at a time.",
+    "Chromatic separation should emerge from motion rather than tinting the text.",
+    "A kinetic-type beat needs a sharp readable rest between extreme blasts."
+  ],
+  "avoidWhen": [
+    "The text must remain readable throughout the motion: use word-push or zoom-words.",
+    "You want a horizontal digital glitch: use rgb-glitch-text.",
+    "The block must remain transparent: it always paints an opaque background."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/rush-type/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "rush-type.html",
+      "target": "compositions/components/rush-type.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "phrase",
+      "type": "string",
+      "role": "content",
+      "label": "Phrase",
+      "description": "A short phrase; one whitespace-separated word is shown per cycle (up to 8 words).",
+      "default": "gone before you look"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Resting size",
+      "description": "Cap height of the resting word, in pixels of a 1280×720 frame; scales with the frame.",
+      "default": 68,
+      "min": 32,
+      "max": 140,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the word.",
+      "default": "400",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Colour of the words.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "background_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Colour behind the words.",
+      "default": "#000000"
+    },
+    {
+      "id": "vertical_stretch",
+      "type": "number",
+      "role": "style",
+      "label": "Vertical stretch",
+      "description": "Authored vertical scale at the blast, before perspective.",
+      "default": 7,
+      "min": 3,
+      "max": 12,
+      "step": 0.25
+    },
+    {
+      "id": "chromatic_spread",
+      "type": "number",
+      "role": "style",
+      "label": "Chromatic spread",
+      "description": "0 removes the red/green/blue separation, 1 is the reference look, 2 exaggerates it.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "rest_duration",
+      "type": "number",
+      "role": "style",
+      "label": "Rest duration",
+      "description": "Frames a word rests, readable (30 per second).",
+      "default": 12,
+      "min": 6,
+      "max": 30,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "peak_hold_duration",
+      "type": "number",
+      "role": "style",
+      "label": "Peak hold",
+      "description": "Total frames the blast hangs near the point around the word swap.",
+      "default": 3,
+      "min": 0,
+      "max": 15,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "style",
+      "label": "Speed",
+      "description": "Playback multiplier for the whole motion.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Thin shutter trails and the tube mask look the same at 0.75 as at 1.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

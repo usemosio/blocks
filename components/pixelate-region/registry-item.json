@@ -1,0 +1,102 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "pixelate-region",
+  "type": "hyperframes:component",
+  "title": "Pixelate Region",
+  "description": "Covers chosen rectangles of a scene with an opaque mosaic and leaves the rest perfectly sharp, the way a demo hides keys, tokens and addresses. Runs its WebGL shader over its own built-in scene (a credentials page; title, rows and note from variables, with the values of the chosen rows covered), not over the host video.",
+  "tags": [
+    "filter",
+    "shader",
+    "pixelate",
+    "redact",
+    "privacy",
+    "mosaic",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3.0,
+  "useWhen": [
+    "A product demo shows real data (API keys, tokens, email addresses, account numbers) that must not leave the building.",
+    "The reveal is the point: something is deliberately hidden and the viewer should see that it was hidden."
+  ],
+  "avoidWhen": [
+    "The whole frame wants a treatment rather than a covered rectangle: vhs-filter and crt-screen work edge to edge.",
+    "What you are covering moves around the frame: a region is a fixed rectangle.",
+    "You only want to de-emphasise something: a mosaic dense enough to redact is not a soft focus."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/pixelate-region/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "pixelate-region.html",
+      "target": "compositions/components/pixelate-region.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading of the sample settings page.",
+      "default": "Project credentials"
+    },
+    {
+      "id": "rows",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows as label | value, separated by semicolons (up to 5).",
+      "default": "Account | casey@example.com; API key | sk_live_4f8a2c9e1b7d; Webhook secret | whsec_71c0d4e8ab35"
+    },
+    {
+      "id": "note",
+      "type": "string",
+      "role": "content",
+      "label": "Note",
+      "description": "Footnote under the rows.",
+      "default": "Rotate keys from the dashboard — old ones stay valid for 24 hours."
+    },
+    {
+      "id": "redact",
+      "type": "string",
+      "role": "content",
+      "label": "Covered rows",
+      "description": "Numbers of the rows whose value is covered, separated by commas.",
+      "default": "2,3"
+    },
+    {
+      "id": "cell_size",
+      "type": "number",
+      "role": "style",
+      "label": "Cell size",
+      "description": "Size of one mosaic cell. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 24,
+      "min": 6,
+      "max": 72,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Mosaic cells are large; 0.75 keeps the sharp text around them crisp.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "static": true,
+  "webgl": true
+}

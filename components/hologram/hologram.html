@@ -1,0 +1,359 @@
+<!doctype html>
+<!--
+  Hologram
+
+  Play a scene as a projection: ghost double, emission lines, only the bright parts carrying. remocn wraps its children with the experimental HTML-in-Canvas API; a render machine has no such API, so this block draws remocn's preview scene (a stat and eight bars, text from the variables) on a 2D canvas and applies the same shader to it. It does not apply the look to a host's video.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/hologram/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="hologram"
+  data-composition-duration="3"
+  data-composition-variables='[
+    {"id": "tint", "type": "color", "role": "style", "label": "Tint", "description": "Colour of the projected light. Sets the whole character.", "default": "#63e8ff"},
+    {"id": "glow", "type": "number", "role": "style", "label": "Glow", "description": "Emission strength: light off the edges of shapes and the halo bright areas throw.", "default": 1, "min": 0, "max": 3, "step": 0.1},
+    {"id": "ghost", "type": "number", "role": "style", "label": "Ghost", "description": "How unstable the projection is: how far the doubled image sits from the original and how far scanlines slip sideways.", "default": 1, "min": 0, "max": 3, "step": 0.1},
+    {"id": "flicker", "type": "number", "role": "motion", "label": "Flicker", "description": "Depth of the brightness pulse, on a 15-frame cycle with per-frame jitter.", "default": 1, "min": 0, "max": 3, "step": 0.1},
+    {"id": "intensity", "type": "number", "role": "style", "label": "Intensity", "description": "How much of the effect shows. 0 shows the plain scene.", "default": 1, "min": 0, "max": 1, "step": 0.05},
+    {"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Small label above the number in the scene.", "default": "Deploys this week"},
+    {"id": "value", "type": "string", "role": "content", "label": "Value", "description": "Large number in the scene.", "default": "2,481"},
+    {"id": "background", "type": "color", "role": "style", "label": "Scene background", "description": "Background of the scene.", "default": "#0a0a0a"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the last bar.", "default": "#a1eebd"},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hologram</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          background: #04070d;
+          font-family: var(--font-display, Geist, -apple-system, BlinkMacSystemFont, sans-serif);
+        }
+        .hol-stage { position: absolute; inset: 0; }
+        .hol-scene, .hol-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .hol-scene { display: none; }
+        .hol-off .hol-scene { display: block; }
+        .hol-off .hol-canvas { display: none; }
+      </style>
+
+      <div id="root" data-composition-id="hologram" data-duration="3" data-fps="30">
+        <div id="hol-clip" class="hol-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <canvas id="hol-scene" class="hol-scene"></canvas>
+          <canvas id="hol-canvas" class="hol-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            
+            var total = parseFloat(root.dataset.duration || "3");
+            var NAME = "hologram";
+            var stage = document.getElementById("hol-clip");
+            var canvas = document.getElementById("hol-canvas");
+            var scene = document.getElementById("hol-scene");
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            var tint = hex(vars.tint, "#63e8ff");
+            var glow = num(vars.glow, 1, 0, 3);
+            var ghost = num(vars.ghost, 1, 0, 3);
+            var flicker = num(vars.flicker, 1, 0, 3);
+            var intensity = num(vars.intensity, 1, 0, 1);
+            var resolution = num(vars.resolution, 0.75, 0.25, 1);
+            var title = str(vars.title, "Deploys this week");
+            var value = str(vars.value, "2,481");
+            var background = hex(vars.background, "#0a0a0a");
+            var accent = hex(vars.accent, "#a1eebd");
+            var tintRgb = [parseInt(tint.slice(1, 3), 16) / 255, parseInt(tint.slice(3, 5), 16) / 255, parseInt(tint.slice(5, 7), 16) / 255];
+
+            // ---- The scene: remocn's preview (CanvasSceneA, a stat and eight bars), laid out for 896 x 633 design pixels and scaled to the frame.
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * resolution));
+            var ch = Math.max(2, Math.round(H * resolution));
+            scene.width = cw;
+            scene.height = ch;
+            var SANS = "Geist, -apple-system, BlinkMacSystemFont, sans-serif";
+            var BARS = [0.32, 0.51, 0.43, 0.68, 0.57, 0.86, 0.64, 1];
+            function drawScene() {
+              var ctx = scene.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = background;
+              ctx.fillRect(0, 0, W, H);
+              var s = Math.min(W / 896, H / 633);
+              var blockW = 8 * 74 * s + 7 * 16 * s;
+              var x0 = (W - blockW) / 2;
+              var titleH = 34 * 1.2 * s, valueH = 152 * s, barsH = 190 * s;
+              var total = titleH + 6 * s + valueH + 52 * s + barsH;
+              var y = (H - total) / 2;
+              ctx.textBaseline = "alphabetic";
+              ctx.textAlign = "left";
+              ctx.font = "400 " + 34 * s + "px " + SANS;
+              ctx.fillStyle = "#8b8f9a";
+              ctx.fillText(title, x0, y + titleH * 0.78);
+              y += titleH + 6 * s;
+              ctx.font = "600 " + 152 * s + "px " + SANS;
+              if ("letterSpacing" in ctx) ctx.letterSpacing = (-0.04 * 152 * s) + "px";
+              ctx.fillStyle = "#f2f2f2";
+              ctx.fillText(value, x0, y + valueH * 0.84);
+              if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+              y += valueH + 52 * s;
+              BARS.forEach(function (b, i) {
+                var bx = x0 + i * (74 + 16) * s, bh = b * barsH;
+                ctx.fillStyle = i === BARS.length - 1 ? accent : "#23262e";
+                ctx.beginPath();
+                ctx.roundRect(bx, y + barsH - bh, 74 * s, bh, 10 * s);
+                ctx.fill();
+              });
+            }
+
+            // ---- remocn's shader (canvas-presentation vertex shader, hologram fragment shader).
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 a_pos;",
+              "out vec2 v_uv;",
+              "void main() {",
+              "  v_uv = vec2(a_pos.x * 0.5 + 0.5, 0.5 - a_pos.y * 0.5);",
+              "  gl_Position = vec4(a_pos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+            var FRAGMENT = [
+              "#version 300 es",
+              "precision highp float;",
+              "",
+              "uniform sampler2D u_scene;",
+              "uniform float u_aspect;",
+              "uniform float u_frame;",
+              "uniform vec3 u_tint;",
+              "uniform float u_glow;",
+              "uniform float u_ghost;",
+              "uniform float u_flicker;",
+              "uniform float u_intensity;",
+              "",
+              "in vec2 v_uv;",
+              "out vec4 outColor;",
+              "",
+              "const float PI = 3.141592653589793;",
+              "const float TAU = 6.28318530718;",
+              "const float GOLDEN = 2.39996323;",
+              "const int HALO_TAPS = 8;",
+              "const vec3 LUMA = vec3(0.299, 0.587, 0.114);",
+              "",
+              "float hash(vec2 p) {",
+              "  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);",
+              "}",
+              "",
+              "float lumaAt(vec2 uv) {",
+              "  return dot(texture(u_scene, uv).rgb, LUMA);",
+              "}",
+              "",
+              "void main() {",
+              "  vec4 src = texture(u_scene, v_uv);",
+              "  float amount = clamp(u_intensity, 0.0, 1.0);",
+              "",
+              "  if (!(amount > 0.001)) {",
+              "    outColor = src;",
+              "    return;",
+              "  }",
+              "",
+              "  float row = floor(v_uv.y * 300.0);",
+              "  float clock = floor(u_frame);",
+              "  float slip =",
+              "    (hash(vec2(row, clock)) - 0.5) * u_ghost * 0.006 * step(0.55, hash(vec2(row, clock + 3.0)));",
+              "  vec2 base = vec2(v_uv.x + slip / u_aspect, v_uv.y);",
+              "",
+              "  vec4 held = texture(u_scene, base);",
+              "  float lit = dot(held.rgb, LUMA);",
+              "",
+              "  vec2 apart = vec2(u_ghost * 0.0045 / u_aspect, u_ghost * 0.0035);",
+              "  vec3 twin = texture(u_scene, base + apart).rgb;",
+              "",
+              "  float step2 = 0.0022;",
+              "  float gx =",
+              "    lumaAt(base + vec2(step2 / u_aspect, 0.0)) -",
+              "    lumaAt(base - vec2(step2 / u_aspect, 0.0));",
+              "  float gy = lumaAt(base + vec2(0.0, step2)) - lumaAt(base - vec2(0.0, step2));",
+              "  float rim = clamp(length(vec2(gx, gy)) * 7.0, 0.0, 1.0);",
+              "",
+              "  vec3 halo = vec3(0.0);",
+              "  for (int i = 0; i < HALO_TAPS; i++) {",
+              "    float angle = float(i) * GOLDEN;",
+              "    float reach = sqrt((float(i) + 0.5) / float(HALO_TAPS)) * u_glow * 0.022;",
+              "    vec2 at = base + vec2(cos(angle) * reach / u_aspect, sin(angle) * reach);",
+              "    halo += max(texture(u_scene, at).rgb - 0.34, vec3(0.0));",
+              "  }",
+              "  halo /= float(HALO_TAPS);",
+              "",
+              "  vec3 core = u_tint * (0.12 + lit * 1.55);",
+              "  core = mix(core, held.rgb * u_tint * 1.9, 0.12);",
+              "  core += u_tint * rim * 1.9 * u_glow;",
+              "  core += halo * u_tint * 2.4 * u_glow;",
+              "  core += twin * u_tint * 0.5 * u_ghost;",
+              "",
+              "  float interlace = mod(row, 2.0) < 1.0 ? 1.0 : 0.58;",
+              "  core *= interlace;",
+              "",
+              "  float blink =",
+              "    1.0 -",
+              "    u_flicker *",
+              "      (0.04 + 0.05 * hash(vec2(clock, 7.0))) *",
+              "      (0.5 + 0.5 * sin(u_frame * TAU / 15.0));",
+              "  core *= blink;",
+              "",
+              "  float presence = clamp(lit * 1.5 + rim * 0.8 + 0.03, 0.0, 1.0);",
+              "  vec3 painted = clamp(u_tint * 0.035 + core * presence, 0.0, 1.0);",
+              "",
+              "  outColor = vec4(mix(src.rgb, painted, amount), src.a);",
+              "}"
+            ].join("\n");
+
+            canvas.width = cw;
+            canvas.height = ch;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            var upload = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(program, "a_pos");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+              var texture = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, texture);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              gl.uniform1i(u("u_scene"), 0);
+              gl.uniform1f(u("u_aspect"), cw / ch);
+              gl.uniform3fv(u("u_tint"), tintRgb);
+              gl.uniform1f(u("u_glow"), glow);
+              gl.uniform1f(u("u_ghost"), ghost);
+              gl.uniform1f(u("u_flicker"), flicker);
+              gl.uniform1f(u("u_intensity"), intensity);
+              var frameLoc = u("u_frame");
+              upload = function () {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scene);
+              };
+              paint = function (frame) {
+                gl.uniform1f(frameLoc, frame);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+              };
+            } catch (err) {
+              stage.classList.add("hol-off");
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            // The scene is redrawn whenever a web font finishes loading, so no frame keeps a fallback face.
+            var fontEpoch = 0;
+            var sceneEpoch = -1;
+            var lastFrame = 0;
+            function render(frame) {
+              lastFrame = frame;
+              if (sceneEpoch !== fontEpoch) {
+                sceneEpoch = fontEpoch;
+                drawScene();
+                upload();
+              }
+              if (paint) paint(frame);
+            }
+            if (document.fonts && document.fonts.load) {
+              ["400 34px Geist", "600 152px Geist"].forEach(function (face) {
+                document.fonts.load(face).then(function () { fontEpoch++; render(lastFrame); }, function () {});
+              });
+            }
+            var tl = gsap.timeline({ paused: true });
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            tl.to(clock, { frame: totalFrames, duration: total, ease: "none", onUpdate: function () { render(Math.round(clock.frame)); } }, 0);
+            render(0);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["hologram"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

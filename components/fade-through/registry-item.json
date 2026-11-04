@@ -1,0 +1,121 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "fade-through",
+  "type": "hyperframes:component",
+  "title": "Fade Through",
+  "description": "One text fades out and a second fades in with a slight rise, scale and blur, so scenes change calmly.",
+  "tags": [
+    "text-effects",
+    "fade",
+    "swap",
+    "calm",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.05,
+    0.2,
+    0.5,
+    2.0
+  ],
+  "useWhen": [
+    "One text should replace another cleanly with a calm cross-fade and a hint of rise.",
+    "A tone that is quiet and editorial rather than kinetic."
+  ],
+  "avoidWhen": [
+    "The change should be dramatic or kinetic: use a transition with motion.",
+    "Only one text enters from nothing: use a reveal."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/fade-through/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "fade-through.html",
+      "target": "compositions/components/fade-through.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "from_text",
+      "type": "string",
+      "role": "content",
+      "label": "From text",
+      "description": "Text that fades out.",
+      "default": "Calm transitions."
+    },
+    {
+      "id": "to_text",
+      "type": "string",
+      "role": "content",
+      "label": "To text",
+      "description": "Text that fades in.",
+      "default": "Fade through content."
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

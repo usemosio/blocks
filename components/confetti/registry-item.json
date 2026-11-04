@@ -1,0 +1,157 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "confetti",
+  "type": "hyperframes:component",
+  "title": "Confetti",
+  "description": "A deterministic burst of confetti pieces that fall, spin and flutter with gravity.",
+  "tags": [
+    "effects",
+    "celebration",
+    "particles",
+    "seeded",
+    "remocn-port"
+  ],
+  "category": "effects",
+  "duration": 3,
+  "checkAt": [
+    0.2,
+    0.6,
+    1.2,
+    2.4
+  ],
+  "useWhen": [
+    "A celebration moment: a signup, a goal reached, a launch, a milestone.",
+    "A burst that must repeat identically on every render (seeded)."
+  ],
+  "avoidWhen": [
+    "A subtle or professional tone: confetti reads as playful.",
+    "A continuous rain of pieces is wanted rather than one burst."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/confetti/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "confetti.html",
+      "target": "compositions/components/confetti.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "particle_count",
+      "type": "number",
+      "role": "style",
+      "label": "Particles",
+      "description": "Number of confetti pieces.",
+      "default": 140,
+      "min": 10,
+      "max": 400,
+      "step": 1
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Comma-separated piece colors.",
+      "default": "#1d9bf0, #ff5da2, #ffd23f, #22c55e, #a855f7, #ff7a45"
+    },
+    {
+      "id": "origin_x",
+      "type": "number",
+      "role": "motion",
+      "label": "Origin X",
+      "description": "Burst origin as a fraction of the frame width.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "origin_y",
+      "type": "number",
+      "role": "motion",
+      "label": "Origin Y",
+      "description": "Burst origin as a fraction of the frame height.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "start_frame",
+      "type": "number",
+      "role": "motion",
+      "label": "Start frame",
+      "description": "Frame the burst fires on.",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "lifetime",
+      "type": "number",
+      "role": "motion",
+      "label": "Lifetime",
+      "description": "Lifetime of the burst, in frames.",
+      "default": 90,
+      "min": 20,
+      "max": 240,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "power",
+      "type": "number",
+      "role": "motion",
+      "label": "Power",
+      "description": "Initial launch speed (px per frame at a 720 px tall frame).",
+      "default": 17,
+      "min": 2,
+      "max": 40,
+      "step": 0.5
+    },
+    {
+      "id": "gravity",
+      "type": "number",
+      "role": "motion",
+      "label": "Gravity",
+      "description": "Downward acceleration (px per frame squared at a 720 px tall frame).",
+      "default": 0.45,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Base piece size in px at a 720 px tall frame.",
+      "default": 13,
+      "min": 4,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Same seed draws an identical burst every time.",
+      "default": 1,
+      "min": 0,
+      "max": 9999,
+      "step": 1
+    }
+  ]
+}

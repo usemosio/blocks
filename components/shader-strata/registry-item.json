@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-strata",
+  "type": "hyperframes:component",
+  "title": "Strata",
+  "description": "Fine horizontal layers of sediment, their edges bent by noise, drift at their own depths so the stack reads as a living foundation. Drawn in WebGL; an accent color can tint the deep layers.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "layers",
+    "texture",
+    "calm",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "Calm, grounded, geological ambient backdrops: foundations, stability, built-on narratives.",
+    "A scene wants texture and depth without directional motion.",
+    "You want each layer moving at its own depth speed rather than a single flat gradient."
+  ],
+  "avoidWhen": [
+    "You want motion with a clear direction or flow: use shader-warp.",
+    "You want cellular texture instead of layered sediment: use shader-voronoi."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-strata/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-strata.html",
+      "target": "compositions/components/shader-strata.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast the layers drift. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 10,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Four colors, comma separated, from the deepest layer to the surface layer.",
+      "default": "#1a1a28, #3a3a5c, #6a6a95, #b0b0c8"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Tint carried by the light or layers (see Accent amount).",
+      "default": "#6733FF"
+    },
+    {
+      "id": "accent_amount",
+      "type": "number",
+      "role": "style",
+      "label": "Accent amount",
+      "description": "How much of the accent shows, 0 to 1. The original animates it from the host timeline.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "layers",
+      "type": "number",
+      "role": "style",
+      "label": "Layers",
+      "description": "Number of strata bands across the frame height.",
+      "default": 14,
+      "min": 3,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "amplitude",
+      "type": "number",
+      "role": "style",
+      "label": "Amplitude",
+      "description": "Edge waviness of each layer, as a fraction of the frame height.",
+      "default": 0.16,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

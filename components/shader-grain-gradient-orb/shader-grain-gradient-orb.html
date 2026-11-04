@@ -1,0 +1,607 @@
+<!doctype html>
+<!--
+  Shader Grain Gradient Orb
+
+  Large grainy sphere in periwinkle, violet and pink.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/shader-grain-gradient-orb/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  The vertex and fragment shaders below are from Paper Shaders
+  (@paper-design/shaders 0.0.82, dist/vertex-shader.js and dist/shaders/grain-gradient.js),
+  https://github.com/paper-design/shaders
+
+  Copyright 2026 Paper. Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by
+  applicable law or agreed to in writing, software distributed under the License is
+  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied. See the License for the specific language governing permissions
+  and limitations under the License.
+
+  NOTICE: Paper Shaders. Copyright 2026 Paper. Powered by Paper Shaders:
+  https://shaders.paper.design
+
+  Changes by usemosio/blocks: the shared GLSL helpers are inlined, the vertex shader keeps
+  only the object and pattern outputs it needs, Paper's bundled noise image is replaced by
+  a texture made from a seeded generator with the same value spread, and the shader mount
+  is rewritten: the canvas is drawn at a reduced resolution (the `resolution` variable) and
+  its time comes from the timeline.
+-->
+<html
+  lang="en"
+  data-composition-id="shader-grain-gradient-orb"
+  data-composition-duration="5"
+  data-composition-variables='[
+    { "id": "colors", "type": "string", "role": "style", "label": "Colors", "description": "Up to 7 colors, comma separated, from the edge of the shape to its core.", "default": "#4f7cff, #b06bff, #ffd1f0" },
+    { "id": "color_back", "type": "color", "role": "style", "label": "Background", "description": "Color behind the shape.", "default": "#0a0a12" },
+    { "id": "shape", "type": "enum", "role": "style", "label": "Shape", "description": "The form the gradient takes.", "default": "sphere", "options": [{ "value": "wave", "label": "Wave" }, { "value": "dots", "label": "Dots" }, { "value": "truchet", "label": "Truchet tiles" }, { "value": "corners", "label": "Corners" }, { "value": "ripple", "label": "Ripple" }, { "value": "blob", "label": "Blob" }, { "value": "sphere", "label": "Sphere" }] },
+    { "id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "How fast the shape drifts. 0 holds still.", "default": 1, "min": 0, "max": 4, "step": 0.05 },
+    { "id": "softness", "type": "number", "role": "style", "label": "Softness", "description": "How softly the colors blend. 0 gives hard bands.", "default": 0.6, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "intensity", "type": "number", "role": "style", "label": "Intensity", "description": "How strongly the grain distorts the shape.", "default": 0.3, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "noise", "type": "number", "role": "style", "label": "Noise", "description": "Amount of grain speckle over the colors.", "default": 0.15, "min": 0, "max": 1, "step": 0.01 },
+    { "id": "rotation", "type": "number", "role": "style", "label": "Rotation", "description": "Turns the whole gradient.", "default": 0, "min": 0, "max": 360, "step": 1, "unit": "deg" },
+    { "id": "scale", "type": "number", "role": "style", "label": "Scale", "description": "Zooms the gradient in or out.", "default": 1, "min": 0.1, "max": 4, "step": 0.01 },
+    { "id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster but coarsens the grain.", "default": 1, "min": 0.25, "max": 1, "step": 0.05 }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Grain Gradient Orb</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--sggorb-fallback, #12121a);
+          pointer-events: none;
+        }
+        .sggorb-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .sggorb-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="shader-grain-gradient-orb" data-duration="5" data-fps="30">
+        <div id="sggorb-clip" class="sggorb-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <canvas id="sggorb-canvas" class="sggorb-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("sggorb-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function pick(value, fallback, options) {
+              return options.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function parseColor(s) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(String(s).trim());
+              if (!m) return null;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              var a = h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1;
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255, a];
+            }
+            function color(value, fallback) {
+              return (typeof value === "string" && parseColor(value)) || parseColor(fallback);
+            }
+            function list(value, fallback, max) {
+              var parsed = String(typeof value === "string" && value.trim() ? value : fallback).split(",").map(parseColor).filter(Boolean).slice(0, max);
+              return parsed.length ? parsed : String(fallback).split(",").map(parseColor).slice(0, max);
+            }
+            function css(c) {
+              return "rgba(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + "," + c[3] + ")";
+            }
+
+            var SHAPES = { wave: 1, dots: 2, truchet: 3, corners: 4, ripple: 5, blob: 6, sphere: 7 };
+            var colors = list(vars.colors, "#4f7cff, #b06bff, #ffd1f0", 7);
+            var colorBack = color(vars.color_back, "#0a0a12");
+            var shape = pick(vars.shape, "sphere", Object.keys(SHAPES));
+            var speed = num(vars.speed, 1, 0, 4);
+            var softness = num(vars.softness, 0.6, 0, 1);
+            var intensity = num(vars.intensity, 0.3, 0, 1);
+            var noise = num(vars.noise, 0.15, 0, 1);
+            var rotation = num(vars.rotation, 0, 0, 360);
+            var scale = num(vars.scale, 1, 0.1, 4);
+            var resolution = num(vars.resolution, 1, 0.25, 1);
+
+            // Without WebGL the block still shows the palette as a plain gradient.
+            root.style.setProperty("--sggorb-fallback", "radial-gradient(circle at 50% 50%, " + colors.slice().reverse().map(css).join(", ") + ", " + css(colorBack) + ")");
+
+            // Paper Shaders vertex shader, object and pattern outputs only.
+            var VERTEX = [
+              "#version 300 es",
+              "precision mediump float;",
+              "layout(location = 0) in vec4 a_position;",
+              "uniform vec2 u_resolution;",
+              "uniform float u_pixelRatio;",
+              "uniform float u_originX;",
+              "uniform float u_originY;",
+              "uniform float u_worldWidth;",
+              "uniform float u_worldHeight;",
+              "uniform float u_fit;",
+              "uniform float u_scale;",
+              "uniform float u_rotation;",
+              "uniform float u_offsetX;",
+              "uniform float u_offsetY;",
+              "out vec2 v_objectUV;",
+              "out vec2 v_objectBoxSize;",
+              "out vec2 v_patternUV;",
+              "out vec2 v_patternBoxSize;",
+              "vec3 getBoxSize(float boxRatio, vec2 givenBoxSize) {",
+              "  vec2 box = vec2(0.);",
+              "  // fit = none",
+              "  box.x = boxRatio * min(givenBoxSize.x / boxRatio, givenBoxSize.y);",
+              "  float noFitBoxWidth = box.x;",
+              "  if (u_fit == 1.) { // fit = contain",
+              "    box.x = boxRatio * min(u_resolution.x / boxRatio, u_resolution.y);",
+              "  } else if (u_fit == 2.) { // fit = cover",
+              "    box.x = boxRatio * max(u_resolution.x / boxRatio, u_resolution.y);",
+              "  }",
+              "  box.y = box.x / boxRatio;",
+              "  return vec3(box, noFitBoxWidth);",
+              "}",
+              "void main() {",
+              "  gl_Position = a_position;",
+              "  vec2 uv = gl_Position.xy * .5;",
+              "  vec2 boxOrigin = vec2(.5 - u_originX, u_originY - .5);",
+              "  vec2 givenBoxSize = vec2(u_worldWidth, u_worldHeight);",
+              "  givenBoxSize = max(givenBoxSize, vec2(1.)) * u_pixelRatio;",
+              "  float r = u_rotation * 3.14159265358979323846 / 180.;",
+              "  mat2 graphicRotation = mat2(cos(r), sin(r), -sin(r), cos(r));",
+              "  vec2 graphicOffset = vec2(-u_offsetX, u_offsetY);",
+              "  float fixedRatio = 1.;",
+              "  vec2 fixedRatioBoxGivenSize = vec2(",
+              "  (u_worldWidth == 0.) ? u_resolution.x : givenBoxSize.x,",
+              "  (u_worldHeight == 0.) ? u_resolution.y : givenBoxSize.y",
+              "  );",
+              "  v_objectBoxSize = getBoxSize(fixedRatio, fixedRatioBoxGivenSize).xy;",
+              "  vec2 objectWorldScale = u_resolution.xy / v_objectBoxSize;",
+              "  v_objectUV = uv;",
+              "  v_objectUV *= objectWorldScale;",
+              "  v_objectUV += boxOrigin * (objectWorldScale - 1.);",
+              "  v_objectUV += graphicOffset;",
+              "  v_objectUV /= u_scale;",
+              "  v_objectUV = graphicRotation * v_objectUV;",
+              "  float patternBoxRatio = givenBoxSize.x / givenBoxSize.y;",
+              "  vec2 patternBoxGivenSize = vec2(",
+              "  (u_worldWidth == 0.) ? u_resolution.x : givenBoxSize.x,",
+              "  (u_worldHeight == 0.) ? u_resolution.y : givenBoxSize.y",
+              "  );",
+              "  patternBoxRatio = patternBoxGivenSize.x / patternBoxGivenSize.y;",
+              "  vec3 boxSizeData = getBoxSize(patternBoxRatio, patternBoxGivenSize);",
+              "  v_patternBoxSize = boxSizeData.xy;",
+              "  float patternBoxNoFitBoxWidth = boxSizeData.z;",
+              "  vec2 patternBoxScale = u_resolution.xy / v_patternBoxSize;",
+              "  v_patternUV = uv;",
+              "  v_patternUV += graphicOffset / patternBoxScale;",
+              "  v_patternUV += boxOrigin;",
+              "  v_patternUV -= boxOrigin / patternBoxScale;",
+              "  v_patternUV *= u_resolution.xy;",
+              "  v_patternUV /= u_pixelRatio;",
+              "  if (u_fit > 0.) {",
+              "    v_patternUV *= (patternBoxNoFitBoxWidth / v_patternBoxSize.x);",
+              "  }",
+              "  v_patternUV /= u_scale;",
+              "  v_patternUV = graphicRotation * v_patternUV;",
+              "  v_patternUV += boxOrigin / patternBoxScale;",
+              "  v_patternUV -= boxOrigin;",
+              "  // x100 is a default multiplier between vertex and fragmant shaders",
+              "  // we use it to avoid UV presision issues",
+              "  v_patternUV *= .01;",
+              "}"
+            ].join("\n");
+
+            // Paper Shaders grain-gradient fragment shader.
+            var FRAGMENT = [
+              "#version 300 es",
+              "precision lowp float;",
+              "uniform mediump float u_time;",
+              "uniform mediump vec2 u_resolution;",
+              "uniform mediump float u_pixelRatio;",
+              "uniform sampler2D u_noiseTexture;",
+              "uniform vec4 u_colorBack;",
+              "uniform vec4 u_colors[7];",
+              "uniform float u_colorsCount;",
+              "uniform float u_softness;",
+              "uniform float u_intensity;",
+              "uniform float u_noise;",
+              "uniform float u_shape;",
+              "uniform mediump float u_worldWidth;",
+              "uniform mediump float u_worldHeight;",
+              "uniform mediump float u_fit;",
+              "uniform mediump float u_scale;",
+              "uniform mediump float u_rotation;",
+              "uniform mediump float u_offsetX;",
+              "uniform mediump float u_offsetY;",
+              "in vec2 v_objectUV;",
+              "in vec2 v_patternUV;",
+              "in vec2 v_objectBoxSize;",
+              "in vec2 v_patternBoxSize;",
+              "out vec4 fragColor;",
+              "#define TWO_PI 6.28318530718",
+              "#define PI 3.14159265358979323846",
+              "vec3 permute(vec3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }",
+              "float snoise(vec2 v) {",
+              "  const vec4 C = vec4(0.211324865405187, 0.366025403784439,",
+              "    -0.577350269189626, 0.024390243902439);",
+              "  vec2 i = floor(v + dot(v, C.yy));",
+              "  vec2 x0 = v - i + dot(i, C.xx);",
+              "  vec2 i1;",
+              "  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);",
+              "  vec4 x12 = x0.xyxy + C.xxzz;",
+              "  x12.xy -= i1;",
+              "  i = mod(i, 289.0);",
+              "  vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0))",
+              "    + i.x + vec3(0.0, i1.x, 1.0));",
+              "  vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy),",
+              "      dot(x12.zw, x12.zw)), 0.0);",
+              "  m = m * m;",
+              "  m = m * m;",
+              "  vec3 x = 2.0 * fract(p * C.www) - 1.0;",
+              "  vec3 h = abs(x) - 0.5;",
+              "  vec3 ox = floor(x + 0.5);",
+              "  vec3 a0 = x - ox;",
+              "  m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);",
+              "  vec3 g;",
+              "  g.x = a0.x * x0.x + h.x * x0.y;",
+              "  g.yz = a0.yz * x12.xz + h.yz * x12.yw;",
+              "  return 130.0 * dot(m, g);",
+              "}",
+              "vec2 rotate(vec2 uv, float th) {",
+              "  return mat2(cos(th), sin(th), -sin(th), cos(th)) * uv;",
+              "}",
+              "  float randomR(vec2 p) {",
+              "    vec2 uv = floor(p) / 100. + .5;",
+              "    return texture(u_noiseTexture, fract(uv)).r;",
+              "  }",
+              "float valueNoiseR(vec2 st) {",
+              "  vec2 i = floor(st);",
+              "  vec2 f = fract(st);",
+              "  float a = randomR(i);",
+              "  float b = randomR(i + vec2(1.0, 0.0));",
+              "  float c = randomR(i + vec2(0.0, 1.0));",
+              "  float d = randomR(i + vec2(1.0, 1.0));",
+              "  vec2 u = f * f * (3.0 - 2.0 * f);",
+              "  float x1 = mix(a, b, u.x);",
+              "  float x2 = mix(c, d, u.x);",
+              "  return mix(x1, x2, u.y);",
+              "}",
+              "vec4 fbmR(vec2 n0, vec2 n1, vec2 n2, vec2 n3) {",
+              "  float amplitude = 0.2;",
+              "  vec4 total = vec4(0.);",
+              "  for (int i = 0; i < 3; i++) {",
+              "    n0 = rotate(n0, 0.3);",
+              "    n1 = rotate(n1, 0.3);",
+              "    n2 = rotate(n2, 0.3);",
+              "    n3 = rotate(n3, 0.3);",
+              "    total.x += valueNoiseR(n0) * amplitude;",
+              "    total.y += valueNoiseR(n1) * amplitude;",
+              "    total.z += valueNoiseR(n2) * amplitude;",
+              "    total.z += valueNoiseR(n3) * amplitude;",
+              "    n0 *= 1.99;",
+              "    n1 *= 1.99;",
+              "    n2 *= 1.99;",
+              "    n3 *= 1.99;",
+              "    amplitude *= 0.6;",
+              "  }",
+              "  return total;",
+              "}",
+              "  float hash11(float p) {",
+              "    p = fract(p * 0.3183099) + 0.1;",
+              "    p *= p + 19.19;",
+              "    return fract(p * p);",
+              "  }",
+              "vec2 truchet(vec2 uv, float idx){",
+              "  idx = fract(((idx - .5) * 2.));",
+              "  if (idx > 0.75) {",
+              "    uv = vec2(1.0) - uv;",
+              "  } else if (idx > 0.5) {",
+              "    uv = vec2(1.0 - uv.x, uv.y);",
+              "  } else if (idx > 0.25) {",
+              "    uv = 1.0 - vec2(1.0 - uv.x, uv.y);",
+              "  }",
+              "  return uv;",
+              "}",
+              "void main() {",
+              "  const float firstFrameOffset = 7.;",
+              "  float t = .1 * (u_time + firstFrameOffset);",
+              "  vec2 shape_uv = vec2(0.);",
+              "  vec2 grain_uv = vec2(0.);",
+              "  float r = u_rotation * PI / 180.;",
+              "  float cr = cos(r);",
+              "  float sr = sin(r);",
+              "  mat2 graphicRotation = mat2(cr, sr, -sr, cr);",
+              "  vec2 graphicOffset = vec2(-u_offsetX, u_offsetY);",
+              "  if (u_shape > 3.5) {",
+              "    shape_uv = v_objectUV;",
+              "    grain_uv = shape_uv;",
+              "    // apply inverse transform to grain_uv so it respects the originXY",
+              "    grain_uv = transpose(graphicRotation) * grain_uv;",
+              "    grain_uv *= u_scale;",
+              "    grain_uv -= graphicOffset;",
+              "    grain_uv *= v_objectBoxSize;",
+              "    grain_uv *= .7;",
+              "  } else {",
+              "    shape_uv = .5 * v_patternUV;",
+              "    grain_uv = 100. * v_patternUV;",
+              "    // apply inverse transform to grain_uv so it respects the originXY",
+              "    grain_uv = transpose(graphicRotation) * grain_uv;",
+              "    grain_uv *= u_scale;",
+              "    if (u_fit > 0.) {",
+              "      vec2 givenBoxSize = vec2(u_worldWidth, u_worldHeight);",
+              "      givenBoxSize = max(givenBoxSize, vec2(1.)) * u_pixelRatio;",
+              "      float patternBoxRatio = givenBoxSize.x / givenBoxSize.y;",
+              "      vec2 patternBoxGivenSize = vec2(",
+              "      (u_worldWidth == 0.) ? u_resolution.x : givenBoxSize.x,",
+              "      (u_worldHeight == 0.) ? u_resolution.y : givenBoxSize.y",
+              "      );",
+              "      patternBoxRatio = patternBoxGivenSize.x / patternBoxGivenSize.y;",
+              "      float patternBoxNoFitBoxWidth = patternBoxRatio * min(patternBoxGivenSize.x / patternBoxRatio, patternBoxGivenSize.y);",
+              "      grain_uv /= (patternBoxNoFitBoxWidth / v_patternBoxSize.x);",
+              "    }",
+              "    vec2 patternBoxScale = u_resolution.xy / v_patternBoxSize;",
+              "    grain_uv -= graphicOffset / patternBoxScale;",
+              "    grain_uv *= 1.6;",
+              "  }",
+              "  float shape = 0.;",
+              "  if (u_shape < 1.5) {",
+              "    // Sine wave",
+              "    float wave = cos(.5 * shape_uv.x - 4. * t) * sin(1.5 * shape_uv.x + 2. * t) * (.75 + .25 * cos(6. * t));",
+              "    shape = 1. - smoothstep(-1., 1., shape_uv.y + wave);",
+              "  } else if (u_shape < 2.5) {",
+              "    // Grid (dots)",
+              "    float stripeIdx = floor(2. * shape_uv.x / TWO_PI);",
+              "    float rand = hash11(stripeIdx * 100.);",
+              "    rand = sign(rand - .5) * pow(4. * abs(rand), .3);",
+              "    shape = sin(shape_uv.x) * cos(shape_uv.y - 5. * rand * t);",
+              "    shape = pow(abs(shape), 4.);",
+              "  } else if (u_shape < 3.5) {",
+              "    // Truchet pattern",
+              "    float n2 = valueNoiseR(shape_uv * .4 - 3.75 * t);",
+              "    shape_uv.x += 10.;",
+              "    shape_uv *= .6;",
+              "    vec2 tile = truchet(fract(shape_uv), randomR(floor(shape_uv)));",
+              "    float distance1 = length(tile);",
+              "    float distance2 = length(tile - vec2(1.));",
+              "    n2 -= .5;",
+              "    n2 *= .1;",
+              "    shape = smoothstep(.2, .55, distance1 + n2) * (1. - smoothstep(.45, .8, distance1 - n2));",
+              "    shape += smoothstep(.2, .55, distance2 + n2) * (1. - smoothstep(.45, .8, distance2 - n2));",
+              "    shape = pow(shape, 1.5);",
+              "  } else if (u_shape < 4.5) {",
+              "    // Corners",
+              "    shape_uv *= .6;",
+              "    vec2 outer = vec2(.5);",
+              "    vec2 bl = smoothstep(vec2(0.), outer, shape_uv + vec2(.1 + .1 * sin(3. * t), .2 - .1 * sin(5.25 * t)));",
+              "    vec2 tr = smoothstep(vec2(0.), outer, 1. - shape_uv);",
+              "    shape = 1. - bl.x * bl.y * tr.x * tr.y;",
+              "    shape_uv = -shape_uv;",
+              "    bl = smoothstep(vec2(0.), outer, shape_uv + vec2(.1 + .1 * sin(3. * t), .2 - .1 * cos(5.25 * t)));",
+              "    tr = smoothstep(vec2(0.), outer, 1. - shape_uv);",
+              "    shape -= bl.x * bl.y * tr.x * tr.y;",
+              "    shape = 1. - smoothstep(0., 1., shape);",
+              "  } else if (u_shape < 5.5) {",
+              "    // Ripple",
+              "    shape_uv *= 2.;",
+              "    float dist = length(.4 * shape_uv);",
+              "    float waves = sin(pow(dist, 1.2) * 5. - 3. * t) * .5 + .5;",
+              "    shape = waves;",
+              "  } else if (u_shape < 6.5) {",
+              "    // Blob",
+              "    t *= 2.;",
+              "    vec2 f1_traj = .25 * vec2(1.3 * sin(t), .2 + 1.3 * cos(.6 * t + 4.));",
+              "    vec2 f2_traj = .2 * vec2(1.2 * sin(-t), 1.3 * sin(1.6 * t));",
+              "    vec2 f3_traj = .25 * vec2(1.7 * cos(-.6 * t), cos(-1.6 * t));",
+              "    vec2 f4_traj = .3 * vec2(1.4 * cos(.8 * t), 1.2 * sin(-.6 * t - 3.));",
+              "    shape = .5 * pow(1. - clamp(0., 1., length(shape_uv + f1_traj)), 5.);",
+              "    shape += .5 * pow(1. - clamp(0., 1., length(shape_uv + f2_traj)), 5.);",
+              "    shape += .5 * pow(1. - clamp(0., 1., length(shape_uv + f3_traj)), 5.);",
+              "    shape += .5 * pow(1. - clamp(0., 1., length(shape_uv + f4_traj)), 5.);",
+              "    shape = smoothstep(.0, .9, shape);",
+              "    float edge = smoothstep(.25, .3, shape);",
+              "    shape = mix(.0, shape, edge);",
+              "  } else {",
+              "    // Sphere",
+              "    shape_uv *= 2.;",
+              "    float d = 1. - pow(length(shape_uv), 2.);",
+              "    vec3 pos = vec3(shape_uv, sqrt(max(d, 0.)));",
+              "    vec3 lightPos = normalize(vec3(cos(1.5 * t), .8, sin(1.25 * t)));",
+              "    shape = .5 + .5 * dot(lightPos, pos);",
+              "    shape *= step(0., d);",
+              "  }",
+              "  float baseNoise = snoise(grain_uv * .5);",
+              "  vec4 fbmVals = fbmR(",
+              "  .002 * grain_uv + 10.,",
+              "  .003 * grain_uv,",
+              "  .001 * grain_uv,",
+              "  rotate(.4 * grain_uv, 2.)",
+              "  );",
+              "  float grainDist = baseNoise * snoise(grain_uv * .2) - fbmVals.x - fbmVals.y;",
+              "  float rawNoise = .75 * baseNoise - fbmVals.w - fbmVals.z;",
+              "  float noise = clamp(rawNoise, 0., 1.);",
+              "  shape += u_intensity * 2. / u_colorsCount * (grainDist + .5);",
+              "  shape += u_noise * 10. / u_colorsCount * noise;",
+              "  float aa = fwidth(shape);",
+              "  shape = clamp(shape - .5 / u_colorsCount, 0., 1.);",
+              "  float totalShape = smoothstep(0., u_softness + 2. * aa, clamp(shape * u_colorsCount, 0., 1.));",
+              "  float mixer = shape * (u_colorsCount - 1.);",
+              "  int cntStop = int(u_colorsCount) - 1;",
+              "  vec4 gradient = u_colors[0];",
+              "  gradient.rgb *= gradient.a;",
+              "  for (int i = 1; i < 7; i++) {",
+              "    if (i > cntStop) break;",
+              "    float localT = clamp(mixer - float(i - 1), 0., 1.);",
+              "    localT = smoothstep(.5 - .5 * u_softness - aa, .5 + .5 * u_softness + aa, localT);",
+              "    vec4 c = u_colors[i];",
+              "    c.rgb *= c.a;",
+              "    gradient = mix(gradient, c, localT);",
+              "  }",
+              "  vec3 color = gradient.rgb * totalShape;",
+              "  float opacity = gradient.a * totalShape;",
+              "  vec3 bgColor = u_colorBack.rgb * u_colorBack.a;",
+              "  color = color + bgColor * (1.0 - opacity);",
+              "  opacity = opacity + u_colorBack.a * (1.0 - opacity);",
+              "  fragColor = vec4(color, opacity);",
+              "}"
+            ].join("\n");
+
+            // Paper ships its 128×128 noise texture as a PNG. The same kind of texture is made here
+            // from a seeded generator: white noise per channel with Paper's value spread (about
+            // 30 % of texels near 0, 20 % near 1, the rest even), so nothing is loaded.
+            function noiseTexture() {
+              var seed = 0x2f6b9a1d;
+              function rand() {
+                seed = (seed + 0x6d2b79f5) | 0;
+                var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              }
+              var data = new Uint8Array(128 * 128 * 4);
+              for (var i = 0; i < data.length; i++) {
+                if (i % 4 === 3) { data[i] = 255; continue; }
+                var u = rand();
+                data[i] = Math.floor(u < 0.3 ? rand() * 16 : u < 0.5 ? 240 + rand() * 16 : 16 + rand() * 224);
+              }
+              return data;
+            }
+
+            // The canvas is drawn at `resolution` × the frame size and stretched to fill it.
+            var frameWidth = Math.max(2, root.clientWidth);
+            var frameHeight = Math.max(2, root.clientHeight);
+            var width = Math.max(2, Math.round(frameWidth * resolution));
+            var height = Math.max(2, Math.round(frameHeight * resolution));
+            canvas.width = width;
+            canvas.height = height;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+
+            function compile(type, source) {
+              var s = gl.createShader(type);
+              gl.shaderSource(s, source);
+              gl.compileShader(s);
+              if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader compile failed");
+              return s;
+            }
+            var draw = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, width, height);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              // The grain is sized in Paper's pixels, which are half a frame pixel (Paper draws at
+              // a pixel ratio of at least 2), so `resolution` changes how finely it is sampled,
+              // not how large it is.
+              gl.uniform2f(u("u_resolution"), frameWidth * 2, frameHeight * 2);
+              gl.uniform1f(u("u_pixelRatio"), 2);
+              gl.uniform1f(u("u_originX"), 0.5);
+              gl.uniform1f(u("u_originY"), 0.5);
+              gl.uniform1f(u("u_worldWidth"), 0);
+              gl.uniform1f(u("u_worldHeight"), 0);
+              gl.uniform1f(u("u_fit"), 2); // cover, as remocn sets it
+              gl.uniform1f(u("u_scale"), scale);
+              gl.uniform1f(u("u_rotation"), rotation);
+              gl.uniform1f(u("u_offsetX"), 0);
+              gl.uniform1f(u("u_offsetY"), 0);
+              var flat = new Float32Array(7 * 4);
+              colors.forEach(function (c, i) { flat.set(c, i * 4); });
+              gl.uniform4fv(u("u_colors"), flat);
+              gl.uniform1f(u("u_colorsCount"), colors.length);
+              gl.uniform4fv(u("u_colorBack"), colorBack);
+              gl.uniform1f(u("u_softness"), softness);
+              gl.uniform1f(u("u_intensity"), intensity);
+              gl.uniform1f(u("u_noise"), noise);
+              gl.uniform1f(u("u_shape"), SHAPES[shape]);
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 128, 128, 0, gl.RGBA, gl.UNSIGNED_BYTE, noiseTexture());
+              gl.uniform1i(u("u_noiseTexture"), 0);
+              var timeLoc = u("u_time");
+              draw = function (frame) {
+                // remocn: frame = (frame / fps) * speed * 1000 ms; Paper's u_time is that in seconds.
+                gl.uniform1f(timeLoc, (frame / 30) * speed);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn("shader-grain-gradient-orb:", err.message);
+            }
+
+            var total = parseFloat(root.dataset.duration || "5");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { draw(clock.frame); }
+            }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shader-grain-gradient-orb"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!doctype html>
+<!--
+  AI Prompt Composer
+
+  An unbranded AI chat composer: a greeting and the input ease in, the caret blinks, a prompt
+  types itself and the voice button morphs into the send button while the suggestion chips fade.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from three remocn components that
+  share this motion (same intro, typing and voice-to-send morph; only their chrome differed):
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/chat-gpt/index.tsx
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/claude-chat/index.tsx
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/v0/index.tsx
+  The motion follows the source. The look was made generic: no product names, logos, model
+  names, signature colours or layouts; the app label, accent and theme are variables.
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="ai-prompt-composer"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id": "greeting", "type": "string", "role": "content", "label": "Greeting", "description": "Heading above the input. Leave empty to hide it.", "default": "What should we make?"},
+    {"id": "placeholder", "type": "string", "role": "content", "label": "Placeholder", "description": "Muted hint shown in the empty input.", "default": "Ask anything"},
+    {"id": "prompt", "type": "string", "role": "content", "label": "Prompt", "description": "Text that types itself into the input.", "default": "Make a sunset over a calm ocean"},
+    {"id": "app_label", "type": "string", "role": "content", "label": "App label", "description": "Name in the selector under the input (card layout only). Leave empty to hide it.", "default": "Assistant"},
+    {"id": "suggestions", "type": "string", "role": "content", "label": "Suggestions", "description": "Comma-separated suggestion chips under the input; they fade out once typing starts. Leave empty to hide them.", "default": "Create an image, Write or edit, Look something up"},
+    {"id": "layout", "type": "enum", "role": "style", "label": "Layout", "description": "A card with a toolbar row, or a single-line pill.", "default": "card", "options": [{"value": "card", "label": "Card"}, {"value": "pill", "label": "Pill"}]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the send button.", "default": "#6e56cf"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark neutral theme.", "default": "light", "options": [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the composer sits over your own scene.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI Prompt Composer</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          background: var(--apc-page, #f4f4f6);
+          color: var(--apc-fg, #17171c);
+          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .apc-clip { position: absolute; inset: 0; }
+        .apc-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; }
+        .apc-col { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .apc-heading { width: 100%; text-align: center; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; color: var(--apc-fg); }
+        .apc-box { background: var(--apc-card); border: 1px solid var(--apc-border); transform-origin: 50% 0; }
+        .apc-card { border-radius: 22px; box-shadow: 0 10px 34px -14px var(--apc-shadow); }
+        .apc-pill { height: 64px; border-radius: 32px; display: flex; align-items: center; padding: 0 12px 0 20px; box-shadow: 0 8px 30px -14px var(--apc-shadow); }
+        .apc-text { position: relative; display: flex; align-items: flex-start; font-size: 21px; line-height: 1.4; }
+        .apc-card .apc-text { padding: 24px 26px 8px; min-height: 92px; }
+        .apc-pill .apc-text { flex: 1; min-width: 0; margin-left: 14px; height: 64px; align-items: center; overflow: hidden; white-space: nowrap; font-size: 19px; }
+        .apc-line { display: inline-flex; align-items: center; flex-wrap: wrap; white-space: pre-wrap; word-break: break-word; }
+        .apc-pill .apc-line { flex-wrap: nowrap; white-space: pre; }
+        .apc-typed { color: var(--apc-fg); }
+        .apc-hint { color: var(--apc-muted); margin-left: 6px; }
+        .apc-caret { display: inline-block; flex-shrink: 0; width: 2px; height: 24px; border-radius: 1px; background: var(--apc-fg); }
+        .apc-pill .apc-caret { height: 22px; }
+        .apc-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 16px; }
+        .apc-group { display: flex; align-items: center; gap: 12px; }
+        .apc-ibtn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--apc-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .apc-plain { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .apc-model { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 19px; background: var(--apc-soft); font-size: 16px; font-weight: 500; color: var(--apc-fg); white-space: nowrap; }
+        .apc-morph { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
+        .apc-morph > div { position: absolute; inset: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .apc-voice { background: var(--apc-soft); }
+        .apc-send { background: var(--apc-accent); }
+        .apc-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+        .apc-chip { display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 20px; border: 1px solid var(--apc-border); color: var(--apc-chip); font-size: 16px; white-space: nowrap; background: var(--apc-card); }
+      </style>
+
+      <div id="root" data-composition-id="ai-prompt-composer" data-duration="5" data-fps="30">
+        <div id="apc-clip" class="apc-clip clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="apc-stage" class="apc-stage"><div id="apc-col" class="apc-col"></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("apc-stage");
+            var col = document.getElementById("apc-col");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            // Damped spring 0 -> 1 from rest; frame in 30 fps frames (closed form of mass/stiffness/damping).
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Linear fade-up over [a, b] frames: opacity 0 -> 1, 12 px rise.
+            function fadeUp(f, a, b) { var p = clamp((f - a) / (b - a), 0, 1); return { o: p, y: 12 * (1 - p) }; }
+            function svg(markup, size) {
+              return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + markup + "</svg>";
+            }
+            var ICON = {
+              plus: '<path d="M12 5v14M5 12h14" stroke-width="2"/>',
+              mic: '<rect x="9" y="3" width="6" height="11" rx="3" stroke-width="1.8"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21M9 21h6" stroke-width="1.8"/>',
+              wave: '<path d="M4 10v4M8.5 7v10M13 9v6M17.5 5.5v13M21 10.5v3" stroke-width="2.2"/>',
+              up: '<path d="M12 19V6M12 6l-6 6M12 6l6 6" stroke-width="2.2"/>',
+              chevron: '<path d="M6 9l6 6 6-6" stroke-width="2"/>'
+            };
+
+            var greeting = txt(vars.greeting, "What should we make?").trim();
+            var placeholder = txt(vars.placeholder, "Ask anything");
+            var prompt = str(vars.prompt, "Make a sunset over a calm ocean");
+            var appLabel = txt(vars.app_label, "Assistant").trim();
+            var chips = txt(vars.suggestions, "Create an image, Write or edit, Look something up").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            var layout = String(vars.layout) === "pill" ? "pill" : "card";
+            var accent = colr(vars.accent_color, "#6e56cf");
+            var dark = String(vars.theme) === "dark";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = dark
+              ? { page: "#111114", card: "#1b1b20", border: "#2e2e36", fg: "#ededf2", muted: "#8b8b96", chip: "#b9b9c4", soft: "#2a2a31", shadow: "rgba(0,0,0,0.6)" }
+              : { page: "#f4f4f6", card: "#ffffff", border: "#e4e4e9", fg: "#17171c", muted: "#8b8b96", chip: "#5a5a66", soft: "#efeff3", shadow: "rgba(23,23,28,0.16)" };
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--apc-" + k, T[k]); });
+            root.style.setProperty("--apc-accent", accent);
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            // Design box: 1280x720 for landscape hosts, 720x1280 for portrait, scaled to fit.
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, portrait = H > W;
+            var RW = portrait ? 720 : 1280, RH = portrait ? 1280 : 720, k = Math.min(W / RW, H / RH);
+            stage.style.width = RW + "px"; stage.style.height = RH + "px";
+            stage.style.marginLeft = -RW / 2 + "px"; stage.style.marginTop = -RH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+            var boxW = layout === "pill" ? (portrait ? 640 : 820) : (portrait ? 640 : 860);
+
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            var head = null;
+            if (greeting) {
+              head = el("div", "apc-heading", col);
+              head.textContent = greeting;
+              head.style.fontSize = (portrait ? 44 : 40) + "px";
+              head.style.padding = portrait ? "0 40px" : "0 120px";
+              head.style.marginBottom = (portrait ? 36 : 40) + "px";
+            }
+            var box = el("div", "apc-box " + (layout === "pill" ? "apc-pill" : "apc-card"), col);
+            box.style.width = boxW + "px";
+            if (layout === "pill") { var pl = el("div", "", box, svg(ICON.plus, 24)); pl.style.color = T.fg; pl.style.display = "flex"; }
+            var textEl = el("div", "apc-text", box);
+            var line = el("span", "apc-line", textEl);
+            var typed = el("span", "apc-typed", line);
+            var caret = el("span", "apc-caret", line);
+            var hint = el("span", "apc-hint", line);
+            hint.textContent = placeholder;
+            var right;
+            if (layout === "pill") {
+              right = el("div", "apc-group", box);
+              right.style.gap = "8px";
+            } else {
+              var bar = el("div", "apc-bar", box);
+              var left = el("div", "apc-group", bar);
+              var plus = el("div", "apc-ibtn", left, svg(ICON.plus, 20)); plus.style.color = T.fg;
+              if (appLabel) {
+                var model = el("div", "apc-model", left);
+                el("span", "", model).textContent = appLabel;
+                var chev = el("span", "", model, svg(ICON.chevron, 16)); chev.style.color = T.muted; chev.style.display = "flex";
+              }
+              right = el("div", "apc-group", bar);
+            }
+            var mic = el("div", layout === "pill" ? "apc-plain" : "apc-ibtn", right, svg(ICON.mic, 21)); mic.style.color = T.chip;
+            var morph = el("div", "apc-morph", right);
+            var voice = el("div", "apc-voice", morph, svg(ICON.wave, 22)); voice.style.color = T.fg;
+            var send = el("div", "apc-send", morph, svg(ICON.up, 22)); send.style.color = "#ffffff";
+            var chipRow = null;
+            if (chips.length) {
+              chipRow = el("div", "apc-chips", col);
+              chipRow.style.marginTop = "24px";
+              chipRow.style.maxWidth = boxW + "px";
+              chips.forEach(function (c) { el("div", "apc-chip", chipRow).textContent = c; });
+            }
+
+            // remocn timing (30 fps frames, times speed): intro spring, staggered fade-ups,
+            // typing from frame 42 at 22 characters a second, morph spring from frame 42.
+            var TYPE_AT = 42, CPS = 22;
+            var INTRO = { damping: 14, stiffness: 110, mass: 0.7 }, MORPH = { damping: 14, stiffness: 200, mass: 0.6 };
+            var chars = Array.from(prompt);
+            function draw(f) {
+              var s = spring(f, INTRO), introY = 28 * (1 - s), introS = 0.97 + 0.03 * s;
+              if (head) { var h = fadeUp(f, 4, 20); head.style.opacity = h.o; head.style.transform = "translateY(" + (h.y + introY * 0.4) + "px)"; }
+              var b = fadeUp(f, 10, 26);
+              box.style.opacity = b.o;
+              box.style.transform = "translateY(" + (b.y + introY * 0.6) + "px) scale(" + introS + ")";
+              var local = f - TYPE_AT, over = (chars.length / CPS) * FPS;
+              var count = local <= 0 ? 0 : clamp(Math.floor((local / over) * chars.length), 0, chars.length);
+              var typing = count > 0 && count < chars.length;
+              var m = clamp(spring(f - TYPE_AT, MORPH), 0, 1);
+              typed.textContent = chars.slice(0, count).join("");
+              hint.style.display = count > 0 ? "none" : "inline";
+              caret.style.marginLeft = count > 0 ? "2px" : "0";
+              caret.style.opacity = typing ? 1 : Math.floor(f / 15) % 2 === 0 ? 1 : 0;
+              if (layout === "pill") {
+                var over2 = line.scrollWidth - textEl.clientWidth;
+                line.style.transform = "translateX(" + (over2 > 0 ? -over2 : 0) + "px)";
+              }
+              voice.style.opacity = 1 - m; voice.style.transform = "scale(" + (1 - 0.1 * m) + ")";
+              send.style.opacity = m; send.style.transform = "scale(" + (0.8 + 0.2 * m) + ")";
+              if (chipRow) { var c = fadeUp(f, 16, 32); chipRow.style.opacity = c.o * (1 - m); chipRow.style.transform = "translateY(" + (c.y + 8 * m) + "px)"; }
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "5");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["ai-prompt-composer"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

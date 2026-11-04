@@ -1,0 +1,384 @@
+<!doctype html>
+<!--
+  Order Flow
+
+  An 18.5-second trading-interface demo with fictional data, graphite surfaces and amber controls: three opening lines over drifting bars, a phone with a position card that the camera pushes into and orbits, a limit-order ticket whose slider contracts into a price field, a confirmation card, and the closing wordmark. Silent: sound is added by the host. All figures are illustrative.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn-templates/fomo-limit-orders/index.tsx
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-->
+<html
+  lang="en"
+  data-composition-id="fomo-limit-orders"
+  data-composition-duration="18.467"
+  data-composition-variables='[
+    {"id": "brand_name", "type": "string", "role": "content", "label": "Brand name", "description": "Closing wordmark.", "default": "Order Flow"},
+    {"id": "intro", "type": "string", "role": "content", "label": "Intro line", "description": "First line of the opening (0 to 0.7 s).", "default": "New in Order Flow"},
+    {"id": "feature", "type": "string", "role": "content", "label": "Feature line", "description": "Second line of the opening (0.7 to 1.9 s).", "default": "Plan your next exit"},
+    {"id": "audience", "type": "string", "role": "content", "label": "Audience line", "description": "Third line of the opening (1.9 to 2.7 s).", "default": "Before the market moves"},
+    {"id": "ticker", "type": "string", "role": "content", "label": "Ticker", "description": "Symbol of the fictional market.", "default": "DEMO"},
+    {"id": "asset_name", "type": "string", "role": "content", "label": "Asset name", "description": "Name typed under the ticker.", "default": "Demo Market"},
+    {"id": "leverage", "type": "string", "role": "content", "label": "Leverage badge", "description": "Leverage tag next to the ticker.", "default": "5x"},
+    {"id": "position", "type": "string", "role": "content", "label": "Position badge", "description": "Label on the position card and the confirmation card.", "default": "2x Long"},
+    {"id": "position_value", "type": "string", "role": "content", "label": "Position value", "description": "Large figure on the position card.", "default": "$12,640.00"},
+    {"id": "position_profit", "type": "string", "role": "content", "label": "Position profit", "description": "Profit figure, in the positive color.", "default": "+$640.00"},
+    {"id": "position_size", "type": "string", "role": "content", "label": "Position size", "description": "Leveraged size on the position card.", "default": "$12.64K"},
+    {"id": "position_quantity", "type": "string", "role": "content", "label": "Position quantity", "description": "Quantity in brackets after the size.", "default": "160 DEMO"},
+    {"id": "position_return", "type": "string", "role": "content", "label": "Position return", "description": "Return percentage on the position card.", "default": "10.67%"},
+    {"id": "entry_price", "type": "string", "role": "content", "label": "Entry price", "description": "Average entry price.", "default": "$75.00"},
+    {"id": "liquidation_price", "type": "string", "role": "content", "label": "Liquidation price", "description": "Liquidation price.", "default": "$37.50"},
+    {"id": "market_price", "type": "string", "role": "content", "label": "Market price", "description": "Current price on the phone and the order ticket.", "default": "$79.00"},
+    {"id": "change", "type": "string", "role": "content", "label": "Change", "description": "Daily change percentage.", "default": "1.28%"},
+    {"id": "open_interest", "type": "string", "role": "content", "label": "Open interest", "description": "Small caption under the ticker on the order ticket.", "default": "$24M OI"},
+    {"id": "limit_price", "type": "string", "role": "content", "label": "Limit price", "description": "Price typed into the order ticket and shown on the confirmation.", "default": "$82.00"},
+    {"id": "margin", "type": "string", "role": "content", "label": "Margin", "description": "Margin on the confirmation card.", "default": "$6,000.00"},
+    {"id": "order_size", "type": "string", "role": "content", "label": "Order size", "description": "Leveraged size on the confirmation card.", "default": "$12.64K"},
+    {"id": "closing", "type": "string", "role": "content", "label": "Closing line", "description": "Line that resolves before the closing wordmark.", "default": "Your price. Your next move."},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Controls, progress and the closing mark.", "default": "#e8b45a"},
+    {"id": "ink", "type": "color", "role": "style", "label": "Ink", "description": "Main background.", "default": "#121310"},
+    {"id": "panel", "type": "color", "role": "style", "label": "Panel", "description": "Cards and the phone&#39;s position panel.", "default": "#20221c"},
+    {"id": "paper", "type": "color", "role": "style", "label": "Paper", "description": "Light background of the order ticket scenes.", "default": "#f6f1e7"},
+    {"id": "positive", "type": "color", "role": "style", "label": "Positive", "description": "Gains, change and chart candles.", "default": "#80bf97"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order Flow</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; background: var(--fo-ink, #121310); color: #fff; font-family: Manrope, system-ui, sans-serif; font-weight: 400; -webkit-font-smoothing: antialiased; }
+        #fo-stage { position: absolute; left: 0; top: 0; width: 480px; height: 270px; transform-origin: 0 0; }
+        #fo-stage div, #fo-stage span { box-sizing: border-box; }
+      </style>
+
+      <div id="root" data-composition-id="fomo-limit-orders" data-duration="18.467" data-fps="30">
+        <div id="fo-clip" class="clip" data-start="0" data-duration="18.467" data-track-index="0" style="position:absolute;inset:0">
+          <div id="fo-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var k = 0; k < 30; k++) {
+                  var mt = 1 - t;
+                  var bx = 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t;
+                  if (bx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var m = 1 - t;
+                return 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t;
+              };
+            }
+            function progress(f, a, b) { return clamp01((f - a) / (b - a)); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            // interpolate(frame, [a, b], [from, to]) with an optional easing and clamped ends.
+            function interp(f, a, b, from, to, easing) {
+              var t = progress(f, a, b);
+              return lerp(from, to, easing ? easing(t) : t);
+            }
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+            function graphemes(text) {
+              if (typeof Intl !== "undefined" && Intl.Segmenter) {
+                return Array.from(new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text), function (p) { return p.segment; });
+              }
+              return Array.from(text);
+            }
+            var DEF = {"intro": "New in Order Flow", "feature": "Plan your next exit", "audience": "Before the market moves", "ticker": "DEMO", "assetName": "Demo Market", "leverage": "5x", "position": "2x Long", "positionValue": "$12,640.00", "positionProfit": "+$640.00", "positionSize": "$12.64K", "positionQuantity": "160 DEMO", "positionReturn": "10.67%", "entryPrice": "$75.00", "liquidationPrice": "$37.50", "marketPrice": "$79.00", "change": "1.28%", "openInterest": "$24M OI", "limitPrice": "$82.00", "margin": "$6,000.00", "orderSize": "$12.64K", "closing": "Your price. Your next move."};
+            var KEYS = {"intro": "intro", "feature": "feature", "audience": "audience", "ticker": "ticker", "assetName": "asset_name", "leverage": "leverage", "position": "position", "positionValue": "position_value", "positionProfit": "position_profit", "positionSize": "position_size", "positionQuantity": "position_quantity", "positionReturn": "position_return", "entryPrice": "entry_price", "liquidationPrice": "liquidation_price", "marketPrice": "market_price", "change": "change", "openInterest": "open_interest", "limitPrice": "limit_price", "margin": "margin", "orderSize": "order_size", "closing": "closing"};
+            var c = {};
+            Object.keys(DEF).forEach(function (k) { c[k] = str(vars[KEYS[k]], DEF[k]); });
+            var brandName = str(vars.brand_name, "Order Flow");
+            var th = { ink: str(vars.ink, "#121310"), panel: str(vars.panel, "#20221c"), paper: str(vars.paper, "#f6f1e7"), accent: str(vars.accent_color, "#e8b45a"), positive: str(vars.positive, "#80bf97") };
+            root.style.setProperty("--fo-ink", th.ink);
+
+            var CW = root.clientWidth || 1080, CH = root.clientHeight || 1920;
+            var S = Math.min(CW / 480, CH / 270);
+            var stage = document.getElementById("fo-stage");
+            stage.style.left = (CW - 480 * S) / 2 + "px";
+            stage.style.top = (CH - 270 * S) / 2 + "px";
+            stage.style.transform = "scale(" + S + ")";
+
+            // ---- helpers (time is in seconds; the film is drawn from the clock alone)
+            var ease = bezier(0.22, 1, 0.36, 1);
+            var travel = bezier(0.65, 0, 0.3, 1);
+            var contraction = bezier(0.652, 0.343, 0.075, 0.909);
+            function ramp(t, a, b) { return clamp01((t - a) / (b - a)); }
+            function tween(t, a, b, from, to, easing) {
+              if (from === undefined) from = 0;
+              if (to === undefined) to = 1;
+              return from + (to - from) * (easing || ease)(ramp(t, a, b));
+            }
+            var linear = function (v) { return v; };
+            function key(t, times, values) {
+              if (t <= times[0]) return values[0];
+              for (var i = 1; i < times.length; i++) {
+                if (t <= times[i]) return lerp(values[i - 1], values[i], (t - times[i - 1]) / (times[i] - times[i - 1]));
+              }
+              return values[values.length - 1];
+            }
+            function money(n) { return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+            function px(v) { return typeof v === "number" ? v + "px" : v; }
+            function L(x, y, w, h, style, inner) {
+              return '<div style="position:absolute;left:' + x + "px;top:" + y + "px;" + (w == null ? "" : "width:" + px(w) + ";") + (h == null ? "" : "height:" + px(h) + ";") + (style || "") + '">' + (inner || "") + "</div>";
+            }
+            var ROW = "display:flex;align-items:center;";
+            var MUTED = "#aaa79d", LMUTED = "#6a6357";
+            // A layer that covers the whole frame (also the part outside the 16:9 stage).
+            function wide(color, op) { return '<div style="position:absolute;left:-4000px;top:-4000px;width:8480px;height:8270px;background:' + color + (op == null ? "" : ";opacity:" + op) + '"></div>'; }
+            function assetIcon(size, color) {
+              return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 40 40" style="display:block"><circle cx="20" cy="20" r="20" fill="#242720" stroke="#ffffff0b" stroke-width="0.5"/><path d="M9 25h5v6H9Zm8-8h5v14h-5Zm8-8h6v22h-6Z" fill="' + color + '"/></svg>';
+            }
+            function chevron(color, size) {
+              return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" style="display:block"><path d="m5 5 7 7-7 7m8-14 7 7-7 7" fill="none" stroke="' + color + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            }
+            function badge(text) { return '<span style="color:' + th.positive + ";background:" + th.positive + "20;padding:2px 5px;border-radius:3px;font-size:12px;font-weight:600\">" + esc(text) + "</span>"; }
+            function phoneBorderPoint(p) {
+              var inset = 0.85, r = 59 - inset, straight = 230 - 59, arc = (Math.PI * r) / 2;
+              var d = clamp01(p) * (straight + arc + 66);
+              if (d <= straight) return { x: 230 - d, y: 680 - inset };
+              if (d <= straight + arc) { var a = Math.PI / 2 + (d - straight) / r; return { x: 59 + r * Math.cos(a), y: 621 + r * Math.sin(a) }; }
+              return { x: inset, y: 621 - (d - straight - arc) };
+            }
+
+            // ---- opening
+            function opening(t) {
+              var text = t < 0.7 ? c.intro : t < 1.9 ? c.feature : c.audience;
+              var start = t < 0.7 ? 0 : t < 1.9 ? 0.7 : 1.9;
+              var out = "";
+              for (var i = 0; i < 10; i++) {
+                var upper = i < 5, column = i % 5, height = [18, 48, 85, 61, 30][column];
+                var drift = tween(t, 0.8 + column * 0.025, 1.25 + column * 0.025);
+                out += L(upper ? 277 + column * 47 : -35 + column * 47, upper ? -14 : 270 - height + 12, 47, height,
+                  "opacity:" + ramp(t, 0.8, 1.05) * (1 - ramp(t, 2.45, 2.7)) + ";transform:translateY(" + ((1 - drift) * (upper ? -75 : 75) + Math.sin(t * 2 + column) * 5) + "px);border-radius:2px;background:linear-gradient(" + (upper ? 150 : 30) + "deg,#c29b5452,#8770444a 40%,#4a412d30 76%,#12131000);box-shadow:inset 0.5px 0 1px #efd19626;filter:blur(0.7px)");
+              }
+              var words = text.split(" ").map(function (w, i) {
+                var e = tween(t, start + i * 0.1, start + i * 0.1 + 0.2);
+                return '<span style="opacity:' + e + ";filter:blur(" + (1 - e) * 5 + "px);transform:translateY(" + (1 - e) * 9 + 'px)">' + esc(w) + "</span>";
+              }).join("");
+              out += L(19, 110, 450, 42, "display:flex;justify-content:center;align-items:center;gap:6px;font-size:24.5px;letter-spacing:-1.1px;white-space:nowrap;opacity:" + (1 - ramp(t, 2.55, 2.7)), words);
+              return out;
+            }
+
+            // ---- phone
+            function phoneUI(t) {
+              var o = "";
+              var a45 = ramp(t, 3.85, 4.3);
+              o += L(62, 32, null, null, "opacity:" + a45 + ";font-size:14px;font-weight:600", "9:41");
+              o += L(280, 37, null, null, "opacity:" + a45 + ";font-size:9px;letter-spacing:3px", "▮▮▮ ◔ ▰");
+              var dim = 1 - ramp(t, 3.5, 4.1);
+              var icon = '<span style="position:relative;display:flex">' + assetIcon(44, th.accent) +
+                '<span style="position:absolute;inset:0;border-radius:50%;background:black;opacity:' + dim + ';mix-blend-mode:darken"></span>' +
+                '<svg width="44" height="44" viewBox="0 0 40 40" style="position:absolute;left:0;top:0;opacity:' + dim + '"><circle cx="20" cy="20" r="19.8" fill="none" stroke="#ffffff10" stroke-width="0.4"/><path d="M9 25h5v6H9Zm8-8h5v14h-5Zm8-8h6v22h-6Z" fill="white"/></svg></span>';
+              var name = c.assetName.slice(0, Math.floor(tween(t, 3.28, 4.1, 0, c.assetName.length)));
+              o += L(54, 73, null, null, ROW + "gap:14px", icon +
+                '<div><div style="' + ROW + 'gap:8px;font-size:16.5px;letter-spacing:-0.5px">' + esc(c.ticker) +
+                '<span style="font-size:12px;color:' + th.accent + ";border-radius:3px;padding:1px 5px;background:" + th.accent + "25;opacity:" + ramp(t, 3.35, 3.85) + '">' + esc(c.leverage) + "</span></div>" +
+                '<div style="margin-top:3px;font-size:12px;color:' + MUTED + '">' + esc(name) + "&nbsp;</div></div>");
+              var body = "";
+              body += L(23, 135, null, null, "font-size:24px;letter-spacing:-0.9px", esc(c.marketPrice));
+              body += L(24, 169, null, null, "font-size:12px;color:" + th.positive, "↑ $1.00 (" + esc(c.change) + ")");
+              var svg = '<svg width="355" height="110" viewBox="0 0 355 110" style="display:block">';
+              [20, 55, 90].forEach(function (y) { svg += '<path d="M0 ' + y + 'H355" stroke="#ffffff0a" stroke-width="0.5"/>'; });
+              for (var i = 0; i < 57; i++) {
+                var y = 85 - i * 1.07 + Math.sin(i * 0.6) * 13 + Math.sin(i * 1.4) * 4;
+                var pos = i % 5 !== 1 && i % 7 !== 2, col = pos ? th.positive : "#cf495e";
+                svg += '<g stroke="' + col + '" fill="' + col + '"><path d="M' + (i * 6 + 2) + " " + (y - 6) + 'v20" stroke-width="0.6"/><rect x="' + i * 6 + '" y="' + y + '" width="3.5" height="' + (5 + (i % 6)) + '" rx="0.3"/></g>';
+              }
+              body += L(22, 215, 355, 110, "", svg + "</svg>");
+              var tabs = ["1D", "1W", "3M", "6M", "1Y", "All"].map(function (s, i) {
+                return '<span style="padding:4px;border-radius:4px;' + (i === 0 ? "background:#2b2c26;color:white" : "") + '">' + s + "</span>";
+              }).join("");
+              body += L(9, 334, 365, null, ROW + "justify-content:space-between;color:#b5b2be;font-size:12px;font-weight:600",
+                '<span><span style="color:' + th.positive + '">╂</span> 15m ⌃</span>' + tabs + '<span style="color:' + th.positive + ';font-size:21px">ϟ</span>');
+              var card = L(11, 9, null, null, "", badge(c.position)) +
+                L(11, 39, 344, null, ROW + "justify-content:space-between;font-size:21px;font-weight:500;letter-spacing:-1.1px", "<span>" + esc(c.positionValue) + '</span><span style="color:' + th.positive + '">' + esc(c.positionProfit) + "</span>") +
+                L(11, 70, null, null, "font-size:13px;color:" + MUTED, 'Lev. size <span style="color:#e7e6ed">' + esc(c.positionSize) + "</span> (" + esc(c.positionQuantity) + ")") +
+                L(265, 70, null, null, "font-size:13px;color:#bab7c4", '<span style="color:' + th.positive + '">▴</span> ' + esc(c.positionReturn)) +
+                L(16, 97, 334, 0.6, "background:#ffffff0b") +
+                L(11, 108, 344, null, ROW + "justify-content:space-between;font-size:13px;color:" + MUTED,
+                  '<span>Avg. entry <span style="color:white;margin-left:6px">' + esc(c.entryPrice) + '</span></span><span>Liq. price <span style="color:white;margin-left:6px">' + esc(c.liquidationPrice) + "</span></span>");
+              body += L(17, 379, 366, 138, "background:linear-gradient(125deg," + th.ink + "," + th.panel + ");border-radius:11px;box-shadow:inset 0 1px 8px #ffffff04", card);
+              body += L(28, 541, 345, null, ROW + "justify-content:space-between;color:" + th.accent + ";font-size:13px;font-weight:600",
+                '<span><span style="color:' + MUTED + ';margin-right:10px">＋</span>Add a note</span><span>Add SL/TP</span>');
+              body += L(51, 575, null, null, "font-size:11px;color:" + MUTED, "Overview&emsp;&emsp;Activity&emsp;&emsp;Details");
+              body += L(24, 593, 350, 44, ROW + "gap:15px;font-size:13px;font-weight:600",
+                '<div style="width:43px;height:42px;display:grid;place-items:center;border-radius:11px;background:#282c22;border:1px solid #7e806c"><svg width="19" height="19" viewBox="0 0 24 24"><path d="m4 16 11-11 5 5-11 11-6 1Z" fill="white"/><path d="m13 7 5 5" stroke="#282c22"/></svg></div>' +
+                '<div style="background:' + th.accent + ";color:" + th.ink + ';border-radius:9px;padding:11px 14px;white-space:nowrap;box-shadow:inset 0 1px 1px #ffffff99">Close position</div>' +
+                '<div style="background:' + th.panel + ";color:" + th.positive + ';border-radius:9px;padding:11px 32px">Long</div>');
+              return o + '<div style="opacity:' + a45 + '">' + body + "</div>";
+            }
+            function phone(t) {
+              var push = tween(t, 4.63, 5.18, 0, 1, travel), pull = tween(t, 6.04, 6.92, 0, 1, travel), orbit = tween(t, 6.92, 7.7, 0, 1, travel);
+              var openingScale = tween(t, 3.4, 4.3, 1.45, 1);
+              var s = openingScale + 0.18 * push - 0.28 * pull + 0.55 * orbit;
+              var x = tween(t, 3.4, 4.3, 62, 75) - 67 * push + 134 * pull + 95 * orbit;
+              var y = tween(t, 3.4, 4.3, 9, 45) - 435 * push - 13 * pull - 309 * orbit;
+              var dotTimes = [6.55, 6.75, 7, 7.25, 7.5, 7.65, 7.75, 7.8, 7.85, 7.9, 7.95, 8];
+              var pt = phoneBorderPoint(tween(t, 6.55, 7.75, 0, 1, travel));
+              var dotX = tween(t, 7.85, 8, x + pt.x * s, 240), dotY = tween(t, 7.85, 8, y + pt.y * s, 135);
+              var r = key(t, dotTimes, [4, 6, 6, 6.5, 7.5, 9.5, 12, 16, 24, 57, 160, 390]);
+              var o = wide("black", ramp(t, 2.7, 2.9));
+              var inner =
+                L(0, 0, 400, 680, "border:1.7px solid #55584a;border-radius:59px;background:#000;box-shadow:0 0 2px #ad926155, inset 0 0 4px #ad926122;opacity:" + ramp(t, 3.65, 4.35) * (1 - 0.8 * push * (1 - pull))) +
+                L(0, 0, 400, 680, "border-left:1.2px solid #e8b45a;border-bottom:1.2px solid #e8b45a;border-radius:59px;opacity:" + ramp(t, 6.55, 7.2) + ";-webkit-mask-image:linear-gradient(0deg,black,transparent 34%);mask-image:linear-gradient(0deg,black,transparent 34%);box-shadow:-1px 1px 3px #d59b4044") +
+                '<div style="opacity:' + (1 - ramp(t, 7.78, 7.96)) + ';font-weight:500">' + phoneUI(t) + "</div>";
+              o += L(x, y, 400, 680, "transform:scale(" + s + ");transform-origin:0 0;opacity:" + ramp(t, 2.7, 3) + ";filter:blur(" + Math.sin(push * Math.PI) * 1.1 + "px)", inner);
+              o += L(0, 0, 480, 270, "opacity:" + Math.sin(push * Math.PI) * 0.24 + ";background:linear-gradient(120deg,transparent 10%,#ebc47b 53%,transparent 75%);mix-blend-mode:screen");
+              o += L(0, 0, 480, 270, "opacity:" + ramp(t, 6.1, 7) + ";background:linear-gradient(100deg,#000 0%,transparent 43%,#0004 66%,#000 96%)");
+              if (t >= 6.55) {
+                o += L(dotX - r * 2, dotY - r * 2, r * 4, r * 4, "background:#eed7a6;border-radius:50%;filter:blur(" + Math.min(10, r) + "px);opacity:" + (t < 7.88 ? 0.2 : 0));
+                o += L(dotX - r, dotY - r, r * 2, r * 2, "background:#fff;border-radius:50%;box-shadow:0 0 4px #f6e3bf");
+              }
+              return o;
+            }
+
+            // ---- slider
+            var PAPER_BG = function () { return wide("#ebe1ce") + L(0, 0, 480, 270, "background:linear-gradient(145deg," + th.paper + ",#ebe1ce 65%,#f7f0e3)"); };
+            function slider(t) {
+              var label = t < 8.65;
+              var barW = t < 10.4833 ? key(t, [8.65, 8.8, 9, 9.2, 9.3, 9.55, 9.8, 10.05, 10.3, 10.4833], [3500, 2600, 1800, 820, 464, 322, 292, 276, 255, 220]) : tween(t, 10.4833, 10.8833, 220, 2, contraction);
+              var barH = key(t, [8.65, 8.8, 9, 9.2, 9.3, 9.55, 9.8, 10.3, 10.5], [650, 400, 154, 66, 35, 24, 22, 20, 19]);
+              var centerX = tween(t, 10.45, 10.8833, 240, 250, contraction);
+              var price = key(t, [9.3, 9.55, 9.8, 10.05, 10.3], [79, 79.5, 80, 81, 82]);
+              var quantity = key(t, [9.3, 9.55, 9.8, 10.05, 10.3], [40, 72, 112, 144, 160]);
+              var percent = Math.round((quantity / 160) * 100);
+              var detailAlpha = ramp(t, 9.15, 9.4) * (1 - ramp(t, 10.3, 10.56));
+              var uiScale = key(t, [9.3, 9.55, 9.8, 10.3], [1.6, 1.1, 1, 0.93]);
+              var roll = tween(t, 8.18, 8.55, 0, 1, linear);
+              var knob = barH * 0.77;
+              var o = label ? wide("white") : PAPER_BG();
+              if (label) {
+                o += L(130, 116, 220, 38, "display:flex;align-items:center;justify-content:center;gap:9px;color:#865616;font-size:23px;letter-spacing:-0.6px;opacity:" + ramp(t, 8.01, 8.1),
+                  '<span style="transform:rotate(90deg);display:flex">' + chevron(th.accent, 16) + "</span>" +
+                  '<div style="width:78px;height:35px;position:relative;overflow:visible">' + L(0, -roll * 35, null, null, "opacity:" + (1 - roll), "Market") + L(0, (1 - roll) * 35, null, null, "opacity:" + roll, "Limit") + "</div>");
+              } else {
+                var kx = barW * key(t, [8.65, 9.2, 9.3, 10.3], [0.5, 0.57, 0.58, 0.955]) - knob / 2;
+                o += L(centerX - barW / 2, 135 - barH / 2, barW, barH, "background:linear-gradient(100deg,#c78a30," + th.accent + ");border-radius:" + Math.min(9, barH / 3) + "px;" + (t < 10.7 ? "box-shadow:inset 0 0.5px 1px #f3d8a3, 0 1px 2px #8d6a301f" : ""),
+                  L(kx, (barH - knob) / 2, knob, knob, "background:#fff;border-radius:50%;box-shadow:0 1px 3px #4d3b2126;opacity:" + (1 - ramp(t, 10.4, 10.65))));
+                var det =
+                  L(-146, -65, 292, null, "display:flex;justify-content:center;gap:7px;font-size:11px", "<span>Limit price</span><span>" + money(price) + ' <span style="color:' + LMUTED + '">(+' + (((price - 79) / 79) * 100).toFixed(2) + "%)</span></span>") +
+                  L(-142, -31, null, null, "font-size:13px;color:#5b5548", quantity.toFixed(2) + " " + esc(c.ticker)) +
+                  L(113, -31, 30, null, "text-align:right;font-size:13px;color:#865616;font-weight:600", percent + "%") +
+                  L(-146, 25, 292, null, "display:flex;justify-content:space-between;font-size:13px", '<span style="color:' + LMUTED + '">Est. profit</span><span style="color:#326846">' + money(quantity * (price - 75)) + "</span>") +
+                  L(-128, 53, 274, null, "display:flex;justify-content:space-between;font-size:12px", '<span style="color:' + LMUTED + '">Details</span><span>&lt;0.01% fee ﹀</span>');
+                o += L(240, 135, null, null, "transform:scale(" + uiScale + ");opacity:" + detailAlpha + ";color:#28281f;font-size:9px;white-space:nowrap", det);
+              }
+              return o;
+            }
+
+            // ---- price
+            function price(t) {
+              var zoom = tween(t, 11.65, 12.25, 1, 2.7, travel);
+              var targetX = tween(t, 11.65, 12.25, 240, 277, travel);
+              var typed = t < 11.84 ? "$" : c.limitPrice.slice(0, Math.floor(tween(t, 11.84, 12.12, 1, c.limitPrice.length, linear)));
+              var alpha = ramp(t, 10.9, 11.18);
+              var o = PAPER_BG();
+              var inner = '<div style="opacity:' + alpha + ';font-weight:500">' +
+                L(100, 61, null, null, "", assetIcon(30, th.accent)) +
+                L(140, 63, null, null, "font-size:12px", esc(c.ticker) + '<div style="margin-top:2px;color:' + LMUTED + ';font-size:9px">' + esc(c.openInterest) + "</div>") +
+                L(300, 65, 79, null, "text-align:right;font-size:12px", esc(c.marketPrice) + '<div style="margin-top:3px;color:#326846;font-size:9px">' + esc(c.change) + "</div>") +
+                L(100, 110, 279, 0.6, "background:#c5bba466") + L(100, 158, 279, 0.6, "background:#c5bba444") +
+                L(117, 120, null, null, "font-size:11px", 'Limit price<div style="margin-top:4px;font-size:8px;color:' + LMUTED + '">+3.80% above market</div>') +
+                L(100, 181, 279, null, "display:flex;gap:6px", ["+1%", "+5%", "+10%", "+20%"].map(function (s) {
+                  return '<div style="width:66px;height:21px;border-radius:5px;border:0.5px solid #cbbda282;background:#ffffff24;display:grid;place-items:center;font-size:9px">' + s + "</div>";
+                }).join("")) + "</div>" +
+                L(225, 122, 96, 28, "display:flex;align-items:center;justify-content:flex-end;transform:translateX(" + tween(t, 10.9, 11.18, -39, 0) + "px);gap:5px;font-size:12px;font-weight:600;letter-spacing:-0.35px",
+                  '<span style="opacity:' + alpha + '">' + esc(typed) + '</span><span style="width:1.5px;height:19px;background:' + th.accent + '"></span><span style="color:#865616;margin-left:-1px;opacity:' + alpha + '">Mid</span>');
+              o += L(240 - targetX * zoom, 135 - 135 * zoom, 480, 270, "transform:scale(" + zoom + ");transform-origin:0 0;color:#28281f", inner);
+              return o;
+            }
+
+            // ---- confirmation (the film's clock runs 1.85 s ahead from here on)
+            function confirmation(t) {
+              var scale = key(t, [14.45, 14.65, 15.25, 15.6, 15.8, 16], [0.67, 0.73, 1, 1.16, 1.25, 1.3]);
+              var exit = tween(t, 15.77, 16, 0, 210, function (v) { return v * v; });
+              var fill = Math.round(key(t, [14.45, 14.7, 15, 15.25, 15.45], [20, 50, 83, 97, 100]));
+              var ring = '<svg width="14" height="14" viewBox="0 0 14 14" style="display:block"><circle cx="7" cy="7" r="5" fill="none" stroke="#302946" stroke-width="1.8"/><circle cx="7" cy="7" r="5" fill="none" stroke="' + th.accent + '" stroke-width="1.8" stroke-dasharray="' + (31.416 * fill) / 100 + ' 31.416" transform="rotate(-90 7 7)"/></svg>';
+              var card =
+                L(10, 10, null, null, "", badge(c.position)) +
+                L(235, 12, 55, null, "font-size:14px;text-align:right;color:#d0ced9", "Cancel") +
+                L(10, 41, null, null, ROW + "gap:5px;font-size:16px", assetIcon(18, th.accent) + "<span>" + esc(c.ticker) + '</span><span style="color:' + MUTED + ';font-size:12px">⊙</span><span>' + esc(c.limitPrice) + "</span>") +
+                L(214, 45, null, null, ROW + "gap:8px;font-size:12px;color:" + MUTED, ring + "<span>" + fill + "% filled</span>") +
+                L(10, 86, 280, null, ROW + "justify-content:space-between;font-size:12px;color:#bbb8c6",
+                  '<span>Margin <span style="color:white;font-size:15px;margin-left:4px">' + esc(c.margin) + '</span></span><span>Lev. size <span style="color:white;font-size:15px;margin-left:4px">' + esc(c.orderSize) + "</span></span>");
+              return L(240, 135 + exit, 300, 110, "transform:translate(-50%,-50%) scale(" + scale + ") rotate(" + key(t, [14.45, 15.4, 16], [-1.2, 0, 2]) + "deg);background:" + th.panel + ";border-radius:12px;box-shadow:0 0 10px #18131e65;font-weight:500;letter-spacing:-0.4px", card);
+            }
+
+            // ---- closing
+            function closing(t) {
+              var brand = tween(t, 18.15, 18.38), o = "";
+              if (t < 18.3) {
+                var words = c.closing.split(" ").map(function (w, i) {
+                  var p = tween(t, 16 + i * 0.3, 16.18 + i * 0.3);
+                  return '<span style="opacity:' + p + ";filter:blur(" + (1 - p) * 4 + "px);transform:translateY(" + (1 - p) * 7 + 'px)">' + esc(w) + "</span>";
+                }).join("");
+                o += L(15, 111, 450, 42, "display:flex;align-items:center;justify-content:center;gap:5px;font-size:22.5px;letter-spacing:-1px;white-space:nowrap;opacity:" + (1 - ramp(t, 18.13, 18.24)), words);
+              }
+              if (t >= 18.15) {
+                o += L(15, 98, 450, 64, "display:grid;place-items:center;font-size:" + (brandName.length > 9 ? 31 : 42) + "px;font-weight:600;letter-spacing:-1.2px;opacity:" + brand + ";transform:scale(" + (0.95 + 0.05 * brand) + ");filter:blur(" + (1 - brand) * 5 + "px)",
+                  '<span style="display:flex;align-items:center;gap:12px">' + assetIcon(42, th.accent) + esc(brandName) + "</span>");
+              }
+              return o;
+            }
+
+            function frameHtml(t) {
+              if (t < 2.7) return opening(t);
+              if (t < 8) return phone(t);
+              if (t < 10.9) return slider(t);
+              if (t < 12.6) return '<div style="position:absolute;inset:0;opacity:' + (1 - tween(t, 12.3, 12.6)) + '">' + price(t) + "</div>";
+              if (t < 14.15) return '<div style="position:absolute;inset:0;opacity:' + tween(t, 12.6, 12.78) + '">' + confirmation(t + 1.85) + "</div>";
+              return closing(t + 1.85);
+            }
+            function draw(t) { stage.innerHTML = frameHtml(t); }
+
+            var TOTAL = parseFloat(root.dataset.duration || "18.467");
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: TOTAL, duration: TOTAL, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["fomo-limit-orders"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

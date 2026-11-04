@@ -87,6 +87,48 @@ draw(0);
 Write these helpers yourself from their definitions; never paste code from Remotion's source (its licence
 is not MIT).
 
+## WebGL shaders and filters
+
+remocn's shader backdrops, filters and some transitions draw with WebGL. Port them as WebGL too, so
+the look stays the shader's own. Template to copy: `components/shader-mesh-gradient/`.
+
+- One WebGL2 `<canvas>` filling `#root`, sized at `resolution` × the host frame and stretched to fill it
+  with CSS. `resolution` is a variable (`"role": "quality"`, 0.25 to 1). Default it to the lowest of
+  0.5, 0.75 or 1 at which the stills look the same as at 1: soft gradients and noise hold at 0.5, fine
+  dots, dithering, scanlines, ASCII and sharp edges need 0.75 or 1. Render machines have no GPU, so the
+  shader runs in software: at 0.5 a 1080×1920 frame costs about what a text block costs, at 1 about 2.5×.
+- Context `{ antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true }`. Compile,
+  link, set the fixed uniforms once, then `draw(frame)` sets the time uniform and draws a full-screen
+  quad. Drive `draw` from a clock tween (the frame function pattern above). Time is a pure function of the
+  frame: remocn passes `frame / fps * speed` (seconds) or the frame number itself; keep whichever it uses.
+- Without WebGL (`getContext` returns null or a shader fails to compile), hide the canvas and leave a CSS
+  fallback that shows the palette or the content plainly; log one `console.warn`, never throw.
+- Shaders from Paper Shaders (remocn's `shader-*` components that import `@paper-design/shaders-react`):
+  copy the GLSL from `@paper-design/shaders` **0.0.82** (Apache-2.0; a local copy is at
+  `~/.cache/paper-shaders/v082/package/dist/`): the fragment shader in `shaders/<name>.js`, the vertex
+  shader in `vertex-shader.js` (keep only the outputs the fragment shader reads), the helpers it imports
+  from `shader-utils.js` inlined. Never take code from 0.0.76 or older, which are under the PolyForm
+  Shield licence, not Apache. Copy the props remocn passes (and the Paper defaults it relies on) into
+  uniforms, including the sizing uniforms (`u_fit` is 2, cover, as remocn sets it). The header carries the
+  Paper notice, NOTICE text and a "Changes by usemosio/blocks" line, as in the template.
+- remocn presets (`shader-<base>-<preset>`) are blocks of their own: the base block with the preset's
+  values as defaults, its own title, description and `useWhen`/`avoidWhen` from its docs page.
+- Filters and transitions that run a shader over a scene (`u_scene`, `makeCanvasFilter`,
+  `makeCanvasPresentation`): remocn captures its React children with the experimental HTML-in-Canvas API,
+  which a render machine does not have. Draw the scene the remocn preview shows (sample text, panels A and
+  B) on a 2D canvas, upload it as the texture each frame it changes, and say in the description that the
+  block applies the look to its own content (text and colours from variables), not to the host's video.
+- Images a shader needs (a shape mask, a logo): draw an equivalent with Canvas 2D (text, a glyph, a
+  circle) by default. Never bundle image files.
+- `registry-item.json`: `"webgl": true` and the tag `webgl`.
+
+## Components that copy a real product
+
+A remocn component that recreates a real product's interface (a chat app, a code host, a social network)
+is adapted, not copied: keep its motion and kind of scene, drop the product's name, logo, icons, signature
+colours, fonts and layout, give colours and labels variables with generic defaults, and give the block a
+generic name that says what the scene is. List it in SKIPPED.md under "Adapted under another name".
+
 ## registry-item.json
 
 Copy `components/per-character-rise/registry-item.json` and change: `name`, `title`, `description`,

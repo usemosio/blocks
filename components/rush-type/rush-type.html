@@ -1,0 +1,609 @@
+<!doctype html>
+<!--
+  Rush Type
+
+  White words blast into vertical RGB shutter trails generated entirely by motion: one forceful
+  word at a time, a sharp readable rest between blasts, a tube mask and glow while it moves.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/rush-type/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: the words are drawn with a Google Font (Geist) instead of Arial so every
+  render machine draws the same letters, and the phrase is limited to 8 words.
+-->
+<html
+  lang="en"
+  data-composition-id="rush-type"
+  data-composition-duration="3.4667"
+  data-composition-variables='[{"id": "phrase", "type": "string", "role": "content", "label": "Phrase", "description": "A short phrase; one whitespace-separated word is shown per cycle (up to 8 words).", "default": "gone before you look"}, {"id": "font_size", "type": "number", "role": "style", "label": "Resting size", "description": "Cap height of the resting word, in pixels of a 1280×720 frame; scales with the frame.", "default": 68, "min": 32, "max": 140, "step": 2, "unit": "px"}, {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the word.", "default": "400", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}, {"value": "800", "label": "Extra bold"}]}, {"id": "color", "type": "color", "role": "style", "label": "Text colour", "description": "Colour of the words.", "default": "#ffffff"}, {"id": "background_color", "type": "color", "role": "style", "label": "Background", "description": "Colour behind the words.", "default": "#000000"}, {"id": "vertical_stretch", "type": "number", "role": "style", "label": "Vertical stretch", "description": "Authored vertical scale at the blast, before perspective.", "default": 7, "min": 3, "max": 12, "step": 0.25}, {"id": "chromatic_spread", "type": "number", "role": "style", "label": "Chromatic spread", "description": "0 removes the red/green/blue separation, 1 is the reference look, 2 exaggerates it.", "default": 1, "min": 0, "max": 2, "step": 0.05}, {"id": "rest_duration", "type": "number", "role": "style", "label": "Rest duration", "description": "Frames a word rests, readable (30 per second).", "default": 12, "min": 6, "max": 30, "step": 1, "unit": "frames"}, {"id": "peak_hold_duration", "type": "number", "role": "style", "label": "Peak hold", "description": "Total frames the blast hangs near the point around the word swap.", "default": 3, "min": 0, "max": 15, "step": 1, "unit": "frames"}, {"id": "speed", "type": "number", "role": "style", "label": "Speed", "description": "Playback multiplier for the whole motion.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Thin shutter trails and the tube mask look the same at 0.75 as at 1.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rush Type</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .rsh-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .rsh-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .rsh-fallback {
+          position: absolute;
+          inset: 0;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-family: Geist, Arial, Helvetica, sans-serif;
+          font-size: 9cqh;
+        }
+        .rsh-off .rsh-canvas {
+          display: none;
+        }
+        .rsh-off .rsh-fallback {
+          display: flex;
+        }
+      </style>
+
+      <div id="root" data-composition-id="rush-type" data-duration="3.4667" data-fps="30">
+        <div id="rsh-clip" class="rsh-stage clip" data-start="0" data-duration="3.4667" data-track-index="0">
+          <canvas id="rsh-canvas" class="rsh-canvas"></canvas>
+          <div id="rsh-fallback" class="rsh-fallback"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "rush-type";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("rsh-clip");
+            var canvas = document.getElementById("rsh-canvas");
+            var fallback = document.getElementById("rsh-fallback");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallbackValue, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallbackValue;
+            }
+            function hex(value, fallbackValue) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallbackValue;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#ffffff").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "phrase", "type": "string", "default": "gone before you look"}, {"id": "font_size", "type": "number", "default": 68, "min": 32, "max": 140}, {"id": "font_weight", "type": "enum", "default": "400", "options": ["400", "500", "600", "700", "800"]}, {"id": "color", "type": "color", "default": "#ffffff"}, {"id": "background_color", "type": "color", "default": "#000000"}, {"id": "vertical_stretch", "type": "number", "default": 7, "min": 3, "max": 12}, {"id": "chromatic_spread", "type": "number", "default": 1, "min": 0, "max": 2}, {"id": "rest_duration", "type": "number", "default": 12, "min": 6, "max": 30}, {"id": "peak_hold_duration", "type": "number", "default": 3, "min": 0, "max": 15}, {"id": "speed", "type": "number", "default": 1, "min": 0.25, "max": 4}, {"id": "resolution", "type": "number", "default": 0.75, "min": 0.25, "max": 1}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "enum") V[d.id] = d.options.indexOf(String(raw)) >= 0 ? String(raw) : d.default;
+              else V[d.id] = typeof raw === "string" && raw.trim() ? raw.trim() : d.default;
+            });
+
+            // ---- The motion: remocn's timeline (arrive, rest, depart, hang), ported as plain functions of the frame.
+            var ARRIVE_FRAMES = 7, LEAVE_FRAMES = 4;
+            var SHUTTER_SECONDS = 0.04, SMEAR_GAIN = 1.6, SAMPLES = 28, SHUTTER_SHAPE = 0.85;
+            var ROLL_U = 0.38, LAG_U = 0.55, THIN = 0.55, BLOOM_GAIN = 0.5, BLOOM_SPREAD = 3.2, BLOOM_BIAS = 3.5;
+            var SPEED_GAIN = 0.95, EXPOSURE = 1.75, HORIZONTAL_STRETCH = 1.57, FOCAL = 1;
+            var ORBIT_DEPTH = 0.42, ORBIT_RISE = 0.16, ORBIT_YAW = 0.55, ORBIT_YAW_LAG = 0.6;
+            var ORBIT_PITCH = 0.26, ORBIT_PITCH_LAG = -0.9, ORBIT_HANG_ARC = 0.9, PIVOT_FRAC = 0.07;
+            var CRT_GAIN = 1, CRT_PITCH = 5, CRT_MASK = 0.16, CRT_SCAN_PITCH = 3, CRT_SCAN = 0.12, CRT_BEAM = 0.7;
+            var CRT_HUM = 0.035, CRT_HUM_SPEED = 0.14, GROUND_SPEED = 0.028;
+            var GLOW_SPREAD = 2.6, GLOW_MIN = 0.34, GLOW_MAX_Y = 1.2, SWAP_SPREAD = 0.35, SWAP_FLASH = 0.5;
+            var FALL = [1, 0.557, 0.121, 0.049, 0.014, 0];
+            var RISE = [0, 0.08, 0.8, 1];
+            var ORBIT_IN = [0, 0.5, 0.82, 0.95, 1, 1];
+            var ORBIT_OUT = [0, 0.05, 0.14, 0.38, 1];
+            var DRIFT_DIRECTION = [-1, 0.7, -0.45, 1];
+            var SWING_ARC = Math.PI - ORBIT_HANG_ARC;
+            function mod(value, modulus) { return ((value % modulus) + modulus) % modulus; }
+            function sampleTable(table, progress) {
+              var last = table.length - 1;
+              var x = Math.min(Math.max(progress, 0), 1) * last;
+              var index = Math.min(Math.floor(x), last - 1);
+              return table[index] + (table[index + 1] - table[index]) * (x - index);
+            }
+
+            var words = V.phrase.split(/\s+/).filter(Boolean).slice(0, 8);
+            if (!words.length) words = "gone before you look".split(" ");
+            var restFrames = Math.max(V.rest_duration, 1);
+            var holdFrames = Math.max(V.peak_hold_duration, 0);
+            var cycleLength = ARRIVE_FRAMES + LEAVE_FRAMES + restFrames + holdFrames;
+
+            function pose(frame) {
+              var halfHold = holdFrames / 2;
+              var arriveEnd = halfHold + ARRIVE_FRAMES;
+              var restEnd = arriveEnd + restFrames;
+              var leaveEnd = restEnd + LEAVE_FRAMES;
+              var startOffset = arriveEnd + restFrames / 2;
+              var shifted = frame + startOffset;
+              var cycle = Math.floor(shifted / cycleLength);
+              var tau = mod(shifted, cycleLength);
+              var wordIndex = mod(cycle, words.length);
+              var progress;
+              if (tau < halfHold) return { p: 1, psi: ORBIT_HANG_ARC * (tau / Math.max(halfHold, 1e-6)), cycle: cycle, wordIndex: wordIndex };
+              if (tau < arriveEnd) {
+                progress = (tau - halfHold) / ARRIVE_FRAMES;
+                return { p: sampleTable(FALL, progress), psi: ORBIT_HANG_ARC + SWING_ARC * sampleTable(ORBIT_IN, progress), cycle: cycle, wordIndex: wordIndex };
+              }
+              if (tau < restEnd) return { p: 0, psi: Math.PI, cycle: cycle, wordIndex: wordIndex };
+              if (tau < leaveEnd) {
+                progress = (tau - restEnd) / LEAVE_FRAMES;
+                return { p: sampleTable(RISE, progress), psi: Math.PI + SWING_ARC * sampleTable(ORBIT_OUT, progress), cycle: cycle, wordIndex: wordIndex };
+              }
+              progress = (tau - leaveEnd) / Math.max(halfHold, 1e-6);
+              return { p: 1, psi: 2 * Math.PI - ORBIT_HANG_ARC * (1 - progress), cycle: cycle, wordIndex: wordIndex };
+            }
+            function orbitTurn(psi, amplitude, lag) {
+              var pin = Math.sin(lag);
+              return (amplitude * (Math.sin(psi - lag) - pin)) / (1 + Math.abs(pin));
+            }
+            function compute(frame) {
+              var shutterFrames = SHUTTER_SECONDS * 30;
+              var halfShutter = shutterFrames / 2;
+              var before = pose(frame - halfShutter);
+              var here = pose(frame);
+              var after = pose(frame + halfShutter);
+              var halfHold = holdFrames / 2;
+              var arriveEnd = halfHold + ARRIVE_FRAMES;
+              var startOffset = arriveEnd + restFrames / 2;
+              var shifted = frame + startOffset;
+              var nearestBoundary = Math.round(shifted / cycleLength) * cycleLength;
+              var boundaryDistance = shifted - nearestBoundary;
+              var crossesSwap = words.length > 1 && after.cycle > before.cycle;
+              var swapU = crossesSwap ? (after.cycle * cycleLength - shifted) / shutterFrames : 2;
+              var swapAmount = words.length > 1 ? Math.max(0, 1 - Math.pow(2 * boundaryDistance, 2) / Math.pow(shutterFrames, 2)) : 0;
+              var spread = Math.max(V.chromatic_spread, 0);
+              return { before: before, here: here, after: after, swapU: swapU, swapAmount: swapAmount, k: [Math.pow(0.62, spread), 1, Math.pow(0.34, spread)] };
+            }
+
+            // ---- remocn's fragment shader (a perspective shutter-blur of a word atlas, with a tube mask).
+            var VERTEX = [
+              "attribute vec2 aPos;",
+              "varying vec2 vUv;",
+              "void main() {",
+              "  vUv = aPos * 0.5 + 0.5;",
+              "  gl_Position = vec4(aPos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+            var FRAGMENT = `
+precision highp float;
+varying vec2 vUv;
+
+uniform sampler2D uText;
+uniform vec2 uRes;
+uniform vec2 uHalfPx;
+uniform float uAtlasRows;
+uniform float uSx;
+uniform vec3 uSyQ;
+uniform float uCenterY;
+uniform float uSwapU;
+uniform float uHalfA;
+uniform float uHalfB;
+uniform vec3 uK;
+uniform vec2 uSwapScl;
+uniform float uShape;
+uniform float uRoll;
+uniform float uLag;
+uniform float uThin;
+uniform float uBloom;
+uniform float uGain;
+uniform float uExp;
+uniform float uFocal;
+uniform vec3 uPos;
+uniform vec4 uRot;
+uniform float uCrt;
+uniform float uTime;
+uniform vec4 uGlow;
+uniform float uGlowAmp;
+uniform vec3 uColor;
+uniform vec3 uBg;
+
+#define SAMPLES 28
+#define BLOOM_TAPS 4
+#define BLOOM_SPREAD 3.200
+#define BLOOM_BIAS 3.500
+#define TAU 6.2831853
+#define CRT_PITCH 5.000
+#define CRT_MASK 0.1600
+#define CRT_SCAN_PITCH 3.000
+#define CRT_SCAN 0.1200
+#define CRT_BEAM 0.7000
+#define CRT_HUM 0.0350
+#define CRT_HUM_SPEED 0.1400
+
+vec2 atlasUv(float sy, float halfIdx, vec2 wordPoint, out float inside) {
+  float sx = max(uSx, 1e-4);
+  float sv = max(abs(sy), 1e-4);
+  vec2 q = vec2(
+    (wordPoint.x / sx + uHalfPx.x * 0.5) / uHalfPx.x,
+    (wordPoint.y / sv + uHalfPx.y * 0.5) / uHalfPx.y
+  );
+  inside = step(0.0, q.x) * step(q.x, 1.0) * step(0.0, q.y) * step(q.y, 1.0);
+  return vec2(
+    clamp(q.x, 0.0, 1.0),
+    (clamp(q.y, 0.0, 1.0) + halfIdx) / uAtlasRows
+  );
+}
+
+float tap(float sy, float halfIdx, vec2 wordPoint, float front) {
+  float inside;
+  vec2 texturePoint = atlasUv(sy, halfIdx, wordPoint, inside);
+  float value = texture2D(uText, texturePoint).r * inside * front;
+  return value * mix(1.0, value, uThin);
+}
+
+float tapBlur(float sy, float halfIdx, vec2 wordPoint, float front) {
+  float inside;
+  vec2 texturePoint = atlasUv(sy, halfIdx, wordPoint, inside);
+  return texture2D(uText, texturePoint, BLOOM_BIAS).r * inside * front;
+}
+
+void main() {
+  vec2 pixel = vUv * uRes;
+  vec2 center = vec2(uRes.x * 0.5, uRes.y * uCenterY);
+  vec2 screenPoint = pixel - center;
+
+  float sinYaw = uRot.x;
+  float cosYaw = uRot.y;
+  float sinPitch = uRot.z;
+  float cosPitch = uRot.w;
+  float a1 = -(screenPoint.x * sinYaw + uFocal * cosYaw);
+  float b1 = sinPitch * (screenPoint.x * cosYaw - uFocal * sinYaw);
+  float c1 = uFocal * uPos.x - screenPoint.x * uPos.z;
+  float a2 = -screenPoint.y * sinYaw;
+  float b2 = screenPoint.y * sinPitch * cosYaw - uFocal * cosPitch;
+  float c2 = uFocal * uPos.y - screenPoint.y * uPos.z;
+  float determinant = a1 * b2 - a2 * b1;
+  float inverse = 1.0 / (abs(determinant) < 1e-4 ? 1e-4 : determinant);
+  float a = (c1 * b2 - c2 * b1) * inverse;
+  float b = (a1 * c2 - a2 * c1) * inverse;
+  float cameraZ = uPos.z - a * sinYaw + b * sinPitch * cosYaw;
+  vec2 wordPoint = vec2(a, b);
+  float front = step(uFocal * 0.05, cameraZ);
+  vec3 accumulated = vec3(0.0);
+
+  if (abs(uSyQ.y) + abs(uSyQ.z) < 1e-5) {
+    accumulated = vec3(tap(uSyQ.x, uHalfA, wordPoint, front));
+  } else {
+    float offset =
+      uLag * (wordPoint.x / uRes.x) - uRoll * (screenPoint.y / uRes.y);
+    float weightSum = 0.0;
+
+    for (int i = 0; i < SAMPLES; i++) {
+      float u = float(i) / float(SAMPLES - 1) - 0.5;
+      float weight = 1.0 - uShape * abs(u) * 2.0;
+      weightSum += weight;
+      float shiftedU = u + offset;
+      vec3 shutterU = shiftedU * uK;
+      vec3 sy = uSyQ.x + uSyQ.y * shutterU + uSyQ.z * shutterU * shutterU;
+      accumulated.r += weight * tap(
+        sy.r * (shutterU.r < uSwapU ? uSwapScl.x : uSwapScl.y),
+        shutterU.r < uSwapU ? uHalfA : uHalfB,
+        wordPoint,
+        front
+      );
+      accumulated.g += weight * tap(
+        sy.g * (shutterU.g < uSwapU ? uSwapScl.x : uSwapScl.y),
+        shutterU.g < uSwapU ? uHalfA : uHalfB,
+        wordPoint,
+        front
+      );
+      accumulated.b += weight * tap(
+        sy.b * (shutterU.b < uSwapU ? uSwapScl.x : uSwapScl.y),
+        shutterU.b < uSwapU ? uHalfA : uHalfB,
+        wordPoint,
+        front
+      );
+    }
+
+    accumulated /= max(weightSum, 1e-4);
+
+    vec3 halo = vec3(0.0);
+    for (int j = 0; j < BLOOM_TAPS; j++) {
+      float u =
+        (float(j) / float(BLOOM_TAPS - 1) - 0.5) * BLOOM_SPREAD + offset;
+      vec3 shutterU = u * uK;
+      vec3 sy = uSyQ.x + uSyQ.y * shutterU + uSyQ.z * shutterU * shutterU;
+      halo.r += tapBlur(
+        sy.r * (shutterU.r < uSwapU ? uSwapScl.x : uSwapScl.y),
+        shutterU.r < uSwapU ? uHalfA : uHalfB,
+        wordPoint,
+        front
+      );
+      halo.g += tapBlur(
+        sy.g * (shutterU.g < uSwapU ? uSwapScl.x : uSwapScl.y),
+        shutterU.g < uSwapU ? uHalfA : uHalfB,
+        wordPoint,
+        front
+      );
+      halo.b += tapBlur(
+        sy.b * (shutterU.b < uSwapU ? uSwapScl.x : uSwapScl.y),
+        shutterU.b < uSwapU ? uHalfA : uHalfB,
+        wordPoint,
+        front
+      );
+    }
+    accumulated += halo * (uBloom / float(BLOOM_TAPS));
+    accumulated *= uGain;
+  }
+
+  accumulated =
+    (1.0 - exp(-accumulated * uExp)) / (1.0 - exp(-uExp));
+
+  vec2 glowDistance =
+    (pixel - uGlow.xy) / max(uGlow.zw, vec2(1.0));
+  float ground =
+    uGlowAmp * (1.0 - smoothstep(0.0, 1.0, length(glowDistance)));
+  accumulated += ground * (1.0 - accumulated);
+
+  if (uCrt > 0.0) {
+    float luminance = max(max(accumulated.r, accumulated.g), accumulated.b);
+    vec3 maskWave = 0.5 + 0.5 * cos(
+      TAU * (pixel.x / CRT_PITCH - vec3(0.0, 0.33333, 0.66667))
+    );
+    vec3 mask = mix(vec3(1.0), maskWave * 2.0, CRT_MASK * uCrt);
+    float scanWave = 0.5 + 0.5 * cos(TAU * pixel.y / CRT_SCAN_PITCH);
+    float scan =
+      1.0 - CRT_SCAN * uCrt * (1.0 - CRT_BEAM * luminance) * (1.0 - scanWave);
+    float bar = 0.5 + 0.5 * cos(
+      TAU * (pixel.y / uRes.y - uTime * CRT_HUM_SPEED)
+    );
+    float hum = 1.0 + CRT_HUM * uCrt * (bar * 2.0 - 1.0);
+    accumulated *= mask * scan * hum;
+  }
+
+  gl_FragColor = vec4(uBg + (uColor - uBg) * accumulated, 1.0);
+}
+`;
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var res = V.resolution;
+            var cw = Math.max(2, Math.round(W * res));
+            var ch = Math.max(2, Math.round(H * res));
+            canvas.width = cw;
+            canvas.height = ch;
+            root.style.background = V.background_color;
+            fallback.style.background = V.background_color;
+            fallback.style.color = V.color;
+            fallback.style.fontWeight = V.font_weight;
+            var FONT = "Geist, Arial, Helvetica, sans-serif";
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            var rasterize = function () {};
+            var ATLAS_W = 2048, HALF_H = ATLAS_W / 4, CAP_H = Math.round(HALF_H * 0.64);
+            var rows = 2;
+            while (rows < words.length) rows *= 2;
+            var halfWidths = words.map(function () { return 1; });
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.bindAttribLocation(program, 0, "aPos");
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              var texture = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, texture);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_W, HALF_H * rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+              var scratch = document.createElement("canvas");
+              scratch.width = ATLAS_W;
+              scratch.height = HALF_H;
+              var U = {};
+              ["uText", "uRes", "uHalfPx", "uAtlasRows", "uSx", "uSyQ", "uCenterY", "uSwapU", "uHalfA", "uHalfB", "uK", "uSwapScl",
+               "uShape", "uRoll", "uLag", "uThin", "uBloom", "uGain", "uExp", "uFocal", "uPos", "uRot", "uCrt", "uTime", "uGlow",
+               "uGlowAmp", "uColor", "uBg"].forEach(function (n) { U[n] = gl.getUniformLocation(program, n); });
+              gl.viewport(0, 0, cw, ch);
+              gl.uniform1i(U.uText, 0);
+              gl.uniform2f(U.uRes, cw, ch);
+              gl.uniform2f(U.uHalfPx, ATLAS_W, HALF_H);
+              gl.uniform1f(U.uAtlasRows, rows);
+              var weight = Number(V.font_weight);
+              // Draw each word once into its own row of the atlas (re-run when the font finishes loading).
+              rasterize = function () {
+                var ctx = scratch.getContext("2d");
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                words.forEach(function (word, row) {
+                  ctx.fillStyle = "#000";
+                  ctx.fillRect(0, 0, ATLAS_W, HALF_H);
+                  var size = CAP_H * 1.4;
+                  ctx.font = weight + " " + size + "px " + FONT;
+                  var cap = ctx.measureText("H").actualBoundingBoxAscent || size * 0.72;
+                  size *= CAP_H / cap;
+                  ctx.font = weight + " " + size + "px " + FONT;
+                  var measured = ctx.measureText(word).width;
+                  if (measured > ATLAS_W * 0.92) {
+                    size *= (ATLAS_W * 0.92) / measured;
+                    ctx.font = weight + " " + size + "px " + FONT;
+                  }
+                  ctx.fillStyle = "#fff";
+                  ctx.textAlign = "center";
+                  ctx.textBaseline = "alphabetic";
+                  ctx.fillText(word, ATLAS_W / 2, HALF_H / 2 + CAP_H / 2);
+                  halfWidths[row] = ctx.measureText(word).width / 2;
+                  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, row * HALF_H, gl.RGBA, gl.UNSIGNED_BYTE, scratch);
+                  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                });
+                gl.generateMipmap(gl.TEXTURE_2D);
+              };
+              var textColor = rgb(V.color);
+              var bgColor = rgb(V.background_color);
+              // remocn sizes things in pixels of a 1280x720 frame; scale to this frame, then to the canvas.
+              var k = Math.min(H / 720, W / 640);
+              var fontPx = V.font_size * k * res;
+              var focal = ch * FOCAL;
+              gl.uniform1f(U.uShape, SHUTTER_SHAPE);
+              gl.uniform1f(U.uRoll, ROLL_U);
+              gl.uniform1f(U.uLag, LAG_U);
+              gl.uniform1f(U.uExp, EXPOSURE);
+              gl.uniform1f(U.uFocal, focal);
+              gl.uniform3f(U.uColor, textColor[0], textColor[1], textColor[2]);
+              gl.uniform3f(U.uBg, bgColor[0], bgColor[1], bgColor[2]);
+              gl.clearColor(bgColor[0], bgColor[1], bgColor[2], 1);
+              paint = function (frame) {
+                var c = compute(frame);
+                var unit = Math.max(fontPx, 1) / CAP_H;
+                var stretch = Math.max(V.vertical_stretch, 1);
+                function scaleY(p) { return unit * (1 + p.p * (stretch - 1)); }
+                var sBefore = scaleY(c.before), sCurrent = scaleY(c.here), sAfter = scaleY(c.after);
+                var qa = sCurrent;
+                var qc = 2 * (sAfter + sBefore - 2 * sCurrent);
+                var tangent = sAfter - sBefore;
+                var peakSmear = SMEAR_GAIN * c.here.p * sCurrent;
+                var magnitude = Math.sqrt(tangent * tangent + peakSmear * peakSmear);
+                var qb = tangent < 0 ? -magnitude : magnitude;
+                var scaleX = unit * (1 + c.here.p * (HORIZONTAL_STRETCH - 1));
+                var direction = DRIFT_DIRECTION[mod(c.here.cycle, DRIFT_DIRECTION.length)];
+                var psi = c.here.psi * (Math.sign(direction) || 1);
+                var amp = Math.abs(direction);
+                var z = focal * (1 - ORBIT_DEPTH * (1 + Math.cos(psi)) * 0.5);
+                var x = 0;
+                var y = focal * ORBIT_RISE * amp * Math.sin(psi);
+                var yaw = orbitTurn(psi, ORBIT_YAW, ORBIT_YAW_LAG);
+                var pitch = orbitTurn(psi, ORBIT_PITCH, ORBIT_PITCH_LAG);
+                var pivot = PIVOT_FRAC * c.here.p;
+                var perspective = focal / z;
+                var glowX = cw / 2 + (focal * x) / z;
+                var glowY = ch * (0.5 + pivot) + (focal * y) / z;
+                var wordHalf = Math.max(halfWidths[c.before.wordIndex] || 1, halfWidths[c.after.wordIndex] || 1);
+                var wordWidth = wordHalf * scaleX * perspective;
+                var wordHeight = CAP_H * sCurrent * perspective;
+                gl.uniform1f(U.uSx, scaleX);
+                gl.uniform3f(U.uSyQ, qa, qb, qc);
+                gl.uniform1f(U.uCenterY, 0.5 + pivot);
+                gl.uniform1f(U.uSwapU, c.swapU);
+                gl.uniform1f(U.uHalfA, c.before.wordIndex);
+                gl.uniform1f(U.uHalfB, c.after.wordIndex);
+                gl.uniform3f(U.uK, c.k[0], c.k[1], c.k[2]);
+                gl.uniform2f(U.uSwapScl, 1 + SWAP_SPREAD * c.swapAmount, 1 - SWAP_SPREAD * c.swapAmount);
+                gl.uniform1f(U.uThin, THIN * c.here.p);
+                gl.uniform1f(U.uBloom, BLOOM_GAIN * c.here.p);
+                gl.uniform1f(U.uGain, (1 + SPEED_GAIN * c.here.p) * (1 + SWAP_FLASH * c.swapAmount));
+                gl.uniform3f(U.uPos, x, y, z);
+                gl.uniform4f(U.uRot, Math.sin(yaw), Math.cos(yaw), Math.sin(pitch), Math.cos(pitch));
+                gl.uniform1f(U.uCrt, CRT_GAIN * c.here.p);
+                gl.uniform1f(U.uTime, frame / 30);
+                gl.uniform4f(U.uGlow, glowX, glowY,
+                  Math.max(wordWidth * GLOW_SPREAD, cw * GLOW_MIN),
+                  Math.min(Math.max(wordHeight * GLOW_SPREAD, ch * GLOW_MIN), ch * GLOW_MAX_Y));
+                gl.uniform1f(U.uGlowAmp, GROUND_SPEED * c.here.p);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              stage.classList.add("rsh-off");
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            // The atlas is redrawn whenever the web font finishes loading, so no word keeps a fallback face.
+            var fontEpoch = 0;
+            var atlasEpoch = -1;
+            var lastFrame = 0;
+            function render(frame) {
+              lastFrame = frame;
+              var effective = frame * V.speed;
+              if (paint) {
+                if (atlasEpoch !== fontEpoch) {
+                  atlasEpoch = fontEpoch;
+                  rasterize();
+                }
+                paint(effective);
+              } else {
+                fallback.textContent = words[pose(effective).wordIndex] || words[0];
+              }
+            }
+            if (document.fonts && document.fonts.load) {
+              document.fonts.load(V.font_weight + " 100px Geist").then(function () { fontEpoch++; render(lastFrame); }, function () {});
+            }
+
+            var total = parseFloat(root.dataset.duration || "3.4667");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { render(Math.round(clock.frame)); }
+            }, 0);
+            render(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

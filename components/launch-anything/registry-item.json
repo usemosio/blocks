@@ -1,0 +1,299 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "launch-anything",
+  "type": "hyperframes:component",
+  "title": "Product Showcase",
+  "description": "A 26.7-second editorial product film in cream and forest green: chrome-like words open onto a dusk horizon, a button becomes a portal into a desk, a laptop camera move steps through seven product screens, a symbol field, architectural linework, two launch plates, a typed address and a frame-shaped mark. Silent: sound is added by the host. Photographs are drawn with SVG by default (the chrome type is a 2D approximation of the shader); pass image paths to use real photos.",
+  "tags": [
+    "template",
+    "product",
+    "launch",
+    "editorial",
+    "ui",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "templates",
+  "duration": 26.667,
+  "useWhen": [
+    "You want a complete 26.7-second product film with editable text and demonstrations.",
+    "Your portfolio needs a continuous laptop camera move through seven product examples."
+  ],
+  "avoidWhen": [
+    "You want to introduce a complete visual identity: use brand-guidelines.",
+    "You only need a chrome headline: use shader-text-reveal."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-templates/launch-anything/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "launch-anything.html",
+      "target": "compositions/components/launch-anything.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "opening",
+      "type": "string",
+      "role": "content",
+      "label": "First word",
+      "description": "First chrome word.",
+      "default": "Good"
+    },
+    {
+      "id": "subject",
+      "type": "string",
+      "role": "content",
+      "label": "Second word",
+      "description": "Second chrome word.",
+      "default": "ideas"
+    },
+    {
+      "id": "ready",
+      "type": "string",
+      "role": "content",
+      "label": "Ready line",
+      "description": "Line over the horizon after the two words.",
+      "default": "deserve a stage"
+    },
+    {
+      "id": "next",
+      "type": "string",
+      "role": "content",
+      "label": "Next line",
+      "description": "Dark line before the button.",
+      "default": "Let’s make"
+    },
+    {
+      "id": "action",
+      "type": "string",
+      "role": "content",
+      "label": "Action label",
+      "description": "Text on the button that becomes the portal.",
+      "default": "them real"
+    },
+    {
+      "id": "proof",
+      "type": "string",
+      "role": "content",
+      "label": "Proof line",
+      "description": "Headline over the floating symbol field.",
+      "default": "Your work.\nA clearer view."
+    },
+    {
+      "id": "industry",
+      "type": "string",
+      "role": "content",
+      "label": "Industry line",
+      "description": "First line of the dark scene.",
+      "default": "Built around you"
+    },
+    {
+      "id": "promise",
+      "type": "string",
+      "role": "content",
+      "label": "Promise line",
+      "description": "Second line of the dark scene.",
+      "default": "Made to be yours."
+    },
+    {
+      "id": "launch",
+      "type": "string",
+      "role": "content",
+      "label": "Launch word",
+      "description": "Big word over the closing photographs; the address types after it when it starts with the same text.",
+      "default": "Begin"
+    },
+    {
+      "id": "shoppers",
+      "type": "string",
+      "role": "content",
+      "label": "Shoppers headline",
+      "description": "Headline on the storefront screen.",
+      "default": "Small things. Well made."
+    },
+    {
+      "id": "builder",
+      "type": "string",
+      "role": "content",
+      "label": "Builder headline",
+      "description": "Headline above the prompt box.",
+      "default": "Turn a brief into a workspace"
+    },
+    {
+      "id": "builder_prompt",
+      "type": "string",
+      "role": "content",
+      "label": "Builder prompt",
+      "description": "Prompt typed into the box.",
+      "default": "Create a workspace for our next product release"
+    },
+    {
+      "id": "trading",
+      "type": "string",
+      "role": "content",
+      "label": "Review headline",
+      "description": "Text beside the review panel.",
+      "default": "Review once.\nMove forward."
+    },
+    {
+      "id": "loyalty",
+      "type": "string",
+      "role": "content",
+      "label": "Cards headline",
+      "description": "Caption on the layered cards screen.",
+      "default": "A place for every idea"
+    },
+    {
+      "id": "loyalty_payoff",
+      "type": "string",
+      "role": "content",
+      "label": "Cards payoff",
+      "description": "Caption after the cards fan out.",
+      "default": "Room for the next one"
+    },
+    {
+      "id": "integration",
+      "type": "string",
+      "role": "content",
+      "label": "Integrations lead",
+      "description": "Text before the integration chips.",
+      "default": "Bring your work together"
+    },
+    {
+      "id": "integration_1",
+      "type": "string",
+      "role": "content",
+      "label": "Integration 1",
+      "description": "First chip.",
+      "default": "Files"
+    },
+    {
+      "id": "integration_2",
+      "type": "string",
+      "role": "content",
+      "label": "Integration 2",
+      "description": "Second chip.",
+      "default": "Messages"
+    },
+    {
+      "id": "integration_3",
+      "type": "string",
+      "role": "content",
+      "label": "Integration 3",
+      "description": "Third chip.",
+      "default": "Calendar"
+    },
+    {
+      "id": "shop_name",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Name on the phone storefront.",
+      "default": "Object Study"
+    },
+    {
+      "id": "shop_headline",
+      "type": "string",
+      "role": "content",
+      "label": "Shop headline",
+      "description": "Headline on the storefront hero.",
+      "default": "Everyday, considered."
+    },
+    {
+      "id": "shop_detail",
+      "type": "string",
+      "role": "content",
+      "label": "Shop detail",
+      "description": "Subhead on the storefront.",
+      "default": "Useful objects. Quiet details."
+    },
+    {
+      "id": "shop_action",
+      "type": "string",
+      "role": "content",
+      "label": "Shop action",
+      "description": "Button label on the storefront.",
+      "default": "Explore the objects"
+    },
+    {
+      "id": "connections",
+      "type": "string",
+      "role": "content",
+      "label": "Connections headline",
+      "description": "Headline on the dark connections screen.",
+      "default": "Connect your tools.\nKeep work moving."
+    },
+    {
+      "id": "app_name",
+      "type": "string",
+      "role": "content",
+      "label": "App name",
+      "description": "Name in the dashboard sidebar.",
+      "default": "Workroom"
+    },
+    {
+      "id": "brand_url",
+      "type": "string",
+      "role": "content",
+      "label": "Brand URL",
+      "description": "Closing website address (typed out).",
+      "default": "yourproduct.example"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Product interface accent.",
+      "default": "#245744"
+    },
+    {
+      "id": "logo_src",
+      "type": "string",
+      "role": "content",
+      "label": "Logo image",
+      "description": "Optional path to a mark (PNG or SVG) your host provides for the closing; the drawn frame mark is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_desk",
+      "type": "string",
+      "role": "content",
+      "label": "Desk photo",
+      "description": "Optional path to a photo for the desk; a drawn desk is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_horizon",
+      "type": "string",
+      "role": "content",
+      "label": "Horizon photo",
+      "description": "Optional path to a photo behind the first headline; a drawn dusk horizon is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_rocket",
+      "type": "string",
+      "role": "content",
+      "label": "Rocket photo",
+      "description": "Optional path to the launch photograph; a drawn rocket is used when empty.",
+      "default": ""
+    },
+    {
+      "id": "photo_earth",
+      "type": "string",
+      "role": "content",
+      "label": "Earth photo",
+      "description": "Optional path to the planet photograph; a drawn planet is used when empty.",
+      "default": ""
+    }
+  ]
+}

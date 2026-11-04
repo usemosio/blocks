@@ -1,0 +1,228 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-pulsing-border",
+  "type": "hyperframes:component",
+  "title": "Pulsing Border",
+  "description": "A glowing, pulsing frame of light runs around the edges of the frame and leaves the center clear for content, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "border",
+    "glow",
+    "frame",
+    "overlay",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "You want a pulsing lit frame around the scene edges to contain foreground content.",
+    "A premium reveal benefits from an edge glow that leaves the center clear for text.",
+    "You want corner radius and thickness tunable via `roundness` and `thickness`."
+  ],
+  "avoidWhen": [
+    "The brief bans decorative glow: keep `bloom` and `intensity` restrained so the border does not read as neon.",
+    "You want a full-field texture: the interior stays mostly the background color; use a noise or gradient shader.",
+    "The scene already has a strong border or frame in the layout."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-pulsing-border/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-pulsing-border.html",
+      "target": "compositions/components/shader-pulsing-border.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 5 colors, comma separated, that travel around the border.",
+      "default": "#52527a, #8a8a95, #3a3a5c"
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color inside and outside the border.",
+      "default": "#12121a"
+    },
+    {
+      "id": "roundness",
+      "type": "number",
+      "role": "style",
+      "label": "Roundness",
+      "description": "Corner radius of the frame.",
+      "default": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "thickness",
+      "type": "number",
+      "role": "style",
+      "label": "Thickness",
+      "description": "How thick the lit border is.",
+      "default": 0.1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How soft the border edge is.",
+      "default": 0.75,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "Strength of the colored light.",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "bloom",
+      "type": "number",
+      "role": "style",
+      "label": "Bloom",
+      "description": "Glow spilling past the border.",
+      "default": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "spots",
+      "type": "number",
+      "role": "style",
+      "label": "Spots",
+      "description": "Number of light spots traveling around the border.",
+      "default": 4,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "id": "spot_size",
+      "type": "number",
+      "role": "style",
+      "label": "Spot size",
+      "description": "How large each spot is.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "pulse",
+      "type": "number",
+      "role": "style",
+      "label": "Pulse",
+      "description": "How much the border pulses.",
+      "default": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "smoke",
+      "type": "number",
+      "role": "style",
+      "label": "Smoke",
+      "description": "Smoke that drifts inside the border.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "smoke_size",
+      "type": "number",
+      "role": "style",
+      "label": "Smoke size",
+      "description": "How large the smoke shapes are.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "margin",
+      "type": "number",
+      "role": "style",
+      "label": "Margin",
+      "description": "Space between the frame edge and the border.",
+      "default": 0,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

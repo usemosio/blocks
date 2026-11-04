@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "security-cam",
+  "type": "hyperframes:component",
+  "title": "Security Cam",
+  "description": "A scene as surveillance footage: luma and colour squeezed into blocks, colour drained, blacks crushed and a slow brightness pump with noise crawling in the shadows. Runs its WebGL shader over its own built-in scene (a render queue list; title, rows and background from variables), not over the host video.",
+  "tags": [
+    "filter",
+    "shader",
+    "security",
+    "cctv",
+    "compression",
+    "noise",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3.0,
+  "useWhen": [
+    "A beat should play as surveillance footage: a cold open or a 'meanwhile, in production' aside that reads as captured rather than presented.",
+    "The story is about a feed degrading: drive compression up and the picture falls apart into blocks."
+  ],
+  "avoidWhen": [
+    "The story is the glass a shot was taken through: use camera-lens.",
+    "The story is a tube being watched: use crt-screen.",
+    "You want analog wear that smears colour sideways: use vhs-filter."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/security-cam/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "security-cam.html",
+      "target": "compositions/components/security-cam.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "compression",
+      "type": "number",
+      "role": "style",
+      "label": "Compression",
+      "description": "How hard luma and colour collapse into blocks.",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "block_size",
+      "type": "number",
+      "role": "style",
+      "label": "Block size",
+      "description": "Size of one macroblock. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 10,
+      "min": 4,
+      "max": 32,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "noise",
+      "type": "number",
+      "role": "style",
+      "label": "Noise",
+      "description": "Strength of the crawling noise.",
+      "default": 0.6,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "0 shows the scene, 1 the full recorder look.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Blocks are coarse; 0.75 matches 1 in the stills.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "static": true,
+  "webgl": true
+}

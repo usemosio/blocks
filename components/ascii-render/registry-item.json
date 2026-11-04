@@ -1,0 +1,135 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ascii-render",
+  "type": "hyperframes:component",
+  "title": "ASCII Render",
+  "description": "A scene redrawn as text, one character per cell chosen by the cell's brightness, in green ink or in the scene's own colours. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video.",
+  "tags": [
+    "filter",
+    "shader",
+    "ascii",
+    "text",
+    "terminal",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3.0,
+  "useWhen": [
+    "A scene should arrive out of text, or read as a terminal rendering of itself: developer-facing intros, a dashboard reduced to characters.",
+    "The scene is high contrast, since the glyph ramp follows brightness and flat mid-tones give flat text."
+  ],
+  "avoidWhen": [
+    "The ASCII should only cover the cut between two scenes: use ascii-dissolve.",
+    "The scene has fine detail or small type that must stay readable: a glyph cell keeps only its average brightness."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/ascii-render/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "ascii-render.html",
+      "target": "compositions/components/ascii-render.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "glyph_size",
+      "type": "number",
+      "role": "style",
+      "label": "Glyph size",
+      "description": "Height of one character cell. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 26,
+      "min": 10,
+      "max": 64,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "charset",
+      "type": "string",
+      "role": "style",
+      "label": "Charset",
+      "description": "Characters from dark to light; a space is blank. Keep at least two.",
+      "default": " .:-=+*#%@"
+    },
+    {
+      "id": "colored",
+      "type": "boolean",
+      "role": "style",
+      "label": "Source colour",
+      "description": "Colour each character from the scene instead of one ink.",
+      "default": false
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Colour of the characters when Source colour is off.",
+      "default": "#9dff9d"
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "0 shows the scene, 1 shows only characters.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Characters stay sharp at 0.75; lower renders faster but softens them.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "static": true,
+  "webgl": true
+}

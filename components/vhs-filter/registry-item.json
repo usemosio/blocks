@@ -1,0 +1,135 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vhs-filter",
+  "type": "hyperframes:component",
+  "title": "VHS Filter",
+  "description": "A scene as recovered tape footage: colour smeared sideways off the brightness, the lines wobbling, a head-switch tear along the bottom edge, scanlines and grain. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video.",
+  "tags": [
+    "filter",
+    "shader",
+    "vhs",
+    "analog",
+    "tape",
+    "retro",
+    "noise",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 3.0,
+  "useWhen": [
+    "A scene should read as recovered tape footage rather than a clean render: retro product spots, 'what we shipped in 2003' beats, lo-fi title cards.",
+    "You want the whole scene degraded for its full duration, not a one-frame artifact at a cut."
+  ],
+  "avoidWhen": [
+    "The artifact should live only at the cut between two scenes: use glitch-cut.",
+    "Only a headline should break up: use rgb-glitch-text.",
+    "The story is the display or the glass rather than the signal: use crt-screen or camera-lens.",
+    "You want intermittent digital faults rather than continuous analog wear: use sustained-glitch."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/vhs-filter/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "vhs-filter.html",
+      "target": "compositions/components/vhs-filter.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "bleed",
+      "type": "number",
+      "role": "style",
+      "label": "Bleed",
+      "description": "How far colour smears sideways.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "wobble",
+      "type": "number",
+      "role": "style",
+      "label": "Wobble",
+      "description": "Tape jitter of the lines.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "noise",
+      "type": "number",
+      "role": "style",
+      "label": "Noise",
+      "description": "Strength of the grain.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "0 shows the scene, 1 the full tape look.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. The scanlines and grain are fine; lower renders faster but softens them.",
+      "default": 1,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

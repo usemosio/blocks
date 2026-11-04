@@ -1,0 +1,163 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "caret-swap",
+  "type": "hyperframes:component",
+  "title": "Caret Swap",
+  "description": "A gradient caret expands into a block that consumes the first text, then types the second.",
+  "tags": [
+    "text-effects",
+    "typewriter",
+    "caret",
+    "swap",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2.2333,
+  "checkAt": [
+    0.4,
+    0.75,
+    1.0,
+    2.1
+  ],
+  "useWhen": [
+    "One phrase should be replaced by another through a caret gesture: the cursor swells into a block that eats the old text, collapses and types the new one.",
+    "A typewriter beat mid-scene without clearing to an empty frame.",
+    "A gradient caret should read as a character of its own, in an editor or AI-tool style."
+  ],
+  "avoidWhen": [
+    "You only need one phrase typed from empty: use typewriter.",
+    "The swap should happen word by word: use word-stream or value-swap.",
+    "A full-frame transition driven by a caret: use caret-wipe."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/caret-swap/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "caret-swap.html",
+      "target": "compositions/components/caret-swap.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "from_text",
+      "type": "string",
+      "role": "content",
+      "label": "From text",
+      "description": "Text that sits still until the caret eats it.",
+      "default": "Executing it?"
+    },
+    {
+      "id": "to_text",
+      "type": "string",
+      "role": "content",
+      "label": "To text",
+      "description": "Text typed in after the swap.",
+      "default": "That's where everyone quits"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "400",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "caret_color",
+      "type": "color",
+      "role": "style",
+      "label": "Caret color",
+      "description": "Top of the caret gradient.",
+      "default": "#FF4DAA"
+    },
+    {
+      "id": "caret_color_end",
+      "type": "color",
+      "role": "style",
+      "label": "Caret color end",
+      "description": "Bottom of the caret gradient.",
+      "default": "#8A5CF6"
+    },
+    {
+      "id": "swap_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Swap at",
+      "description": "Frame at which the caret swells into a block.",
+      "default": 20,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "type_speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Type speed",
+      "description": "Frames for the first typed character; later gaps shrink.",
+      "default": 1,
+      "min": 0.3,
+      "max": 4,
+      "step": 0.1,
+      "unit": "frames"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

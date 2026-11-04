@@ -1,0 +1,153 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-seam",
+  "type": "hyperframes:component",
+  "title": "Seam",
+  "description": "A transition between two panels: a colored silk-and-halftone material appears across the frame, the scene underneath swaps while it is opaque, then it dissolves in place to uncover the next. The block plays it between its own panels A and B, with text from variables; WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "transition",
+    "dissolve",
+    "halftone",
+    "scene",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5.2,
+  "useWhen": [
+    "A shader material should dissolve in place to reveal the next scene.",
+    "A scene change needs an organic disappearance without directional travel."
+  ],
+  "avoidWhen": [
+    "A minimal typographic cut is enough: use caret-wipe.",
+    "The scenes themselves should be distorted at pixel level: use displacement."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-seam/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-seam.html",
+      "target": "compositions/components/shader-seam.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "Softness of the dissolve edge.",
+      "default": 0.18,
+      "min": 0.02,
+      "max": 0.4,
+      "step": 0.01
+    },
+    {
+      "id": "detail",
+      "type": "number",
+      "role": "style",
+      "label": "Detail",
+      "description": "Organic variation mixed into the material's brightness.",
+      "default": 0.65,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Material speed",
+      "description": "Animation speed of the material itself. 0 keeps it still.",
+      "default": 0,
+      "min": 0,
+      "max": 3,
+      "step": 0.25
+    },
+    {
+      "id": "time_offset",
+      "type": "number",
+      "role": "style",
+      "label": "Material start time",
+      "description": "Starting time of the material, in seconds.",
+      "default": 0,
+      "min": 0,
+      "max": 30,
+      "step": 0.5
+    },
+    {
+      "id": "a_label",
+      "type": "string",
+      "role": "content",
+      "label": "Scene A label",
+      "description": "Small label on the first scene.",
+      "default": "01 / Current scene"
+    },
+    {
+      "id": "a_title",
+      "type": "string",
+      "role": "content",
+      "label": "Scene A title",
+      "description": "Heading of the first scene.",
+      "default": "Let it dissolve."
+    },
+    {
+      "id": "a_subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Scene A line",
+      "description": "Line under the first heading.",
+      "default": "A moment between two scenes."
+    },
+    {
+      "id": "b_label",
+      "type": "string",
+      "role": "content",
+      "label": "Scene B label",
+      "description": "Small label on the second scene.",
+      "default": "02 / Next scene"
+    },
+    {
+      "id": "b_title",
+      "type": "string",
+      "role": "content",
+      "label": "Scene B title",
+      "description": "Heading of the second scene.",
+      "default": "A new chapter."
+    },
+    {
+      "id": "b_subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Scene B line",
+      "description": "Line under the second heading.",
+      "default": "Same frame. Another perspective."
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; the material is drawn once at this size and held.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true,
+  "checkAt": [
+    1.9,
+    2.3,
+    2.7,
+    3.2
+  ]
+}

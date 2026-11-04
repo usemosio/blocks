@@ -1,0 +1,162 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "glitch-cut",
+  "type": "hyperframes:component",
+  "title": "Glitch Cut",
+  "description": "A hard cut torn into displaced horizontal slices with red/blue channel split and corrupted blocks that leak the other scene; each band hands over at its own moment. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 45 frames of the first panel, a 12-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+  "tags": [
+    "transition",
+    "shader",
+    "glitch",
+    "cut",
+    "tech",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 3.4,
+  "useWhen": [
+    "The cut lands in a tech or developer-facing demo and should read as a deliberate broadcast artifact instead of a smooth blend.",
+    "The rhythm is fast: it holds up at 8 to 14 frames, where softer presentations read as sluggish.",
+    "The two scenes are visually unrelated and the hard cut between them needs an excuse."
+  ],
+  "avoidWhen": [
+    "Only a headline should glitch while the scene around it stays intact: use rgb-glitch-text.",
+    "The demo needs a calm, general-purpose cut: use zoom-blur."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/glitch-cut/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "glitch-cut.html",
+      "target": "compositions/components/glitch-cut.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "How far slices and blocks are displaced.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.1
+    },
+    {
+      "id": "slices",
+      "type": "number",
+      "role": "style",
+      "label": "Slices",
+      "description": "Number of horizontal bands that can tear.",
+      "default": 24,
+      "min": 8,
+      "max": 64,
+      "step": 2
+    },
+    {
+      "id": "rgb_split",
+      "type": "number",
+      "role": "style",
+      "label": "RGB split",
+      "description": "Red/blue channel separation.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.1
+    },
+    {
+      "id": "block_noise",
+      "type": "number",
+      "role": "style",
+      "label": "Block noise",
+      "description": "How many blocks are corrupted.",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Slices and blocks are coarse; 0.75 matches 1 in the stills.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "checkAt": [
+    1.2,
+    1.5,
+    1.6,
+    1.8
+  ],
+  "webgl": true
+}

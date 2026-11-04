@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "settings-toggle-flow",
+  "type": "hyperframes:component",
+  "title": "Settings Toggle Flow",
+  "description": "A two-column settings card: it blurs in, then a cursor flips the notifications switch, opens the theme select and picks an option, drags the volume slider, and clicks Save, ending on a confirmation toast.",
+  "tags": [
+    "ui",
+    "flow",
+    "settings",
+    "switch",
+    "select",
+    "slider",
+    "product-demo",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 10.7,
+  "checkAt": [
+    1.0,
+    3.5,
+    6.2,
+    9.8
+  ],
+  "useWhen": [
+    "Showing a complete settings interaction walkthrough for a product demo with zero assembly.",
+    "Demonstrating several UI primitives orchestrated in sequence: switch, select, slider, then toast.",
+    "You need a ready settings scene and the default layout matches your content."
+  ],
+  "avoidWhen": [
+    "You only need one control type: use switch, select or slider individually.",
+    "Your settings layout differs from the two-column card: compose the primitives manually.",
+    "You need custom cursor timing or interaction order: wire cursor with the individual primitives."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-ui/settings-toggle-flow/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "settings-toggle-flow.html",
+      "target": "compositions/components/settings-toggle-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading on the left of the card.",
+      "default": "Notification settings"
+    },
+    {
+      "id": "description",
+      "type": "string",
+      "role": "content",
+      "label": "Description",
+      "description": "Text under the heading.",
+      "default": "Manage how you receive alerts, set your theme, and tune the volume."
+    },
+    {
+      "id": "rows",
+      "type": "string",
+      "role": "content",
+      "label": "Row labels",
+      "description": "JSON array of three labels: switch, select, slider.",
+      "default": "[\"Notifications\", \"Theme\", \"Volume\"]"
+    },
+    {
+      "id": "select_items",
+      "type": "string",
+      "role": "content",
+      "label": "Select items",
+      "description": "JSON array of select options; the first is the trigger label, the cursor picks the last.",
+      "default": "[\"System\", \"Light\", \"Dark\"]"
+    },
+    {
+      "id": "save_label",
+      "type": "string",
+      "role": "content",
+      "label": "Save label",
+      "description": "Label of the save button.",
+      "default": "Save settings"
+    },
+    {
+      "id": "toast_title",
+      "type": "string",
+      "role": "content",
+      "label": "Toast title",
+      "description": "Heading of the confirmation toast.",
+      "default": "Settings saved"
+    },
+    {
+      "id": "mode",
+      "type": "enum",
+      "role": "style",
+      "label": "Mode",
+      "description": "Light or dark neutral theme.",
+      "default": "light",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed of the scripted interaction. 2 plays it twice as fast and holds the end.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the control sits over your own scene.",
+      "default": false
+    }
+  ]
+}

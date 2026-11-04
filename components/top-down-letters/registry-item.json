@@ -1,0 +1,133 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "top-down-letters",
+  "type": "hyperframes:component",
+  "title": "Top-Down Letters",
+  "description": "Letters descend from above in a pronounced staircase, one symbol at a time, with no blur: a sharp, graphic title.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "kinetic-type",
+    "letters",
+    "stagger",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "useWhen": [
+    "A single uppercase word or short acronym should enter with structural weight, each letter landing like a stamp.",
+    "The scene calls for a sharp, graphic title card where the sequential drop reinforces the rhythm of the word."
+  ],
+  "avoidWhen": [
+    "The text is more than about 8 characters: use staggered-fade-up for longer phrases.",
+    "You want blur or softness on entry: use soft-blur-in.",
+    "The letters should rise from below: use bottom-up-letters."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/top-down-letters/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "top-down-letters.html",
+      "target": "compositions/components/top-down-letters.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Word or short acronym that drops in.",
+      "default": "Signal"
+    },
+    {
+      "id": "stagger_delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger delay",
+      "description": "Frames (30 per second) between one letter and the next.",
+      "default": 3,
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "distance",
+      "type": "number",
+      "role": "motion",
+      "label": "Distance",
+      "description": "How far above its place each letter starts.",
+      "default": 46,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 220,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

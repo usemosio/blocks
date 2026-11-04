@@ -1,0 +1,184 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-spiral",
+  "type": "hyperframes:component",
+  "title": "Spiral",
+  "description": "Two-tone spiral arms rotate out from the center of the frame, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "spiral",
+    "radial",
+    "hypnotic",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "You want a hypnotic, rotating radial background with visible arm structure.",
+    "A transition or intro benefits from a strong pulling-in-toward-the-center motion.",
+    "You want a two-tone, minimal look: `color_front` on `color_back`."
+  ],
+  "avoidWhen": [
+    "You want closed concentric rings rather than open arms: use shader-swirl.",
+    "The center sits behind key text: the convergence point competes for attention.",
+    "You need multi-color richness: spiral is duotone by default; use shader-warp."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-spiral/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-spiral.html",
+      "target": "compositions/components/shader-spiral.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color between the arms.",
+      "default": "#12121a"
+    },
+    {
+      "id": "color_front",
+      "type": "color",
+      "role": "style",
+      "label": "Arm color",
+      "description": "Color of the arms.",
+      "default": "#52527a"
+    },
+    {
+      "id": "density",
+      "type": "number",
+      "role": "style",
+      "label": "Density",
+      "description": "How tightly the arms wind.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Arm width",
+      "description": "How thick the arms are.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "stroke_taper",
+      "type": "number",
+      "role": "style",
+      "label": "Taper",
+      "description": "How much the arms thin toward the center.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Distortion",
+      "description": "Bends the arms.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "noise",
+      "type": "number",
+      "role": "style",
+      "label": "Noise",
+      "description": "Roughens the arm edges.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "noise_frequency",
+      "type": "number",
+      "role": "style",
+      "label": "Noise frequency",
+      "description": "How fine that roughness is.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "Blurs the arm edges.",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

@@ -1,0 +1,454 @@
+<!doctype html>
+<!--
+  TV Power Off
+
+  A scene ended the way a tube ends: the picture collapses into a glowing line, pinches to a
+  phosphor dot and the frame is left dead black. The scene here is a render queue.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/tv-power-off/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  remocn captures its React children with the HTML-in-Canvas API, which a render machine does
+  not have. This block draws remocn's preview scene (a render queue) (text and colours from the variables) on a
+  2D canvas and runs remocn's fragment shader over it, so it applies the look to its own content,
+  not to the host video behind it.
+-->
+<html
+  lang="en"
+  data-composition-id="tv-power-off"
+  data-composition-duration="2.0667"
+  data-composition-variables='[{"id": "title", "type": "string", "role": "content", "label": "Title", "description": "Small heading above the list in the sample scene.", "default": "Render queue"}, {"id": "items", "type": "string", "role": "content", "label": "Rows", "description": "Rows of the list as name | status, separated by semicolons (up to 5).", "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"}, {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background of the list scene.", "default": "#101828"}, {"id": "delay", "type": "number", "role": "style", "label": "Delay", "description": "Frames of untouched picture before the power-off starts (30 per second).", "default": 25, "min": 0, "max": 60, "step": 1, "unit": "frames"}, {"id": "length", "type": "number", "role": "style", "label": "Length", "description": "Frames the collapse takes.", "default": 18, "min": 8, "max": 30, "step": 1, "unit": "frames"}, {"id": "gain", "type": "number", "role": "style", "label": "Gain", "description": "How much the squashed picture brightens as it collapses.", "default": 1, "min": 0, "max": 2, "step": 0.05}, {"id": "afterglow", "type": "number", "role": "style", "label": "Afterglow", "description": "Size of the glowing line and dot.", "default": 1, "min": 0, "max": 2, "step": 0.05}, {"id": "phosphor", "type": "color", "role": "style", "label": "Phosphor", "description": "Colour of the glow.", "default": "#d8ecff"}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. The collapsed line is a pixel thin at the end; lower renders faster but softens it.", "default": 1, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TV Power Off</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .tvo-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .tvo-canvas,
+        .tvo-scene {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .tvo-scene {
+          display: none;
+        }
+        .tvo-off .tvo-canvas {
+          display: none;
+        }
+        .tvo-off .tvo-fb {
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="tv-power-off" data-duration="2.0667" data-fps="30">
+        <div id="tvo-clip" class="tvo-stage clip" data-start="0" data-duration="2.0667" data-track-index="0">
+          <canvas id="tvo-scene0" class="tvo-scene tvo-fb"></canvas>
+          <canvas id="tvo-canvas" class="tvo-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "tv-power-off";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("tvo-clip");
+            var canvas = document.getElementById("tvo-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#ffffff").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "title", "type": "string", "default": "Render queue"}, {"id": "items", "type": "string", "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"}, {"id": "background", "type": "color", "default": "#101828"}, {"id": "delay", "type": "number", "default": 25, "min": 0, "max": 60}, {"id": "length", "type": "number", "default": 18, "min": 8, "max": 30}, {"id": "gain", "type": "number", "default": 1, "min": 0, "max": 2}, {"id": "afterglow", "type": "number", "default": 1, "min": 0, "max": 2}, {"id": "phosphor", "type": "color", "default": "#d8ecff"}, {"id": "resolution", "type": "number", "default": 1, "min": 0.25, "max": 1}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else if (d.type === "enum") V[d.id] = d.options.indexOf(raw) >= 0 ? raw : d.default;
+              else V[d.id] = typeof raw === "string" && raw.trim() ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var res = V.resolution;
+            var cw = Math.max(2, Math.round(W * res));
+            var ch = Math.max(2, Math.round(H * res));
+            var sceneCanvases = ["tvo-scene0"].map(function (id) {
+              var el = document.getElementById(id);
+              el.width = cw;
+              el.height = ch;
+              return el;
+            });
+
+            var SANS = "Geist, -apple-system, BlinkMacSystemFont, sans-serif";
+            var MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+            var INK = "#f2f2f2";
+            var MUTED = "#8b8f9a";
+            var TONES = ["#a1eebd", "#ffb38e", "#d4b3ff"];
+            var S = Math.min(W / 940, H / 720);
+            function setFont(ctx, weight, size, family) { ctx.font = weight + " " + size + "px " + family; }
+            function fitFont(ctx, text, maxWidth, weight, size, family) {
+              setFont(ctx, weight, size, family);
+              var w = ctx.measureText(text).width;
+              if (w > maxWidth) { size *= maxWidth / w; setFont(ctx, weight, size, family); }
+              return size;
+            }
+            function setSpacing(ctx, px) { if ("letterSpacing" in ctx) ctx.letterSpacing = px + "px"; }
+            function wrapLines(ctx, text, maxWidth) {
+              var words = String(text).split(/\s+/).filter(Boolean);
+              var lines = [];
+              var line = "";
+              words.forEach(function (word) {
+                var next = line ? line + " " + word : word;
+                if (line && ctx.measureText(next).width > maxWidth) { lines.push(line); line = word; }
+                else line = next;
+              });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function pairs(text, max) {
+              return String(text).split(";")
+                .map(function (row) { return row.split("|").map(function (part) { return part.trim(); }); })
+                .filter(function (row) { return row[0]; })
+                .slice(0, max);
+            }
+            function begin(ctx, cw, ch, fill) {
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = fill;
+              ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "middle";
+              ctx.textAlign = "left";
+              setSpacing(ctx, 0);
+            }
+
+
+            // Sample scene "B": a render queue (remocn's CanvasSceneB), laid out for any frame size.
+            var rows = pairs(V.items, 5);
+            function drawB(canvas) {
+              var ctx = canvas.getContext("2d");
+              begin(ctx, canvas.width, canvas.height, V.background);
+              var s = S, pad = 96 * s, inner = W - pad * 2;
+              var titleH = 41 * s, rowH = 120 * s, line = Math.max(1, s);
+              var total = titleH + 34 * s + rows.length * (rowH + line);
+              var y = (H - total) / 2;
+              ctx.fillStyle = MUTED;
+              fitFont(ctx, V.title, inner, 400, 34 * s, SANS);
+              ctx.fillText(V.title, pad, y + titleH / 2);
+              y += titleH + 34 * s;
+              rows.forEach(function (row, i) {
+                ctx.fillStyle = "#23304a";
+                ctx.fillRect(pad, y, inner, line);
+                var mid = y + line + rowH / 2;
+                var label = row[1] || "";
+                var pillW = 0;
+                if (label) {
+                  var labelSize = fitFont(ctx, label, inner * 0.4, 500, 30 * s, SANS);
+                  pillW = ctx.measureText(label).width + 52 * s;
+                  var pillH = labelSize * 1.2 + 24 * s;
+                  var px = pad + inner - pillW;
+                  ctx.fillStyle = TONES[i % TONES.length];
+                  ctx.beginPath();
+                  ctx.roundRect(px, mid - pillH / 2, pillW, pillH, pillH / 2);
+                  ctx.fill();
+                  ctx.fillStyle = V.background;
+                  ctx.textAlign = "center";
+                  ctx.fillText(label, px + pillW / 2, mid);
+                  ctx.textAlign = "left";
+                }
+                ctx.fillStyle = INK;
+                fitFont(ctx, row[0], inner - pillW - 24 * s, 400, 44 * s, MONO);
+                ctx.fillText(row[0], pad, mid);
+                y += rowH + line;
+              });
+            }
+
+            function drawScenes() {
+              drawB(sceneCanvases[0]);
+            }
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 a_pos;",
+              "out vec2 v_uv;",
+              "void main() {",
+              "  v_uv = vec2(a_pos.x * 0.5 + 0.5, 0.5 - a_pos.y * 0.5);",
+              "  gl_Position = vec4(a_pos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+
+uniform sampler2D u_scene;
+uniform vec2 u_resolution;
+uniform float u_aspect;
+uniform float u_progress;
+uniform float u_gain;
+uniform float u_afterglow;
+uniform vec3 u_phosphor;
+
+in vec2 v_uv;
+out vec4 outColor;
+
+const int TAPS = 32;
+const int COLUMN_TAPS = 8;
+const float GOLDEN = 0.6180339887;
+const float COLLAPSE_END = 0.6000;
+const float PINCH_END = 0.8200;
+const float MIN_SQUASH = 0.00550;
+const float MIN_PINCH = 0.00400;
+const float CONCENTRATION = 0.3000;
+const float DECAY_CURVE = 2.6000;
+const float BLACKOUT_IN = 0.0600;
+
+void main() {
+  float p = u_progress;
+
+  if (p <= 0.0) {
+    outColor = texture(u_scene, v_uv);
+    return;
+  }
+  if (p >= 1.0) {
+    outColor = vec4(0.0, 0.0, 0.0, 1.0);
+    return;
+  }
+
+  float collapse = clamp(p / COLLAPSE_END, 0.0, 1.0);
+  float pinch = clamp((p - COLLAPSE_END) / (PINCH_END - COLLAPSE_END), 0.0, 1.0);
+  float decayed = clamp((p - PINCH_END) / (1.0 - PINCH_END), 0.0, 1.0);
+
+  vec2 scale = vec2(pow(MIN_PINCH, pinch), pow(MIN_SQUASH, collapse));
+  vec2 centered = (v_uv - 0.5) / scale + 0.5;
+  vec2 span = 1.0 / (scale * u_resolution);
+
+  vec3 sum = vec3(0.0);
+  for (int i = 0; i < TAPS; i++) {
+    float fi = float(i);
+    vec2 at = centered + vec2(
+      (fract(fi * GOLDEN + 0.5) - 0.5) * span.x,
+      ((fi + 0.5) / float(TAPS) - 0.5) * span.y
+    );
+    vec2 inside = step(vec2(0.0), at) * step(at, vec2(1.0));
+    sum += texture(u_scene, at).rgb * inside.x * inside.y;
+  }
+
+  float concentrate = pow(1.0 / (scale.x * scale.y), CONCENTRATION);
+  vec3 light =
+    (sum / float(TAPS)) * (1.0 + (concentrate - 1.0) * max(u_gain, 0.0));
+
+  float glow = max(u_afterglow, 0.0);
+  float bleed = smoothstep(0.2, 0.8, collapse) * (1.0 - pinch) * glow;
+
+  if (bleed > 0.0) {
+    vec3 column = vec3(0.0);
+    float cx = clamp(centered.x, 0.0, 1.0);
+    for (int i = 0; i < COLUMN_TAPS; i++) {
+      column +=
+        texture(u_scene, vec2(cx, (float(i) + 0.5) / float(COLUMN_TAPS))).rgb;
+    }
+    column /= float(COLUMN_TAPS);
+
+    float dy = v_uv.y - 0.5;
+    float reach = 0.02 + 0.03 * collapse;
+    light +=
+      column *
+      mix(vec3(1.0), u_phosphor, 0.65) *
+      exp(-(dy * dy) / (reach * reach)) *
+      bleed *
+      0.9;
+  }
+
+  if (pinch > 0.0) {
+    vec2 d = (v_uv - 0.5) * vec2(u_aspect, 1.0);
+    float radius = max(0.045 * glow, 0.0005);
+    light +=
+      u_phosphor *
+      exp(-dot(d, d) / (radius * radius)) *
+      smoothstep(0.0, 0.5, pinch) *
+      1.15;
+  }
+
+  light *= pow(max(1.0 - decayed, 0.0001), DECAY_CURVE);
+
+  float blackout = smoothstep(0.0, BLACKOUT_IN, p);
+  outColor = vec4(
+    clamp(light, 0.0, 1.0),
+    mix(texture(u_scene, v_uv).a, 1.0, blackout)
+  );
+}`;
+
+            canvas.width = cw;
+            canvas.height = ch;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            var upload = function () {};
+            var extraUpload = function () {};
+            var frameFn = function () {};
+            var texUnits = [];
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(program, "a_pos");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+              function makeTexture(unit) {
+                var texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                return texture;
+              }
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              ["u_scene"].forEach(function (name, unit) {
+                makeTexture(unit);
+                gl.uniform1i(u(name), unit);
+              });
+              gl.uniform1f(u("u_aspect"), W / H);
+              var frameLoc = u("u_frame");
+              var timeLoc = u("u_time");
+              upload = function () {
+                sceneCanvases.forEach(function (el, unit) {
+                  gl.activeTexture(gl.TEXTURE0 + unit);
+                  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, el);
+                });
+                extraUpload();
+              };
+
+              gl.uniform2f(u("u_resolution"), cw, ch);
+              gl.uniform1f(u("u_gain"), V.gain);
+              gl.uniform1f(u("u_afterglow"), V.afterglow);
+              var glowColor = rgb(V.phosphor);
+              gl.uniform3f(u("u_phosphor"), glowColor[0], glowColor[1], glowColor[2]);
+              var progressLoc = u("u_progress");
+              frameFn = function (frame) {
+                gl.uniform1f(progressLoc, Math.min(1, Math.max(0, (frame - V.delay) / Math.max(1, V.length))));
+              };
+
+              paint = function (frame) {
+                gl.uniform1f(frameLoc, frame);
+                gl.uniform1f(timeLoc, frame / 30);
+                frameFn(frame, frame / 30);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+              };
+            } catch (err) {
+              stage.classList.add("tvo-off");
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            // The scenes are redrawn whenever a web font finishes loading, so no frame keeps a fallback face.
+            var fontEpoch = 0;
+            var sceneEpoch = -1;
+            var lastFrame = 0;
+            function render(frame) {
+              lastFrame = frame;
+              if (sceneEpoch !== fontEpoch) {
+                sceneEpoch = fontEpoch;
+                drawScenes();
+                upload();
+              }
+              if (paint) paint(frame);
+            }
+            if (document.fonts && document.fonts.load) {
+              ["400 34px Geist", "500 30px Geist", "600 44px Geist", "400 44px 'Geist Mono'"].forEach(function (face) {
+                document.fonts.load(face).then(function () { fontEpoch++; render(lastFrame); }, function () {});
+              });
+            }
+
+            var total = parseFloat(root.dataset.duration || "2.0667");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { render(Math.round(clock.frame)); }
+            }, 0);
+            render(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

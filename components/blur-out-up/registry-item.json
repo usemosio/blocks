@@ -1,0 +1,126 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "blur-out-up",
+  "type": "hyperframes:component",
+  "title": "Blur Out Up",
+  "description": "Words arrive clean and depart upward with increasing blur for airy exits.",
+  "tags": [
+    "text-effects",
+    "blur",
+    "words",
+    "exit",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.3,
+    1.0,
+    2.6,
+    2.8
+  ],
+  "useWhen": [
+    "A title or tagline needs a graceful upward exit before the next scene cuts in.",
+    "An airy, editorial tone: text that drifts rather than snaps away."
+  ],
+  "avoidWhen": [
+    "You want a blurred entrance that resolves to crisp: use focus-blur-resolve.",
+    "Multi-line blocks where per-word stagger drags: use line-by-line-slide.",
+    "A simple fade is enough: use fade-through."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/blur-out-up/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "blur-out-up.html",
+      "target": "compositions/components/blur-out-up.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Words that arrive, then drift up and blur out.",
+      "default": "Clear in, airy out."
+    },
+    {
+      "id": "stagger_delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Stagger",
+      "description": "Frames between one word and the next.",
+      "default": 1,
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

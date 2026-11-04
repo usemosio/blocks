@@ -1,0 +1,184 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "displacement",
+  "type": "hyperframes:component",
+  "title": "Displacement",
+  "description": "The frame shears into a grid of tiles that slide out of register with red/blue fringing and film grain, swap to the next scene mid-slide, then settle back. Runs its WebGL shader over two built-in panels (a stat and a bar chart, then a render queue; text and colours from variables), not over the host's scenes: 45 frames of the first panel, a 18-frame transition, then the second panel. To use it between your own scenes, copy the shader into your composition and feed it your two frames as textures.",
+  "tags": [
+    "transition",
+    "shader",
+    "displacement",
+    "glitch",
+    "tech",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "transitions",
+  "duration": 3.6,
+  "useWhen": [
+    "A cut in a tech or interface demo should read as the picture knocked out of register rather than blended.",
+    "The rhythm is fast: the whole frame displaces at once, in well under a second.",
+    "The scenes are structured and graphic, so tiles sliding out of alignment are legible."
+  ],
+  "avoidWhen": [
+    "You want the tearing concentrated in horizontal bands with a hard cut: use glitch-cut.",
+    "The moment should feel calm or premium: this is a deliberate malfunction; use zoom-blur."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/displacement/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "displacement.html",
+      "target": "compositions/components/displacement.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small heading above the list in the sample scene.",
+      "default": "Render queue"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "Rows of the list as name | status, separated by semicolons (up to 5).",
+      "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background of the list scene.",
+      "default": "#101828"
+    },
+    {
+      "id": "grid",
+      "type": "number",
+      "role": "style",
+      "label": "Grid",
+      "description": "Tiles across the frame.",
+      "default": 60,
+      "min": 4,
+      "max": 100,
+      "step": 2
+    },
+    {
+      "id": "cell_aspect",
+      "type": "number",
+      "role": "style",
+      "label": "Cell aspect",
+      "description": "Height of a tile relative to its width.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.25
+    },
+    {
+      "id": "shift",
+      "type": "number",
+      "role": "style",
+      "label": "Shift",
+      "description": "How far tiles slide.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "aberration",
+      "type": "number",
+      "role": "style",
+      "label": "Aberration",
+      "description": "Red/blue fringing on the sliding tiles.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "grain",
+      "type": "number",
+      "role": "style",
+      "label": "Grain",
+      "description": "Film grain during the shear.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "stagger",
+      "type": "number",
+      "role": "style",
+      "label": "Stagger",
+      "description": "How much tiles start at different moments.",
+      "default": 0.45,
+      "min": 0,
+      "max": 0.85,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Tiles and grain are coarse; 0.75 matches 1 in the stills.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "checkAt": [
+    1.167,
+    1.68,
+    1.89,
+    2.5
+  ],
+  "webgl": true
+}

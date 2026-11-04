@@ -1,0 +1,179 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "code-morph",
+  "type": "hyperframes:component",
+  "title": "Code Morph",
+  "description": "A code panel morphs between versions of a file: surviving tokens glide to their new line and column, removed code blurs out and new code fades in. The clip is 4.6 s long for the default two versions and 36-frame morph.",
+  "tags": [
+    "ui-blocks",
+    "code",
+    "morph",
+    "developer",
+    "remocn-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 4.6,
+  "checkAt": [
+    0.3,
+    1.8,
+    2.2,
+    4.3
+  ],
+  "useWhen": [
+    "A launch or product demo needs to show an API getting simpler, with before and after code in one panel and the surviving tokens visibly travelling to their new places.",
+    "A refactor, a new SDK call or a config change should read as one continuous edit instead of a hard cut between two screenshots.",
+    "A walkthrough builds one file up in two to four steps, each change landing on a highlighted line."
+  ],
+  "avoidWhen": [
+    "The code should simply appear line by line, with no before and after: use a code block reveal.",
+    "The code should be typed out character by character: use a terminal or typewriter effect.",
+    "The camera should scan a long file while it reveals."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/code-morph/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "code-morph.html",
+      "target": "compositions/components/code-morph.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "filename",
+      "type": "string",
+      "role": "content",
+      "label": "Filename",
+      "description": "Name shown on the editor tab.",
+      "default": "invoices.tsx"
+    },
+    {
+      "id": "code_before",
+      "type": "string",
+      "role": "content",
+      "label": "Code before",
+      "description": "First version of the file. Leave empty for the sample.",
+      "default": ""
+    },
+    {
+      "id": "code_after",
+      "type": "string",
+      "role": "content",
+      "label": "Code after",
+      "description": "Version the panel morphs into. Leave empty for the sample.",
+      "default": ""
+    },
+    {
+      "id": "morph_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Morph at",
+      "description": "Frame the morph into the second version starts.",
+      "default": 48,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "steps",
+      "type": "string",
+      "role": "content",
+      "label": "Steps",
+      "description": "Optional JSON array of {at, code} versions (at = start frame at 30 fps). Overrides code before and after.",
+      "default": ""
+    },
+    {
+      "id": "theme",
+      "type": "enum",
+      "role": "style",
+      "label": "Theme",
+      "description": "Light or dark editor panel.",
+      "default": "dark",
+      "options": [
+        {
+          "value": "dark",
+          "label": "Dark"
+        },
+        {
+          "value": "light",
+          "label": "Light"
+        }
+      ]
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Highlight bar and string/number color.",
+      "default": "#0ea5e9"
+    },
+    {
+      "id": "morph_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Morph frames",
+      "description": "Frames each morph takes.",
+      "default": 36,
+      "min": 12,
+      "max": 90,
+      "step": 1,
+      "unit": "frames"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Code size in pixels at a 1280 x 720 frame; it scales with the frame.",
+      "default": 20,
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "highlight",
+      "type": "boolean",
+      "role": "style",
+      "label": "Highlight changes",
+      "description": "Hold a short accent highlight on the changed lines.",
+      "default": true
+    },
+    {
+      "id": "line_numbers",
+      "type": "boolean",
+      "role": "style",
+      "label": "Line numbers",
+      "description": "Show the line number gutter.",
+      "default": true
+    },
+    {
+      "id": "window_dots",
+      "type": "boolean",
+      "role": "style",
+      "label": "Window dots",
+      "description": "Show the three window dots in the title bar.",
+      "default": true
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

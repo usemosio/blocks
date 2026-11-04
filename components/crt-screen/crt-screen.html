@@ -1,0 +1,387 @@
+<!doctype html>
+<!--
+  CRT Screen
+
+  A scene behind curved glass: barrel distortion, an RGB phosphor mask, scanlines that bow with
+  the tube, bloom around bright text and a rim that falls away into black.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/crt-screen/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  remocn captures its React children with the HTML-in-Canvas API, which a render machine does
+  not have. This block draws remocn's preview scene (a render queue, text from the variables) on a
+  2D canvas and runs remocn's fragment shader over it, so it applies the look to its own content,
+  not to the host video behind it.
+-->
+<html
+  lang="en"
+  data-composition-id="crt-screen"
+  data-composition-duration="3"
+  data-composition-variables='[
+    { "id": "title", "type": "string", "role": "content", "label": "Title", "description": "Small heading above the list.", "default": "Render queue" },
+    { "id": "items", "type": "string", "role": "content", "label": "Rows", "description": "Rows of the list as name | status, separated by semicolons (up to 5).", "default": "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued" },
+    { "id": "background", "type": "color", "role": "style", "label": "Background", "description": "Background of the scene on the glass.", "default": "#101828" },
+    { "id": "curvature", "type": "number", "role": "style", "label": "Curvature", "description": "How far the tube bulges. At 0 the frame stays flat and nothing is clipped at the corners.", "default": 1, "min": 0, "max": 2, "step": 0.05 },
+    { "id": "scanlines", "type": "number", "role": "style", "label": "Scanlines", "description": "Strength of the horizontal lines, which bow with the picture.", "default": 1, "min": 0, "max": 1.5, "step": 0.05 },
+    { "id": "mask_scale", "type": "number", "role": "style", "label": "Mask scale", "description": "Width of one phosphor stripe in frame pixels; a triad is three times this. Low reads as a fine grille, high as a coarse arcade tube.", "default": 2, "min": 1, "max": 6, "step": 1, "unit": "px" },
+    { "id": "vignette", "type": "number", "role": "style", "label": "Vignette", "description": "How hard the picture falls off toward the rim.", "default": 1, "min": 0, "max": 1.5, "step": 0.05 },
+    { "id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. The phosphor mask needs 1; lower renders faster but softens it.", "default": 1, "min": 0.25, "max": 1, "step": 0.05 }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>CRT Screen</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .crt-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .crt-canvas,
+        .crt-scene {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .crt-scene,
+        .crt-fallback {
+          display: none;
+        }
+        .crt-fallback {
+          position: absolute;
+          inset: 0;
+        }
+        .crt-scan {
+          background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.34) 0px, rgba(0, 0, 0, 0.34) 1.5px, transparent 1.5px, transparent 3px);
+        }
+        .crt-vig {
+          background: radial-gradient(ellipse 82% 78% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.72) 100%);
+        }
+        .crt-off .crt-canvas {
+          display: none;
+        }
+        .crt-off .crt-scene,
+        .crt-off .crt-fallback {
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="crt-screen" data-duration="3" data-fps="30">
+        <div id="crt-clip" class="crt-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <canvas id="crt-scene" class="crt-scene"></canvas>
+          <div id="crt-scan" class="crt-fallback crt-scan"></div>
+          <div id="crt-vig" class="crt-fallback crt-vig"></div>
+          <canvas id="crt-canvas" class="crt-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "crt-screen";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("crt-clip");
+            var canvas = document.getElementById("crt-canvas");
+            var scene = document.getElementById("crt-scene");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value.trim() : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+
+            var title = str(vars.title, "Render queue");
+            var rows = str(vars.items, "intro-scene.mp4 | Done; feature-tour.mp4 | Rendering; pricing-outro.mp4 | Queued")
+              .split(";")
+              .map(function (row) { return row.split("|").map(function (part) { return part.trim(); }); })
+              .filter(function (row) { return row[0]; })
+              .slice(0, 5);
+            var background = hex(vars.background, "#101828");
+            var curvature = num(vars.curvature, 1, 0, 2);
+            var scanlines = num(vars.scanlines, 1, 0, 1.5);
+            var maskScale = num(vars.mask_scale, 2, 1, 6);
+            var vignette = num(vars.vignette, 1, 0, 1.5);
+            var resolution = num(vars.resolution, 1, 0.25, 1);
+
+            // ---- The scene: remocn's preview (CanvasSceneB), laid out for 1280×720 and scaled to the frame.
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * resolution));
+            var ch = Math.max(2, Math.round(H * resolution));
+            scene.width = cw;
+            scene.height = ch;
+            var SANS = "Geist, -apple-system, BlinkMacSystemFont, sans-serif";
+            var MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+            var INK = "#f2f2f2";
+            var MUTED = "#8b8f9a";
+            var TONES = ["#a1eebd", "#ffb38e", "#d4b3ff"];
+            function setFont(ctx, weight, size, family) {
+              ctx.font = weight + " " + size + "px " + family;
+            }
+            function fitFont(ctx, text, maxWidth, weight, size, family) {
+              setFont(ctx, weight, size, family);
+              var w = ctx.measureText(text).width;
+              if (w > maxWidth) {
+                size *= maxWidth / w;
+                setFont(ctx, weight, size, family);
+              }
+              return size;
+            }
+            function drawScene() {
+              var ctx = scene.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = background;
+              ctx.fillRect(0, 0, W, H);
+              var s = Math.min(W / 940, H / 720);
+              var pad = 96 * s;
+              var inner = W - pad * 2;
+              var titleH = 41 * s;
+              var rowH = 120 * s;
+              var line = Math.max(1, s);
+              var total = titleH + 34 * s + rows.length * (rowH + line);
+              var y = (H - total) / 2;
+              ctx.textBaseline = "middle";
+              ctx.textAlign = "left";
+              ctx.fillStyle = MUTED;
+              fitFont(ctx, title, inner, 400, 34 * s, SANS);
+              ctx.fillText(title, pad, y + titleH / 2);
+              y += titleH + 34 * s;
+              rows.forEach(function (row, i) {
+                ctx.fillStyle = "#23304a";
+                ctx.fillRect(pad, y, inner, line);
+                var mid = y + line + rowH / 2;
+                var label = row[1] || "";
+                var pillW = 0;
+                if (label) {
+                  var labelSize = fitFont(ctx, label, inner * 0.4, 500, 30 * s, SANS);
+                  pillW = ctx.measureText(label).width + 52 * s;
+                  var pillH = labelSize * 1.2 + 24 * s;
+                  var px = pad + inner - pillW;
+                  ctx.fillStyle = TONES[i % TONES.length];
+                  ctx.beginPath();
+                  ctx.roundRect(px, mid - pillH / 2, pillW, pillH, pillH / 2);
+                  ctx.fill();
+                  ctx.fillStyle = background;
+                  ctx.textAlign = "center";
+                  ctx.fillText(label, px + pillW / 2, mid);
+                  ctx.textAlign = "left";
+                }
+                ctx.fillStyle = INK;
+                fitFont(ctx, row[0], inner - pillW - 24 * s, 400, 44 * s, MONO);
+                ctx.fillText(row[0], pad, mid);
+                y += rowH + line;
+              });
+            }
+
+            // ---- remocn's shader (canvas-presentation vertex shader, crt-screen fragment shader).
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 a_pos;",
+              "out vec2 v_uv;",
+              "void main() {",
+              "  v_uv = vec2(a_pos.x * 0.5 + 0.5, 0.5 - a_pos.y * 0.5);",
+              "  gl_Position = vec4(a_pos, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+            var FRAGMENT = [
+              "#version 300 es",
+              "precision highp float;",
+              "uniform sampler2D u_scene;",
+              "uniform float u_frame;",
+              "uniform float u_curvature;",
+              "uniform float u_scanlines;",
+              "uniform float u_mask_scale;",
+              "uniform float u_vignette;",
+              "in vec2 v_uv;",
+              "out vec4 outColor;",
+              "const float PI = 3.141592653589793;",
+              "const float SCAN_LINES = 240.0;",
+              "vec2 warpTube(vec2 uv, float k) {",
+              "  vec2 p = uv * 2.0 - 1.0;",
+              "  float x2 = p.x * p.x;",
+              "  float y2 = p.y * p.y;",
+              "  p.x *= 1.0 + k * 0.11 * y2;",
+              "  p.y *= 1.0 + k * 0.17 * x2;",
+              "  p /= 1.0 + k * 0.045;",
+              "  return p * 0.5 + 0.5;",
+              "}",
+              "vec3 phosphorMask(float x, float scale) {",
+              "  float sub = mod(floor(x / max(scale, 1.0)), 3.0);",
+              "  vec3 lit = vec3(",
+              "    step(sub, 0.5),",
+              "    step(0.5, sub) * step(sub, 1.5),",
+              "    step(1.5, sub)",
+              "  );",
+              "  return mix(vec3(0.34), vec3(1.0), lit);",
+              "}",
+              "void main() {",
+              "  vec2 uv = warpTube(v_uv, u_curvature);",
+              "  vec2 edge =",
+              "    smoothstep(vec2(0.0), vec2(0.005), uv) *",
+              "    smoothstep(vec2(0.0), vec2(0.005), 1.0 - uv);",
+              "  float inside = edge.x * edge.y;",
+              "  vec4 base = texture(u_scene, uv);",
+              "  vec3 spread = vec3(0.0);",
+              "  for (int i = -2; i <= 2; i++) {",
+              "    spread += texture(u_scene, uv + vec2(float(i) * 0.0018, 0.0)).rgb;",
+              "  }",
+              "  spread /= 5.0;",
+              "  vec3 bloom = max(spread - 0.5, vec3(0.0));",
+              "  vec3 color = base.rgb;",
+              "  color *= phosphorMask(gl_FragCoord.x, u_mask_scale);",
+              "  color += bloom * 0.75;",
+              "  float scan = mix(1.0, 0.5 + 0.5 * cos(uv.y * SCAN_LINES * PI * 2.0), 0.55);",
+              "  color *= mix(1.0, scan, clamp(u_scanlines, 0.0, 1.5));",
+              "  vec2 vc = uv * 2.0 - 1.0;",
+              "  float radius = length(vc * vec2(0.86, 1.0));",
+              "  color *= mix(1.0, smoothstep(1.6, 0.35, radius), clamp(u_vignette, 0.0, 1.5));",
+              "  color *= 1.0 + 0.012 * sin(u_frame * PI / 30.0);",
+              "  color *= inside;",
+              "  outColor = vec4(clamp(color, 0.0, 1.0), max(base.a, 1.0 - inside));",
+              "}"
+            ].join("\n");
+
+            canvas.width = cw;
+            canvas.height = ch;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            var upload = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(program, "a_pos");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+              var texture = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, texture);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              gl.uniform1i(u("u_scene"), 0);
+              gl.uniform1f(u("u_curvature"), curvature);
+              gl.uniform1f(u("u_scanlines"), scanlines);
+              // remocn measures the stripe in output pixels; the canvas is `resolution` × the frame.
+              gl.uniform1f(u("u_mask_scale"), maskScale * resolution);
+              gl.uniform1f(u("u_vignette"), vignette);
+              var frameLoc = u("u_frame");
+              upload = function () {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scene);
+              };
+              paint = function (frame) {
+                gl.uniform1f(frameLoc, frame);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+              };
+            } catch (err) {
+              stage.classList.add("crt-off");
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            // The scene is redrawn whenever a web font finishes loading, so no frame keeps a fallback face.
+            var fontEpoch = 0;
+            var sceneEpoch = -1;
+            var lastFrame = 0;
+            function render(frame) {
+              lastFrame = frame;
+              if (sceneEpoch !== fontEpoch) {
+                sceneEpoch = fontEpoch;
+                drawScene();
+                upload();
+              }
+              if (paint) paint(frame);
+            }
+            if (document.fonts && document.fonts.load) {
+              ["400 34px Geist", "500 30px Geist", "400 44px 'Geist Mono'"].forEach(function (face) {
+                document.fonts.load(face).then(function () { fontEpoch++; render(lastFrame); }, function () {});
+              });
+            }
+
+            var total = parseFloat(root.dataset.duration || "3");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { render(Math.round(clock.frame)); }
+            }, 0);
+            render(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

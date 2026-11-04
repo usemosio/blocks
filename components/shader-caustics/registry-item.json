@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-caustics",
+  "type": "hyperframes:component",
+  "title": "Caustics",
+  "description": "A web of refracted-light filaments, denser toward the bottom of the frame, drifts over a near-black floor, drawn in WebGL. An accent color can tint the filaments.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "light",
+    "water",
+    "caustics",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "Water, light, or premium ambient backdrops where refracted-light filaments fit the mood.",
+    "A calm, elegant scene wants motion without a strong directional pull.",
+    "You want the light density to build toward one edge of the frame (denser toward the bottom by default)."
+  ],
+  "avoidWhen": [
+    "You want structured cellular noise: use shader-voronoi.",
+    "You want soft fog instead of filaments: use shader-perlin-noise."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-caustics/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-caustics.html",
+      "target": "compositions/components/shader-caustics.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Two colors, comma separated: the floor, then the filament light.",
+      "default": "#0a0a12, #c8c8d0"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Tint carried by the light or layers (see Accent amount).",
+      "default": "#6733FF"
+    },
+    {
+      "id": "accent_amount",
+      "type": "number",
+      "role": "style",
+      "label": "Accent amount",
+      "description": "How much of the accent shows, 0 to 1. The original animates it from the host timeline.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Spatial frequency of the light web.",
+      "default": 5.2,
+      "min": 1,
+      "max": 16,
+      "step": 0.1
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "Overall brightness of the filaments.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

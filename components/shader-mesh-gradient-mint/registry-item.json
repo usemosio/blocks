@@ -1,0 +1,142 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-mesh-gradient-mint",
+  "type": "hyperframes:component",
+  "title": "Shader Mesh Gradient Mint",
+  "description": "Airy mint and sky-blue pastel wash around a deeper green core. A WebGL shader backdrop; the mint preset of shader-mesh-gradient.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "gradient",
+    "loop",
+    "preset",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5.0,
+  "useWhen": [
+    "A fresh health, finance or productivity intro on a light palette.",
+    "The frame is light, so dark foreground text and UI stay readable on top.",
+    "You want a finished Mesh Gradient look without tuning the palette and parameters yourself."
+  ],
+  "avoidWhen": [
+    "The video must use your brand colors: start from `shader-mesh-gradient` and set `colors`.",
+    "You want a darker, contrasting mood from the same shader: use `shader-mesh-gradient-ink`."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-mesh-gradient-mint/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-mesh-gradient-mint.html",
+      "target": "compositions/components/shader-mesh-gradient-mint.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "style",
+      "label": "Colors",
+      "description": "Up to 10 colors, comma separated, that blend into the gradient.",
+      "default": "#f2fff8, #9ff2c8, #3dd6a0, #c7f0ff, #1fae8c"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast the colors drift. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "distortion",
+      "type": "number",
+      "role": "style",
+      "label": "Distortion",
+      "description": "How much the color shapes bend.",
+      "default": 0.8,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "swirl",
+      "type": "number",
+      "role": "style",
+      "label": "Swirl",
+      "description": "How much the colors twist around the center.",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "grain_mixer",
+      "type": "number",
+      "role": "style",
+      "label": "Grain in the blend",
+      "description": "Grain that roughens the edges between colors.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "grain_overlay",
+      "type": "number",
+      "role": "style",
+      "label": "Grain overlay",
+      "description": "Film-like grain over the whole gradient.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole gradient.",
+      "default": 180,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the gradient in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; a soft gradient looks the same at 0.5.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

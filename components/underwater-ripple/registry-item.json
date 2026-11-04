@@ -1,0 +1,135 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "underwater-ripple",
+  "type": "hyperframes:component",
+  "title": "Underwater Ripple",
+  "description": "A scene seen from under moving water: three crossing wave fields refract the picture and split its colour a little at every ripple. The ripple closes on a whole number of cycles across the block, so it loops cleanly. Runs its WebGL shader over its own built-in scene (a stat and a bar chart; label, number and bars from variables), not over the host video.",
+  "tags": [
+    "filter",
+    "shader",
+    "water",
+    "ripple",
+    "refraction",
+    "loop",
+    "premium",
+    "webgl",
+    "remocn-port"
+  ],
+  "category": "filters",
+  "duration": 4.0,
+  "useWhen": [
+    "A scene should sit under water for its whole run: calm premium backdrops, ambient hero loops, a title card that needs motion without a direction.",
+    "The section loops, since the ripple closes exactly on a whole number of cycles."
+  ],
+  "avoidWhen": [
+    "The water should be its own layer rather than something the scene is seen through: use shader-caustics behind a crisp scene.",
+    "The scene carries small type that has to stay legible: refraction bends every edge it touches.",
+    "You want a single travelling wave: nothing here sweeps."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/underwater-ripple/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "underwater-ripple.html",
+      "target": "compositions/components/underwater-ripple.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Small caption above the number in the sample scene.",
+      "default": "Deploys this week"
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "role": "content",
+      "label": "Value",
+      "description": "The big number in the sample scene.",
+      "default": "2,481"
+    },
+    {
+      "id": "bars",
+      "type": "string",
+      "role": "content",
+      "label": "Bars",
+      "description": "Bar heights as percentages, separated by commas (up to 12); the last bar is highlighted.",
+      "default": "32,51,43,68,57,86,64,100"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight",
+      "description": "Colour of the last bar.",
+      "default": "#a1eebd"
+    },
+    {
+      "id": "amplitude",
+      "type": "number",
+      "role": "style",
+      "label": "Amplitude",
+      "description": "How far the picture is pushed by the ripples. Pixel sizes are for a 1280×720 frame and scale with the frame.",
+      "default": 7,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Size of the ripples; higher is finer.",
+      "default": 1,
+      "min": 0.2,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "style",
+      "label": "Speed",
+      "description": "Whole ripple cycles over the length of the block.",
+      "default": 2,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "dispersion",
+      "type": "number",
+      "role": "style",
+      "label": "Dispersion",
+      "description": "Colour split at the ripples.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Refraction is smooth; 0.75 matches 1 in the stills.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

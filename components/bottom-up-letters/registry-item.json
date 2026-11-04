@@ -1,0 +1,56 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "bottom-up-letters",
+  "type": "hyperframes:component",
+  "title": "Bottom-Up Letters",
+  "description": "Letters rise from below in a pronounced staircase, one symbol at a time.",
+  "tags": [
+    "text-effects",
+    "reveal",
+    "kinetic-type",
+    "letters",
+    "stagger",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 2,
+  "checkAt": [
+    0.1,
+    0.25,
+    0.4,
+    1.5
+  ],
+  "useWhen": [
+    "A short punchy word or acronym should land with clear, visible per-character energy.",
+    "A slow reveal cadence where the staircase wave is the hero moment, crisp and without blur."
+  ],
+  "avoidWhen": [
+    "The text is a full sentence: the stagger drags; use per-character-rise or mask-reveal-up.",
+    "You want blur or softness in the reveal: use blur-out-up or focus-blur-resolve.",
+    "The entrance should feel unified rather than letter by letter: use micro-scale-fade."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/bottom-up-letters/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "bottom-up-letters.html",
+      "target": "compositions/components/bottom-up-letters.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "Short word or acronym that rises in.", "default": "Shift"},
+    {"id": "stagger_delay", "type": "number", "role": "motion", "label": "Stagger", "description": "Frames between one letter and the next.", "default": 3, "min": 1, "max": 12, "step": 1, "unit": "frames"},
+    {"id": "distance", "type": "number", "role": "motion", "label": "Distance", "description": "How far below its place each letter starts.", "default": 46, "min": 0, "max": 120, "step": 1, "unit": "px"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.", "default": 72, "min": 12, "max": 240, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Text color.", "default": "#171717"},
+    {"id": "font_weight", "type": "enum", "role": "style", "label": "Font weight", "description": "Weight of the text.", "default": "600", "options": [{"value": "400", "label": "Regular"}, {"value": "500", "label": "Medium"}, {"value": "600", "label": "Semibold"}, {"value": "700", "label": "Bold"}]},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]
+}

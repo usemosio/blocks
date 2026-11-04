@@ -1,0 +1,173 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-water",
+  "type": "hyperframes:component",
+  "title": "Water",
+  "description": "Caustic light ripples across a dark water surface with gentle refraction, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "water",
+    "caustics",
+    "calm",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A scene wants a calm, aquatic atmosphere with gentle refracted highlights.",
+    "You need a cool, dark blue backdrop that moves slowly without pulling focus.",
+    "The brief calls for depth or flow imagery (data lakes, streaming, calm)."
+  ],
+  "avoidWhen": [
+    "The palette must be warm or vibrant: water reads cool by design; recolor via `color_highlight` and `color_back` or choose another shader.",
+    "You want sharp geometric motion: use shader-swirl or shader-dot-orbit.",
+    "Bright caustics would fight small text: lower `caustic` and `highlights` or use a solid backdrop."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-water/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-water.html",
+      "target": "compositions/components/shader-water.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Water color",
+      "description": "Base color of the water.",
+      "default": "#16202b"
+    },
+    {
+      "id": "color_highlight",
+      "type": "color",
+      "role": "style",
+      "label": "Highlight color",
+      "description": "Color of the caustic light.",
+      "default": "#7a9ab5"
+    },
+    {
+      "id": "highlights",
+      "type": "number",
+      "role": "style",
+      "label": "Highlights",
+      "description": "Strength of the caustic highlights. There is no image to refract here, so the light needs a higher value than the original default of 0.06 to show.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "layering",
+      "type": "number",
+      "role": "style",
+      "label": "Layering",
+      "description": "Adds a second caustic layer.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "edges",
+      "type": "number",
+      "role": "style",
+      "label": "Edges",
+      "description": "How far the ripples reach the frame edges.",
+      "default": 0.8,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "waves",
+      "type": "number",
+      "role": "style",
+      "label": "Waves",
+      "description": "Strength of the slow waves that push the ripples.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "caustic",
+      "type": "number",
+      "role": "style",
+      "label": "Caustic",
+      "description": "How much the caustics refract the surface.",
+      "default": 0.1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Size of the ripples.",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 0.8,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

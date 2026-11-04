@@ -1,0 +1,483 @@
+<!doctype html>
+<!--
+  Shader Light Tunnel
+
+  Fly straight through a field of light ribbons mapped into a tunnel.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/shader-light-tunnel/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  The field and halftone GLSL below are OpenShaders' original hero shaders (https://openshaders.com/@remocn),
+  shipped inside remocn's own source and licensed with it under the MIT licence above.
+-->
+<html
+  lang="en"
+  data-composition-id="shader-light-tunnel"
+  data-composition-duration="3"
+  data-composition-variables='[
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Flight speed.", "default": 1, "min": 0, "max": 5, "step": 0.1},
+    {"id": "twist", "type": "number", "role": "style", "label": "Twist", "description": "Spiral winding and circular motion of the ribbons.", "default": 0.7, "min": 0, "max": 2, "step": 0.05},
+    {"id": "spirals", "type": "number", "role": "style", "label": "Spirals", "description": "Repetitions of the ribbons around the tunnel.", "default": 3, "min": 1, "max": 6, "step": 1},
+    {"id": "glow", "type": "number", "role": "style", "label": "Glow", "description": "Light exposure.", "default": 1, "min": 0, "max": 3, "step": 0.05},
+    {"id": "depth", "type": "number", "role": "style", "label": "Depth", "description": "Camera perspective.", "default": 1, "min": 0.5, "max": 2, "step": 0.05},
+    {"id": "time_offset", "type": "number", "role": "style", "label": "Start time", "description": "Where the flight starts, in seconds.", "default": 0, "min": 0, "max": 60, "step": 0.1},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders much faster: the light field is costly to draw in software.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Light Tunnel</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--slt-fallback, #05050a);
+          pointer-events: none;
+        }
+        .slt-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .slt-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="shader-light-tunnel" data-duration="3" data-fps="30">
+        <div id="slt-clip" class="slt-stage clip" data-start="0" data-duration="3" data-track-index="0">
+          <canvas id="slt-canvas" class="slt-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("slt-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function pick(value, allowed, fallback) {
+              return allowed.indexOf(value) >= 0 ? value : fallback;
+            }
+            function parseColor(s) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(String(s).trim());
+              if (!m) return null;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              var a = h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1;
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255, a];
+            }
+            function colorList(value, fallback, max) {
+              var list = String(typeof value === "string" && value.trim() ? value : fallback)
+                .split(",").map(parseColor).filter(Boolean).slice(0, max);
+              return list.length ? list : fallback.split(",").map(parseColor).slice(0, max);
+            }
+            function color(value, fallback) {
+              return parseColor(value) || parseColor(fallback);
+            }
+            function css(c) {
+              return "rgba(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + "," + c[3] + ")";
+            }
+            function mulberry32(seed) {
+              return function () {
+                seed = (seed + 0x6d2b79f5) | 0;
+                var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            function colorArray(list, max) {
+              var flat = new Float32Array(max * 4);
+              list.forEach(function (c, i) { flat.set(c, i * 4); });
+              return flat;
+            }
+            var speed = num(vars.speed, 1, 0, 5);
+            var twist = num(vars.twist, 0.7, 0, 2);
+            var spirals = num(vars.spirals, 3, 1, 6);
+            var glow = num(vars.glow, 1, 0, 3);
+            var depth = num(vars.depth, 1, 0.5, 2);
+            var timeOffset = num(vars.time_offset, 0, 0, 60);
+            var resolution = num(vars.resolution, 0.5, 0.25, 1);
+
+            // Without WebGL the block still shows its palette as a plain gradient.
+            root.style.setProperty("--slt-fallback", "radial-gradient(circle at 50% 50%, #05050a, #2a1458 70%, #05050a)");
+
+            function L(p, name) {
+              var m = p.__locs || (p.__locs = {});
+              if (!(name in m)) m[name] = gl.getUniformLocation(p, name);
+              return m[name];
+            }
+
+            var VERTEX = [
+              "#version 300 es",
+              "void main() {",
+              "  vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));",
+              "  gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);",
+              "}"
+            ].join("\n");
+
+            var FIELD = [
+              "#version 300 es",
+              "precision highp float;",
+              "",
+              "uniform vec2 iResolution;",
+              "uniform float iTime;",
+              "  const float uMaterialTime = 0.0;",
+              "  uniform float uDepth;",
+              "  uniform float uTwist;",
+              "  uniform float uSpirals;",
+              "  uniform float uCameraZoom;",
+              "  vec2 tunnelPosition(vec2 frag) {",
+              "    vec2 view = (frag - iResolution * 0.5) / iResolution.y / uCameraZoom;",
+              "    float radius = max(length(view), 0.005);",
+              "    float z = 0.55 * uDepth / radius + iTime * 1.2;",
+              "    // Rotate the material explicitly so circular motion reads at every depth.",
+              "    // The camera and its centered projection remain fixed.",
+              "    // Integer angular repeats add ribbons without a seam or extra field passes.",
+              "    float angle = (atan(view.y, view.x)",
+              "      + (z * 0.3 + iTime * 1.5) * uTwist) * uSpirals;",
+              "    // Constant phase travels to smaller radii: r(t) = r(0) * exp(-2.4 * t).",
+              "    // Log spacing keeps the inward folds readable across the whole tunnel.",
+              "    float inward = log(radius / (0.55 * uDepth)) * 5.0 + iTime * 12.0;",
+              "    float ring = 0.68 + 0.1 * sin(inward);",
+              "    return vec2(cos(angle), sin(angle)) * ring",
+              "      + vec2(sin(inward) * 0.08, cos(inward) * 0.06 - 0.25);",
+              "  }",
+              "uniform float uLightMode;",
+              "uniform vec3 uDarkBackground;",
+              "uniform vec3 uLightBackground;",
+              "out vec4 fragColor;",
+              "",
+              "const float HUE = 0.663466752;",
+              "const float HUE_SPREAD = 0.314346701;",
+              "const float HUE_TRAVEL = 1.65112376;",
+              "const float CHROMA = 0.160295546;",
+              "const float LIGHTNESS = 0.537409723;",
+              "const float COLOUR_CYCLE = 0.124862425;",
+              "const float THETA = 2.12986207;",
+              "const float SHEAR = 0.968176901;",
+              "const float SHRINK = 0.955401778;",
+              "const float LAYERS = 72.0;",
+              "const float WARP_FREQ_X = 0.439311415;",
+              "const float WARP_FREQ_Y = 2.87923527;",
+              "const float WARP_AMP_X = 0.156202048;",
+              "const float WARP_AMP_Y = 0.0256033838;",
+              "const float ASPECT_X = 2.23183894;",
+              "const float ASPECT_Y = 0.15731883;",
+              "const float OFFSET_X = 0.375628948;",
+              "const float OFFSET_Y = -0.017801486;",
+              "const float TILT = 1.63293767;",
+              "const float ZOOM = 0.93135649;",
+              "const float CENTRE_X = -0.0956316143;",
+              "const float CENTRE_Y = -0.520057321;",
+              "const float GLOW_SIZE = 0.00201825937;",
+              "const float FALLOFF = 0.352821857;",
+              "const float VIGNETTE = 0.136085436;",
+              "const float FLOW_SPEED = 0.391012281;",
+              "const float FLOW_DIRECTION = 1.0;",
+              "const float BREATH_RATE = 0.382053256;",
+              "const float BREATH_AMOUNT = 0.0873704553;",
+              "const float PHASE = 56.3862724;",
+              "const float ECHO = 0.0;",
+              "const float ECHO_SHIFT = 0.178754866;",
+              "const float SOFTNESS = 0.00164903817;",
+              "const float LIGHT_SWING = 0.149726808;",
+              "",
+              "const float TAU = 6.28318530718;",
+              "",
+              "vec3 oklchToLinear(float L, float C, float h) {",
+              "  float a = C * cos(h), b = C * sin(h);",
+              "  float l_ = L + 0.3963377774 * a + 0.2158037573 * b;",
+              "  float m_ = L - 0.1055613458 * a - 0.0638541728 * b;",
+              "  float s_ = L - 0.0894841775 * a - 1.2914855480 * b;",
+              "  vec3 lms = vec3(l_, m_, s_);",
+              "  lms = lms * lms * lms;",
+              "  return mat3(4.0767416621, -1.2684380046, -0.0041960863,",
+              "              -3.3077115913, 2.6097574011, -0.7034186147,",
+              "              0.2309699292, -0.3413193965, 1.7076147010) * lms;",
+              "}",
+              "",
+              "float blueNoise(vec2 p, float frame) {",
+              "  p += 5.588238 * mod(frame, 64.0);",
+              "  return fract(52.9829189 * fract(0.06711056 * p.x + 0.00583715 * p.y));",
+              "}",
+              "",
+              "void main() {",
+              "  vec2 R = iResolution.xy;",
+              "  vec2 pos = tunnelPosition(gl_FragCoord.xy);",
+              "  float t = uMaterialTime * FLOW_SPEED * FLOW_DIRECTION + PHASE;",
+              "  float breath = (-sin(uMaterialTime * BREATH_RATE * 1.5) + sin(uMaterialTime * BREATH_RATE + 1.0)) * 0.25 + 0.5;",
+              "",
+              "  vec2 u = (pos - vec2(CENTRE_X, CENTRE_Y)) * (ZOOM - breath * BREATH_AMOUNT);",
+              "  float ct = cos(TILT), st = sin(TILT);",
+              "  u = mat2(ct, st, -st, ct) * u;",
+              "",
+              "  mat2 fold = mat2(cos(THETA), sin(THETA), -SHEAR, cos(THETA));",
+              "",
+              "  float hue0 = HUE * TAU;",
+              "  float hue1 = hue0 + HUE_SPREAD * TAU;",
+              "  vec3 color = vec3(0.0);",
+              "",
+              "  for (float i = 1.0; i <= 96.0; i += 1.0) {",
+              "    if (i > LAYERS) break;",
+              "    u.x += -sin(u.y * WARP_FREQ_X + t + i * 0.007) * WARP_AMP_X;",
+              "    u.y += -sin(u.x * WARP_FREQ_Y - t + i * 0.02) * WARP_AMP_Y;",
+              "    u = fold * u * SHRINK;",
+              "",
+              "    vec2 q = u - vec2(OFFSET_X + breath * 0.1, OFFSET_Y);",
+              "    vec2 s = vec2(q.x * ASPECT_X, q.y * ASPECT_Y);",
+              "    float glow = GLOW_SIZE / (dot(s, s) + SOFTNESS);",
+              "#ifndef SKIP_ECHO",
+              "    vec2 e = vec2((q.x - ECHO_SHIFT) * ASPECT_X, s.y);",
+              "    glow += ECHO * GLOW_SIZE / (dot(e, e) + SOFTNESS);",
+              "#endif",
+              "    glow *= 0.25 + breath * 0.4;",
+              "",
+              "    float r = length(u);",
+              "    float k = sin(i * COLOUR_CYCLE + t * 1.2 + r * HUE_TRAVEL) * 0.5 + 0.5;",
+              "    vec3 tint = clamp(oklchToLinear(LIGHTNESS + LIGHT_SWING * k, CHROMA * (0.75 + 0.35 * k), mix(hue0, hue1, k)), 0.0, 1.0);",
+              "    color += glow * tint * exp2(-r * FALLOFF);",
+              "  }",
+              "",
+              "  vec3 x = max(color, 0.0);",
+              "  color = (x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14);",
+              "  color = pow(clamp(color, 0.0, 1.0), vec3(0.85, 0.92, 0.98));",
+              "",
+              "  float edge = smoothstep(0.5, 1.6, length(pos));",
+              "  color *= 1.0 - edge * VIGNETTE;",
+              "",
+              "  vec3 dark = uDarkBackground + color * (1.0 - uDarkBackground);",
+              "  float strength = max(color.r, max(color.g, color.b));",
+              "  vec3 light = uLightBackground * (1.0 - strength) + color * 0.96;",
+              "  color = mix(dark, light, uLightMode);",
+              "",
+              "  color += (blueNoise(gl_FragCoord.xy, floor(uMaterialTime * 24.0)) - 0.5) / 255.0;",
+              "  fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);",
+              "}"
+            ].join("\n");
+
+            var HALFTONE = [
+              "#version 300 es",
+              "precision highp float;",
+              "",
+              "uniform sampler2D tScene;",
+              "uniform vec2 iResolution;",
+              "uniform float uGlow;",
+              "uniform float iTime;",
+              "uniform float uLightMode;",
+              "uniform vec3 uDarkBackground;",
+              "uniform vec3 uLightBackground;",
+              "uniform float uPixelRatio;",
+              "out vec4 fragColor;",
+              "",
+              "const float uStrength = 0.797335207;",
+              "const float uScale = 0.985214949;",
+              "const float uSeed = 0.435611069;",
+              "",
+              "const float TAU = 6.28318530718;",
+              "const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);",
+              "",
+              "vec3 toInk(vec3 c) { return mix(c - uDarkBackground, uLightBackground - c, uLightMode); }",
+              "vec3 fromInk(vec3 ink) { return mix(uDarkBackground + ink, uLightBackground - ink, uLightMode); }",
+              "vec3 sceneInk(vec2 uv) { return toInk(texture(tScene, clamp(uv, 0.0, 1.0)).rgb); }",
+              "",
+              "float blueNoise(vec2 p, float frame) {",
+              "  p += 5.588238 * mod(frame, 64.0);",
+              "  return fract(52.9829189 * fract(0.06711056 * p.x + 0.00583715 * p.y));",
+              "}",
+              "",
+              "vec3 halftone(vec2 frag) {",
+              "  float cell = max(3.0, uScale * 3.6 * uPixelRatio);",
+              "  float angle = 0.26 + uSeed * 0.3;",
+              "  mat2 turn = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));",
+              "  vec2 rotated = turn * frag;",
+              "  vec2 grid = floor(rotated / cell);",
+              "  vec2 centre = (grid + 0.5) * cell;",
+              "  vec2 source = transpose(turn) * centre;",
+              "  vec3 soft = sceneInk(frag / iResolution);",
+              "  vec3 ink = sceneInk(source / iResolution);",
+              "  float level = clamp(dot(ink, LUMA), 0.0, 1.0);",
+              "  float radius = cell * sqrt(pow(level, 0.9) / 3.14159265);",
+              "  float dist = length(rotated - centre);",
+              "  float aa = 0.7 * uPixelRatio;",
+              "  float dot_ = 1.0 - smoothstep(radius - aa, radius + aa, dist);",
+              "  vec3 dots = ink * min(0.8 / max(level, 1e-3), 2.2) * dot_;",
+              "  float presence = smoothstep(0.03, 0.16, level) * (0.3 + 0.14 * uStrength);",
+              "  return mix(soft, dots, presence);",
+              "}",
+              "",
+              "void main() {",
+              "  vec2 frag = gl_FragCoord.xy;",
+              "  vec3 ink = halftone(frag);",
+              "  vec3 color = fromInk(clamp(ink, 0.0, 1.0));",
+              "  color += (blueNoise(frag, floor(iTime * 24.0)) - 0.5) / 255.0;",
+              "  vec2 center = (gl_FragCoord.xy - iResolution * 0.5) / iResolution.y;",
+              "  // Defocus the actual field at the vanishing point instead of cutting a dark",
+              "  // circle into it. A Gaussian blend has no visible boundary around the center.",
+              "  float centerWeight = exp(-dot(center, center) / (2.0 * 0.065 * 0.065));",
+              "  if (centerWeight > 0.001) {",
+              "    vec3 blurred = vec3(0.0);",
+              "    float totalWeight = 0.0;",
+              "    vec2 spread = vec2(iResolution.y * 0.025) / iResolution;",
+              "    // Prefilter each tap so tight spiral turns do not reappear as ghost images.",
+              "    float blurLod = max(0.0, log2(iResolution.y * 0.025));",
+              "    vec2 uv = gl_FragCoord.xy / iResolution;",
+              "    for (int y = -2; y <= 2; y++) {",
+              "      for (int x = -2; x <= 2; x++) {",
+              "        vec2 offset = vec2(float(x), float(y));",
+              "        float weight = exp(-dot(offset, offset) * 0.5);",
+              "        blurred += textureLod(tScene, clamp(uv + offset * spread, 0.0, 1.0), blurLod).rgb * weight;",
+              "        totalWeight += weight;",
+              "      }",
+              "    }",
+              "    color = mix(color, blurred / totalWeight, centerWeight);",
+              "  }",
+              "  fragColor = vec4(clamp(color * uGlow, 0.0, 1.0), 1.0);",
+              "}"
+            ].join("\n");
+
+            // The canvas is drawn at `resolution` × the frame size and stretched to fill it.
+            var width = Math.max(2, Math.round(root.clientWidth * resolution));
+            var height = Math.max(2, Math.round(root.clientHeight * resolution));
+            canvas.width = width;
+            canvas.height = height;
+            var gl = canvas.getContext("webgl2", { alpha: false, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+
+            function compile(type, source) {
+              var s = gl.createShader(type);
+              gl.shaderSource(s, source);
+              gl.compileShader(s);
+              if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader compile failed");
+              return s;
+            }
+            function program(vertex, fragment) {
+              var p = gl.createProgram();
+              gl.attachShader(p, compile(gl.VERTEX_SHADER, vertex));
+              gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fragment));
+              gl.linkProgram(p);
+              if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || "link failed");
+              return p;
+            }
+            function texture(unit) {
+              var t = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0 + unit);
+              gl.bindTexture(gl.TEXTURE_2D, t);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              return t;
+            }
+            // A texture the shader can render into.
+            function target(unit) {
+              var t = texture(unit);
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+              var f = gl.createFramebuffer();
+              gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+              gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+              if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error("incomplete framebuffer");
+              gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+              return { tex: t, fbo: f };
+            }
+            function bindTex(t, unit) {
+              gl.activeTexture(gl.TEXTURE0 + unit);
+              gl.bindTexture(gl.TEXTURE_2D, t);
+            }
+            var draw = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var begin = function (p, time) {
+                gl.useProgram(p);
+                gl.viewport(0, 0, width, height);
+                gl.uniform2f(L(p, "iResolution"), width, height);
+                gl.uniform1f(L(p, "iTime"), time);
+                gl.uniform1f(L(p, "uLightMode"), 0);
+                gl.uniform3f(L(p, "uDarkBackground"), 9 / 255, 9 / 255, 9 / 255);
+                gl.uniform3f(L(p, "uLightBackground"), 1, 1, 1);
+                gl.uniform1f(L(p, "uPixelRatio"), resolution);
+              };
+              var field = program(VERTEX, FIELD);
+              var halftone = program(VERTEX, HALFTONE);
+              var raw = target(0);
+              // The halftone pass blurs the vanishing point from the field's mip chain.
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+              draw = function (frame) {
+                var time = timeOffset + (frame / 30) * speed;
+                gl.bindFramebuffer(gl.FRAMEBUFFER, raw.fbo);
+                begin(field, time);
+                gl.uniform1f(L(field, "uTwist"), twist);
+                gl.uniform1f(L(field, "uSpirals"), spirals);
+                gl.uniform1f(L(field, "uDepth"), depth);
+                gl.uniform1f(L(field, "uCameraZoom"), 1);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                bindTex(raw.tex, 0);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                begin(halftone, time);
+                gl.uniform1f(L(halftone, "uGlow"), glow);
+                gl.uniform1i(L(halftone, "tScene"), 0);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn("shader-light-tunnel:", err.message);
+            }
+
+            var total = parseFloat(root.dataset.duration || "3");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { draw(clock.frame); }
+            }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["shader-light-tunnel"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

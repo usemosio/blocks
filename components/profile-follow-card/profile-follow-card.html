@@ -1,0 +1,273 @@
+<!doctype html>
+<!--
+  Profile Follow Card
+
+  A creator profile card springs in, its parts blur in one after another, then a cursor glides to the button and clicks it, flipping Follow to Following.
+
+  Adapted as an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/x-follow-card/index.tsx
+  The motion follows the source (spring bounce-in, nine-step blur-in stagger, cursor path with a press and ripple, button flip). The look was made generic: no product name, logo, verified-badge shape, tab names or signature blue; every label, the sample post and the accent are variables and the avatar is an initial disc.
+
+  MIT License
+
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="profile-follow-card"
+  data-composition-duration="5.5"
+  data-composition-variables='[
+    {"id": "name", "type": "string", "role": "content", "label": "Name", "description": "Display name on the card.", "default": "Studio Nova"},
+    {"id": "handle", "type": "string", "role": "content", "label": "Handle", "description": "Account handle (an @ is added).", "default": "studionova"},
+    {"id": "bio", "type": "string", "role": "content", "label": "Bio", "description": "Short bio, two lines at most; a newline breaks the line.", "default": "Making small, useful tools for video teams.\nShipping demos faster with ready-made motion."},
+    {"id": "location", "type": "string", "role": "content", "label": "Location", "description": "Location in the meta row. Leave empty to hide it.", "default": "Lisbon"},
+    {"id": "website", "type": "string", "role": "content", "label": "Website", "description": "Link text in the meta row, in the accent colour. Leave empty to hide it.", "default": "studionova.example"},
+    {"id": "joined", "type": "string", "role": "content", "label": "Joined", "description": "Date text after \"Joined\". Leave empty to hide it.", "default": "January 2024"},
+    {"id": "verified", "type": "boolean", "role": "content", "label": "Check mark", "description": "Show a check mark after the name.", "default": true},
+    {"id": "follow_label", "type": "string", "role": "content", "label": "Follow label", "description": "Button text before the click.", "default": "Follow"},
+    {"id": "following_label", "type": "string", "role": "content", "label": "Following label", "description": "Button text after the click.", "default": "Following"},
+    {"id": "tabs", "type": "string", "role": "content", "label": "Tabs", "description": "Comma-separated tab labels; the first is active.", "default": "Posts, Media, About"},
+    {"id": "post_text", "type": "string", "role": "content", "label": "Sample post", "description": "Text of the post under the tabs.", "default": "Shipping something new today. Built entirely with a lot of coffee. More soon."},
+    {"id": "orientation", "type": "enum", "role": "style", "label": "Orientation", "description": "Auto follows the host&#39;s shape.", "default": "auto", "options": [
+    {"value": "auto", "label": "Auto"},
+    {"value": "horizontal", "label": "Horizontal"},
+    {"value": "vertical", "label": "Vertical"}
+  ]},
+    {"id": "accent_color", "type": "color", "role": "style", "label": "Accent", "description": "Colour of the cover, button, check mark and link.", "default": "#7c5cff"},
+    {"id": "theme", "type": "enum", "role": "style", "label": "Theme", "description": "Light or dark neutral theme.", "default": "light", "options": [
+    {"value": "light", "label": "Light"},
+    {"value": "dark", "label": "Dark"}
+  ]},
+    {"id": "transparent", "type": "boolean", "role": "style", "label": "Transparent", "description": "Leave the background clear so the card sits over your own scene.", "default": false},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier; above 1 the scene plays faster and holds the end.", "default": 1, "min": 0.25, "max": 4, "step": 0.05}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Profile Follow Card</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          background: var(--fc-page, #f3f4f7); color: var(--fc-fg, #14171c);
+          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        #root * { box-sizing: border-box; }
+        .fc-clip { position: absolute; inset: 0; }
+        .fc-stage { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; }
+        .fc-card { position: absolute; background: var(--fc-card); border: 1px solid var(--fc-border); border-radius: 24px; overflow: hidden; transform-origin: 50% 0; box-shadow: 0 12px 40px -16px var(--fc-shadow); }
+        .fc-pad { padding: 0 24px 24px; }
+        .fc-av { border-radius: 50%; border: 4px solid var(--fc-card); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .fc-name { display: flex; align-items: center; gap: 6px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; }
+        .fc-handle { color: var(--fc-muted); line-height: 1.3; }
+        .fc-bio { margin: 8px 0 0; line-height: 1.4; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .fc-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; }
+        .fc-meta span { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--fc-muted); }
+        .fc-tabs { display: flex; column-gap: 32px; border-bottom: 1px solid var(--fc-divider); }
+        .fc-tab { position: relative; padding-bottom: 12px; }
+        .fc-ul { position: absolute; bottom: -1px; left: 0; height: 4px; width: 56px; border-radius: 2px; background: var(--fc-accent); }
+        .fc-post { display: flex; gap: 12px; margin-top: 16px; }
+        .fc-post p { margin: 4px 0 0; font-size: 15px; line-height: 1.4; }
+        .fc-stats { display: flex; gap: 40px; margin-top: 10px; color: var(--fc-muted); font-size: 13px; }
+        .fc-over { position: absolute; inset: 0; transform-origin: 50% 0; }
+        .fc-btn { position: absolute; border-radius: 9999px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .fc-btn > div { position: absolute; inset: 0; border-radius: 9999px; display: flex; align-items: center; justify-content: center; }
+        .fc-msg { position: absolute; border-radius: 50%; border: 1px solid var(--fc-border); background: var(--fc-card); display: flex; align-items: center; justify-content: center; color: var(--fc-fg); }
+        .fc-cur { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        .fc-ring { position: absolute; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; border: 3px solid var(--fc-accent); opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="profile-follow-card" data-duration="5.5" data-fps="30">
+        <div id="fc-clip" class="fc-clip clip" data-start="0" data-duration="5.5" data-track-index="0">
+          <div id="fc-stage" class="fc-stage"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var stage = document.getElementById("fc-stage");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+
+            var FPS = 30;
+            function num(v, d, min, max) { var n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; }
+            function txt(v, d) { return typeof v === "string" ? v : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+            function spring(frame, c) {
+              var t = Math.max(0, frame) / FPS, w0 = Math.sqrt(c.stiffness / c.mass), z = c.damping / (2 * Math.sqrt(c.stiffness * c.mass));
+              if (z < 1) { var wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var s = w0 * Math.sqrt(z * z - 1), r1 = -z * w0 + s, r2 = -z * w0 - s;
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+
+            function bez(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0; if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  t = (lo + hi) / 2;
+                  var cx = 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                }
+                return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+              };
+            }
+            var EASE_OUT = bez(0.22, 1, 0.36, 1), EASE_IN = bez(0.64, 0, 0.78, 0);
+            // Remotion-style interpolate on two points, clamped, with an easing.
+            function interp(x, a, b, from, to, ease) { var p = clamp((x - a) / (b - a), 0, 1); if (ease) p = ease(p); return from + (to - from) * p; }
+
+            var name = str(vars.name, "Studio Nova"), handle = str(vars.handle, "studionova");
+            var bio = txt(vars.bio, "Making small, useful tools for video teams.\nShipping demos faster with ready-made motion.");
+            var location_ = txt(vars.location, "Lisbon").trim(), website = txt(vars.website, "studionova.example").trim(), joined = txt(vars.joined, "January 2024").trim();
+            var verified = bool(vars.verified, true);
+            var followL = str(vars.follow_label, "Follow"), followingL = str(vars.following_label, "Following");
+            var tabs = txt(vars.tabs, "Posts, Media, About").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!tabs.length) tabs = ["Posts"];
+            var postText = txt(vars.post_text, "Shipping something new today. Built entirely with a lot of coffee. More soon.");
+            var accent = colr(vars.accent_color, "#7c5cff");
+            var dark = String(vars.theme) === "dark";
+            var speed = num(vars.speed, 1, 0.25, 4);
+            var T = dark ? { page: "#0b0c0f", card: "#16181c", border: "#2b2e34", fg: "#ececef", muted: "#8b8f98", divider: "#2b2e34", shadow: "rgba(0,0,0,0.6)" }
+                         : { page: "#f3f4f7", card: "#ffffff", border: "#e6e8ec", fg: "#14171c", muted: "#5b6470", divider: "#eceff2", shadow: "rgba(20,23,28,0.18)" };
+            Object.keys(T).forEach(function (k) { root.style.setProperty("--fc-" + k, T[k]); });
+            root.style.setProperty("--fc-accent", accent);
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var o = String(vars.orientation);
+            var vertical = o === "vertical" || (o !== "horizontal" && H > W);
+            var RW = vertical ? 720 : 1280, RH = vertical ? 1280 : 720, k = Math.min(W / RW, H / RH);
+            stage.style.width = RW + "px"; stage.style.height = RH + "px";
+            stage.style.marginLeft = -RW / 2 + "px"; stage.style.marginTop = -RH / 2 + "px";
+            stage.style.transform = "scale(" + k + ")";
+            var cardW = vertical ? 660 : 600, cardL = (RW - cardW) / 2, cardT = vertical ? 140 : 70, coverH = vertical ? 180 : 150, avS = vertical ? 120 : 110;
+            var BTN = vertical ? { x: 542, y: 336, w: 124, h: 44 } : { x: 800, y: 240, w: 116, h: 40 };
+            var CLICK = 110;
+
+            function svgI(path, size, fill, stroke) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="' + (fill || "none") + '" stroke="' + (stroke || "none") + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + "</svg>"; }
+            function badge(size) { return '<svg viewBox="0 0 20 20" width="' + size + '" height="' + size + '" style="flex-shrink:0"><circle cx="10" cy="10" r="10" fill="' + accent + '"/><path d="M5.6 10.4l3 3 5.8-6.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+            function avatar(parent, size, fs) { var d = el("div", "fc-av", parent); d.style.width = d.style.height = size + "px"; d.style.fontSize = fs + "px"; d.style.background = accent + "33"; d.style.color = accent; d.textContent = Array.from(name)[0].toUpperCase(); return d; }
+
+            var card = el("div", "fc-card", stage); card.style.cssText += "left:" + cardL + "px;top:" + cardT + "px;width:" + cardW + "px";
+            var groups = [];
+            function grp(parent) { var g = el("div", "", parent); groups.push(g); return g; }
+            var g0 = grp(card);
+            var cover = el("div", "", g0); cover.style.cssText = "width:100%;height:" + coverH + "px;background:linear-gradient(135deg," + accent + " 0%," + accent + "99 55%," + accent + "55 100%)";
+            var pad = el("div", "fc-pad", card);
+            var avRow = el("div", "", pad); avRow.style.cssText = "display:flex;justify-content:space-between;align-items:flex-end;position:relative;margin-top:" + -(avS / 2) + "px";
+            var avBox = el("div", "", avRow); avBox.style.cssText = "width:" + avS + "px;height:" + avS + "px;border-radius:50%;background:var(--fc-card);flex-shrink:0";
+            var g1 = grp(avBox); avatar(g1, avS, avS * 0.4);
+            var info = el("div", "", pad); info.style.cssText = "display:flex;flex-direction:column;gap:2px;margin-top:12px";
+            var g2 = grp(info); var nm = el("div", "fc-name", g2); nm.style.fontSize = (vertical ? 28 : 24) + "px";
+            el("span", "", nm).textContent = name; if (verified) nm.insertAdjacentHTML("beforeend", badge(vertical ? 24 : 22));
+            var g3 = grp(info); var hd = el("span", "fc-handle", g3); hd.style.fontSize = (vertical ? 18 : 16) + "px"; hd.textContent = "@" + handle; g3.style.lineHeight = "1.3";
+            var g4 = grp(info); var bo = el("p", "fc-bio", g4); bo.style.fontSize = (vertical ? 18 : 16) + "px"; bo.textContent = bio;
+            var g5 = grp(pad); var meta = el("div", "fc-meta", g5);
+            var PIN = '<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0113 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>';
+            var LINK = '<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3A4 4 0 0011 18.7l1-1"/>';
+            var CAL = '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/>';
+            if (location_) { var s1 = el("span", "", meta, svgI(PIN, 16, "none", T.muted)); s1.appendChild(document.createTextNode(location_)); }
+            if (website) { var s2 = el("span", "", meta, svgI(LINK, 16, "none", T.muted)); var w = el("span", "", s2); w.style.color = accent; w.textContent = website; }
+            if (joined) { var s3 = el("span", "", meta, svgI(CAL, 16, "none", T.muted)); s3.appendChild(document.createTextNode("Joined " + joined)); }
+            var gap = el("div", "", pad); gap.style.height = BTN.h - 8 + "px";
+            var g7 = grp(pad); var tb = el("div", "fc-tabs", g7);
+            tabs.forEach(function (t, i) {
+              var tab = el("div", "fc-tab", tb); var sp = el("span", "", tab); sp.textContent = t; sp.style.fontSize = (vertical ? 17 : 15) + "px"; sp.style.fontWeight = i === 0 ? 700 : 500; sp.style.color = i === 0 ? T.fg : T.muted;
+              if (i === 0) el("div", "fc-ul", tab);
+            });
+            var g8 = grp(pad); var post = el("div", "fc-post", g8);
+            avatar(post, 44, 17);
+            var pb = el("div", "", post); pb.style.cssText = "flex:1;min-width:0";
+            var ph = el("div", "", pb); ph.style.cssText = "display:flex;align-items:center;gap:6px;font-size:15px";
+            var pn = el("span", "", ph); pn.style.fontWeight = 700; pn.textContent = name;
+            var pm = el("span", "", ph); pm.style.color = T.muted; pm.textContent = "@" + handle + " · 2d";
+            el("p", "", pb).textContent = postText;
+            var st = el("div", "fc-stats", pb); ["12", "48", "312"].forEach(function (n) { el("span", "", st).textContent = n; });
+
+            var over = el("div", "fc-over", stage);
+            var g6 = grp(over); g6.style.cssText += ";position:absolute;inset:0";
+            var msg = el("div", "fc-msg", g6, svgI('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/>', 20, "none", T.fg));
+            msg.style.cssText += "left:" + (BTN.x - BTN.h - 8) + "px;top:" + BTN.y + "px;width:" + BTN.h + "px;height:" + BTN.h + "px";
+            var btn = el("div", "fc-btn", g6); btn.style.cssText += "left:" + BTN.x + "px;top:" + BTN.y + "px;width:" + BTN.w + "px;height:" + BTN.h + "px";
+            var bA = el("div", "", btn); bA.style.background = accent; bA.style.color = "#fff"; bA.textContent = followL;
+            var bB = el("div", "", btn); bB.style.background = T.card; bB.style.border = "1px solid " + T.border; bB.style.color = T.fg; bB.textContent = followingL;
+
+            var cur = el("div", "fc-cur", stage);
+            var ring = el("div", "fc-ring", cur);
+            var arrow = el("div", "", cur, '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 2l15.5 8.2-6.6 1.9-2.6 6.4z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>');
+            arrow.style.cssText = "position:absolute;left:-3px;top:-2px;transform-origin:3px 2px";
+
+            var rest = vertical ? { x: 640, y: 1120 } : { x: 1120, y: 600 }, tx = BTN.x + BTN.w / 2, ty = BTN.y + BTN.h / 2;
+            var MOVE = 32;
+            function easeInOut(t) { function e(x) { return bez(0.42, 0, 1, 1)(x); } return t < 0.5 ? e(2 * t) / 2 : 1 - e(2 * (1 - t)) / 2; }
+            var SCH = [[20, 26], [22, 28], [24, 30], [26, 32], [28, 34], [30, 36], [32, 38], [34, 40], [36, 42]];
+            function draw(fc) {
+              var s = spring(fc, { damping: 12, stiffness: 120, mass: 0.8 });
+              var by = 60 * (1 - s), bs = 0.9 + 0.1 * s;
+              card.style.transform = "translateY(" + by + "px) scale(" + bs + ")";
+              over.style.transform = "translateY(" + by + "px) scale(" + bs + ")";
+              groups.forEach(function (g, i) {
+                var a = SCH[i][0], b = SCH[i][1];
+                var op = interp(fc, a, b, 0, 1), bl = interp(fc, a, b, 8, 0), ty2 = g === g6 ? 0 : interp(fc, a, b, 8, 0);
+                g.style.opacity = op; g.style.filter = bl > 0 ? "blur(" + bl + "px)" : "none"; g.style.transform = g === g6 ? "none" : "translateY(" + ty2 + "px)";
+              });
+              // cursor: rest until frame 78, glide to the button by 110, hold
+              var p = clamp((fc - (CLICK - MOVE)) / MOVE, 0, 1), e = easeInOut(p);
+              var cx = rest.x + (tx - rest.x) * e, cy = rest.y + (ty - rest.y) * e;
+              cur.style.transform = "translate(" + cx + "px," + cy + "px)";
+              var press = fc < CLICK ? 1 : fc < CLICK + 5 ? 1 - 0.2 * ((fc - CLICK) / 5) : fc < CLICK + 12 ? 0.8 + 0.2 * ((fc - CLICK - 5) / 7) : 1;
+              arrow.style.transform = "scale(" + press + ")";
+              var rp = clamp((fc - CLICK) / 18, 0, 1);
+              ring.style.opacity = rp > 0 && rp < 1 ? 0.5 * (1 - rp) : 0;
+              ring.style.transform = "scale(" + (0.3 + 0.9 * rp) + ")";
+              var flip = interp(fc, CLICK, CLICK + 10, 0, 1);
+              bA.style.opacity = 1 - flip; bB.style.opacity = flip;
+              btn.style.transform = "scale(" + (0.9 + 0.1 * press) + ")";
+            }
+
+            var seconds = parseFloat(root.dataset.duration || "5.5");
+            var clock = { f: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, { f: seconds * FPS * speed, duration: seconds, ease: "none", onUpdate: function () { draw(clock.f); } }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["profile-follow-card"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

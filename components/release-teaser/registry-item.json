@@ -1,0 +1,158 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "release-teaser",
+  "type": "hyperframes:component",
+  "title": "Release Teaser",
+  "description": "A sixteen-second release announcement: five short statements resolve from the center outward over an extreme close-up of a dark, beveled open ring, then the camera pulls back to the ring behind the release lockup and the light recedes while the name holds. Silent: sound is added by the host.",
+  "tags": [
+    "template",
+    "release",
+    "announcement",
+    "kinetic-type",
+    "3d",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "templates",
+  "duration": 16.016,
+  "useWhen": [
+    "A sixteen-second release announcement built on anticipation and a final brand reveal.",
+    "The story fits five short statements, with a dimensional mark as the visual thread."
+  ],
+  "avoidWhen": [
+    "The video must show real product interactions and workflows: use launch-anything.",
+    "You want to introduce a whole palette, typography and photography system: use brand-guidelines."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-templates/release-teaser/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "release-teaser.html",
+      "target": "compositions/components/release-teaser.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "brand_name",
+      "type": "string",
+      "role": "content",
+      "label": "Brand name",
+      "description": "Name in the final release lockup.",
+      "default": "Orvio"
+    },
+    {
+      "id": "release",
+      "type": "string",
+      "role": "content",
+      "label": "Release",
+      "description": "Version suffix after the name; leave empty to hide it.",
+      "default": "2"
+    },
+    {
+      "id": "tagline",
+      "type": "string",
+      "role": "content",
+      "label": "Tagline",
+      "description": "Supporting line under the lockup.",
+      "default": "Your next chapter starts here."
+    },
+    {
+      "id": "statement_1",
+      "type": "string",
+      "role": "content",
+      "label": "Statement 1",
+      "description": "First statement (0 to 1.7 s). Use a line break for two lines.",
+      "default": "Start with an idea"
+    },
+    {
+      "id": "statement_2",
+      "type": "string",
+      "role": "content",
+      "label": "Statement 2",
+      "description": "Second statement (1.7 to 3.5 s).",
+      "default": "Make room\nfor better work"
+    },
+    {
+      "id": "statement_3",
+      "type": "string",
+      "role": "content",
+      "label": "Statement 3",
+      "description": "Third statement (3.5 to 5.4 s).",
+      "default": "Bring every detail to life"
+    },
+    {
+      "id": "statement_4",
+      "type": "string",
+      "role": "content",
+      "label": "Statement 4",
+      "description": "Fourth statement (5.4 to 7.4 s).",
+      "default": "Move together.\nGo further."
+    },
+    {
+      "id": "statement_5",
+      "type": "string",
+      "role": "content",
+      "label": "Statement 5",
+      "description": "Fifth statement (7.4 to 10.2 s), before the release reveal.",
+      "default": "A fresh chapter.\nNo starting over."
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Mark and the ring's edge lighting.",
+      "default": "#9BC8DD"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background behind the ring.",
+      "default": "#050709"
+    },
+    {
+      "id": "surface",
+      "type": "color",
+      "role": "style",
+      "label": "Surface",
+      "description": "Base color of the ring's material.",
+      "default": "#151C22"
+    },
+    {
+      "id": "foreground",
+      "type": "color",
+      "role": "style",
+      "label": "Text",
+      "description": "Statements and the release title.",
+      "default": "#F2F5F7"
+    },
+    {
+      "id": "muted",
+      "type": "color",
+      "role": "style",
+      "label": "Muted text",
+      "description": "Tagline color.",
+      "default": "#A4ADB5"
+    },
+    {
+      "id": "light_intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Light intensity",
+      "description": "Strength of the ring's edge highlights.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    }
+  ]
+}

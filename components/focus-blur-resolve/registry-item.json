@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "focus-blur-resolve",
+  "type": "hyperframes:component",
+  "title": "Focus Blur Resolve",
+  "description": "Text starts blurred and resolves to crisp, holds, then drifts up and blurs out.",
+  "tags": [
+    "text-effects",
+    "blur",
+    "focus",
+    "reveal",
+    "remocn-port"
+  ],
+  "category": "typography",
+  "duration": 3,
+  "checkAt": [
+    0.1,
+    0.4,
+    1.5,
+    2.7
+  ],
+  "useWhen": [
+    "A headline should resolve out of a soft blur into sharp focus.",
+    "The scene wants a calm, premium reveal with a matching blurred exit."
+  ],
+  "avoidWhen": [
+    "You want per-word or per-letter stagger: use blur-out-up or bottom-up-letters.",
+    "A hard, punchy entrance: use a slide or pop."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/focus-blur-resolve/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "focus-blur-resolve.html",
+      "target": "compositions/components/focus-blur-resolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Text that resolves into focus.",
+      "default": "Focus resolves clearly."
+    },
+    {
+      "id": "blur",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Starting blur radius in pixels.",
+      "default": 14,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Longer text shrinks to fit the frame.",
+      "default": 72,
+      "min": 12,
+      "max": 240,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Text color.",
+      "default": "#171717"
+    },
+    {
+      "id": "font_weight",
+      "type": "enum",
+      "role": "style",
+      "label": "Font weight",
+      "description": "Weight of the text.",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ]
+}

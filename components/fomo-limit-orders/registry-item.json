@@ -1,0 +1,259 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "fomo-limit-orders",
+  "type": "hyperframes:component",
+  "title": "Order Flow",
+  "description": "An 18.5-second trading-interface demo with fictional data, graphite surfaces and amber controls: three opening lines over drifting bars, a phone with a position card that the camera pushes into and orbits, a limit-order ticket whose slider contracts into a price field, a confirmation card, and the closing wordmark. Silent: sound is added by the host. All figures are illustrative.",
+  "tags": [
+    "template",
+    "product",
+    "fintech",
+    "ui",
+    "trading",
+    "premium",
+    "remocn-port"
+  ],
+  "category": "templates",
+  "duration": 18.467,
+  "useWhen": [
+    "You want a complete trading-interface demo built from editable layers.",
+    "You need close-up UI choreography, a slider morph, and an order confirmation."
+  ],
+  "avoidWhen": [
+    "You need a general product launch story: use launch-anything.",
+    "You only need a text transition: use word-push."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn-templates/fomo-limit-orders/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "fomo-limit-orders.html",
+      "target": "compositions/components/fomo-limit-orders.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "brand_name",
+      "type": "string",
+      "role": "content",
+      "label": "Brand name",
+      "description": "Closing wordmark.",
+      "default": "Order Flow"
+    },
+    {
+      "id": "intro",
+      "type": "string",
+      "role": "content",
+      "label": "Intro line",
+      "description": "First line of the opening (0 to 0.7 s).",
+      "default": "New in Order Flow"
+    },
+    {
+      "id": "feature",
+      "type": "string",
+      "role": "content",
+      "label": "Feature line",
+      "description": "Second line of the opening (0.7 to 1.9 s).",
+      "default": "Plan your next exit"
+    },
+    {
+      "id": "audience",
+      "type": "string",
+      "role": "content",
+      "label": "Audience line",
+      "description": "Third line of the opening (1.9 to 2.7 s).",
+      "default": "Before the market moves"
+    },
+    {
+      "id": "ticker",
+      "type": "string",
+      "role": "content",
+      "label": "Ticker",
+      "description": "Symbol of the fictional market.",
+      "default": "DEMO"
+    },
+    {
+      "id": "asset_name",
+      "type": "string",
+      "role": "content",
+      "label": "Asset name",
+      "description": "Name typed under the ticker.",
+      "default": "Demo Market"
+    },
+    {
+      "id": "leverage",
+      "type": "string",
+      "role": "content",
+      "label": "Leverage badge",
+      "description": "Leverage tag next to the ticker.",
+      "default": "5x"
+    },
+    {
+      "id": "position",
+      "type": "string",
+      "role": "content",
+      "label": "Position badge",
+      "description": "Label on the position card and the confirmation card.",
+      "default": "2x Long"
+    },
+    {
+      "id": "position_value",
+      "type": "string",
+      "role": "content",
+      "label": "Position value",
+      "description": "Large figure on the position card.",
+      "default": "$12,640.00"
+    },
+    {
+      "id": "position_profit",
+      "type": "string",
+      "role": "content",
+      "label": "Position profit",
+      "description": "Profit figure, in the positive color.",
+      "default": "+$640.00"
+    },
+    {
+      "id": "position_size",
+      "type": "string",
+      "role": "content",
+      "label": "Position size",
+      "description": "Leveraged size on the position card.",
+      "default": "$12.64K"
+    },
+    {
+      "id": "position_quantity",
+      "type": "string",
+      "role": "content",
+      "label": "Position quantity",
+      "description": "Quantity in brackets after the size.",
+      "default": "160 DEMO"
+    },
+    {
+      "id": "position_return",
+      "type": "string",
+      "role": "content",
+      "label": "Position return",
+      "description": "Return percentage on the position card.",
+      "default": "10.67%"
+    },
+    {
+      "id": "entry_price",
+      "type": "string",
+      "role": "content",
+      "label": "Entry price",
+      "description": "Average entry price.",
+      "default": "$75.00"
+    },
+    {
+      "id": "liquidation_price",
+      "type": "string",
+      "role": "content",
+      "label": "Liquidation price",
+      "description": "Liquidation price.",
+      "default": "$37.50"
+    },
+    {
+      "id": "market_price",
+      "type": "string",
+      "role": "content",
+      "label": "Market price",
+      "description": "Current price on the phone and the order ticket.",
+      "default": "$79.00"
+    },
+    {
+      "id": "change",
+      "type": "string",
+      "role": "content",
+      "label": "Change",
+      "description": "Daily change percentage.",
+      "default": "1.28%"
+    },
+    {
+      "id": "open_interest",
+      "type": "string",
+      "role": "content",
+      "label": "Open interest",
+      "description": "Small caption under the ticker on the order ticket.",
+      "default": "$24M OI"
+    },
+    {
+      "id": "limit_price",
+      "type": "string",
+      "role": "content",
+      "label": "Limit price",
+      "description": "Price typed into the order ticket and shown on the confirmation.",
+      "default": "$82.00"
+    },
+    {
+      "id": "margin",
+      "type": "string",
+      "role": "content",
+      "label": "Margin",
+      "description": "Margin on the confirmation card.",
+      "default": "$6,000.00"
+    },
+    {
+      "id": "order_size",
+      "type": "string",
+      "role": "content",
+      "label": "Order size",
+      "description": "Leveraged size on the confirmation card.",
+      "default": "$12.64K"
+    },
+    {
+      "id": "closing",
+      "type": "string",
+      "role": "content",
+      "label": "Closing line",
+      "description": "Line that resolves before the closing wordmark.",
+      "default": "Your price. Your next move."
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Controls, progress and the closing mark.",
+      "default": "#e8b45a"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Main background.",
+      "default": "#121310"
+    },
+    {
+      "id": "panel",
+      "type": "color",
+      "role": "style",
+      "label": "Panel",
+      "description": "Cards and the phone's position panel.",
+      "default": "#20221c"
+    },
+    {
+      "id": "paper",
+      "type": "color",
+      "role": "style",
+      "label": "Paper",
+      "description": "Light background of the order ticket scenes.",
+      "default": "#f6f1e7"
+    },
+    {
+      "id": "positive",
+      "type": "color",
+      "role": "style",
+      "label": "Positive",
+      "description": "Gains, change and chart candles.",
+      "default": "#80bf97"
+    }
+  ]
+}

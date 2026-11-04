@@ -1,0 +1,162 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "shader-perlin-noise",
+  "type": "hyperframes:component",
+  "title": "Perlin Noise",
+  "description": "Soft Perlin-noise clouds drift across the frame as a duotone fog, drawn in WebGL.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "noise",
+    "clouds",
+    "calm",
+    "remocn-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "You want a soft, cloudy, organic backdrop that drifts slowly and stays calm.",
+    "A clean scene needs texture without structure or color.",
+    "You want a duotone fog: `color_front` clouds over `color_back`."
+  ],
+  "avoidWhen": [
+    "You want a smoother, more flowing field: use shader-simplex-noise.",
+    "You want neural-web filaments: use shader-neuro-noise.",
+    "You need sharp cellular structure: use shader-voronoi."
+  ],
+  "author": "Remocn",
+  "authorUrl": "https://github.com/Remocn/remocn",
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Remocn/remocn",
+    "path": "registry/remocn/shader-perlin-noise/index.tsx",
+    "commit": "126221ae00ba86eb40b65731b125ff398687d3b7"
+  },
+  "files": [
+    {
+      "path": "shader-perlin-noise.html",
+      "target": "compositions/components/shader-perlin-noise.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "color_back",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Color of the gaps between clouds.",
+      "default": "#12121a"
+    },
+    {
+      "id": "color_front",
+      "type": "color",
+      "role": "style",
+      "label": "Cloud color",
+      "description": "Color of the clouds.",
+      "default": "#6a6a85"
+    },
+    {
+      "id": "proportion",
+      "type": "number",
+      "role": "style",
+      "label": "Proportion",
+      "description": "How much of the frame the clouds cover.",
+      "default": 0.35,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "How soft the cloud edges are.",
+      "default": 0.1,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "octave_count",
+      "type": "number",
+      "role": "style",
+      "label": "Octaves",
+      "description": "Layers of detail.",
+      "default": 1,
+      "min": 1,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "persistence",
+      "type": "number",
+      "role": "style",
+      "label": "Persistence",
+      "description": "How strongly each finer layer shows.",
+      "default": 1,
+      "min": 0.3,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "lacunarity",
+      "type": "number",
+      "role": "style",
+      "label": "Lacunarity",
+      "description": "How much finer each layer is than the last.",
+      "default": 1.5,
+      "min": 1.5,
+      "max": 10,
+      "step": 0.1
+    },
+    {
+      "id": "rotation",
+      "type": "number",
+      "role": "style",
+      "label": "Rotation",
+      "description": "Turns the whole shader.",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "scale",
+      "type": "number",
+      "role": "style",
+      "label": "Scale",
+      "description": "Zooms the shader in or out.",
+      "default": 1,
+      "min": 0.1,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it when fine detail looks soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

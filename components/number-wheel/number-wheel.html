@@ -1,0 +1,231 @@
+<!doctype html>
+<!--
+  Number Wheel
+
+  A mechanical odometer: each digit is a wheel that rolls to the next number as a count runs up.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/Remocn/remocn/blob/126221ae00ba86eb40b65731b125ff398687d3b7/registry/remocn/number-wheel/index.tsx
+
+  MIT License
+
+  Copyright (c) 2026 Remocn
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="number-wheel"
+  data-composition-duration="3.7333"
+  data-composition-variables='[
+    {"id": "from", "type": "number", "role": "content", "label": "From", "description": "Starting number.", "default": 0, "min": 0, "max": 10000000, "step": 1},
+    {"id": "to", "type": "number", "role": "content", "label": "To", "description": "Number the wheels count up to.", "default": 24813, "min": 0, "max": 10000000, "step": 1},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum digit size in pixels. A wide number shrinks to fit the frame.", "default": 120, "min": 24, "max": 400, "step": 1, "unit": "px"},
+    {"id": "color", "type": "color", "role": "style", "label": "Color", "description": "Digit color.", "default": "#171717"},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Speed", "description": "Playback speed multiplier.", "default": 1, "min": 0.25, "max": 4, "step": 0.05, "unit": "x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Number Wheel</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #root { color: var(--color, #171717); font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+        .nw-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .nw-row { display: flex; align-items: baseline; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 1; }
+        .nw-col { display: inline-block; overflow: hidden; vertical-align: top; text-align: center; width: 0.62em; }
+        .nw-strip { display: flex; flex-direction: column; }
+        .nw-comma { display: inline-block; width: 0.32em; font-size: 0.85em; text-align: center; }
+      </style>
+
+      <div id="root" data-composition-id="number-wheel" data-duration="3.7333" data-fps="30">
+        <div id="nw-clip" class="nw-stage clip" data-start="0" data-duration="3.7333" data-track-index="0">
+          <div id="nw-row" class="nw-row" role="img"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return value !== "" && value !== null && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function pick(value, list, fallback) {
+              return list.indexOf(String(value)) >= 0 ? String(value) : fallback;
+            }
+            function bool(value, fallback) {
+              return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : fallback;
+            }
+            function bezier(x1, y1, x2, y2) {
+              return function (x) {
+                if (x <= 0) return 0;
+                if (x >= 1) return 1;
+                var lo = 0, hi = 1, t = x;
+                for (var i = 0; i < 32; i++) {
+                  var u = 1 - t;
+                  var cx = 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t;
+                  if (cx < x) lo = t; else hi = t;
+                  t = (lo + hi) / 2;
+                }
+                var v = 1 - t;
+                return 3 * v * v * t * y1 + 3 * v * t * t * y2 + t * t * t;
+              };
+            }
+            function clamp01(p) { return Math.min(1, Math.max(0, p)); }
+            function ip(x, a, b, from, to, ease) {
+              var p = b === a ? (x >= b ? 1 : 0) : clamp01((x - a) / (b - a));
+              return from + (to - from) * (ease ? ease(p) : p);
+            }
+            // Damped spring from 0 to 1, rest at 0 velocity (mass, stiffness, damping), at `frame` of 30 fps.
+            function spring(frame, cfg) {
+              if (frame <= 0) return 0;
+              var t = frame / 30, m = cfg.mass, k = cfg.stiffness, c = cfg.damping;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+              }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var q = Math.sqrt(z * z - 1), r1 = w0 * (-z + q), r2 = w0 * (-z - q);
+              return 1 - (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r2 - r1);
+            }
+            // Seeded generator (mulberry32).
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var TOTAL = 3.7333;
+            var FRAMES = Math.round(TOTAL * 30);
+            var clock = { frame: 0 };
+            function frameNow() { return Math.round(clock.frame * 1000) / 1000; }
+            function start(draw) {
+              var tl = gsap.timeline({ paused: true });
+              tl.to(clock, { frame: FRAMES, duration: TOTAL, ease: "none", onUpdate: function () { draw(frameNow()); } }, 0);
+              draw(0);
+              tl.seek(0);
+              window.__timelines = window.__timelines || {};
+              window.__timelines["number-wheel"] = tl;
+            }
+            function onFonts(fn) {
+              if (document.fonts && document.fonts.ready) document.fonts.ready.then(fn, function () {});
+            }
+            function fit(el, size, frac, hfrac) {
+              el.style.fontSize = size + "px";
+              var maxW = Math.max(1, root.clientWidth * frac);
+              var maxH = Math.max(1, root.clientHeight * (hfrac || 0.9));
+              var k = Math.min(1, maxW / Math.max(1, el.scrollWidth), maxH / Math.max(1, el.scrollHeight));
+              if (k < 1) { size = Math.max(8, size * k); el.style.fontSize = size + "px"; }
+              return size;
+            }
+
+
+            var start0 = Math.max(0, Math.round(num(vars.from, 0, 0, 10000000)));
+            var end0 = Math.max(0, Math.round(num(vars.to, 24813, 0, 10000000)));
+            var size = num(vars.font_size, 120, 24, 400), speed = num(vars.speed, 1, 0.25, 4);
+            var maxVal = Math.max(start0, end0);
+            var row = document.getElementById("nw-row");
+            row.setAttribute("aria-label", String(end0));
+            var template = maxVal.toLocaleString("en-US");
+            var digits = template.replace(/,/g, "").length, commas = template.length - digits;
+            // Estimated width in em (digit wheels 0.62em, commas 0.32em) so a wide number fits the frame.
+            var widthEm = digits * 0.62 + commas * 0.32;
+            var fsize = Math.min(size, (root.clientWidth * 0.9) / widthEm);
+            row.style.fontSize = fsize + "px";
+            var cell = fsize * 1.1;
+            var cells = [];
+            var place = 0;
+            for (var i = template.length - 1; i >= 0; i--) {
+              var ch = template.charAt(i), el, strip = null;
+              if (ch === ",") {
+                el = document.createElement("span"); el.className = "nw-comma"; el.textContent = ",";
+              } else {
+                el = document.createElement("span"); el.className = "nw-col"; el.style.height = cell + "px";
+                strip = document.createElement("span"); strip.className = "nw-strip";
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].forEach(function (d) {
+                  var c = document.createElement("span");
+                  c.style.height = cell + "px"; c.style.lineHeight = cell + "px"; c.textContent = d;
+                  strip.appendChild(c);
+                });
+                el.appendChild(strip);
+              }
+              cells.unshift({ el: el, strip: strip, place: place, comma: ch === "," });
+              row.insertBefore(el, row.firstChild);
+              if (ch !== ",") place++;
+            }
+            // cells[] is in left-to-right order; a comma carries the place of the digit to its right.
+            var cfg = { damping: 200, stiffness: 100, mass: 1 };
+            var SPRING_FRAMES = 30, ROLL_START = 0.9;
+            var atEnd = spring(SPRING_FRAMES, cfg);
+            function springEased(t) { return spring(t * SPRING_FRAMES, cfg) / atEnd; }
+            function rollFraction(cur, pl) {
+              var v = cur / Math.pow(10, pl), frac = v - Math.floor(v);
+              if (frac <= ROLL_START) return 0;
+              return (frac - ROLL_START) / (1 - ROLL_START);
+            }
+            function wheel(cur, pl) {
+              if (cur <= 0) return 0;
+              if (pl === 0) return cur % 10;
+              var digit = Math.floor(cur / Math.pow(10, pl)) % 10;
+              var t = rollFraction(cur, pl);
+              return t <= 0 ? digit : digit + springEased(t);
+            }
+            var countE = bezier(0.5, 1, 0.5, 1);
+            start(function (raw) {
+              var frame = raw * speed;
+              var progress = ip(frame, 0, FRAMES * 0.8, 0, 1, countE);
+              var cur = Math.max(0, start0 + progress * (end0 - start0));
+              cells.forEach(function (c) {
+                var op = c.place === 0 ? 1 : ip(cur, Math.pow(10, c.place) * 0.9, Math.pow(10, c.place), 0, 1);
+                c.el.style.opacity = op;
+                if (c.strip) c.strip.style.transform = "translateY(" + (-wheel(cur, c.place) * cell) + "px)";
+              });
+            });
+
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
