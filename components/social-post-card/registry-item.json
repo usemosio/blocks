@@ -1,0 +1,164 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "social-post-card",
+  "type": "hyperframes:component",
+  "title": "Social Post Card",
+  "description": "A dark social post card (avatar, name, handle, text with a hashtag, timestamp and metrics) rises in, gets a springy like with a pink heart and a count change, then drops out.",
+  "tags": [
+    "social",
+    "post",
+    "card",
+    "like",
+    "overlay",
+    "hyperframes-port"
+  ],
+  "category": "social",
+  "duration": 5,
+  "useWhen": [
+    "A social post needs to appear as a quote, announcement or proof, with a like landing on it.",
+    "A short post moment of about five seconds."
+  ],
+  "avoidWhen": [
+    "It must look like one specific network: this card is deliberately generic.",
+    "A thread or comments are the point: use a chat flow block."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/x-post/x-post.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "social-post-card.html",
+      "target": "compositions/components/social-post-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "display_name",
+      "type": "string",
+      "role": "content",
+      "label": "Display name",
+      "description": "Bold name at the top.",
+      "default": "Studio Nine"
+    },
+    {
+      "id": "handle",
+      "type": "string",
+      "role": "content",
+      "label": "Handle",
+      "description": "Handle under the name.",
+      "default": "@studionine"
+    },
+    {
+      "id": "verified",
+      "type": "enum",
+      "role": "style",
+      "label": "Verified badge",
+      "description": "Show a round check badge next to the name.",
+      "default": "yes",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Show"
+        },
+        {
+          "value": "no",
+          "label": "Hide"
+        }
+      ]
+    },
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Post text",
+      "description": "Body of the post, four lines at most.",
+      "default": "Wrote a 15 second promo as plain text this morning and it rendered while I made coffee. Small shops, big motion."
+    },
+    {
+      "id": "hashtag",
+      "type": "string",
+      "role": "content",
+      "label": "Hashtag",
+      "description": "Highlighted hashtag at the end of the text. Empty hides it.",
+      "default": "#MadeWithMotion"
+    },
+    {
+      "id": "timestamp",
+      "type": "string",
+      "role": "content",
+      "label": "Timestamp",
+      "description": "Line under the text.",
+      "default": "1:10 PM · Apr 7, 2026"
+    },
+    {
+      "id": "replies",
+      "type": "string",
+      "role": "content",
+      "label": "Replies",
+      "description": "Reply count.",
+      "default": "34"
+    },
+    {
+      "id": "reposts",
+      "type": "string",
+      "role": "content",
+      "label": "Reposts",
+      "description": "Repost count.",
+      "default": "2.3K"
+    },
+    {
+      "id": "likes",
+      "type": "string",
+      "role": "content",
+      "label": "Likes",
+      "description": "Like count before the like.",
+      "default": "10.9K"
+    },
+    {
+      "id": "likes_after",
+      "type": "string",
+      "role": "content",
+      "label": "Likes after",
+      "description": "Like count after the like lands.",
+      "default": "11K"
+    },
+    {
+      "id": "views",
+      "type": "string",
+      "role": "content",
+      "label": "Views",
+      "description": "View count.",
+      "default": "150K"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Verified badge, hashtag and bottom glow.",
+      "default": "#3b9cf5"
+    },
+    {
+      "id": "like_color",
+      "type": "color",
+      "role": "style",
+      "label": "Like colour",
+      "description": "Colour of the liked heart and count.",
+      "default": "#f91880"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "description": "Background of the card.",
+      "default": "#15202b"
+    }
+  ]
+}

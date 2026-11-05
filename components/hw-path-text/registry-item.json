@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hw-path-text",
+  "type": "hyperframes:component",
+  "title": "Handwriting Along a Path",
+  "description": "Handwriting flows along any SVG path, one letter at a time, over a faint dotted guide.",
+  "tags": [
+    "handwritten",
+    "typography",
+    "path",
+    "overlay",
+    "text-on-path",
+    "hyperframes-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A line should trail along a curve: a route, a journey, a signature swoosh.",
+    "You want to supply your own path and have the lettering follow it."
+  ],
+  "avoidWhen": [
+    "The text must sit straight and centered: use hw-title or handwrite.",
+    "The path is much shorter than the text: letters past its end do not show."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/hw-path-text/hw-path-text.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "hw-path-text.html",
+      "target": "compositions/components/hw-path-text.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The line written along the path.",
+      "default": "come on this wild journey with me..."
+    },
+    {
+      "id": "path",
+      "type": "string",
+      "role": "content",
+      "label": "Path (wide frame)",
+      "description": "SVG path data in a 1920x1080 space, used on a landscape frame. The text follows it.",
+      "default": "M 220 700 C 520 480, 900 820, 1230 560 S 1700 380, 1780 420"
+    },
+    {
+      "id": "path_portrait",
+      "type": "string",
+      "role": "content",
+      "label": "Path (tall frame)",
+      "description": "SVG path data in a 1080x1920 space, used on a portrait frame.",
+      "default": "M 120 1560 C 120 1100, 960 1300, 900 900 S 160 620, 960 260"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Text size in the drawing space (1920 or 1080 wide).",
+      "default": 92,
+      "min": 24,
+      "max": 220,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Text color.",
+      "default": "#f4f2ec"
+    },
+    {
+      "id": "show_guide",
+      "type": "boolean",
+      "role": "style",
+      "label": "Guide line",
+      "description": "A faint dotted line draws along the path first.",
+      "default": true
+    },
+    {
+      "id": "char_delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Letter delay",
+      "description": "Seconds between letters (it speeds up to fit long text).",
+      "default": 0.05,
+      "min": 0.01,
+      "max": 0.2,
+      "step": 0.005,
+      "unit": "s"
+    },
+    {
+      "id": "boil",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Boil",
+      "description": "Jitter the writing a little every third frame, like a hand-drawn loop.",
+      "default": true
+    },
+    {
+      "id": "boil_amount",
+      "type": "number",
+      "role": "motion",
+      "label": "Boil amount",
+      "description": "How far the writing jitters, in pixels.",
+      "default": 1.4,
+      "min": 0,
+      "max": 6,
+      "step": 0.1,
+      "unit": "px"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Changes the jitter pattern.",
+      "default": 12,
+      "min": 1,
+      "max": 99,
+      "step": 1
+    }
+  ]
+}

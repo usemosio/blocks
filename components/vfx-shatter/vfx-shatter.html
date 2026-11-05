@@ -1,0 +1,551 @@
+<!doctype html>
+<!--
+  Glass Shatter
+
+  A glass shatter transition: a cracked-glass shader spreads from the centre of the first page, then 200 Voronoi shards break loose, fall with gravity and bounce while the second page is revealed behind them. WebGL over two built-in pages.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/vfx-shatter/vfx-shatter.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame; rewritten from three.js (not loaded) to raw WebGL2 (the crack shader is unchanged apart from GLSL ES 3.0 syntax and the shard meshes are drawn with the same seeded Voronoi cells, fixed-step physics replayed from zero each frame, and Euler XYZ transforms); the two pages are drawn on 2D canvases from variables instead of being captured from live DOM with the experimental HTML-in-Canvas API, and their product copy is replaced by placeholders; the canvas is drawn at the `resolution` variable.
+-->
+<html
+  lang="en"
+  data-composition-id="vfx-shatter"
+  data-composition-duration="12"
+  data-composition-variables='[{"id": "badge_a", "type": "string", "role": "content", "label": "Panel A badge", "default": "Version 2 is almost here"},
+    {"id": "headline_a", "type": "string", "role": "content", "label": "Panel A headline", "description": "Use | for a line break; the last line takes the accent colour.", "default": "Everything you loved.|Now 10x faster."},
+    {"id": "charts", "type": "string", "role": "content", "label": "Panel A chart labels", "description": "Three labels separated by commas.", "default": "Render speed, Throughput, Reliability"},
+    {"id": "features", "type": "string", "role": "content", "label": "Panel A features", "description": "Up to 3 features as \"Title | description\", separated by semicolons.", "default": "Instant deploys | Zero-downtime rollouts in under 3 seconds globally.; Encrypted end to end | AES-256 at rest, TLS 1.3 in transit.; Real-time analytics | Sub-second queries across billions of events."},
+    {"id": "cta_a", "type": "string", "role": "content", "label": "Panel A button", "default": "Get started"},
+    {"id": "badge_b", "type": "string", "role": "content", "label": "Panel B badge", "default": "Live now"},
+    {"id": "headline_b", "type": "string", "role": "content", "label": "Panel B headline", "default": "Version 2 is here"},
+    {"id": "metrics", "type": "string", "role": "content", "label": "Panel B metrics", "description": "Three metrics as \"Value | label\", separated by semicolons.", "default": "10x | Render speed; 50% | File size; 99.99% | Reliability"},
+    {"id": "cta_b", "type": "string", "role": "content", "label": "Panel B button", "default": "See what is new"},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the scene is drawn at, then scaled up. Page text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glass Shatter</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .vsh-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .vsh-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="vfx-shatter" data-duration="12" data-fps="30">
+        <div id="vsh-clip" class="vsh-stage clip" data-start="0" data-duration="12" data-track-index="0">
+          <canvas id="vsh-canvas" class="vsh-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "vfx-shatter";
+            var DUR = 12;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("vsh-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "badge_a", "type": "string", "role": "content", "label": "Panel A badge", "default": "Version 2 is almost here"}, {"id": "headline_a", "type": "string", "role": "content", "label": "Panel A headline", "description": "Use | for a line break; the last line takes the accent colour.", "default": "Everything you loved.|Now 10x faster."}, {"id": "charts", "type": "string", "role": "content", "label": "Panel A chart labels", "description": "Three labels separated by commas.", "default": "Render speed, Throughput, Reliability"}, {"id": "features", "type": "string", "role": "content", "label": "Panel A features", "description": "Up to 3 features as \"Title | description\", separated by semicolons.", "default": "Instant deploys | Zero-downtime rollouts in under 3 seconds globally.; Encrypted end to end | AES-256 at rest, TLS 1.3 in transit.; Real-time analytics | Sub-second queries across billions of events."}, {"id": "cta_a", "type": "string", "role": "content", "label": "Panel A button", "default": "Get started"}, {"id": "badge_b", "type": "string", "role": "content", "label": "Panel B badge", "default": "Live now"}, {"id": "headline_b", "type": "string", "role": "content", "label": "Panel B headline", "default": "Version 2 is here"}, {"id": "metrics", "type": "string", "role": "content", "label": "Panel B metrics", "description": "Three metrics as \"Value | label\", separated by semicolons.", "default": "10x | Render speed; 50% | File size; 99.99% | Reliability"}, {"id": "cta_b", "type": "string", "role": "content", "label": "Panel B button", "default": "See what is new"}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the scene is drawn at, then scaled up. Page text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = "#06080d";
+            canvas.width = cw;
+            canvas.height = ch;
+            var SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+            var U = W >= H ? Math.min(W / 1920, H / 1080) : W / 1080 * 1.2;
+            var DURATION = 12, SHARD_COUNT = 200, CRACK_START = 2.0, CRACK_END = 4.0, SHATTER_START = 4.0, SHATTER_SETTLE = 10.0;
+            function mulberry32(seed) {
+              return function () {
+                seed |= 0;
+                seed = (seed + 0x6d2b79f5) | 0;
+                var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var rng = mulberry32(42);
+            function wrap(ctx, text, maxW) {
+              var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = "";
+              words.forEach(function (w) {
+                var next = line ? line + " " + w : w;
+                if (line && ctx.measureText(next).width > maxW) { lines.push(line); line = w; } else line = next;
+              });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+            function pairs(s, n) { return String(s).split(";").map(function (c) { return c.split("|").map(function (p) { return p.trim(); }); }).filter(function (c) { return c[0]; }).slice(0, n); }
+            function grad(ctx, x0, y0, x1, y1, c0, c1) { var g = ctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, c0); g.addColorStop(1, c1); return g; }
+            function pill(ctx, text, y, ink, fill, line) {
+              ctx.font = "600 " + 15 * U + "px " + SANS;
+              var w = ctx.measureText(text).width + 56 * U, h = 38 * U;
+              ctx.fillStyle = fill; rrect(ctx, (W - w) / 2, y, w, h, h / 2); ctx.fill();
+              ctx.strokeStyle = line; ctx.lineWidth = Math.max(1, U); rrect(ctx, (W - w) / 2, y, w, h, h / 2); ctx.stroke();
+              ctx.fillStyle = ink; ctx.textAlign = "center"; ctx.fillText(text, W / 2, y + h / 2 + 5 * U);
+              return h;
+            }
+            function button(ctx, text, y, c0, c1) {
+              ctx.font = "700 " + 18 * U + "px " + SANS;
+              var w = ctx.measureText(text).width + 80 * U, h = 52 * U;
+              ctx.fillStyle = grad(ctx, (W - w) / 2, y, (W + w) / 2, y + h, c0, c1);
+              rrect(ctx, (W - w) / 2, y, w, h, 12 * U); ctx.fill();
+              ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(text, W / 2, y + h / 2 + 6 * U);
+            }
+            // Panel B first: it draws its confetti from the same seeded stream the shards use afterwards.
+            function drawPanelB(el) {
+              var ctx = el.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = grad(ctx, 0, 0, W * 0.3, H, "#0a0f1a", "#0f1628"); ctx.fillRect(0, 0, W, H);
+              var dotColors = ["#34d399", "#38bdf8", "#93c5fd", "#e5e5e5", "#fbbf24"];
+              for (var d = 0; d < 60; d++) {
+                var sz = (4 + rng() * 12) * U, dx = rng() * W, dy = rng() * H;
+                ctx.fillStyle = dotColors[Math.floor(rng() * dotColors.length)];
+                ctx.globalAlpha = 0.06 + rng() * 0.12;
+                ctx.beginPath(); ctx.arc(dx + sz / 2, dy + sz / 2, sz / 2, 0, Math.PI * 2); ctx.fill();
+              }
+              ctx.globalAlpha = 1;
+              ctx.textBaseline = "alphabetic";
+              var ms = pairs(V.metrics, 3), portrait = W < H;
+              var hs = 80 * U * (portrait ? 0.95 : 1), mw = (W * 0.86 - 2 * 24 * U) / 3, mh = 150 * U;
+              var total = 38 * U + 40 * U + hs + 48 * U + mh + 56 * U + 52 * U;
+              var y = (H - total) / 2;
+              ctx.font = "600 " + 15 * U + "px " + SANS;
+              pill(ctx, "\u2713 " + V.badge_b, y, "#34d399", "rgba(52,211,153,0.08)", "rgba(52,211,153,0.2)");
+              y += 38 * U + 40 * U;
+              ctx.font = "800 " + hs + "px " + SANS; ctx.fillStyle = "#f0f4f8"; ctx.textAlign = "center";
+              var hw = ctx.measureText(V.headline_b).width; if (hw > W * 0.9) { hs *= W * 0.9 / hw; ctx.font = "800 " + hs + "px " + SANS; }
+              ctx.fillText(V.headline_b, W / 2, y + hs * 0.8);
+              y += hs + 48 * U;
+              var colors = ["#34d399", "#38bdf8", "#93c5fd"], x0 = (W - (mw * ms.length + 24 * U * (ms.length - 1))) / 2;
+              ms.forEach(function (m, i) {
+                var x = x0 + i * (mw + 24 * U);
+                ctx.fillStyle = "rgba(255,255,255,0.03)"; rrect(ctx, x, y, mw, mh, 16 * U); ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.lineWidth = Math.max(1, U); rrect(ctx, x, y, mw, mh, 16 * U); ctx.stroke();
+                ctx.font = "800 " + 52 * U * (portrait ? 0.8 : 1) + "px " + SANS; ctx.fillStyle = colors[i % 3]; ctx.textAlign = "center";
+                ctx.fillText(m[0], x + mw / 2, y + mh * 0.55);
+                ctx.font = "500 " + 15 * U + "px " + SANS; ctx.fillStyle = "rgba(255,255,255,0.4)";
+                ctx.fillText(m[1] || "", x + mw / 2, y + mh * 0.8);
+              });
+              y += mh + 56 * U;
+              button(ctx, V.cta_b, y, "#34d399", "#38bdf8");
+            }
+            function drawPanelA(el) {
+              var ctx = el.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = grad(ctx, 0, 0, W * 0.3, H, "#0a0c14", "#111820"); ctx.fillRect(0, 0, W, H);
+              var rg = ctx.createRadialGradient(W, 0, 0, W, 0, 600 * U); rg.addColorStop(0, "rgba(56,189,248,0.06)"); rg.addColorStop(1, "rgba(56,189,248,0)");
+              ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "alphabetic";
+              var portrait = W < H, lines = String(V.headline_a).split("|");
+              var hs = 88 * U * (portrait ? 0.9 : 1);
+              ctx.font = "800 " + hs + "px " + SANS;
+              var widest = Math.max.apply(null, lines.map(function (l) { return ctx.measureText(l.trim()).width; }));
+              if (widest > W * 0.9) hs *= W * 0.9 / widest;
+              var labels = String(V.charts).split(",").map(function (s) { return s.trim(); }).slice(0, 3);
+              var feats = pairs(V.features, 3), colW = Math.min(W * 0.86, 1500 * U);
+              var chartH = 160 * U + 60 * U, featH = (portrait ? feats.length * 78 * U : 90 * U);
+              var total = 38 * U + 40 * U + lines.length * hs + 48 * U + chartH + 56 * U + featH + 56 * U + 52 * U;
+              var y = Math.max(20 * U, (H - total) / 2);
+              pill(ctx, V.badge_a, y, "#38bdf8", "rgba(56,189,248,0.08)", "rgba(56,189,248,0.15)");
+              y += 38 * U + 40 * U;
+              ctx.textAlign = "center";
+              lines.forEach(function (l, i) {
+                ctx.font = "800 " + hs + "px " + SANS;
+                ctx.fillStyle = i === lines.length - 1 && lines.length > 1 ? "#38bdf8" : "#f0f4f8";
+                ctx.fillText(l.trim(), W / 2, y + hs * 0.85); y += hs;
+              });
+              y += 48 * U;
+              var heights = [[60, 150], [90, 145], [110, 155]], gx = W / 2 - (3 * 150 * U + 2 * 40 * U) / 2;
+              labels.forEach(function (lb, i) {
+                var x = gx + i * (150 * U + 40 * U), base = y + 160 * U;
+                ctx.fillStyle = "rgba(255,255,255,0.08)"; rrect(ctx, x, base - heights[i][0] * U, 64 * U, heights[i][0] * U, [6 * U, 6 * U, 0, 0]); ctx.fill();
+                ctx.fillStyle = grad(ctx, 0, base, 0, base - heights[i][1] * U, "#38bdf8", "#2563eb");
+                rrect(ctx, x + 72 * U, base - heights[i][1] * U, 64 * U, heights[i][1] * U, [6 * U, 6 * U, 0, 0]); ctx.fill();
+                ctx.font = "500 " + 14 * U + "px " + SANS; ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.textAlign = "center";
+                ctx.fillText(lb, x + 68 * U, base + 28 * U);
+              });
+              y += chartH + 56 * U;
+              var fw = portrait ? colW : (colW - 2 * 32 * U) / Math.max(1, feats.length), fx = (W - (portrait ? colW : colW)) / 2;
+              feats.forEach(function (f, i) {
+                var x = portrait ? fx : fx + i * (fw + 32 * U), yy = portrait ? y + i * 78 * U : y;
+                ctx.fillStyle = "rgba(56,189,248,0.08)"; rrect(ctx, x, yy, 44 * U, 44 * U, 10 * U); ctx.fill();
+                ctx.fillStyle = "#38bdf8"; ctx.beginPath(); ctx.arc(x + 22 * U, yy + 22 * U, 7 * U, 0, Math.PI * 2); ctx.fill();
+                ctx.textAlign = "left"; ctx.font = "600 " + 16 * U + "px " + SANS; ctx.fillStyle = "#e2e8f0";
+                ctx.fillText(f[0], x + 58 * U, yy + 16 * U);
+                ctx.font = "400 " + 13 * U + "px " + SANS; ctx.fillStyle = "rgba(255,255,255,0.35)";
+                wrap(ctx, f[1] || "", fw - 70 * U).slice(0, 2).forEach(function (l, k) { ctx.fillText(l, x + 58 * U, yy + 38 * U + k * 19 * U); });
+              });
+              y += featH + 56 * U;
+              button(ctx, V.cta_a, y, "#38bdf8", "#2563eb");
+            }
+            var panels = [0, 1].map(function () { var c = document.createElement("canvas"); c.width = cw; c.height = ch; return c; });
+            drawPanelB(panels[1]);
+            drawPanelA(panels[0]);
+            // Voronoi shard polygons: ~200 seeds (denser near the centre), each cell by intersecting bisectors.
+            var aspect = W / H, seeds = [], s, sx, sy;
+            for (s = 0; s < SHARD_COUNT; s++) {
+              if (s < SHARD_COUNT * 0.4) { var an = rng() * Math.PI * 2, rad = rng() * 0.35; sx = 0.5 * aspect + Math.cos(an) * rad * aspect; sy = 0.5 + Math.sin(an) * rad; }
+              else { sx = rng() * aspect; sy = rng(); }
+              seeds.push({ x: sx, y: sy });
+            }
+            function shardPolygons() {
+              var shards = [], ANGLES = 32, i, a, j, v;
+              for (i = 0; i < seeds.length; i++) {
+                var cx = seeds[i].x, cy = seeds[i].y, verts = [];
+                for (a = 0; a < ANGLES; a++) {
+                  var theta = (a / ANGLES) * Math.PI * 2, dx = Math.cos(theta), dy = Math.sin(theta), minT = 999;
+                  for (j = 0; j < seeds.length; j++) {
+                    if (j === i) continue;
+                    var mx = (cx + seeds[j].x) * 0.5, my = (cy + seeds[j].y) * 0.5, nx = seeds[j].x - cx, ny = seeds[j].y - cy;
+                    var denom = dx * nx + dy * ny;
+                    if (denom <= 0.0001) continue;
+                    var t = ((mx - cx) * nx + (my - cy) * ny) / denom;
+                    if (t > 0.001 && t < minT) minT = t;
+                  }
+                  if (dx > 0) { var tb = (aspect - cx) / dx; if (tb > 0 && tb < minT) minT = tb; }
+                  if (dx < 0) { var tb2 = -cx / dx; if (tb2 > 0 && tb2 < minT) minT = tb2; }
+                  if (dy > 0) { var tb3 = (1 - cy) / dy; if (tb3 > 0 && tb3 < minT) minT = tb3; }
+                  if (dy < 0) { var tb4 = -cy / dy; if (tb4 > 0 && tb4 < minT) minT = tb4; }
+                  if (minT < 998) verts.push({ x: cx + dx * minT, y: cy + dy * minT });
+                }
+                if (verts.length < 3) continue;
+                var centX = 0, centY = 0;
+                for (v = 0; v < verts.length; v++) { centX += verts[v].x; centY += verts[v].y; }
+                centX /= verts.length; centY /= verts.length;
+                verts.sort(function (p, q) { return Math.atan2(p.y - centY, p.x - centX) - Math.atan2(q.y - centY, q.x - centX); });
+                var tris = [];
+                for (v = 0; v < verts.length; v++) tris.push([{ x: centX, y: centY }, verts[v], verts[(v + 1) % verts.length]]);
+                shards.push({ centroidX: centX, centroidY: centY, triangles: tris });
+              }
+              return shards;
+            }
+            var shardData = shardPolygons();
+            // One vertex array per shard (mesh space, with the texture coordinate of panel A) and its seeded motion.
+            var shardGeo = [], phys = [];
+            shardData.forEach(function (sd) {
+              var pos = [];
+              sd.triangles.forEach(function (tri) { tri.forEach(function (p) { pos.push(p.x - aspect * 0.5, -(p.y - 0.5), p.x / aspect, p.y); }); });
+              if (pos.length < 12) return;
+              shardGeo.push(new Float32Array(pos));
+              var fx = sd.centroidX - aspect * 0.5, fy = sd.centroidY - 0.5, fl = Math.sqrt(fx * fx + fy * fy) + 0.001;
+              var ox = fx / fl, oy = fy / fl, speed = 0.3 + rng() * 0.7, upKick = 0.2 + rng() * 0.5;
+              phys.push({ cy: -(sd.centroidY - 0.5), vx: ox * speed * (0.5 + rng() * 0.8), vy: -oy * speed * (0.3 + rng() * 0.6) + upKick, vz: (rng() - 0.5) * 0.3,
+                rx: (rng() - 0.5) * 4.0, ry: (rng() - 0.5) * 4.0, rz: (rng() - 0.5) * 6.0 });
+            });
+            var GRAVITY = -2.5, FLOOR_Y = -0.8, DAMPING = 0.6, FRICTION = 0.92;
+            // The fall is replayed from zero at a fixed 1/30 s step on every frame, so any seek gives the same picture.
+            function shardState(sp, t) {
+              var dt = 1 / 30, steps = Math.floor(t / dt);
+              var px = 0, py = 0, pz = 0, rx = 0, ry = 0, rz = 0, vx = sp.vx, vy = sp.vy, vz = sp.vz, avx = sp.rx, avy = sp.ry, avz = sp.rz, settled = false;
+              for (var step = 0; step < steps && !settled; step++) {
+                vy += GRAVITY * dt; px += vx * dt; py += vy * dt; pz += vz * dt;
+                rx += avx * dt; ry += avy * dt; rz += avz * dt;
+                if (sp.cy + py < FLOOR_Y && vy < 0) {
+                  py = FLOOR_Y - sp.cy; vy = -vy * DAMPING; vx *= FRICTION; vz *= FRICTION; avx *= FRICTION; avy *= FRICTION; avz *= FRICTION;
+                  if (Math.abs(vy) < 0.05) { vy = 0; settled = true; }
+                }
+              }
+              return [px, py, pz, rx, ry, rz];
+            }
+            function modelMatrix(p) {
+              // translation, then Euler XYZ rotation (R = Rx * Ry * Rz), as in three.js
+              var cx = Math.cos(p[3]), sx = Math.sin(p[3]), cy = Math.cos(p[4]), sy = Math.sin(p[4]), cz = Math.cos(p[5]), sz = Math.sin(p[5]);
+              return new Float32Array([
+                cy * cz, cx * sz + sx * sy * cz, sx * sz - cx * sy * cz, 0,
+                -cy * sz, cx * cz - sx * sy * sz, sx * cz + cx * sy * sz, 0,
+                sy, -sx * cy, cx * cy, 0,
+                p[0], p[1], p[2] + 0.01, 1
+              ]);
+            }
+            var BGC = [0x06 / 255, 0x08 / 255, 0x0d / 255];
+            function smooth(x) { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); }
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 aPos;",
+              "out vec2 v_uv;",
+              "void main() { v_uv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5); gl_Position = vec4(aPos, 0.0, 1.0); }"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+in vec2 v_uv;
+uniform sampler2D tPanel;
+uniform float uCrackProgress;
+uniform float uAspect;
+uniform float uTime;
+uniform float uOpacity;
+
+// the panel texture is stored top-down; the shader works with y up
+vec4 panel(vec2 uv) {
+  return texture(tPanel, vec2(uv.x, 1.0 - uv.y));
+}
+
+// Hash functions for Voronoi
+vec2 hash22(vec2 p) {
+  p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+  return fract(sin(p) * 43758.5453);
+}
+
+// Voronoi distance for crack pattern
+float voronoi(vec2 p) {
+  vec2 ip = floor(p);
+  vec2 fp = fract(p);
+  float d1 = 8.0;
+  float d2 = 8.0;
+  for (int x = -1; x <= 1; x++) {
+    for (int y = -1; y <= 1; y++) {
+      vec2 neighbor = vec2(float(x), float(y));
+      vec2 point = hash22(ip + neighbor);
+      vec2 diff = neighbor + point - fp;
+      float dist = length(diff);
+      if (dist < d1) {
+        d2 = d1;
+        d1 = dist;
+      } else if (dist < d2) {
+        d2 = dist;
+      }
+    }
+  }
+  return d2 - d1;
+}
+
+void main() {
+  vec2 vUv = vec2(v_uv.x, 1.0 - v_uv.y);
+  vec4 color = panel(vUv);
+
+  if (uCrackProgress <= 0.0) {
+    outColor = vec4(color.rgb, uOpacity);
+    return;
+  }
+
+  // Distance from center (in UV space, aspect-corrected)
+  vec2 center = vec2(0.5, 0.5);
+  vec2 uv_aspect = vec2((vUv.x - 0.5) * uAspect, vUv.y - 0.5);
+  float distFromCenter = length(uv_aspect);
+
+  // Crack wavefront: radiates outward based on progress
+  float maxRadius = length(vec2(uAspect * 0.5, 0.5));
+  float wavefront = uCrackProgress * maxRadius * 1.4;
+
+  if (distFromCenter > wavefront) {
+    outColor = vec4(color.rgb, uOpacity);
+    return;
+  }
+
+  // Multi-scale Voronoi for cracks
+  vec2 crackUV = vUv * vec2(uAspect, 1.0);
+  float v1 = voronoi(crackUV * 8.0);
+  float v2 = voronoi(crackUV * 16.0);
+  float v3 = voronoi(crackUV * 4.0);
+
+  // Blend scales based on distance from center
+  float normalizedDist = distFromCenter / maxRadius;
+  float crackPattern = mix(v1, v2, smoothstep(0.0, 0.5, normalizedDist));
+  crackPattern = mix(crackPattern, v3, smoothstep(0.3, 0.8, normalizedDist) * 0.4);
+
+  // Crack intensity: thinner = more crack-like
+  float crackWidth = 0.04 + uCrackProgress * 0.02;
+  float crack = smoothstep(crackWidth, 0.0, crackPattern);
+
+  // Fade in based on wavefront proximity
+  float waveFade = smoothstep(wavefront, wavefront * 0.6, distFromCenter);
+  crack *= waveFade;
+
+  // Impact point glow
+  float impactGlow = exp(-distFromCenter * 6.0) * uCrackProgress * 0.6;
+
+  // Refraction distortion along cracks
+  vec2 distortUV = vUv;
+  if (crack > 0.1) {
+    vec2 offset = (hash22(floor(crackUV * 8.0)) - 0.5) * 0.008 * crack;
+    distortUV += offset;
+  }
+  vec4 distortedColor = panel(distortUV);
+
+  // Composite: panel + bright crack lines + refraction
+  vec3 crackColor = vec3(0.85, 0.92, 1.0);
+  vec3 result = mix(distortedColor.rgb, crackColor, crack * 0.7);
+  result += vec3(impactGlow * 0.3, impactGlow * 0.4, impactGlow * 0.6);
+
+  // Glass surface highlight along cracks
+  float highlight = crack * 0.15 * (1.0 - normalizedDist);
+  result += vec3(highlight);
+
+  outColor = vec4(result, uOpacity);
+}
+`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.bindAttribLocation(prog, 0, "aPos");
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var quad = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+              gl.viewport(0, 0, cw, ch);
+              gl.enable(gl.BLEND);
+              gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+              gl.enable(gl.DEPTH_TEST);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              // second program: the shards (panel A cut into Voronoi cells, each with its own transform)
+              var SHARD_VS = "#version 300 es\nin vec2 aPos;\nin vec2 aUv;\nuniform mat4 uModel;\nuniform vec2 uHalf;\nout vec2 vUv;\nvoid main() { vUv = aUv; vec4 p = uModel * vec4(aPos, 0.0, 1.0); gl_Position = vec4(p.x / uHalf.x, p.y / uHalf.y, p.z * -0.02, 1.0); }";
+              var SHARD_FS = "#version 300 es\nprecision highp float;\nin vec2 vUv;\nout vec4 outColor;\nuniform sampler2D tPanel;\nuniform float uOpacity;\nvoid main() { outColor = vec4(texture(tPanel, vUv).rgb, uOpacity); }";
+              var sprog = gl.createProgram();
+              gl.attachShader(sprog, compile(gl.VERTEX_SHADER, SHARD_VS));
+              gl.attachShader(sprog, compile(gl.FRAGMENT_SHADER, SHARD_FS));
+              gl.bindAttribLocation(sprog, 0, "aPos");
+              gl.bindAttribLocation(sprog, 1, "aUv");
+              gl.linkProgram(sprog);
+              if (!gl.getProgramParameter(sprog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(sprog) || "link failed");
+              var shardBuf = shardGeo.map(function (g) { var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, g, gl.STATIC_DRAW); return b; });
+              var texs = panels.map(function (c, unit) {
+                var tx = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_2D, tx);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+                return tx;
+              });
+              gl.useProgram(prog);
+              gl.uniform1i(u("tPanel"), 0);
+              gl.uniform1f(u("uAspect"), aspect);
+              var crackLoc = u("uCrackProgress"), opacityLoc = u("uOpacity"), timeLoc = u("uTime");
+              gl.useProgram(sprog);
+              gl.uniform1i(gl.getUniformLocation(sprog, "tPanel"), 0);
+              gl.uniform2f(gl.getUniformLocation(sprog, "uHalf"), aspect / 2, 0.5);
+              var sModelLoc = gl.getUniformLocation(sprog, "uModel"), sOpacityLoc = gl.getUniformLocation(sprog, "uOpacity");
+              function fullPlane(unit, crack, opacity, t) {
+                gl.useProgram(prog);
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texs[unit]);
+                gl.uniform1f(crackLoc, crack);
+                gl.uniform1f(opacityLoc, opacity);
+                gl.uniform1f(timeLoc, t);
+                gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+                gl.enableVertexAttribArray(0);
+                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                gl.disableVertexAttribArray(1);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+              }
+              paint = function (t) {
+
+                gl.clearColor(BGC[0], BGC[1], BGC[2], 1);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.disable(gl.DEPTH_TEST);
+                if (t < SHATTER_START) {
+                  // clean glass, then the cracks spread from the centre
+                  var ct = t < CRACK_START ? 0 : Math.min(1, (t - CRACK_START) / (CRACK_END - CRACK_START));
+                  fullPlane(0, ct * ct, 1, t);
+                } else {
+                  fullPlane(1, 0, smooth((t - SHATTER_START) / 1.5), t);
+                  gl.enable(gl.DEPTH_TEST);
+                  gl.useProgram(sprog);
+                  gl.activeTexture(gl.TEXTURE0);
+                  gl.bindTexture(gl.TEXTURE_2D, texs[0]);
+                  var st = t - SHATTER_START, elapsed = t, fade = DURATION - SHATTER_SETTLE;
+                  var op = elapsed > SHATTER_SETTLE ? Math.max(0, 1 - (elapsed - SHATTER_SETTLE) / fade) : 1;
+                  gl.uniform1f(sOpacityLoc, op);
+                  for (var i = 0; i < shardBuf.length; i++) {
+                    gl.uniformMatrix4fv(sModelLoc, false, modelMatrix(shardState(phys[i], st)));
+                    gl.bindBuffer(gl.ARRAY_BUFFER, shardBuf[i]);
+                    gl.enableVertexAttribArray(0);
+                    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+                    gl.enableVertexAttribArray(1);
+                    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+                    gl.drawArrays(gl.TRIANGLES, 0, shardGeo[i].length / 4);
+                  }
+                }
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

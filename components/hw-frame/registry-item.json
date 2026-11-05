@@ -1,0 +1,138 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hw-frame",
+  "type": "hyperframes:component",
+  "title": "Sketched Photo Frame",
+  "description": "A hand-drawn wobbly border draws itself around a photo panel with corner sparks and a handwritten caption; the whole unit tilts and boils like stop-motion.",
+  "tags": [
+    "handwritten",
+    "frame",
+    "photo",
+    "caption",
+    "doodle",
+    "stop-motion",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 8,
+  "useWhen": [
+    "A photo or clip needs a hand-drawn, scrapbook frame with a handwritten caption.",
+    "The look is playful or diary-like."
+  ],
+  "avoidWhen": [
+    "The frame should hold real footage inside this block: it draws a gradient panel, so place your media over the panel's area in the host.",
+    "The design is clean and corporate: use a rounded card instead."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/hw-frame/hw-frame.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "hw-frame.html",
+      "target": "compositions/components/hw-frame.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "caption",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Handwritten line under the frame.",
+      "default": "our trip!"
+    },
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Placeholder label",
+      "description": "Text on the stand-in photo panel.",
+      "default": "photo"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Border and caption colour.",
+      "default": "#f4f2ec"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Doodle colour",
+      "description": "Colour of the corner sparks.",
+      "default": "#ffb020"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Backdrop behind the frame.",
+      "default": "#1b1a1e"
+    },
+    {
+      "id": "panel_from",
+      "type": "color",
+      "role": "style",
+      "label": "Panel colour, top",
+      "description": "Top of the stand-in photo gradient.",
+      "default": "#35604a"
+    },
+    {
+      "id": "panel_to",
+      "type": "color",
+      "role": "style",
+      "label": "Panel colour, bottom",
+      "description": "Bottom of the stand-in photo gradient.",
+      "default": "#14231c"
+    },
+    {
+      "id": "doodles",
+      "type": "boolean",
+      "role": "style",
+      "label": "Corner sparks",
+      "description": "Draw three small spark doodles at the corners.",
+      "default": true
+    },
+    {
+      "id": "tilt",
+      "type": "number",
+      "role": "style",
+      "label": "Tilt",
+      "description": "Slight rotation of the whole framed unit.",
+      "default": -1.2,
+      "min": -8,
+      "max": 8,
+      "step": 0.1,
+      "unit": "deg"
+    },
+    {
+      "id": "boil",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Line boil",
+      "description": "Redraw the hand-made jitter every third frame.",
+      "default": true
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes the wobble of the hand-drawn border.",
+      "default": 14,
+      "min": 1,
+      "max": 99,
+      "step": 1
+    }
+  ]
+}

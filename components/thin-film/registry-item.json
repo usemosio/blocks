@@ -1,0 +1,107 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "thin-film",
+  "type": "hyperframes:component",
+  "title": "Thin Film Orb",
+  "description": "An orb's rim shimmers with soap-bubble iridescence on black.",
+  "tags": [
+    "shader",
+    "webgl",
+    "orb",
+    "iridescent",
+    "bubble",
+    "glow",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A soft, premium hero moment: an AI or product reveal, a glowing bubble, a calm focus point.",
+    "A dark frame that needs one luminous object."
+  ],
+  "avoidWhen": [
+    "The whole surface should shimmer in rainbow foil: use holographic.",
+    "You need a flat, bright backdrop."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/thin-film/thin-film.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "thin-film.html",
+      "target": "compositions/components/thin-film.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame color behind the orb.",
+      "default": "#000000"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Diameter of the orb as a share of the shorter side of the frame.",
+      "default": 0.62,
+      "min": 0.2,
+      "max": 1.2,
+      "step": 0.01
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 0.8,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Intensity",
+      "description": "Brightness of the iridescent rim.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "rim",
+      "type": "number",
+      "role": "style",
+      "label": "Rim width",
+      "description": "How far the shimmer reaches in from the edge.",
+      "default": 1,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

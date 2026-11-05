@@ -1,0 +1,90 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "music-player-card",
+  "type": "hyperframes:component",
+  "title": "Music Player Card",
+  "description": "A frosted-glass now-playing card with a big gradient cover, track and artist name; it rises in, the text staggers up, the cover breathes, and it leaves.",
+  "tags": [
+    "music",
+    "card",
+    "glass",
+    "now-playing",
+    "overlay",
+    "hyperframes-port"
+  ],
+  "category": "ui",
+  "duration": 5,
+  "useWhen": [
+    "A song or podcast episode should be introduced with a clean glass card over a scene.",
+    "A short 'now playing' overlay of about five seconds."
+  ],
+  "avoidWhen": [
+    "It must look like one specific music service: this card is deliberately generic.",
+    "Playback controls and a progress bar are needed."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/spotify-card/spotify-card.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "music-player-card.html",
+      "target": "compositions/components/music-player-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "track",
+      "type": "string",
+      "role": "content",
+      "label": "Track name",
+      "description": "Large first line.",
+      "default": "Golden Hour"
+    },
+    {
+      "id": "artist",
+      "type": "string",
+      "role": "content",
+      "label": "Artist",
+      "description": "Line under the track name.",
+      "default": "The Placeholders"
+    },
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Now-playing line",
+      "description": "Small line at the bottom, next to the equaliser icon.",
+      "default": "Now playing"
+    },
+    {
+      "id": "art_from",
+      "type": "color",
+      "role": "style",
+      "label": "Cover colour start",
+      "description": "Start of the cover gradient.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "art_via",
+      "type": "color",
+      "role": "style",
+      "label": "Cover colour middle",
+      "description": "Middle of the cover gradient.",
+      "default": "#1d4ed8"
+    },
+    {
+      "id": "art_to",
+      "type": "color",
+      "role": "style",
+      "label": "Cover colour end",
+      "description": "End of the cover gradient.",
+      "default": "#1e3a8a"
+    }
+  ]
+}

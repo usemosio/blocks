@@ -1,0 +1,203 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "notes-reveal",
+  "type": "hyperframes:component",
+  "title": "Notes Reveal",
+  "description": "A personal note is typed character by character with a caret, the page scrolling up as each line lands, then it cuts to a paper card with a marker headline and a ticked checklist.",
+  "tags": [
+    "notes",
+    "typing",
+    "handwritten",
+    "card",
+    "checklist",
+    "ad",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 24.85,
+  "useWhen": [
+    "A story told as one person's typed note, ending on a hand-lettered card with a checklist, as a vertical ad.",
+    "A calm personal tone with a clear payoff."
+  ],
+  "avoidWhen": [
+    "The scene should be short: it runs about 25 seconds.",
+    "You need a different app mock-up: this is a notes page with a keyboard."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/notes-reveal/notes-reveal.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "notes-reveal.html",
+      "target": "compositions/components/notes-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "titleL1",
+      "type": "string",
+      "role": "content",
+      "label": "Note title line 1",
+      "description": "First line of the note title.",
+      "default": "Things nobody told me"
+    },
+    {
+      "id": "titleL2",
+      "type": "string",
+      "role": "content",
+      "label": "Note title line 2",
+      "description": "Second line of the note title.",
+      "default": "about video."
+    },
+    {
+      "id": "noteLine1",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 1",
+      "description": "First typed line of the note.",
+      "default": "my posts got no views"
+    },
+    {
+      "id": "noteLine2",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 2",
+      "description": "Typed line 2 of the note.",
+      "default": "editing took my whole weekend"
+    },
+    {
+      "id": "noteLine3",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 3",
+      "description": "Typed line 3 of the note.",
+      "default": "and re-edits never end."
+    },
+    {
+      "id": "noteLine4",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 4",
+      "description": "Fourth typed line of the note, the turn.",
+      "default": "then i tried writing a script"
+    },
+    {
+      "id": "noteLine5",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 5",
+      "description": "Fifth typed line of the note, where the new tool enters.",
+      "default": "built the whole video in an afternoon"
+    },
+    {
+      "id": "noteLine6",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 6",
+      "description": "Typed line 6 of the note.",
+      "default": "the grind is gone, but more than that -"
+    },
+    {
+      "id": "noteLine7",
+      "type": "string",
+      "role": "content",
+      "label": "Note body line 7",
+      "description": "Last typed line of the note, the payoff.",
+      "default": "I post a video every week."
+    },
+    {
+      "id": "cardTop",
+      "type": "string",
+      "role": "content",
+      "label": "Card headline top",
+      "description": "First marker line on the closing card. The underline follows its last word.",
+      "default": "THE POWER"
+    },
+    {
+      "id": "cardMid",
+      "type": "string",
+      "role": "content",
+      "label": "Card headline middle",
+      "description": "Short connector line between the two headline lines, centred on the card.",
+      "default": "OF"
+    },
+    {
+      "id": "cardBottom",
+      "type": "string",
+      "role": "content",
+      "label": "Card headline bottom",
+      "description": "Last marker line on the closing card. Its first word is ringed.",
+      "default": "ONE IDEA"
+    },
+    {
+      "id": "check1Label",
+      "type": "string",
+      "role": "content",
+      "label": "Checklist 1 label",
+      "description": "Typewriter label of the first checklist row.",
+      "default": "WRITE"
+    },
+    {
+      "id": "check1Value",
+      "type": "string",
+      "role": "content",
+      "label": "Checklist 1 value",
+      "description": "Marker value of the first checklist row.",
+      "default": "SCRIPT"
+    },
+    {
+      "id": "check2Label",
+      "type": "string",
+      "role": "content",
+      "label": "Checklist 2 label",
+      "description": "Typewriter label of the second checklist row.",
+      "default": "SHOOT"
+    },
+    {
+      "id": "check2Value",
+      "type": "string",
+      "role": "content",
+      "label": "Checklist 2 value",
+      "description": "Marker value of the second checklist row.",
+      "default": "IN 4K"
+    },
+    {
+      "id": "check3Label",
+      "type": "string",
+      "role": "content",
+      "label": "Checklist 3 label",
+      "description": "Typewriter label of the third checklist row.",
+      "default": "SHIP"
+    },
+    {
+      "id": "check3Value",
+      "type": "string",
+      "role": "content",
+      "label": "Checklist 3 value",
+      "description": "Marker value of the third checklist row.",
+      "default": "TODAY"
+    },
+    {
+      "id": "brandDomain",
+      "type": "string",
+      "role": "content",
+      "label": "Sign-off domain",
+      "description": "Domain or call to action in the sign-off strip under the closing card.",
+      "default": "yourbrand.com"
+    },
+    {
+      "id": "noteBackground",
+      "type": "color",
+      "role": "style",
+      "label": "Card scene background",
+      "description": "Background colour behind the closing card.",
+      "default": "#ece1d5"
+    }
+  ]
+}

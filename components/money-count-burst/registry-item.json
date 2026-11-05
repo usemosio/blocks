@@ -1,0 +1,96 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "money-count-burst",
+  "type": "hyperframes:component",
+  "title": "Money Count Burst",
+  "description": "A big amount counts from zero up to a target, turns green with a flash, and bursts into bills and coins.",
+  "tags": [
+    "counter",
+    "money",
+    "celebration",
+    "burst",
+    "number",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 5,
+  "useWhen": [
+    "A revenue, savings or payout number should count up and end on a celebratory burst.",
+    "The scene is about money and a clean light look suits it."
+  ],
+  "avoidWhen": [
+    "The number should stay calm and readable with no celebration: use a count-up block.",
+    "You need the sound effect that upstream ships."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/apple-money-count/apple-money-count.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "money-count-burst.html",
+      "target": "compositions/components/money-count-burst.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "target",
+      "type": "number",
+      "role": "content",
+      "label": "Final amount",
+      "description": "The number the counter counts up to.",
+      "default": 25000000,
+      "min": 1,
+      "max": 999999999,
+      "step": 1
+    },
+    {
+      "id": "prefix",
+      "type": "string",
+      "role": "content",
+      "label": "Currency symbol",
+      "description": "Text before the number (also the mark on the bills and coins).",
+      "default": "Rp"
+    },
+    {
+      "id": "text_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Text size",
+      "description": "Multiplier on the number's size.",
+      "default": 1,
+      "min": 0.4,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Number colour",
+      "description": "Colour of the number while it counts.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour the number turns, the flash and the bills.",
+      "default": "#2563eb"
+    }
+  ]
+}

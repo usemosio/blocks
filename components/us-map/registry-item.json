@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "us-map",
+  "type": "hyperframes:component",
+  "title": "US Map",
+  "description": "Animated US choropleth by state: states pop in from the centre, abbreviations appear, then the top states glow in turn.",
+  "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "choropleth",
+    "hyperframes-port"
+  ],
+  "category": "data-viz",
+  "duration": 12,
+  "useWhen": [
+    "A value per US state needs to be shown as a map: density, sales, signups, coverage.",
+    "Two to five states should glow in turn after the map has filled in."
+  ],
+  "avoidWhen": [
+    "The data is about cities or points: use us-map-bubble.",
+    "The data is movement between places: use us-map-flow."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/us-map/us-map.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "us-map.html",
+      "target": "compositions/components/us-map.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Headline written on with a wipe.",
+      "default": "Population Density by State"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "description": "Line under the headline.",
+      "default": "Residents per square mile"
+    },
+    {
+      "id": "source",
+      "type": "string",
+      "role": "content",
+      "label": "Source note",
+      "description": "Small credit line in the corner. Empty hides it.",
+      "default": "Source: Illustrative data"
+    },
+    {
+      "id": "data",
+      "type": "string",
+      "role": "content",
+      "label": "Data",
+      "description": "JSON object of state abbreviation (or full name) to value.",
+      "default": "{\"AL\":99.2,\"AK\":1.3,\"AZ\":63.5,\"AR\":58.1,\"CA\":253.9,\"CO\":56.5,\"CT\":738.1,\"DE\":508,\"FL\":410.5,\"GA\":185.6,\"HI\":226.6,\"ID\":22.8,\"IL\":228.2,\"IN\":186.7,\"IA\":57.1,\"KS\":35.9,\"KY\":113.2,\"LA\":107.7,\"ME\":43.8,\"MD\":636.1,\"MA\":901.2,\"MI\":176.4,\"MN\":71.7,\"MS\":63.5,\"MO\":89.5,\"MT\":7.6,\"NE\":25.3,\"NV\":28.3,\"NH\":153.2,\"NJ\":1263,\"NM\":17.4,\"NY\":415.3,\"NC\":214.7,\"ND\":11.3,\"OH\":288.8,\"OK\":57.7,\"OR\":43.9,\"PA\":286.1,\"RI\":1061.4,\"SC\":170.2,\"SD\":12.2,\"TN\":167,\"TX\":112.8,\"UT\":40.3,\"VT\":68,\"VA\":218.6,\"WA\":115.9,\"WV\":74.6,\"WI\":108.8,\"WY\":5.8}"
+    },
+    {
+      "id": "max_value",
+      "type": "number",
+      "role": "style",
+      "label": "Top of the scale",
+      "description": "The value that reaches the last colour of the ramp.",
+      "default": 500,
+      "min": 1,
+      "max": 1000000000,
+      "step": 1
+    },
+    {
+      "id": "highlight",
+      "type": "string",
+      "role": "content",
+      "label": "Highlighted states",
+      "description": "States that glow in turn, by abbreviation or name, comma separated (up to 6).",
+      "default": "CA, NY, TX, FL, NJ"
+    },
+    {
+      "id": "ramp",
+      "type": "string",
+      "role": "style",
+      "label": "Colour ramp",
+      "description": "Colours from lowest to highest value, comma separated hex (2 to 6).",
+      "default": "#dbeafe, #93c5fd, #2563eb"
+    },
+    {
+      "id": "empty_color",
+      "type": "color",
+      "role": "style",
+      "label": "No-data colour",
+      "description": "Fill for states without a value.",
+      "default": "#334155"
+    },
+    {
+      "id": "legend_low",
+      "type": "string",
+      "role": "content",
+      "label": "Legend low label",
+      "description": "Text at the low end of the colour bar.",
+      "default": "Low"
+    },
+    {
+      "id": "legend_high",
+      "type": "string",
+      "role": "content",
+      "label": "Legend high label",
+      "description": "Text at the high end of the colour bar.",
+      "default": "High"
+    },
+    {
+      "id": "bg_from",
+      "type": "color",
+      "role": "style",
+      "label": "Background start",
+      "description": "Start of the diagonal background gradient.",
+      "default": "#0f172a"
+    },
+    {
+      "id": "bg_to",
+      "type": "color",
+      "role": "style",
+      "label": "Background end",
+      "description": "End of the diagonal background gradient.",
+      "default": "#1e293b"
+    }
+  ]
+}

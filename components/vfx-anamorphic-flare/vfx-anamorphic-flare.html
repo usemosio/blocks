@@ -1,0 +1,338 @@
+<!doctype html>
+<!--
+  Anamorphic Streak Flare
+
+  A field of drifting coloured lights, each throwing a long horizontal anamorphic streak in a single tint: the look of a cinema lens flaring on city lights or bokeh. Canvas 2D, no WebGL.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/vfx-anamorphic-flare/vfx-anamorphic-flare.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  The streak constants (80 samples, tent weights, quarter-resolution buffer) are measured from the
+  three.js anamorphic post-processing example (MIT), as noted in the upstream block.
+
+  Changes by usemosio/blocks: fills the host frame instead of a fixed 1920×1080 scene, with light sizes and drift scaled from the shorter side; variables are read from the host instead of CSS custom properties; the clock comes from the timeline (a tween written through a setter, as upstream). Drawn with Canvas 2D, as upstream.
+-->
+<html
+  lang="en"
+  data-composition-id="vfx-anamorphic-flare"
+  data-composition-duration="10"
+  data-composition-variables='[{"id": "intensity", "type": "number", "role": "style", "label": "Streak intensity", "default": 5, "min": 0, "max": 20, "step": 0.1},
+    {"id": "threshold", "type": "number", "role": "style", "label": "High-pass threshold", "description": "Only light brighter than this throws a streak.", "default": 0.3, "min": 0, "max": 1, "step": 0.01},
+    {"id": "streakLength", "type": "number", "role": "style", "label": "Streak length gain", "default": 1, "min": 0.1, "max": 6, "step": 0.05},
+    {"id": "tint", "type": "color", "role": "style", "label": "Streak tint", "default": "#7a8aff"},
+    {"id": "bloomRadius", "type": "number", "role": "style", "label": "Bloom radius", "description": "Soft glow around each light, relative to a 1080 px frame.", "default": 0, "min": 0, "max": 80, "step": 1, "unit": "px"},
+    {"id": "timeScale", "type": "number", "role": "motion", "label": "Drift rate", "default": 0.5, "min": 0, "max": 3, "step": 0.05},
+    {"id": "emitters", "type": "number", "role": "style", "label": "Emitter count", "default": 140, "min": 1, "max": 400, "step": 1},
+    {"id": "backdrop", "type": "color", "role": "style", "label": "Backdrop", "default": "#04040a"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Anamorphic Streak Flare</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #04040a;
+          pointer-events: none;
+        }
+        .vaf-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .vaf-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="vfx-anamorphic-flare" data-duration="10" data-fps="30">
+        <div id="vaf-clip" class="vaf-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <canvas id="vaf-canvas" class="vaf-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "vfx-anamorphic-flare";
+            var DUR = 10;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("vaf-canvas");
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var S = Math.min(W, H) / 1080;
+            canvas.width = W;
+            canvas.height = H;
+            var DEFS = [{"id": "intensity", "type": "number", "role": "style", "label": "Streak intensity", "default": 5, "min": 0, "max": 20, "step": 0.1}, {"id": "threshold", "type": "number", "role": "style", "label": "High-pass threshold", "description": "Only light brighter than this throws a streak.", "default": 0.3, "min": 0, "max": 1, "step": 0.01}, {"id": "streakLength", "type": "number", "role": "style", "label": "Streak length gain", "default": 1, "min": 0.1, "max": 6, "step": 0.05}, {"id": "tint", "type": "color", "role": "style", "label": "Streak tint", "default": "#7a8aff"}, {"id": "bloomRadius", "type": "number", "role": "style", "label": "Bloom radius", "description": "Soft glow around each light, relative to a 1080 px frame.", "default": 0, "min": 0, "max": 80, "step": 1, "unit": "px"}, {"id": "timeScale", "type": "number", "role": "motion", "label": "Drift rate", "default": 0.5, "min": 0, "max": 3, "step": 0.05}, {"id": "emitters", "type": "number", "role": "style", "label": "Emitter count", "default": 140, "min": 1, "max": 400, "step": 1}, {"id": "backdrop", "type": "color", "role": "style", "label": "Backdrop", "default": "#04040a"}];
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            var V = {};
+            DEFS.forEach(function (d) { V[d.id] = d.default; });
+            Object.keys(vars || {}).forEach(function (k) { if (vars[k] !== undefined && vars[k] !== "") V[k] = vars[k]; });
+            function raw(id) { return V[id]; }
+            function num(id, fallback) {
+              var n = parseFloat(raw(id));
+              return isFinite(n) ? n : fallback;
+            }
+            function str(id, fallback) {
+              var s = raw(id);
+              return typeof s === "string" && s !== "" ? s : fallback;
+            }
+        var SAMPLES = 80;
+        var HALF_SAMPLES = SAMPLES / 2; // 40 taps each side
+        var RES_SCALE = 0.25; // the streak buffer runs at quarter resolution
+        var NORM = SAMPLES / 3; // total / (samples / 3.0)
+        var REF_W = 1280; // width the constants were measured at
+
+        // 40 taps of a 1/(0.25 * 1280) texel step = 12.5% of frame width per
+        // side. Held as a fraction rather than as absolute pixels so the look
+        // matches the reference at any output size.
+        var HALF_FRAC = HALF_SAMPLES / (RES_SCALE * REF_W);
+
+        var INTENSITY = num("intensity", 5);
+        var THRESHOLD = num("threshold", 0.3);
+        var STREAK_LEN = num("streakLength", 1);
+        var BLOOM_R = num("bloomRadius", 0);
+        var TIME_SCALE = num("timeScale", 0.5);
+        var COUNT = Math.max(1, Math.round(num("emitters", 140)));
+        var BACKDROP = str("backdrop", "#04040a");
+        var TINT = hexRgb(str("tint", "#7a8aff"), [0.478, 0.541, 1.0]);
+
+        function hexRgb(hex, fallback) {
+          var m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+          if (!m) return fallback;
+          var n = parseInt(m[1], 16);
+          return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+        }
+
+        function mulberry32(seed) {
+          return function () {
+            seed |= 0;
+            seed = (seed + 0x6d2b79f5) | 0;
+            var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+
+        function hsv(h, s, v) {
+          var hh = ((((h % 360) + 360) % 360) / 60) % 6;
+          var c = v * s;
+          var x = c * (1 - Math.abs((hh % 2) - 1));
+          var m = v - c;
+          var r = 0;
+          var g = 0;
+          var b = 0;
+          if (hh < 1) {
+            r = c;
+            g = x;
+          } else if (hh < 2) {
+            r = x;
+            g = c;
+          } else if (hh < 3) {
+            g = c;
+            b = x;
+          } else if (hh < 4) {
+            g = x;
+            b = c;
+          } else if (hh < 5) {
+            r = x;
+            b = c;
+          } else {
+            r = c;
+            b = x;
+          }
+          return [r + m, g + m, b + m];
+        }
+
+        // ---------------------------------------------------------------
+        // The emitter field. Every emitter is a closed-form function of t:
+        // two incommensurate sinusoids for position and one for brightness.
+        // The seeded PRNG runs once, at setup, so the field is identical on
+        // every load and every seek.
+        // ---------------------------------------------------------------
+        var rng = mulberry32(1337);
+        var EM = [];
+        for (var i = 0; i < COUNT; i++) {
+          EM.push({
+            x0: rng() * W,
+            y0: rng() * H,
+            ax: (24 + rng() * 90) * S,
+            ay: (12 + rng() * 48) * S,
+            fx: 0.018 + rng() * 0.05,
+            fy: 0.015 + rng() * 0.045,
+            px: rng(),
+            py: rng(),
+            r: (3 + Math.pow(rng(), 1.6) * 10) * S,
+            h: rng() * 360,
+            s: 0.62 + rng() * 0.38,
+            v: 0.7 + rng() * 0.3,
+            fb: 0.03 + rng() * 0.09,
+            pb: rng(),
+          });
+        }
+
+        var TAU = Math.PI * 2;
+        
+        var ctx = canvas.getContext("2d");
+
+        // Streaks are accumulated in a quarter-resolution buffer, matching
+        // the reference's setResolutionScale(0.25). Upscaling it bilinearly
+        // is what gives the streak its soft vertical falloff, and it is the
+        // reason the streak reads as smooth rather than as a hard bar.
+        var SW = Math.round(W * RES_SCALE);
+        var SH = Math.round(H * RES_SCALE);
+        var sbuf = document.createElement("canvas");
+        sbuf.width = SW;
+        sbuf.height = SH;
+        var sctx = sbuf.getContext("2d");
+
+        function rgba(c, a) {
+          return (
+            "rgba(" +
+            Math.round(Math.min(1, Math.max(0, c[0])) * 255) +
+            "," +
+            Math.round(Math.min(1, Math.max(0, c[1])) * 255) +
+            "," +
+            Math.round(Math.min(1, Math.max(0, c[2])) * 255) +
+            "," +
+            Math.min(1, Math.max(0, a)) +
+            ")"
+          );
+        }
+
+        // A slow swell across the clip so the field reads as a shot rather
+        // than as a loop. Closed form in t, like everything else here.
+        function gainAt(t) {
+          var u = Math.min(1, Math.max(0, t / DUR));
+          return 0.75 + 0.35 * Math.sin(Math.PI * u);
+        }
+
+        function draw(t) {
+          var tau = t * TIME_SCALE;
+          var gain = gainAt(t);
+          var halfLen = HALF_FRAC * W * STREAK_LEN;
+
+          sctx.setTransform(1, 0, 0, 1, 0, 0);
+          sctx.clearRect(0, 0, SW, SH);
+          sctx.globalCompositeOperation = "lighter";
+
+          var e;
+          var k;
+          var col;
+          var bright;
+          var x;
+          var y;
+          for (k = 0; k < EM.length; k++) {
+            e = EM[k];
+            x = e.x0 + e.ax * Math.sin(TAU * (e.fx * tau + e.px));
+            y = e.y0 + e.ay * Math.sin(TAU * (e.fy * tau + e.py));
+            bright = e.v * (0.62 + 0.38 * Math.sin(TAU * (e.fb * tau + e.pb)));
+            col = hsv(e.h, e.s, Math.max(0, bright));
+
+            // High pass, then tint, exactly as the reference filter does:
+            // max(colour - threshold, 0) * tint. Below threshold there is no
+            // streak at all, which is what keeps the field from smearing.
+            var hp = [
+              Math.max(0, col[0] - THRESHOLD) * TINT[0],
+              Math.max(0, col[1] - THRESHOLD) * TINT[1],
+              Math.max(0, col[2] - THRESHOLD) * TINT[2],
+            ];
+            var peak = Math.max(hp[0], Math.max(hp[1], hp[2]));
+            if (peak <= 0.0001) continue;
+
+            // Peak of the tent equals the source value times intensity over
+            // the samples/3 normaliser. Magnitude is carried in alpha so the
+            // hue keeps full 8-bit precision at low brightness.
+            var alpha = (peak * INTENSITY * gain) / NORM;
+            if (alpha < 0.003) continue;
+            var hue = [hp[0] / peak, hp[1] / peak, hp[2] / peak];
+
+            var bx = x * RES_SCALE;
+            var by = y * RES_SCALE;
+            var bh = Math.max(1, e.r * 2 * RES_SCALE);
+            var bl = halfLen * RES_SCALE;
+
+            var g = sctx.createLinearGradient(bx - bl, 0, bx + bl, 0);
+            g.addColorStop(0, rgba(hue, 0));
+            g.addColorStop(0.5, rgba(hue, alpha));
+            g.addColorStop(1, rgba(hue, 0));
+            sctx.fillStyle = g;
+            sctx.fillRect(bx - bl, by - bh / 2, bl * 2, bh);
+          }
+
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.fillStyle = BACKDROP;
+          ctx.fillRect(0, 0, W, H);
+
+          ctx.globalCompositeOperation = "lighter";
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(sbuf, 0, 0, SW, SH, 0, 0, W, H);
+
+          // The highlights themselves, drawn at full resolution on top.
+          for (k = 0; k < EM.length; k++) {
+            e = EM[k];
+            x = e.x0 + e.ax * Math.sin(TAU * (e.fx * tau + e.px));
+            y = e.y0 + e.ay * Math.sin(TAU * (e.fy * tau + e.py));
+            bright = e.v * (0.62 + 0.38 * Math.sin(TAU * (e.fb * tau + e.pb)));
+            col = hsv(e.h, e.s, Math.max(0, bright));
+
+            if (BLOOM_R > 0) {
+              var br = e.r + BLOOM_R * S;
+              var gb = ctx.createRadialGradient(x, y, 0, x, y, br);
+              gb.addColorStop(0, rgba(col, 0.5 * gain));
+              gb.addColorStop(0.35, rgba(col, 0.16 * gain));
+              gb.addColorStop(1, rgba(col, 0));
+              ctx.fillStyle = gb;
+              ctx.fillRect(x - br, y - br, br * 2, br * 2);
+            }
+
+            var core = ctx.createRadialGradient(x, y, 0, x, y, e.r);
+            core.addColorStop(
+              0,
+              rgba([col[0] * 0.88 + 0.12, col[1] * 0.88 + 0.12, col[2] * 0.88 + 0.12], 1),
+            );
+            core.addColorStop(0.72, rgba(col, 0.96));
+            core.addColorStop(1, rgba(col, 0));
+            ctx.fillStyle = core;
+            ctx.fillRect(x - e.r, y - e.r, e.r * 2, e.r * 2);
+          }
+        }
+
+        var tl = gsap.timeline({ paused: true });
+        var driver = { frame: 0 };
+        tl.to(driver, {
+          frame: DUR * 30,
+          duration: DUR,
+          ease: "none",
+          onUpdate: function () { draw(Math.round(driver.frame) / 30); }
+        }, 0);
+        draw(0);
+        tl.seek(0);
+        window.__timelines = window.__timelines || {};
+        window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

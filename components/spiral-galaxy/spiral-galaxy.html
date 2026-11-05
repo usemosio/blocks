@@ -1,0 +1,287 @@
+<!doctype html>
+<!--
+  Spiral Galaxy
+
+  A spiral galaxy of 20,000 additive stars: differential rotation winds the arms over time, the core glows warm and the rim fades to cold. Drawn with WebGL points over a dark backdrop with a soft rim-coloured halo.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/spiral-galaxy/spiral-galaxy.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame and keeps the whole disc in view on vertical frames; rewritten from three.js (not loaded) to raw WebGL2: the camera and projection matrices are computed in the file and the star shader is unchanged apart from GLSL ES 3.0 syntax; the canvas is drawn at the `resolution` variable and the clock comes from the timeline. The galaxy constants come from the three.js galaxy example (MIT), as noted upstream.
+-->
+<html
+  lang="en"
+  data-composition-id="spiral-galaxy"
+  data-composition-duration="10"
+  data-composition-variables='[{"id": "stars", "type": "number", "role": "style", "label": "Star count", "default": 20000, "min": 2000, "max": 40000, "step": 1000},
+    {"id": "arms", "type": "number", "role": "style", "label": "Arm count", "default": 3, "min": 2, "max": 8, "step": 1},
+    {"id": "rate", "type": "number", "role": "motion", "label": "Rotation rate", "default": 0.25, "min": 0, "max": 1.5, "step": 0.05, "unit": "rad/s"},
+    {"id": "glow", "type": "number", "role": "style", "label": "Core brightness", "default": 1.9, "min": 0.2, "max": 4, "step": 0.1},
+    {"id": "size", "type": "number", "role": "style", "label": "Star size", "description": "Star size in pixels on a 1080 px frame.", "default": 10, "min": 2, "max": 40, "step": 1, "unit": "px"},
+    {"id": "core", "type": "color", "role": "style", "label": "Core colour", "default": "#f5f5f5"},
+    {"id": "rim", "type": "color", "role": "style", "label": "Rim colour", "default": "#1e3a8a"},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the stars are drawn at, then scaled up. Soft stars look the same at 0.5.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spiral Galaxy</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .spg-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .spg-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .spg-halo {
+          position: absolute;
+          inset: 0;
+          mix-blend-mode: screen;
+          opacity: 0.12;
+          background: radial-gradient(72% 46% at 50% 50%, var(--sg-rim, #1e3a8a) 0%, #000000 70%);
+        }
+      </style>
+
+      <div id="root" data-composition-id="spiral-galaxy" data-duration="10" data-fps="30">
+        <div id="spg-clip" class="spg-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <canvas id="spg-canvas" class="spg-canvas"></canvas>
+          <div class="spg-halo"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "spiral-galaxy";
+            var DUR = 10;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("spg-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "stars", "type": "number", "role": "style", "label": "Star count", "default": 20000, "min": 2000, "max": 40000, "step": 1000}, {"id": "arms", "type": "number", "role": "style", "label": "Arm count", "default": 3, "min": 2, "max": 8, "step": 1}, {"id": "rate", "type": "number", "role": "motion", "label": "Rotation rate", "default": 0.25, "min": 0, "max": 1.5, "step": 0.05, "unit": "rad/s"}, {"id": "glow", "type": "number", "role": "style", "label": "Core brightness", "default": 1.9, "min": 0.2, "max": 4, "step": 0.1}, {"id": "size", "type": "number", "role": "style", "label": "Star size", "description": "Star size in pixels on a 1080 px frame.", "default": 10, "min": 2, "max": 40, "step": 1, "unit": "px"}, {"id": "core", "type": "color", "role": "style", "label": "Core colour", "default": "#f5f5f5"}, {"id": "rim", "type": "color", "role": "style", "label": "Rim colour", "default": "#1e3a8a"}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the stars are drawn at, then scaled up. Soft stars look the same at 0.5.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = "#03040a";
+            canvas.width = cw;
+            canvas.height = ch;
+            var DISC_RADIUS = 5.0, RADIUS_POWER = 1.5, SPIN = 0.78, RANDOMNESS = 0.2, RANDOM_POWER = 3.0;
+            var TANGENT_SQUEEZE = 0.62, DISC_FLATNESS = 0.3, SEED = 20240817;
+            var STARS = Math.round(V.stars), ARMS = Math.round(V.arms);
+            function mulberry32(seed) {
+              return function () {
+                seed |= 0;
+                seed = (seed + 0x6d2b79f5) | 0;
+                var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            // Per-star attributes, seeded once: every frame is computed from these plus the time.
+            var rng = mulberry32(SEED);
+            var attrs = new Float32Array(STARS * 6); // ratio, branch, jitter r, jitter t, jitter y, spark
+            function jitter() {
+              var magnitude = Math.pow(rng(), RANDOM_POWER) * RANDOMNESS * DISC_RADIUS;
+              return rng() < 0.5 ? -magnitude : magnitude;
+            }
+            for (var i = 0; i < STARS; i++) {
+              attrs[i * 6] = rng();
+              attrs[i * 6 + 1] = ((i % ARMS) / ARMS) * Math.PI * 2;
+              attrs[i * 6 + 2] = jitter();
+              attrs[i * 6 + 3] = jitter() * TANGENT_SQUEEZE;
+              attrs[i * 6 + 4] = jitter() * DISC_FLATNESS;
+              attrs[i * 6 + 5] = rng();
+            }
+            // Camera: three.js example framing (position 0, 2.9, 7.6, looking at the origin). The field of
+            // view keeps the wide frame's horizontal extent, so a vertical frame shows the whole disc.
+            var ASPECT = cw / ch;
+            var FOVY = 2 * Math.atan(Math.tan(22.5 * Math.PI / 180) * Math.max(1, (16 / 9) / ASPECT));
+            var EYE = [0, 2.9, 7.6];
+            function normalize(v) { var l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; }
+            function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+            function lookAtView(eye) {
+              var f = normalize([-eye[0], -eye[1], -eye[2]]);
+              var s = normalize(cross(f, [0, 1, 0]));
+              var up = cross(s, f);
+              return new Float32Array([
+                s[0], up[0], -f[0], 0,
+                s[1], up[1], -f[1], 0,
+                s[2], up[2], -f[2], 0,
+                -(s[0] * eye[0] + s[1] * eye[1] + s[2] * eye[2]),
+                -(up[0] * eye[0] + up[1] * eye[1] + up[2] * eye[2]),
+                f[0] * eye[0] + f[1] * eye[1] + f[2] * eye[2], 1
+              ]);
+            }
+            function perspective(fovy, aspect, near, far) {
+              var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+              return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
+            }
+            var CORE = rgb(V.core), RIM = rgb(V.rim);
+            root.style.setProperty("--sg-rim", V.rim);
+            root.style.background = "#03040a";
+
+            var VERTEX = `#version 300 es
+precision highp float;
+in float aRatio;
+in float aBranch;
+in float aJitterR;
+in float aJitterT;
+in float aJitterY;
+in float aSpark;
+uniform mat4 uView;
+uniform mat4 uProj;
+uniform float uScale;
+uniform float uTime;
+uniform float uRate;
+uniform float uSpin;
+uniform float uRadius;
+uniform float uPower;
+uniform float uSize;
+uniform float uRefDist;
+uniform float uGlow;
+uniform vec3 uCore;
+uniform vec3 uRim;
+out vec3 vColor;
+out float vBright;
+void main() {
+  float ratio = clamp(aRatio, 0.0, 1.0);
+  float omega = 1.0 - ratio;
+  float r = pow(ratio, uPower) * uRadius;
+  float theta = aBranch + uSpin * r + uRate * uTime * omega;
+  vec2 radial = vec2(cos(theta), sin(theta));
+  vec2 tangent = vec2(-radial.y, radial.x);
+  vec2 xz = radial * (r + aJitterR) + tangent * aJitterT;
+  vec4 mv = uView * vec4(xz.x, aJitterY, xz.y, 1.0);
+  gl_Position = uProj * mv;
+  gl_PointSize = uScale * uSize * (uRefDist / max(-mv.z, 0.001)) * (0.55 + 0.75 * aSpark);
+  vColor = mix(uCore, uRim, pow(ratio, uPower));
+  vBright = uGlow * (0.22 + 0.78 * exp(-ratio * 3.0));
+}`;
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+in vec3 vColor;
+in float vBright;
+void main() {
+  float d = length(gl_PointCoord - vec2(0.5));
+  float a = smoothstep(0.5, 0.0, d);
+  a = a * a;
+  outColor = vec4(vColor * vBright, a);
+}`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var buf = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+              gl.bufferData(gl.ARRAY_BUFFER, attrs, gl.STATIC_DRAW);
+              ["aRatio", "aBranch", "aJitterR", "aJitterT", "aJitterY", "aSpark"].forEach(function (name, k) {
+                var loc = gl.getAttribLocation(prog, name);
+                gl.enableVertexAttribArray(loc);
+                gl.vertexAttribPointer(loc, 1, gl.FLOAT, false, 24, k * 4);
+              });
+              gl.viewport(0, 0, cw, ch);
+              gl.disable(gl.DEPTH_TEST);
+              gl.enable(gl.BLEND);
+              gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              gl.uniformMatrix4fv(u("uView"), false, lookAtView(EYE));
+              gl.uniformMatrix4fv(u("uProj"), false, perspective(FOVY, ASPECT, 0.1, 200));
+              gl.uniform1f(u("uScale"), Math.min(cw / 1920, ch / 1080));
+              gl.uniform1f(u("uRate"), V.rate);
+              gl.uniform1f(u("uSpin"), SPIN);
+              gl.uniform1f(u("uRadius"), DISC_RADIUS);
+              gl.uniform1f(u("uPower"), RADIUS_POWER);
+              gl.uniform1f(u("uSize"), V.size);
+              gl.uniform1f(u("uRefDist"), Math.hypot(EYE[0], EYE[1], EYE[2]));
+              gl.uniform1f(u("uGlow"), V.glow);
+              gl.uniform3f(u("uCore"), CORE[0], CORE[1], CORE[2]);
+              gl.uniform3f(u("uRim"), RIM[0], RIM[1], RIM[2]);
+              var timeLoc = u("uTime");
+              paint = function (t) {
+                gl.uniform1f(timeLoc, t);
+                gl.clearColor(0.0118, 0.0157, 0.0392, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.POINTS, 0, STARS);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

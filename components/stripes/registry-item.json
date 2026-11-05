@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stripes",
+  "type": "hyperframes:component",
+  "title": "Diagonal Stripes",
+  "description": "Bold black and white diagonal stripes slide across the frame.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "stripes",
+    "pattern",
+    "loop",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A bold graphic backdrop for a punchy title, a sale or a transition card.",
+    "Black-and-white or two-color motion that needs no image assets."
+  ],
+  "avoidWhen": [
+    "You want soft, calm color: use shader-mesh-gradient.",
+    "Text sits directly on the stripes at small sizes: put it on a plain panel."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/stripes/stripes.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "stripes.html",
+      "target": "compositions/components/stripes.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Stripe color",
+      "description": "First stripe color.",
+      "default": "#000000"
+    },
+    {
+      "id": "color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Gap color",
+      "description": "Second stripe color.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 0.5,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "count",
+      "type": "number",
+      "role": "style",
+      "label": "Stripes",
+      "description": "How many stripe pairs fit across the shorter side of the frame.",
+      "default": 9,
+      "min": 1,
+      "max": 40,
+      "step": 1
+    },
+    {
+      "id": "angle",
+      "type": "number",
+      "role": "style",
+      "label": "Angle",
+      "description": "Direction of the stripes.",
+      "default": 45,
+      "min": 0,
+      "max": 180,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "softness",
+      "type": "number",
+      "role": "style",
+      "label": "Softness",
+      "description": "Blur on the stripe edges. 0 is hard.",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

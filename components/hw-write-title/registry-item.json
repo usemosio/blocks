@@ -1,0 +1,147 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hw-write-title",
+  "type": "hyperframes:component",
+  "title": "Handwritten Write-On Title",
+  "description": "Letters are written on by a pen that follows each glyph's real stroke order, slowing into curves and lifting between strokes, then a squiggle underline draws itself.",
+  "tags": [
+    "handwritten",
+    "write-on",
+    "title",
+    "pen",
+    "typography",
+    "hyperframes-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A short title or phrase should look written by hand, stroke by stroke, over a board or footage.",
+    "A scrapbook, diary or whiteboard tone."
+  ],
+  "avoidWhen": [
+    "The text is long: the table covers one word or a short phrase.",
+    "You need a font other than Caveat: use handwriting-text for other looks."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/hw-write-title/hw-write-title.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "hw-write-title.html",
+      "target": "compositions/components/hw-write-title.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "Word or short phrase written on. Letters, digits and common punctuation are traced; other characters fade in.",
+      "default": "write it on",
+      "maxLength": 40
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels. Long text shrinks to fit the frame.",
+      "default": 170,
+      "min": 40,
+      "max": 400,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Colour of the letters.",
+      "default": "#f4f2ec"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Underline colour",
+      "description": "Colour of the squiggle underline.",
+      "default": "#ffb020"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Backdrop behind the title.",
+      "default": "#1b1a1e"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the title sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "write_on",
+      "type": "enum",
+      "role": "motion",
+      "label": "Write-on",
+      "description": "How the letters appear.",
+      "default": "trace",
+      "options": [
+        {
+          "value": "trace",
+          "label": "Pen trace"
+        },
+        {
+          "value": "reveal",
+          "label": "Letter by letter fade"
+        },
+        {
+          "value": "off",
+          "label": "Instant"
+        }
+      ]
+    },
+    {
+      "id": "boil",
+      "type": "enum",
+      "role": "motion",
+      "label": "Boil",
+      "description": "Hand-made jitter redrawn every third frame.",
+      "default": "calm",
+      "options": [
+        {
+          "value": "off",
+          "label": "Off"
+        },
+        {
+          "value": "calm",
+          "label": "Calm"
+        },
+        {
+          "value": "lively",
+          "label": "Lively"
+        }
+      ]
+    },
+    {
+      "id": "underline",
+      "type": "boolean",
+      "role": "style",
+      "label": "Underline",
+      "description": "Draw a squiggle underline once the word is written.",
+      "default": true
+    }
+  ]
+}

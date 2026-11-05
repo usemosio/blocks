@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "glass-notification-aurora",
+  "type": "hyperframes:component",
+  "title": "Glass Notification Aurora",
+  "description": "Two frosted-glass notification cards slide over a slowly moving aurora backdrop: one fills a progress bar and flips to done, the other types a reply.",
+  "tags": [
+    "glass",
+    "notification",
+    "aurora",
+    "webgl",
+    "backdrop",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 8,
+  "useWhen": [
+    "Notification cards should feel premium and float over a colourful animated backdrop.",
+    "A product or app moment (export done, new message) needs a glassy UI overlay."
+  ],
+  "avoidWhen": [
+    "The cards must refract the scene behind them like real glass: this block blurs and tints but does not bend it.",
+    "A flat, simple notification: use a plain notification block."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/liquid-glass-notification/liquid-glass-notification.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "glass-notification-aurora.html",
+      "target": "compositions/components/glass-notification-aurora.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "card1_title",
+      "type": "string",
+      "role": "content",
+      "label": "First card title",
+      "description": "Title of the progress card.",
+      "default": "Export"
+    },
+    {
+      "id": "card1_status",
+      "type": "string",
+      "role": "content",
+      "label": "First card status",
+      "description": "Status beside the title while it runs.",
+      "default": "rendering"
+    },
+    {
+      "id": "card1_status_done",
+      "type": "string",
+      "role": "content",
+      "label": "First card done status",
+      "description": "Status once the bar has filled.",
+      "default": "complete"
+    },
+    {
+      "id": "card1_text",
+      "type": "string",
+      "role": "content",
+      "label": "First card text",
+      "description": "Message while it runs.",
+      "default": "Your video preview is encoding."
+    },
+    {
+      "id": "card1_text_done",
+      "type": "string",
+      "role": "content",
+      "label": "First card done text",
+      "description": "Message once it is done.",
+      "default": "promo-final.mp4 is ready."
+    },
+    {
+      "id": "card2_title",
+      "type": "string",
+      "role": "content",
+      "label": "Second card title",
+      "description": "Title of the message card (its first letter fills the avatar).",
+      "default": "Messages"
+    },
+    {
+      "id": "card2_text",
+      "type": "string",
+      "role": "content",
+      "label": "Second card text",
+      "description": "Message of the second card, followed by typing dots.",
+      "default": "Miguel: can it feel alive but still native?"
+    },
+    {
+      "id": "chip_1",
+      "type": "string",
+      "role": "content",
+      "label": "Action chip 1",
+      "description": "First action chip.",
+      "default": "Reply"
+    },
+    {
+      "id": "chip_2",
+      "type": "string",
+      "role": "content",
+      "label": "Action chip 2",
+      "description": "Second action chip.",
+      "default": "Mark Read"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Scale of the aurora canvas relative to the frame. The aurora is soft, so 0.5 looks the same.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

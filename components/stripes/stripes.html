@@ -1,0 +1,201 @@
+<!doctype html>
+<!--
+  Diagonal Stripes
+
+  Bold black and white diagonal stripes slide across the frame.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/stripes/stripes.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: upstream mounts a WebGPU shader from the shaders.com library (MIT, a
+  1.4 MB bundled script). This block draws the same look with a small hand-written WebGL2 fragment
+  shader instead (no bundled files), fills whatever frame the host gives it, takes its colors and
+  settings from variables, draws at a reduced resolution (the `resolution` variable) and takes its
+  time from the timeline.
+-->
+<html
+  lang="en"
+  data-composition-id="stripes"
+  data-composition-duration="5"
+  data-composition-variables='[
+    { "id":"color_a","type":"color","role":"style","label":"Stripe color","description":"First stripe color.","default":"#000000" },
+    { "id":"color_b","type":"color","role":"style","label":"Gap color","description":"Second stripe color.","default":"#ffffff" },
+    { "id":"speed","type":"number","role":"motion","label":"Speed","description":"How fast it moves. 0 holds still.","default":0.5,"min":0,"max":4,"step":0.05 },
+    { "id":"count","type":"number","role":"style","label":"Stripes","description":"How many stripe pairs fit across the shorter side of the frame.","default":9,"min":1,"max":40,"step":1 },
+    { "id":"angle","type":"number","role":"style","label":"Angle","description":"Direction of the stripes.","default":45,"min":0,"max":180,"step":1,"unit":"deg" },
+    { "id":"softness","type":"number","role":"style","label":"Softness","description":"Blur on the stripe edges. 0 is hard.","default":0,"min":0,"max":1,"step":0.01 },
+    { "id":"resolution","type":"number","role":"quality","label":"Resolution","description":"Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.","default":0.75,"min":0.25,"max":1,"step":0.05 }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Diagonal Stripes</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--stp-fallback, #000000);
+          pointer-events: none;
+        }
+        .stp-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .stp-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="stripes" data-duration="5" data-fps="30">
+        <div id="stp-clip" class="stp-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <canvas id="stp-canvas" class="stp-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("stp-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            var DEFAULTS = {"color_a":"#000000","color_b":"#ffffff","speed":0.5,"count":9,"angle":45,"softness":0,"resolution":0.75};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function parseColor(s, fallback) {
+              var m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(String(s == null ? "" : s).trim());
+              if (!m) return fallback;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var P = {};
+            P.color_a = parseColor(vars.color_a, parseColor(DEFAULTS.color_a));
+            P.color_b = parseColor(vars.color_b, parseColor(DEFAULTS.color_b));
+            P.speed = num(vars.speed, DEFAULTS.speed, 0, 4);
+            P.count = num(vars.count, DEFAULTS.count, 1, 40);
+            P.angle = num(vars.angle, DEFAULTS.angle, 0, 180);
+            P.softness = num(vars.softness, DEFAULTS.softness, 0, 1);
+            P.resolution = num(vars.resolution, DEFAULTS.resolution, 0.25, 1);
+            function css(c) { return "rgb(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + ")"; }
+            // Without WebGL the block still shows a plain backdrop.
+            root.style.setProperty("--stp-fallback", css(P.color_a));
+
+            var VERTEX = [
+              "#version 300 es",
+              "layout(location = 0) in vec2 a_position;",
+              "void main() { gl_Position = vec4(a_position, 0.0, 1.0); }"
+            ].join("\n");
+
+            var FRAGMENT = [
+              "#version 300 es",
+              "precision highp float;",
+              "uniform vec2 u_res; uniform float u_time;",
+              "out vec4 o;",
+              "float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}",
+              "float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}",
+              "float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}",
+              "vec3 pal(float x){return .5+.5*cos(6.28318*(x+vec3(0.,.33,.67)));}",
+              "uniform vec3 u_color_a,u_color_b; uniform float u_speed,u_count,u_angle,u_softness;",
+              "void main(){",
+              "  vec2 p=gl_FragCoord.xy/min(u_res.x,u_res.y);",
+              "  float a=radians(u_angle);",
+              "  float s=(p.x*cos(a)+p.y*sin(a))*u_count+u_time*u_speed;",
+              "  float f=fract(s);",
+              "  float w=max(fwidth(s),.0001)+u_softness*.45;",
+              "  float m=smoothstep(.5-w,.5+w,f)*(1.-smoothstep(1.-w*2.,1.,f))+smoothstep(0.,w*2.,f)*0.;",
+              "  float edge=smoothstep(0.,w,f)*(1.-smoothstep(.5,.5+w,f));",
+              "  float band=smoothstep(.5-w,.5+w,f);",
+              "  float wrap=1.-smoothstep(1.-w,1.,f);",
+              "  float k=band*wrap; // 0 for first half, 1 for second half, soft at both seams",
+              "  o=vec4(mix(u_color_a,u_color_b,k),1.);",
+              "}",
+            ].join("\n");
+
+            // The canvas is drawn at `resolution` × the frame size and stretched to fill it.
+            var width = Math.max(2, Math.round(root.clientWidth * P.resolution));
+            var height = Math.max(2, Math.round(root.clientHeight * P.resolution));
+            canvas.width = width;
+            canvas.height = height;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+
+            function compile(type, source) {
+              var s = gl.createShader(type);
+              gl.shaderSource(s, source);
+              gl.compileShader(s);
+              if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader compile failed");
+              return s;
+            }
+            var draw = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, width, height);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              gl.uniform2f(u("u_res"), width, height);
+              gl.uniform3fv(u("u_color_a"), P.color_a);
+              gl.uniform3fv(u("u_color_b"), P.color_b);
+              gl.uniform1f(u("u_speed"), P.speed);
+              gl.uniform1f(u("u_count"), P.count);
+              gl.uniform1f(u("u_angle"), P.angle);
+              gl.uniform1f(u("u_softness"), P.softness);
+              var timeLoc = u("u_time");
+              draw = function (frame) {
+                gl.uniform1f(timeLoc, frame / 30);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn("stripes:", err.message);
+            }
+
+            var total = parseFloat(root.dataset.duration || "5");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { draw(clock.frame); }
+            }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["stripes"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

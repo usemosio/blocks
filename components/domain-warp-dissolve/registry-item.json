@@ -1,0 +1,165 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "domain-warp-dissolve",
+  "type": "hyperframes:component",
+  "title": "Domain Warp Dissolve",
+  "description": "Cascaded fbm(p + fbm(p)) displaces both scenes along a warp field. Iridescent cosine-palette edge glow. Plays between two built-in panels (A and B) that a host swaps for its own scenes: copy the fragment shader into your composition and feed it your two frames as textures.",
+  "tags": [
+    "transition",
+    "shader",
+    "webgl",
+    "dissolve",
+    "warp",
+    "iridescent",
+    "hyperframes-port"
+  ],
+  "category": "transitions",
+  "duration": 4,
+  "checkAt": [
+    0.5,
+    1.6,
+    2.0,
+    2.5
+  ],
+  "useWhen": [
+    "A dissolve that looks liquid: both scenes are bent along a warped noise field, with a thin iridescent edge where one replaces the other.",
+    "A creative or music-driven edit where the transition is part of the look."
+  ],
+  "avoidWhen": [
+    "A corporate or documentary piece where a rainbow edge would look out of place.",
+    "You need a plain, fast cut."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/domain-warp-dissolve/domain-warp-dissolve.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "domain-warp-dissolve.html",
+      "target": "compositions/components/domain-warp-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A label",
+      "description": "Big word on the outgoing panel.",
+      "default": "SCENE A"
+    },
+    {
+      "id": "caption_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A caption",
+      "description": "Small line under the label on the outgoing panel.",
+      "default": "Outgoing scene"
+    },
+    {
+      "id": "label_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B label",
+      "description": "Big word on the incoming panel.",
+      "default": "SCENE B"
+    },
+    {
+      "id": "caption_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B caption",
+      "description": "Small line under the label on the incoming panel.",
+      "default": "Incoming scene"
+    },
+    {
+      "id": "color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Panel A background",
+      "description": "Background of the outgoing panel.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "ink_a",
+      "type": "color",
+      "role": "style",
+      "label": "Panel A ink",
+      "description": "Text and line colour on the outgoing panel.",
+      "default": "#fafafa"
+    },
+    {
+      "id": "color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Panel B background",
+      "description": "Background of the incoming panel.",
+      "default": "#f5f5f5"
+    },
+    {
+      "id": "ink_b",
+      "type": "color",
+      "role": "style",
+      "label": "Panel B ink",
+      "description": "Text and line colour on the incoming panel.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "caption_ink_a",
+      "type": "color",
+      "role": "style",
+      "label": "Panel A caption colour",
+      "description": "Colour of the small caption on the outgoing panel.",
+      "default": "#a3a3a3"
+    },
+    {
+      "id": "caption_ink_b",
+      "type": "color",
+      "role": "style",
+      "label": "Panel B caption colour",
+      "description": "Colour of the small caption on the incoming panel.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "hold",
+      "type": "number",
+      "role": "timing",
+      "label": "Start of transition",
+      "description": "Seconds the outgoing panel holds before the transition starts.",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "role": "timing",
+      "label": "Transition length",
+      "description": "Seconds the transition takes (the block lasts 4 seconds in all).",
+      "default": 2,
+      "min": 0.3,
+      "max": 3.5,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; 0.75 matches 1 in the stills.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

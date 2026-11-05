@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vfx-shatter",
+  "type": "hyperframes:component",
+  "title": "Glass Shatter",
+  "description": "A glass shatter transition: a cracked-glass shader spreads from the centre of the first page, then 200 Voronoi shards break loose, fall with gravity and bounce while the second page is revealed behind them. WebGL over two built-in pages.",
+  "tags": [
+    "shader",
+    "transition",
+    "shatter",
+    "glass",
+    "3d",
+    "physics",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "transitions",
+  "duration": 12,
+  "useWhen": [
+    "A dramatic cut where the screen breaks like glass and falls away to reveal the next scene.",
+    "Launch and announcement videos that need an impact moment."
+  ],
+  "avoidWhen": [
+    "You need to shatter your own scenes: the block plays between its two built-in pages; copy the shader and shard code and feed it your own frames.",
+    "A quiet or corporate cut."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/vfx-shatter/vfx-shatter.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "vfx-shatter.html",
+      "target": "compositions/components/vfx-shatter.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "badge_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A badge",
+      "default": "Version 2 is almost here"
+    },
+    {
+      "id": "headline_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A headline",
+      "description": "Use | for a line break; the last line takes the accent colour.",
+      "default": "Everything you loved.|Now 10x faster."
+    },
+    {
+      "id": "charts",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A chart labels",
+      "description": "Three labels separated by commas.",
+      "default": "Render speed, Throughput, Reliability"
+    },
+    {
+      "id": "features",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A features",
+      "description": "Up to 3 features as \"Title | description\", separated by semicolons.",
+      "default": "Instant deploys | Zero-downtime rollouts in under 3 seconds globally.; Encrypted end to end | AES-256 at rest, TLS 1.3 in transit.; Real-time analytics | Sub-second queries across billions of events."
+    },
+    {
+      "id": "cta_a",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A button",
+      "default": "Get started"
+    },
+    {
+      "id": "badge_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B badge",
+      "default": "Live now"
+    },
+    {
+      "id": "headline_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B headline",
+      "default": "Version 2 is here"
+    },
+    {
+      "id": "metrics",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B metrics",
+      "description": "Three metrics as \"Value | label\", separated by semicolons.",
+      "default": "10x | Render speed; 50% | File size; 99.99% | Reliability"
+    },
+    {
+      "id": "cta_b",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B button",
+      "default": "See what is new"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the scene is drawn at, then scaled up. Page text needs 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true,
+  "checkAt": [
+    1.0,
+    3.6,
+    4.5,
+    6.0
+  ]
+}

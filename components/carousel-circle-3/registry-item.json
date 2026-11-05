@@ -1,0 +1,104 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "carousel-circle-3",
+  "type": "hyperframes:component",
+  "title": "Circle Carousel, Open Arc",
+  "description": "Cards fill about two thirds of a ring in an open arc, evenly sized and stacked edge to edge, and swing round fast. Product cards are drawn (gradient panel, glyph, title from a list); an optional images variable swaps in photos.",
+  "tags": [
+    "carousel",
+    "gallery",
+    "showcase",
+    "products",
+    "circle",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 6,
+  "useWhen": [
+    "A set of products, menu items, categories or tiles should take turns in front of the camera as a showcase.",
+    "You want an even row of similar-size cards, not a big front card."
+  ],
+  "avoidWhen": [
+    "A full ring with a big front card is wanted: use carousel-circle-1 or carousel-circle-5."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/carousel-circle-3/carousel-circle-3.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "carousel-circle-3.html",
+      "target": "compositions/components/carousel-circle-3.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "titles",
+      "type": "string",
+      "role": "content",
+      "label": "Card titles",
+      "description": "Comma- or line-separated titles, one per card, repeated if there are fewer than the 12 cards. A shop can list its products.",
+      "default": "Linen Shirt, Ceramic Mug, Canvas Tote, Oak Stool, Wool Throw, Glass Vase, Field Notebook, Desk Mat, Soy Candle, Clay Planter, Tea Set, Cutting Board"
+    },
+    {
+      "id": "palette",
+      "type": "string",
+      "role": "style",
+      "label": "Card colours",
+      "description": "Comma-separated colours for the drawn cards, cycled in order. Title and glyph colour follow each card's brightness.",
+      "default": "#0a0a0a, #2563eb, #f4f4f5, #27272a, #e4e4e7, #1d4ed8"
+    },
+    {
+      "id": "images",
+      "type": "string",
+      "role": "content",
+      "label": "Images",
+      "description": "Optional JSON array of image URLs or paths, e.g. [\"a.jpg\",\"b.jpg\"]. When set, photos replace the drawn cards (they are fitted into square cards and repeated if there are fewer than 12); titles, colours and glyphs then do not apply. Empty by default.",
+      "default": ""
+    },
+    {
+      "id": "show_glyphs",
+      "type": "boolean",
+      "role": "style",
+      "label": "Glyphs",
+      "description": "Draw a simple line glyph on each drawn card.",
+      "default": true
+    },
+    {
+      "id": "card_radius",
+      "type": "number",
+      "role": "style",
+      "label": "Corner radius",
+      "description": "Card corner rounding as a share of the card size.",
+      "default": 3,
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Time scale of the carousel motion. 1 is the designed pace.",
+      "default": 1,
+      "min": 0.25,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Scene background.",
+      "default": "#ffffff"
+    }
+  ]
+}

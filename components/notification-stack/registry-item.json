@@ -1,0 +1,155 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "notification-stack",
+  "type": "hyperframes:component",
+  "title": "Notification Stack",
+  "description": "Four notification banners land one after another and restack upward over a warm backdrop, then a dark end card with a two-line headline fades in.",
+  "tags": [
+    "notification",
+    "banner",
+    "stack",
+    "end-card",
+    "ui",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 14,
+  "useWhen": [
+    "A product moment needs a burst of 'it happened' notifications ending on a brand end card.",
+    "The scene is a vertical social spot."
+  ],
+  "avoidWhen": [
+    "You want a full chat or inbox: use chat-flow or messenger-chat-flow.",
+    "The banners should show a real app's name and look."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/notification-cascade/notification-cascade.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "notification-stack.html",
+      "target": "compositions/components/notification-stack.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "notif_title",
+      "type": "string",
+      "role": "content",
+      "label": "Notification title",
+      "description": "Bold first line on every banner.",
+      "default": "New render",
+      "maxLength": 30
+    },
+    {
+      "id": "message_1",
+      "type": "string",
+      "role": "content",
+      "label": "Message 1",
+      "description": "Subtitle of the first banner to land.",
+      "default": "Your video is ready.",
+      "maxLength": 40
+    },
+    {
+      "id": "message_2",
+      "type": "string",
+      "role": "content",
+      "label": "Message 2",
+      "description": "Subtitle of the second banner.",
+      "default": "All checks passed.",
+      "maxLength": 40
+    },
+    {
+      "id": "message_3",
+      "type": "string",
+      "role": "content",
+      "label": "Message 3",
+      "description": "Subtitle of the third banner.",
+      "default": "Export finished in 92s.",
+      "maxLength": 40
+    },
+    {
+      "id": "message_4",
+      "type": "string",
+      "role": "content",
+      "label": "Message 4",
+      "description": "Subtitle of the fourth banner.",
+      "default": "Published to your page.",
+      "maxLength": 40
+    },
+    {
+      "id": "app_name",
+      "type": "string",
+      "role": "content",
+      "label": "App name",
+      "description": "Credit in the corner of every banner.",
+      "default": "Studio",
+      "maxLength": 24
+    },
+    {
+      "id": "headline_top",
+      "type": "string",
+      "role": "content",
+      "label": "End-card line 1",
+      "description": "First line of the closing card.",
+      "default": "ALL DONE",
+      "maxLength": 24
+    },
+    {
+      "id": "headline_accent",
+      "type": "string",
+      "role": "content",
+      "label": "End-card line 2",
+      "description": "Accented second line of the closing card.",
+      "default": "RIGHT ON TIME",
+      "maxLength": 24
+    },
+    {
+      "id": "footer_text",
+      "type": "string",
+      "role": "content",
+      "label": "End-card footer",
+      "description": "Line under the end-card headline, such as a web address.",
+      "default": "example.com",
+      "maxLength": 40
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Banner icon colour.",
+      "default": "#0a9c6b"
+    },
+    {
+      "id": "end_accent",
+      "type": "color",
+      "role": "style",
+      "label": "End-card accent",
+      "description": "Accent line, mark and footer colour on the closing card.",
+      "default": "#3ce6ac"
+    },
+    {
+      "id": "backdrop_light",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop, light",
+      "description": "Light end of the warm backdrop.",
+      "default": "#f3e3cd"
+    },
+    {
+      "id": "backdrop_dark",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop, dark",
+      "description": "Dark end of the warm backdrop.",
+      "default": "#c99a68"
+    }
+  ]
+}

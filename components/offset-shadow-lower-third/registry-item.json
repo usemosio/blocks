@@ -1,0 +1,92 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "offset-shadow-lower-third",
+  "type": "hyperframes:component",
+  "title": "Offset Shadow Lower Third",
+  "description": "A bold news-style lower third: a white headline bar with a colored offset shadow over a colored sub-line with a white one. It holds still.",
+  "tags": [
+    "lower-third",
+    "news",
+    "headline",
+    "overlay",
+    "static",
+    "adapted",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 8,
+  "useWhen": [
+    "A headline and a sub-line must sit over footage in a punchy, tabloid-news style.",
+    "The host animates the entrance and exit itself."
+  ],
+  "avoidWhen": [
+    "You need an animated entrance: pair it with a slide or reveal block in the host.",
+    "A calm, minimal title: the heavy offset shadows are loud."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/lower-third-bild/lower-third-bild.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "offset-shadow-lower-third.html",
+      "target": "compositions/components/offset-shadow-lower-third.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "main_text",
+      "type": "string",
+      "role": "content",
+      "label": "Main line",
+      "description": "Headline in the white bar (shown in capitals).",
+      "default": "Exclusive report"
+    },
+    {
+      "id": "sub_text",
+      "type": "string",
+      "role": "content",
+      "label": "Sub line",
+      "description": "Line in the colored bar under it.",
+      "default": "Special coverage"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Color of the sub bar and of the headline's offset shadow.",
+      "default": "#dd0000"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Headline bar",
+      "description": "Background of the headline bar and the sub bar's shadow.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_ink",
+      "type": "color",
+      "role": "style",
+      "label": "Headline ink",
+      "description": "Headline text color.",
+      "default": "#212529"
+    },
+    {
+      "id": "sub_ink",
+      "type": "color",
+      "role": "style",
+      "label": "Sub line ink",
+      "description": "Sub line text color.",
+      "default": "#ffffff"
+    }
+  ],
+  "static": true
+}

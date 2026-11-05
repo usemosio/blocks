@@ -1,0 +1,121 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vfx-anamorphic-flare",
+  "type": "hyperframes:component",
+  "title": "Anamorphic Streak Flare",
+  "description": "A field of drifting coloured lights, each throwing a long horizontal anamorphic streak in a single tint: the look of a cinema lens flaring on city lights or bokeh. Canvas 2D, no WebGL.",
+  "tags": [
+    "background",
+    "light",
+    "flare",
+    "streak",
+    "bokeh",
+    "cinematic",
+    "canvas",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 10,
+  "useWhen": [
+    "A cinematic backdrop of lights with horizontal lens streaks behind a title or logo.",
+    "Night-city, concert, tech or sci-fi intros that need a lens-flare texture."
+  ],
+  "avoidWhen": [
+    "A calm, flat or corporate look.",
+    "You want a single hero light that reveals a logo: use anamorphic-flare."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/vfx-anamorphic-flare/vfx-anamorphic-flare.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "vfx-anamorphic-flare.html",
+      "target": "compositions/components/vfx-anamorphic-flare.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "intensity",
+      "type": "number",
+      "role": "style",
+      "label": "Streak intensity",
+      "default": 5,
+      "min": 0,
+      "max": 20,
+      "step": 0.1
+    },
+    {
+      "id": "threshold",
+      "type": "number",
+      "role": "style",
+      "label": "High-pass threshold",
+      "description": "Only light brighter than this throws a streak.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "streakLength",
+      "type": "number",
+      "role": "style",
+      "label": "Streak length gain",
+      "default": 1,
+      "min": 0.1,
+      "max": 6,
+      "step": 0.05
+    },
+    {
+      "id": "tint",
+      "type": "color",
+      "role": "style",
+      "label": "Streak tint",
+      "default": "#7a8aff"
+    },
+    {
+      "id": "bloomRadius",
+      "type": "number",
+      "role": "style",
+      "label": "Bloom radius",
+      "description": "Soft glow around each light, relative to a 1080 px frame.",
+      "default": 0,
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "timeScale",
+      "type": "number",
+      "role": "motion",
+      "label": "Drift rate",
+      "default": 0.5,
+      "min": 0,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "emitters",
+      "type": "number",
+      "role": "style",
+      "label": "Emitter count",
+      "default": 140,
+      "min": 1,
+      "max": 400,
+      "step": 1
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#04040a"
+    }
+  ]
+}

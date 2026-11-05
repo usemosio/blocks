@@ -1,0 +1,379 @@
+<!doctype html>
+<!--
+  Liquid Page Waves
+
+  A page floats on a liquid surface: vertex waves and ripples roll across it with a slight camera tilt, intensify, and the page crossfades into a second one while the surface settles to still. WebGL over two built-in pages.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/vfx-liquid-background/vfx-liquid-background.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame (the wavy plane is sized from the frame and overfills the view by 4% instead of 16%, so page edges are not cropped); rewritten from three.js (not loaded) to raw WebGL2: the 100 x 60 grid, vertex and fragment shaders and the tilting perspective camera are the same, with the camera matrices computed in the file; the two pages are generic placeholders drawn on 2D canvases from variables (a balance dashboard and a post feed, replacing the upstream pages that imitated real apps); the font is Inter from Google Fonts; the canvas is drawn at the `resolution` variable.
+-->
+<html
+  lang="en"
+  data-composition-id="vfx-liquid-background"
+  data-composition-duration="12"
+  data-composition-variables='[{"id": "brand", "type": "string", "role": "content", "label": "Panel A brand", "default": "Vault"},
+    {"id": "nav", "type": "string", "role": "content", "label": "Panel A menu", "description": "Menu items separated by commas.", "default": "Portfolio, Markets, Activity, Settings"},
+    {"id": "balance_label", "type": "string", "role": "content", "label": "Panel A label", "default": "TOTAL BALANCE"},
+    {"id": "balance", "type": "string", "role": "content", "label": "Panel A value", "default": "$2,847,391.24"},
+    {"id": "change", "type": "string", "role": "content", "label": "Panel A change", "default": "+12.4%"},
+    {"id": "holdings", "type": "string", "role": "content", "label": "Panel A cards", "description": "Up to 4 cards as \"Name | price | change\", separated by semicolons.", "default": "Savings | $1,204,000 | +4.2%; Equity | $862,310 | +18.9%; Bonds | $514,225 | +1.1%; Cash | $266,856 | -0.3%"},
+    {"id": "author", "type": "string", "role": "content", "label": "Panel B author", "default": "Sarah Chen"},
+    {"id": "handle", "type": "string", "role": "content", "label": "Panel B handle", "default": "@sarahchen"},
+    {"id": "prompt", "type": "string", "role": "content", "label": "Panel B composer text", "default": "Share an update"},
+    {"id": "posts", "type": "string", "role": "content", "label": "Panel B posts", "description": "Up to 3 posts as \"Name | text\", separated by semicolons.", "default": "Maya Okafor | Shipped the new dashboard today. The team did incredible work and the first numbers look great.; Leo Martins | Ten tiny experiments beat one big plan. Start small, learn fast.; Priya Nair | Morning reminder: take a walk before the standup."},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the scene is drawn at, then scaled up. Page text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Liquid Page Waves</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .vlb-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .vlb-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="vfx-liquid-background" data-duration="12" data-fps="30">
+        <div id="vlb-clip" class="vlb-stage clip" data-start="0" data-duration="12" data-track-index="0">
+          <canvas id="vlb-canvas" class="vlb-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "vfx-liquid-background";
+            var DUR = 12;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("vlb-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "brand", "type": "string", "role": "content", "label": "Panel A brand", "default": "Vault"}, {"id": "nav", "type": "string", "role": "content", "label": "Panel A menu", "description": "Menu items separated by commas.", "default": "Portfolio, Markets, Activity, Settings"}, {"id": "balance_label", "type": "string", "role": "content", "label": "Panel A label", "default": "TOTAL BALANCE"}, {"id": "balance", "type": "string", "role": "content", "label": "Panel A value", "default": "$2,847,391.24"}, {"id": "change", "type": "string", "role": "content", "label": "Panel A change", "default": "+12.4%"}, {"id": "holdings", "type": "string", "role": "content", "label": "Panel A cards", "description": "Up to 4 cards as \"Name | price | change\", separated by semicolons.", "default": "Savings | $1,204,000 | +4.2%; Equity | $862,310 | +18.9%; Bonds | $514,225 | +1.1%; Cash | $266,856 | -0.3%"}, {"id": "author", "type": "string", "role": "content", "label": "Panel B author", "default": "Sarah Chen"}, {"id": "handle", "type": "string", "role": "content", "label": "Panel B handle", "default": "@sarahchen"}, {"id": "prompt", "type": "string", "role": "content", "label": "Panel B composer text", "default": "Share an update"}, {"id": "posts", "type": "string", "role": "content", "label": "Panel B posts", "description": "Up to 3 posts as \"Name | text\", separated by semicolons.", "default": "Maya Okafor | Shipped the new dashboard today. The team did incredible work and the first numbers look great.; Leo Martins | Ten tiny experiments beat one big plan. Start small, learn fast.; Priya Nair | Morning reminder: take a walk before the standup."}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the scene is drawn at, then scaled up. Page text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = "#000";
+            canvas.width = cw;
+            canvas.height = ch;
+            var SANS = "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+            var U = W >= H ? Math.min(W / 1920, H / 1080) : W / 1080 * 1.15;
+            function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+            function rows(s, n) { return String(s).split(";").map(function (c) { return c.split("|").map(function (p) { return p.trim(); }); }).filter(function (c) { return c[0]; }).slice(0, n); }
+            function wrap(ctx, text, maxW) {
+              var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = "";
+              words.forEach(function (w) { var next = line ? line + " " + w : w; if (line && ctx.measureText(next).width > maxW) { lines.push(line); line = w; } else line = next; });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function drawA(el) {
+              var ctx = el.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = "#0a0e17"; ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+              var portrait = W < H, pad = (portrait ? 56 : 80) * U;
+              var g = ctx.createLinearGradient(pad, 60 * U, pad + 36 * U, 96 * U); g.addColorStop(0, "#2563eb"); g.addColorStop(1, "#1e3a8a");
+              ctx.fillStyle = g; rrect(ctx, pad, 60 * U, 36 * U, 36 * U, 10 * U); ctx.fill();
+              ctx.fillStyle = "#e2e8f0"; ctx.font = "700 " + 22 * U + "px " + SANS; ctx.fillText(V.brand, pad + 46 * U, 86 * U);
+              if (!portrait) {
+                ctx.font = "400 " + 15 * U + "px " + SANS; ctx.fillStyle = "#94a3b8";
+                var x = W - pad; String(V.nav).split(",").map(function (s) { return s.trim(); }).filter(Boolean).reverse().forEach(function (n) { var w = ctx.measureText(n).width; ctx.fillText(n, x - w, 82 * U); x -= w + 36 * U; });
+              }
+              var y = 150 * U;
+              ctx.font = "500 " + 14 * U + "px " + SANS; ctx.fillStyle = "#64748b"; ctx.fillText(V.balance_label, pad, y);
+              var bs = (portrait ? 56 : 72) * U;
+              ctx.font = "800 " + bs + "px " + SANS; ctx.fillStyle = "#f8fafc";
+              var bw = ctx.measureText(V.balance).width; if (bw > W - 2 * pad - 130 * U) { bs *= (W - 2 * pad - 130 * U) / bw; ctx.font = "800 " + bs + "px " + SANS; bw = ctx.measureText(V.balance).width; }
+              ctx.fillText(V.balance, pad, y + bs + 8 * U);
+              ctx.fillStyle = "rgba(52,211,153,0.15)"; rrect(ctx, pad + bw + 24 * U, y + bs * 0.2, 110 * U, 40 * U, 20 * U); ctx.fill();
+              ctx.fillStyle = "#34d399"; ctx.font = "700 " + 18 * U + "px " + SANS; ctx.textAlign = "center"; ctx.fillText(V.change, pad + bw + 24 * U + 55 * U, y + bs * 0.2 + 27 * U); ctx.textAlign = "left";
+              var cards = rows(V.holdings, 4), cols = portrait ? 1 : cards.length, gap = 24 * U;
+              var cwid = (W - 2 * pad - gap * (cols - 1)) / Math.max(1, cols), chei = 170 * U, top = y + bs + 80 * U;
+              cards.forEach(function (c, i) {
+                var cx = pad + (i % cols) * (cwid + gap), cy = top + Math.floor(i / cols) * (chei + gap);
+                ctx.fillStyle = "rgba(255,255,255,0.04)"; rrect(ctx, cx, cy, cwid, chei, 18 * U); ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.lineWidth = Math.max(1, U); rrect(ctx, cx, cy, cwid, chei, 18 * U); ctx.stroke();
+                ctx.fillStyle = "#2563eb"; ctx.beginPath(); ctx.arc(cx + 44 * U, cy + 44 * U, 20 * U, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "#e2e8f0"; ctx.font = "700 " + 20 * U + "px " + SANS; ctx.fillText(c[0], cx + 76 * U, cy + 52 * U);
+                var up = !/^-/.test(c[2] || "");
+                ctx.fillStyle = up ? "#34d399" : "#f87171"; ctx.font = "600 " + 16 * U + "px " + SANS; ctx.textAlign = "right"; ctx.fillText(c[2] || "", cx + cwid - 24 * U, cy + 52 * U); ctx.textAlign = "left";
+                ctx.fillStyle = "#f8fafc"; ctx.font = "800 " + 34 * U + "px " + SANS; ctx.fillText(c[1] || "", cx + 24 * U, cy + 128 * U);
+              });
+            }
+            function drawB(el) {
+              var ctx = el.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = "#0f1419"; ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+              var portrait = W < H, colW = Math.min(W - 2 * 40 * U, 760 * U), x0 = (W - colW) / 2, y = 60 * U;
+              var g = ctx.createLinearGradient(x0, y, x0 + 60 * U, y + 60 * U); g.addColorStop(0, "#e5e5e5"); g.addColorStop(1, "#93c5fd");
+              ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x0 + 30 * U, y + 30 * U, 30 * U, 0, Math.PI * 2); ctx.fill();
+              ctx.fillStyle = "#e7e9ea"; ctx.font = "700 " + 22 * U + "px " + SANS; ctx.fillText(V.author, x0 + 76 * U, y + 28 * U);
+              ctx.fillStyle = "#71767b"; ctx.font = "400 " + 17 * U + "px " + SANS; ctx.fillText(V.handle, x0 + 76 * U, y + 54 * U);
+              ctx.fillStyle = "#e7e9ea"; rrect(ctx, x0 + colW - 110 * U, y + 10 * U, 110 * U, 40 * U, 20 * U); ctx.fill();
+              ctx.fillStyle = "#0f1419"; ctx.font = "700 " + 16 * U + "px " + SANS; ctx.textAlign = "center"; ctx.fillText("Follow", x0 + colW - 55 * U, y + 36 * U); ctx.textAlign = "left";
+              y += 100 * U;
+              ctx.strokeStyle = "#2f3336"; ctx.lineWidth = Math.max(1, U); rrect(ctx, x0, y, colW, 72 * U, 14 * U); ctx.stroke();
+              ctx.fillStyle = "#71767b"; ctx.font = "400 " + 20 * U + "px " + SANS; ctx.fillText(V.prompt, x0 + 24 * U, y + 44 * U);
+              y += 100 * U;
+              rows(V.posts, 3).forEach(function (p) {
+                ctx.fillStyle = "#2f3336"; ctx.fillRect(x0, y - 12 * U, colW, Math.max(1, U));
+                var pg = ctx.createLinearGradient(x0, y, x0 + 48 * U, y + 48 * U); pg.addColorStop(0, "#38bdf8"); pg.addColorStop(1, "#2563eb");
+                ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(x0 + 24 * U, y + 36 * U, 24 * U, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "#e7e9ea"; ctx.font = "700 " + 19 * U + "px " + SANS; ctx.fillText(p[0], x0 + 64 * U, y + 30 * U);
+                ctx.font = "400 " + 19 * U + "px " + SANS; ctx.fillStyle = "#d6d9db";
+                var ly = y + 62 * U;
+                wrap(ctx, p[1] || "", colW - 64 * U).forEach(function (l) { ctx.fillText(l, x0 + 64 * U, ly); ly += 28 * U; });
+                ctx.fillStyle = "#71767b"; ctx.font = "400 " + 15 * U + "px " + SANS;
+                ctx.fillText("12 comments", x0 + 64 * U, ly + 14 * U); ctx.fillText("48 shares", x0 + 64 * U + 170 * U, ly + 14 * U); ctx.fillText("231 likes", x0 + 64 * U + 320 * U, ly + 14 * U);
+                y = ly + 56 * U;
+              });
+            }
+            var panels = [0, 1].map(function () { var c = document.createElement("canvas"); c.width = cw; c.height = ch; return c; });
+            function drawPanels() { drawA(panels[0]); drawB(panels[1]); }
+            drawPanels();
+            var codeEpoch = 0, rebuild = function () {};
+            if (document.fonts && document.fonts.load) {
+              ["400 20px Inter", "700 22px Inter", "800 60px Inter"].forEach(function (f) { document.fonts.load(f).then(function () { rebuild(); if (paint) paint(tl.time()); }, function () {}); });
+            }
+            // A subdivided plane (100 x 60 cells) that just overfills the view (upstream overfills it by 16%, which crops the page edges), and a perspective camera that tilts.
+            var PLANE_H = 2.4, PLANE_W = PLANE_H * W / H, NX = 100, NY = 60;
+            var grid = [];
+            for (var iy = 0; iy < NY; iy++) for (var ix = 0; ix < NX; ix++) {
+              var corners = [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]];
+              corners.forEach(function (c) {
+                var u0 = (ix + c[0]) / NX, v0 = (iy + c[1]) / NY;
+                grid.push((u0 - 0.5) * PLANE_W, (0.5 - v0) * PLANE_H, 0, u0, v0);
+              });
+            }
+            var gridData = new Float32Array(grid);
+            var ASPECT = cw / ch, FOV = 45 * Math.PI / 180;
+            function proj(fovy, aspect, near, far) { var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far); return [f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]; }
+            function mul(a, b) { var o = new Array(16); for (var c = 0; c < 4; c++) for (var r = 0; r < 4; r++) { var s = 0; for (var k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s; } return o; }
+            var P = proj(FOV, ASPECT, 0.1, 100);
+            // view = (Rx * Ry)^-1 * translate(0, 0, -2.8): the camera sits at z = 2.8 and its Euler XYZ rotation is tweened
+            function viewProj(rx, ry) {
+              var cx = Math.cos(rx), sx = Math.sin(rx), cy = Math.cos(ry), sy = Math.sin(ry);
+              // R = Rx * Ry (column-major); the view uses its transpose
+              var R = [cy, sx * sy, -cx * sy, 0, 0, cx, sx, 0, sy, -sx * cy, cx * cy, 0, 0, 0, 0, 1];
+              var Rt = [R[0], R[4], R[8], 0, R[1], R[5], R[9], 0, R[2], R[6], R[10], 0, 0, 0, 0, 1];
+              var T = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -2.8, 1];
+              return new Float32Array(mul(P, mul(Rt, T)));
+            }
+            var S = { wave: 0, ripple: 0, mix: 0, rx: 0, ry: 0 };
+
+            var VERTEX = `#version 300 es
+precision highp float;
+in vec3 aPos;
+in vec2 aUv;
+uniform mat4 uVP;
+uniform float uTime;
+uniform float uWaveIntensity;
+uniform float uRippleIntensity;
+out vec2 vUvTop;
+out float vDisplacement;
+
+void main() {
+  vUvTop = aUv;
+  vec3 pos = aPos;
+
+  // Wave 1: large slow horizontal wave
+  float wave1 = sin(pos.x * 3.0 + uTime * 1.2) * 0.04 * uWaveIntensity;
+
+  // Wave 2: medium diagonal wave
+  float wave2 = sin((pos.x + pos.y) * 5.0 + uTime * 1.8) * 0.025 * uWaveIntensity;
+
+  // Wave 3: small fast ripples
+  float wave3 = sin(pos.x * 12.0 - uTime * 3.0) * sin(pos.y * 10.0 + uTime * 2.5) * 0.015 * uRippleIntensity;
+
+  float displacement = wave1 + wave2 + wave3;
+  pos.z += displacement;
+  vDisplacement = displacement;
+
+  gl_Position = uVP * vec4(pos, 1.0);
+}
+`;
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+in vec2 vUvTop;
+in float vDisplacement;
+uniform sampler2D uTextureA;
+uniform sampler2D uTextureB;
+uniform float uTime;
+uniform float uMix;
+uniform float uWaveIntensity;
+uniform float uRippleIntensity;
+
+void main() {
+  // vUvTop runs top-down (the texture rows); the waves are laid out with y up, as upstream
+  vec2 vUv = vec2(vUvTop.x, 1.0 - vUvTop.y);
+  // Distort UVs to match vertex displacement for consistency
+  vec2 distortedUv = vUv;
+  distortedUv.x += sin(vUv.y * 10.0 + uTime * 1.8) * 0.008 * uWaveIntensity;
+  distortedUv.y += sin(vUv.x * 8.0 + uTime * 1.2) * 0.006 * uWaveIntensity;
+
+  // Small ripple distortion
+  distortedUv.x += sin(vUv.x * 20.0 - uTime * 3.0) * 0.003 * uRippleIntensity;
+  distortedUv.y += cos(vUv.y * 18.0 + uTime * 2.5) * 0.003 * uRippleIntensity;
+
+  vec2 tuv = vec2(distortedUv.x, 1.0 - distortedUv.y);
+  vec4 colorA = texture(uTextureA, tuv);
+  vec4 colorB = texture(uTextureB, tuv);
+
+  // Crossfade between panels
+  vec4 color = mix(colorA, colorB, uMix);
+
+  // Subtle specular highlight from displacement
+  float highlight = vDisplacement * 3.0;
+  color.rgb += vec3(highlight * 0.15, highlight * 0.12, highlight * 0.2);
+
+  // Slight vignette
+  float vignette = 1.0 - 0.3 * length((vUv - 0.5) * 1.4);
+  color.rgb *= vignette;
+
+  outColor = vec4(color.rgb, 1.0);
+}
+`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var buf = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+              gl.bufferData(gl.ARRAY_BUFFER, gridData, gl.STATIC_DRAW);
+              var aPos = gl.getAttribLocation(prog, "aPos"), aUv = gl.getAttribLocation(prog, "aUv");
+              gl.enableVertexAttribArray(aPos);
+              gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 20, 0);
+              gl.enableVertexAttribArray(aUv);
+              gl.vertexAttribPointer(aUv, 2, gl.FLOAT, false, 20, 12);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              var texs = panels.map(function (c, unit) {
+                var tx = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_2D, tx);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+                return tx;
+              });
+              gl.uniform1i(u("uTextureA"), 0);
+              gl.uniform1i(u("uTextureB"), 1);
+              rebuild = function () {
+                drawPanels();
+                panels.forEach(function (c, unit) { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texs[unit]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); });
+              };
+              var L = ["uVP", "uTime", "uMix", "uWaveIntensity", "uRippleIntensity"].reduce(function (o, n) { o[n] = u(n); return o; }, {});
+              paint = function (t) {
+                gl.uniformMatrix4fv(L.uVP, false, viewProj(S.rx, S.ry));
+                gl.uniform1f(L.uTime, t);
+                gl.uniform1f(L.uMix, S.mix);
+                gl.uniform1f(L.uWaveIntensity, S.wave);
+                gl.uniform1f(L.uRippleIntensity, S.ripple);
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, NX * NY * 6);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+            tl.to(S, { wave: 1.0, duration: 2, ease: "power2.out" }, 0);
+            tl.to(S, { ripple: 0.6, duration: 2.5, ease: "power2.out" }, 0.5);
+            tl.to(S, { rx: 0.06, ry: -0.04, duration: 2.5, ease: "power1.inOut" }, 2);
+            tl.to(S, { wave: 2.5, duration: 1.0, ease: "power2.in" }, 4.5);
+            tl.to(S, { ripple: 2.0, duration: 1.0, ease: "power2.in" }, 4.5);
+            tl.to(S, { mix: 1.0, duration: 2.0, ease: "power2.inOut" }, 5);
+            tl.to(S, { wave: 1.0, duration: 2.0, ease: "power2.out" }, 6.5);
+            tl.to(S, { ripple: 0.5, duration: 2.0, ease: "power2.out" }, 6.5);
+            tl.to(S, { rx: -0.03, ry: 0.03, duration: 2.5, ease: "power1.inOut" }, 6.5);
+            tl.to(S, { wave: 0.7, duration: 2.0, ease: "sine.inOut" }, 9);
+            tl.to(S, { ripple: 0.3, duration: 2.0, ease: "sine.inOut" }, 9);
+            tl.to(S, { wave: 0, duration: 1.5, ease: "power2.inOut" }, 10.5);
+            tl.to(S, { ripple: 0, duration: 1.5, ease: "power2.inOut" }, 10.5);
+            tl.to(S, { rx: 0, ry: 0, duration: 1.5, ease: "power2.inOut" }, 10.5);
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

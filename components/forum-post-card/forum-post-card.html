@@ -1,0 +1,211 @@
+<!doctype html>
+<!--
+  Forum Post Card
+
+  A dark forum post card with community, author, title, body and vote bar rises in, gets upvoted with a spring bounce and a count change, and drops out.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/reddit-post/reddit-post.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: adapted from a block that showed a real product's interface (a real forum site, its name in the sample text, its community prefix, its signature orange and its logo-style icon): it is now a generic forum post card with a monogram community icon and an accent colour variable; the vote count change is a cross-fade between two spans on the timeline instead of text swapped in a callback; fills the host frame (the card is sized from container units, so the same file fits a portrait and a landscape frame).
+-->
+<html
+  lang="en"
+  data-composition-id="forum-post-card"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {
+      "id": "community",
+      "type": "string",
+      "role": "content",
+      "label": "Community",
+      "description": "Name of the community or board.",
+      "default": "Motion Design Club"
+    },
+    {
+      "id": "author",
+      "type": "string",
+      "role": "content",
+      "label": "Author line",
+      "description": "Author and age under the community name.",
+      "default": "placeholder_user · 3h"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Post title",
+      "description": "Headline of the post, three lines at most.",
+      "default": "I made my first animated promo in one afternoon"
+    },
+    {
+      "id": "body",
+      "type": "string",
+      "role": "content",
+      "label": "Post body",
+      "description": "Text under the title, three lines at most.",
+      "default": "No timeline, no keyframes: I wrote the scenes as text and the video appeared. Here is how it went and what I would change."
+    },
+    {
+      "id": "votes",
+      "type": "string",
+      "role": "content",
+      "label": "Votes",
+      "description": "Vote count before the upvote.",
+      "default": "4.2k"
+    },
+    {
+      "id": "votes_after",
+      "type": "string",
+      "role": "content",
+      "label": "Votes after upvote",
+      "description": "Vote count after the upvote lands.",
+      "default": "4.3k"
+    },
+    {
+      "id": "comments",
+      "type": "string",
+      "role": "content",
+      "label": "Comments",
+      "description": "Comment count.",
+      "default": "328"
+    },
+    {
+      "id": "share_label",
+      "type": "string",
+      "role": "content",
+      "label": "Share label",
+      "description": "Text on the share button.",
+      "default": "Share"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the upvoted arrow and count.",
+      "default": "#f97316"
+    },
+    {
+      "id": "icon_color",
+      "type": "color",
+      "role": "style",
+      "label": "Community icon colour",
+      "description": "Background of the round community icon.",
+      "default": "#4a90d9"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "description": "Background of the card.",
+      "default": "#1a1a2e"
+    }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Forum Post Card</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&amp;display=block" />
+      <style>
+        #root { --u: min(0.107cqw, 0.1cqh); position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; font-family: "DM Sans", system-ui, sans-serif; }
+        .fp-card {
+          position: absolute; inset: 0; margin: auto; height: fit-content; width: calc(860 * var(--u));
+          background: var(--card, #1a1a2e); border-radius: calc(16 * var(--u)); padding: calc(32 * var(--u));
+          box-shadow: 0 calc(12 * var(--u)) calc(60 * var(--u)) rgba(0, 0, 0, 0.6); opacity: 0;
+        }
+        .fp-head { display: flex; align-items: center; gap: calc(14 * var(--u)); margin-bottom: calc(24 * var(--u)); }
+        .fp-icon { width: calc(48 * var(--u)); height: calc(48 * var(--u)); border-radius: 50%; flex: none; background: var(--ic, #4a90d9); color: #fff; font-size: calc(22 * var(--u)); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .fp-meta { display: flex; flex-direction: column; gap: calc(2 * var(--u)); min-width: 0; }
+        .fp-comm { font-size: calc(28 * var(--u)); font-weight: 700; color: #d7dadc; line-height: 1.3; }
+        .fp-auth { font-size: calc(24 * var(--u)); color: #818384; line-height: 1.3; }
+        .fp-title { font-size: calc(38 * var(--u)); font-weight: 700; color: #d7dadc; line-height: 1.35; margin-bottom: calc(16 * var(--u)); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .fp-body { font-size: calc(28 * var(--u)); color: #818384; line-height: 1.45; margin-bottom: calc(28 * var(--u)); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .fp-bar { display: flex; align-items: center; gap: calc(28 * var(--u)); padding-top: calc(20 * var(--u)); border-top: calc(1 * var(--u)) solid #343536; }
+        .fp-vote { display: flex; align-items: center; gap: calc(10 * var(--u)); background: #272729; border-radius: calc(24 * var(--u)); padding: calc(8 * var(--u)) calc(16 * var(--u)); }
+        .fp-vbtn { width: calc(32 * var(--u)); height: calc(32 * var(--u)); display: flex; align-items: center; justify-content: center; }
+        .fp-vbtn svg { width: calc(28 * var(--u)); height: calc(28 * var(--u)); display: block; }
+        .fp-count { position: relative; min-width: calc(62 * var(--u)); height: calc(34 * var(--u)); font-size: calc(26 * var(--u)); font-weight: 700; color: #d7dadc; }
+        .fp-count span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .fp-count .after { opacity: 0; color: var(--acc, #f97316); }
+        .fp-act { display: flex; align-items: center; gap: calc(8 * var(--u)); background: #272729; border-radius: calc(24 * var(--u)); padding: calc(10 * var(--u)) calc(20 * var(--u)); font-size: calc(24 * var(--u)); color: #818384; }
+        .fp-act svg { width: calc(26 * var(--u)); height: calc(26 * var(--u)); display: block; }
+      </style>
+
+      <div id="root" data-composition-id="forum-post-card" data-duration="5" data-fps="30">
+        <div id="fp-card" class="fp-card clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="fp-head">
+            <div class="fp-icon" id="fp-icon"></div>
+            <div class="fp-meta"><span class="fp-comm" id="fp-comm"></span><span class="fp-auth" id="fp-auth"></span></div>
+          </div>
+          <div class="fp-title" id="fp-title"></div>
+          <div class="fp-body" id="fp-body"></div>
+          <div class="fp-bar">
+            <div class="fp-vote">
+              <div class="fp-vbtn" id="fp-up"><svg viewBox="0 0 24 24" fill="none"><path id="fp-arrow" d="M12 4L3 14h5v6h8v-6h5L12 4z" fill="#818384"/></svg></div>
+              <div class="fp-count"><span class="before" id="fp-v1"></span><span class="after" id="fp-v2"></span></div>
+              <div class="fp-vbtn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 20l9-10h-5V4H8v6H3l9 10z" fill="#818384"/></svg></div>
+            </div>
+            <div class="fp-act"><svg viewBox="0 0 24 24" fill="none" stroke="#818384" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="fp-comments"></span></div>
+            <div class="fp-act"><svg viewBox="0 0 24 24" fill="none" stroke="#818384" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span id="fp-share"></span></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+          "use strict";
+          var root = document.getElementById("root");
+          var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+          function txt(v, f) { return typeof v === "string" && v.trim() ? v : f; }
+          function hex(c, f) { c = String(c || "").trim().replace("#", ""); if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2]; return /^[0-9a-fA-F]{6}$/.test(c) ? "#" + c : f; }
+          function $(id) { return document.getElementById(id); }
+          function finish(tl, name) {
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[name] = tl;
+          }
+          var comm = txt(vars.community, "Motion Design Club");
+          $("fp-comm").textContent = comm;
+          $("fp-icon").textContent = comm.charAt(0).toUpperCase();
+          $("fp-auth").textContent = txt(vars.author, "placeholder_user \u00b7 3h");
+          $("fp-title").textContent = txt(vars.title, "I made my first animated promo in one afternoon");
+          $("fp-body").textContent = txt(vars.body, "No timeline, no keyframes: I wrote the scenes as text and the video appeared. Here is how it went and what I would change.");
+          $("fp-v1").textContent = txt(vars.votes, "4.2k");
+          $("fp-v2").textContent = txt(vars.votes_after, "4.3k");
+          $("fp-comments").textContent = txt(vars.comments, "328");
+          $("fp-share").textContent = txt(vars.share_label, "Share");
+          var acc = hex(vars.accent, "#f97316");
+          root.style.setProperty("--acc", acc);
+          root.style.setProperty("--ic", hex(vars.icon_color, "#4a90d9"));
+          root.style.setProperty("--card", hex(vars.card_color, "#1a1a2e"));
+          var card = $("fp-card"), u = (card.offsetWidth || 860) / 860;
+          var tl = gsap.timeline({ paused: true });
+          gsap.set(card, { y: 400 * u, opacity: 0 });
+          tl.to(card, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.1);
+          tl.to("#fp-up", { scale: 0.85, duration: 0.12, ease: "power2.out" }, 1.5);
+          tl.to("#fp-up", { scale: 1, duration: 0.4, ease: "elastic.out(1, 0.4)" }, 1.62);
+          tl.to("#fp-arrow", { attr: { fill: acc }, duration: 0.12, ease: "none" }, 1.62);
+          tl.to("#fp-v1", { opacity: 0, duration: 0.12, ease: "none" }, 1.62);
+          tl.to("#fp-v2", { opacity: 1, duration: 0.12, ease: "none" }, 1.62);
+          tl.to(card, { y: 400 * u, opacity: 0, duration: 0.3, ease: "power3.in" }, 4.2);
+          finish(tl, "forum-post-card");
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

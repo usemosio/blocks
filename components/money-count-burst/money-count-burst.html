@@ -1,0 +1,194 @@
+<!doctype html>
+<!--
+  Money Count Burst
+
+  A big amount counts from zero up to a target, turns green with a flash, and bursts into bills and coins.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/apple-money-count/apple-money-count.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: adapted from a block named after a phone-maker's finance ad: generic name and sample; fills the host frame (burst radii stretch with the frame, sizes follow the short side); target, currency symbol, colours and text size are variables; the sound effect track is dropped; the system font stack became Inter from Google Fonts.
+-->
+<html
+  lang="en"
+  data-composition-id="money-count-burst"
+  data-composition-duration="5"
+  data-composition-variables='[
+  {
+    "id": "target",
+    "type": "number",
+    "role": "content",
+    "label": "Final amount",
+    "description": "The number the counter counts up to.",
+    "default": 25000000,
+    "min": 1,
+    "max": 999999999,
+    "step": 1
+  },
+  {
+    "id": "prefix",
+    "type": "string",
+    "role": "content",
+    "label": "Currency symbol",
+    "description": "Text before the number (also the mark on the bills and coins).",
+    "default": "Rp"
+  },
+  {
+    "id": "text_scale",
+    "type": "number",
+    "role": "style",
+    "label": "Text size",
+    "description": "Multiplier on the number&#39;s size.",
+    "default": 1,
+    "min": 0.4,
+    "max": 2,
+    "step": 0.05
+  },
+  {
+    "id": "background",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Frame background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Number colour",
+    "description": "Colour of the number while it counts.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "accent_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "Colour the number turns, the flash and the bills.",
+    "default": "#2563eb"
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Money Count Burst</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; background: var(--mcb-bg, #ffffff); color: var(--mcb-fg, #0a0a0a); font-family: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; }
+        #mcb-clip { position: absolute; inset: 0; }
+        .mcb-flash { position: absolute; inset: 0; z-index: 1; background: var(--mcb-accent, #2563eb); opacity: 0; }
+        .mcb-stage { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; }
+        .mcb-amount { position: relative; font-weight: 900; line-height: 0.9; font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; will-change: transform, color, opacity; }
+        .mcb-burst { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+        .mcb-icon { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; opacity: 0; will-change: transform, opacity; }
+        .mcb-bill { background: var(--mcb-accent, #2563eb); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.2), inset 0 -10px 18px rgba(0, 0, 0, 0.1), 0 16px 26px rgba(0, 0, 0, 0.2); }
+        .mcb-bill::before { position: absolute; inset: 17% 17%; border: 2px solid rgba(0, 0, 0, 0.28); border-radius: 999px; content: ""; }
+        .mcb-coin { border-radius: 50%; background: radial-gradient(circle at 34% 30%, #fff7a6 0%, #ffd54f 40%, #d9a514 100%); box-shadow: inset 0 0 0 4px rgba(111, 76, 0, 0.12), inset 0 -8px 14px rgba(111, 76, 0, 0.1), 0 16px 30px rgba(111, 76, 0, 0.18); }
+        .mcb-mark { position: relative; z-index: 1; font-weight: 900; line-height: 1; color: #07541f; }
+        .mcb-coin .mcb-mark { color: #6f4c00; }
+      </style>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@900&amp;display=block" />
+      <div id="root" data-composition-id="money-count-burst" data-duration="5" data-fps="30">
+        <div id="mcb-clip" class="clip" data-start="0" data-duration="5" data-track-index="0">
+          <div id="mcb-flash" class="mcb-flash"></div>
+          <div class="mcb-stage"><div id="mcb-amount" class="mcb-amount"></div></div>
+          <div id="mcb-burst" class="mcb-burst"></div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(x, f, lo, hi) { var n = Number(x); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : f; }
+            function col(x, f) { return typeof x === "string" && x.trim() ? x.trim() : f; }
+            var target = Math.round(num(vars.target, 25000000, 1, 999999999));
+            var prefix = typeof vars.prefix === "string" ? vars.prefix : "Rp";
+            var bg = col(vars.background, "#ffffff"), fg = col(vars.text_color, "#0a0a0a"), accent = col(vars.accent_color, "#2563eb");
+            root.style.setProperty("--mcb-bg", bg);
+            root.style.setProperty("--mcb-fg", fg);
+            root.style.setProperty("--mcb-accent", accent);
+            var amount = document.getElementById("mcb-amount");
+            var burst = document.getElementById("mcb-burst");
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var landscape = W > H;
+            // Design: 1920x1080. Radii stretch with the frame, sizes follow the short side.
+            var sx = W / 1920, sy = H / 1080;
+            var u = landscape ? H / 1080 : (W / 1080) * 1.1;
+            var size = 190 * (landscape ? H / 1080 : (W / 1080) * 0.8) * num(vars.text_scale, 1, 0.4, 2);
+            amount.style.fontSize = size + "px";
+            amount.style.textShadow = "0 " + 3 * u + "px 0 " + bg + ", 0 " + 18 * u + "px " + 36 * u + "px rgba(17,19,21,0.14), 0 " + 42 * u + "px " + 92 * u + "px rgba(17,19,21,0.1)";
+            function fmt(value) {
+              var r = Math.round(Math.max(0, Math.min(target, value)));
+              return prefix + String(r).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+            amount.textContent = fmt(target);
+            if (amount.scrollWidth > W * 0.9) { size = size * (W * 0.9) / amount.scrollWidth; amount.style.fontSize = size + "px"; }
+            amount.textContent = fmt(0);
+
+            var COUNT = 62, icons = [], specs = [];
+            var limX = W * 0.45, limY = H * 0.43;
+            for (var i = 0; i < COUNT; i++) {
+              var coin = i % 3 === 0;
+              var el = document.createElement("div");
+              el.className = "mcb-icon " + (coin ? "mcb-coin" : "mcb-bill");
+              el.style.width = (coin ? 64 : 96) * u + "px";
+              el.style.height = (coin ? 64 : 52) * u + "px";
+              if (!coin) el.style.borderRadius = 10 * u + "px";
+              var mark = document.createElement("span");
+              mark.className = "mcb-mark";
+              mark.style.fontSize = (coin ? 28 : 30) * u + "px";
+              mark.textContent = prefix.trim().charAt(0) || "$";
+              el.appendChild(mark);
+              burst.appendChild(el);
+              icons.push(el);
+              var angle = i * 2.399963229728653, ring = i % 5;
+              var rx = (260 + ring * 145 + (i % 7) * 12) * sx;
+              var ry = (160 + ring * 78 + (i % 6) * 12) * sy;
+              var ox = ((i % 4) * 24 - 36) * sx, oy = ((i % 5) * 18 - 36) * sy;
+              specs.push({
+                x: Math.max(-limX, Math.min(limX, Math.cos(angle) * rx + ox)),
+                y: Math.max(-limY, Math.min(limY, Math.sin(angle * 1.13) * ry + oy)),
+                delay: (i % 8) * 0.025, duration: 0.74 + (i % 5) * 0.045, fadeDelay: (i % 5) * 0.05,
+                rotation: ((i * 43) % 160) - 80, scale: coin ? 0.72 + (i % 4) * 0.08 : 0.68 + (i % 5) * 0.07
+              });
+            }
+            gsap.set(icons, { x: 0, y: 0, xPercent: -50, yPercent: -50, opacity: 0, scale: 0.18, transformOrigin: "50% 50%" });
+
+            var tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+            var state = { value: 0 };
+            tl.from(amount, { y: 26 * u, opacity: 0, scale: 0.985, duration: 0.45, ease: "power2.out" }, 0);
+            tl.to(state, { value: target, duration: 3.16, ease: "none", onUpdate: function () { amount.textContent = fmt(state.value); } }, 0);
+            tl.to(amount, { color: accent, duration: 0.18 }, 3.16);
+            tl.to(amount, { scale: 1.06, duration: 0.16, ease: "back.out(2.2)" }, 3.16);
+            tl.to(amount, { scale: 1, duration: 0.23, ease: "power2.out" }, 3.33);
+            var flash = document.getElementById("mcb-flash");
+            tl.to(flash, { opacity: 0.34, duration: 0.08, ease: "none" }, 3.16);
+            tl.to(flash, { opacity: 0.22, duration: 0.76, ease: "none" }, 3.24);
+            tl.to(flash, { opacity: 0, duration: 0.16, ease: "power2.out" }, 4);
+            icons.forEach(function (icon, i) {
+              var s = specs[i];
+              tl.to(icon, { x: s.x, y: s.y, rotation: s.rotation, scale: s.scale, opacity: 1, duration: s.duration, ease: "power4.out" }, 3.28 + s.delay);
+              tl.to(icon, { y: s.y + (s.y < 0 ? -58 : 58) * sy, scale: s.scale * 0.54, opacity: 0, duration: 0.38, ease: "power2.in" }, 4.18 + s.fadeDelay);
+            });
+            tl.to(amount, { opacity: 0, scale: 0.985, duration: 0.28, ease: "power2.in" }, 4.36);
+            if (tl.duration() < 5) tl.to({}, { duration: 5 - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["money-count-burst"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

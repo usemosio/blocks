@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hw-text-cloud",
+  "type": "hyperframes:component",
+  "title": "Hand-Drawn Speech Bubble",
+  "description": "A wobbly hand-drawn speech bubble: the outline draws on, the paper fill fades in and handwritten text types per character.",
+  "tags": [
+    "handwritten",
+    "speech-bubble",
+    "overlay",
+    "typing",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 6,
+  "useWhen": [
+    "A short line of dialogue or a caption should pop up in a hand-drawn bubble.",
+    "The look should be hand-made and a little imperfect."
+  ],
+  "avoidWhen": [
+    "Long paragraphs of text: the bubble is meant for one short line.",
+    "A realistic chat interface: use a chat block."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/hw-text-cloud/hw-text-cloud.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "hw-text-cloud.html",
+      "target": "compositions/components/hw-text-cloud.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "What the speech bubble says.",
+      "default": "what are you looking at?"
+    },
+    {
+      "id": "tip_side",
+      "type": "enum",
+      "role": "style",
+      "label": "Tail side",
+      "description": "Which bottom corner the tail points from.",
+      "default": "bottom-left",
+      "options": [
+        {
+          "value": "bottom-left",
+          "label": "Bottom left"
+        },
+        {
+          "value": "bottom-right",
+          "label": "Bottom right"
+        }
+      ]
+    },
+    {
+      "id": "text_scale",
+      "type": "number",
+      "role": "style",
+      "label": "Text size",
+      "description": "Multiplier on the text size, which follows the bubble size.",
+      "default": 1,
+      "min": 0.4,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "ink_color",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Outline and text colour.",
+      "default": "#26241f"
+    },
+    {
+      "id": "paper_color",
+      "type": "color",
+      "role": "style",
+      "label": "Paper",
+      "description": "Bubble fill colour.",
+      "default": "#f4f2ec"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the bubble sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background colour when not transparent.",
+      "default": "#2a4d6e"
+    },
+    {
+      "id": "boil",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Boil",
+      "description": "The bubble jitters slightly every third frame, like hand-redrawn animation.",
+      "default": true
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Changes the wobble of the outline.",
+      "default": 6,
+      "min": 1,
+      "max": 999,
+      "step": 1
+    }
+  ]
+}

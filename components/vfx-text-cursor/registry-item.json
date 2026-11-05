@@ -1,0 +1,114 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vfx-text-cursor",
+  "type": "hyperframes:component",
+  "title": "Text Cursor Rays",
+  "description": "A wordmark rises into frame and a cursor sweeps across it, throwing prismatic light rays through the letters (a 112-sample ray accumulation shader); the mark shrinks away into a frosted glass card where a word is typed, slides into place, and the headline changes to a closing line.",
+  "tags": [
+    "shader",
+    "light-rays",
+    "logo",
+    "typing",
+    "card",
+    "reveal",
+    "announcement",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "logo-stings",
+  "duration": 8,
+  "useWhen": [
+    "A logo sting where light rays sweep through the wordmark, followed by a typed announcement card.",
+    "A product announcement: wordmark, then a word typed into a glass card and a closing line."
+  ],
+  "avoidWhen": [
+    "The logo must stay still and crisp: the rays smear the wordmark while the cursor passes.",
+    "The render budget is tight: the shader takes 112 samples per pixel on a CPU renderer."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/vfx-text-cursor/vfx-text-cursor.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "vfx-text-cursor.html",
+      "target": "compositions/components/vfx-text-cursor.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "logo_text",
+      "type": "string",
+      "role": "content",
+      "label": "Wordmark",
+      "description": "The wordmark the light rays pass through (a placeholder name).",
+      "default": "Lumen"
+    },
+    {
+      "id": "typed_word",
+      "type": "string",
+      "role": "content",
+      "label": "Typed word",
+      "description": "Typed out in the card, large, before it slides to its place.",
+      "default": "MOTION"
+    },
+    {
+      "id": "rest_1",
+      "type": "string",
+      "role": "content",
+      "label": "Headline, rest of line 1",
+      "default": "in"
+    },
+    {
+      "id": "rest_2",
+      "type": "string",
+      "role": "content",
+      "label": "Headline, line 2",
+      "default": "minutes"
+    },
+    {
+      "id": "end_1",
+      "type": "string",
+      "role": "content",
+      "label": "Closing card, line 1",
+      "default": "Now available"
+    },
+    {
+      "id": "end_2",
+      "type": "string",
+      "role": "content",
+      "label": "Closing card, line 2",
+      "default": "for everyone"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Typed word colour",
+      "default": "#ffffff"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the light-ray shader is drawn at, then scaled up. It samples 112 times per pixel, so keep it low on CPU renderers.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true,
+  "checkAt": [
+    1.5,
+    2.4,
+    3.9,
+    6.5
+  ]
+}

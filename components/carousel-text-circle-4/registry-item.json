@@ -1,0 +1,133 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "carousel-text-circle-4",
+  "type": "hyperframes:component",
+  "title": "Text and Circle Carousel, Tilted Ring",
+  "description": "Same headline reveal and cut as carousel-text-circle-1, with a slow wide tilted ring. Product cards are drawn (gradient panel, glyph, title from a list); an optional images variable swaps in photos.",
+  "tags": [
+    "carousel",
+    "gallery",
+    "showcase",
+    "products",
+    "text-circle",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 5,
+  "useWhen": [
+    "A headline should be revealed word by word through a ring of cards, then cut to a closing line."
+  ],
+  "avoidWhen": [
+    "Only the ring is wanted, without text: use the matching carousel-circle block."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/carousel-text-circle-4/carousel-text-circle-4.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "carousel-text-circle-4.html",
+      "target": "compositions/components/carousel-text-circle-4.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "titles",
+      "type": "string",
+      "role": "content",
+      "label": "Card titles",
+      "description": "Comma- or line-separated titles, one per card, repeated if there are fewer than the 12 cards. A shop can list its products.",
+      "default": "Linen Shirt, Ceramic Mug, Canvas Tote, Oak Stool, Wool Throw, Glass Vase, Field Notebook, Desk Mat, Soy Candle, Clay Planter, Tea Set, Cutting Board"
+    },
+    {
+      "id": "palette",
+      "type": "string",
+      "role": "style",
+      "label": "Card colours",
+      "description": "Comma-separated colours for the drawn cards, cycled in order. Title and glyph colour follow each card's brightness.",
+      "default": "#0a0a0a, #2563eb, #f4f4f5, #27272a, #e4e4e7, #1d4ed8"
+    },
+    {
+      "id": "images",
+      "type": "string",
+      "role": "content",
+      "label": "Images",
+      "description": "Optional JSON array of image URLs or paths, e.g. [\"a.jpg\",\"b.jpg\"]. When set, photos replace the drawn cards (they are fitted into square cards and repeated if there are fewer than 12); titles, colours and glyphs then do not apply. Empty by default.",
+      "default": ""
+    },
+    {
+      "id": "show_glyphs",
+      "type": "boolean",
+      "role": "style",
+      "label": "Glyphs",
+      "description": "Draw a simple line glyph on each drawn card.",
+      "default": true
+    },
+    {
+      "id": "card_radius",
+      "type": "number",
+      "role": "style",
+      "label": "Corner radius",
+      "description": "Card corner rounding as a share of the card size.",
+      "default": 3,
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Time scale of the carousel motion. 1 is the designed pace.",
+      "default": 1,
+      "min": 0.25,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Scene background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "line1",
+      "type": "string",
+      "role": "content",
+      "label": "Headline",
+      "description": "First line, revealed word by word while the cards ring it.",
+      "default": "Carousels are so in"
+    },
+    {
+      "id": "line2",
+      "type": "string",
+      "role": "content",
+      "label": "Closing line",
+      "description": "Second line, shown after the hard cut.",
+      "default": "so we made them in motion"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Colour of both lines.",
+      "default": "#0a0a0a"
+    }
+  ],
+  "checkAt": [
+    0.5,
+    1.2,
+    1.75,
+    4.5
+  ]
+}

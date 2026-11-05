@@ -1,0 +1,115 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "aurora",
+  "type": "hyperframes:component",
+  "title": "Aurora",
+  "description": "Green and violet aurora curtains ripple across a night sky.",
+  "tags": [
+    "shader",
+    "webgl",
+    "background",
+    "aurora",
+    "sky",
+    "night",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A night-sky or northern-lights backdrop behind a title, product shot or quote.",
+    "A calm, glowing background in two colors of your choosing."
+  ],
+  "avoidWhen": [
+    "You want a soft blended palette with no sky: use shader-mesh-gradient.",
+    "The render budget is tight: lower `resolution`; WebGL runs in software on CPU render machines."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/aurora/aurora.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "aurora.html",
+      "target": "compositions/components/aurora.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Upper color",
+      "description": "Color of the curtains' upper reach.",
+      "default": "#a533f8"
+    },
+    {
+      "id": "color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Lower color",
+      "description": "Color of the curtains' glowing lower edge.",
+      "default": "#3dff9a"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "waviness",
+      "type": "number",
+      "role": "style",
+      "label": "Waviness",
+      "description": "How strongly the curtains ripple sideways.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "ray_density",
+      "type": "number",
+      "role": "style",
+      "label": "Ray detail",
+      "description": "How many vertical rays run through the curtains.",
+      "default": 22,
+      "min": 4,
+      "max": 60,
+      "step": 1
+    },
+    {
+      "id": "height",
+      "type": "number",
+      "role": "style",
+      "label": "Height",
+      "description": "How tall the curtains reach.",
+      "default": 1,
+      "min": 0.3,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

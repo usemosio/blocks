@@ -1,0 +1,142 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "us-map-bubble",
+  "type": "hyperframes:component",
+  "title": "US Bubble Map",
+  "description": "US map with proportional bubbles that pop in one by one, callouts for the biggest, and connecting arcs from one hub.",
+  "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "bubbles",
+    "hyperframes-port"
+  ],
+  "category": "data-viz",
+  "duration": 12,
+  "useWhen": [
+    "Points on the US map need a size that means something: city populations, store counts, signups per city.",
+    "One place (a hub) connects to a few others and should pulse at the end."
+  ],
+  "avoidWhen": [
+    "Values belong to whole states: use us-map.",
+    "Many arcs between many cities: use us-map-flow.",
+    "Places outside the lower 48 states."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/us-map-bubble/us-map-bubble.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "us-map-bubble.html",
+      "target": "compositions/components/us-map-bubble.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Headline written on with a wipe.",
+      "default": "Top 20 US Cities by Population"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "description": "Line under the headline.",
+      "default": "Proportional bubble markers by metropolitan population"
+    },
+    {
+      "id": "source",
+      "type": "string",
+      "role": "content",
+      "label": "Source note",
+      "description": "Small credit line in the corner. Empty hides it.",
+      "default": "Source: Illustrative data"
+    },
+    {
+      "id": "cities",
+      "type": "string",
+      "role": "content",
+      "label": "Cities",
+      "description": "JSON list of {name, lat, lon, value} for places in the lower 48 states.",
+      "default": "[{\"name\":\"New York\",\"lat\":40.7128,\"lon\":-74.006,\"value\":8300000},{\"name\":\"Los Angeles\",\"lat\":34.0522,\"lon\":-118.2437,\"value\":3900000},{\"name\":\"Chicago\",\"lat\":41.8781,\"lon\":-87.6298,\"value\":2700000},{\"name\":\"Houston\",\"lat\":29.7604,\"lon\":-95.3698,\"value\":2300000},{\"name\":\"Phoenix\",\"lat\":33.4484,\"lon\":-112.074,\"value\":1600000},{\"name\":\"Philadelphia\",\"lat\":39.9526,\"lon\":-75.1652,\"value\":1600000},{\"name\":\"San Antonio\",\"lat\":29.4241,\"lon\":-98.4936,\"value\":1400000},{\"name\":\"San Diego\",\"lat\":32.7157,\"lon\":-117.1611,\"value\":1400000},{\"name\":\"Dallas\",\"lat\":32.7767,\"lon\":-96.797,\"value\":1300000},{\"name\":\"Jacksonville\",\"lat\":30.3322,\"lon\":-81.6557,\"value\":950000},{\"name\":\"Austin\",\"lat\":30.2672,\"lon\":-97.7431,\"value\":960000},{\"name\":\"San Jose\",\"lat\":37.3382,\"lon\":-121.8863,\"value\":1000000},{\"name\":\"Fort Worth\",\"lat\":32.7555,\"lon\":-97.3308,\"value\":930000},{\"name\":\"Columbus\",\"lat\":39.9612,\"lon\":-82.9988,\"value\":910000},{\"name\":\"Charlotte\",\"lat\":35.2271,\"lon\":-80.8431,\"value\":870000},{\"name\":\"Indianapolis\",\"lat\":39.7684,\"lon\":-86.1581,\"value\":880000},{\"name\":\"San Francisco\",\"lat\":37.7749,\"lon\":-122.4194,\"value\":870000},{\"name\":\"Seattle\",\"lat\":47.6062,\"lon\":-122.3321,\"value\":740000},{\"name\":\"Denver\",\"lat\":39.7392,\"lon\":-104.9903,\"value\":710000},{\"name\":\"Nashville\",\"lat\":36.1627,\"lon\":-86.7816,\"value\":690000}]"
+    },
+    {
+      "id": "unit",
+      "type": "string",
+      "role": "content",
+      "label": "Unit text",
+      "description": "Text after the value in the callouts.",
+      "default": " residents"
+    },
+    {
+      "id": "hub",
+      "type": "string",
+      "role": "content",
+      "label": "Hub city",
+      "description": "City the arcs start from and that pulses at the end. Empty for none.",
+      "default": "New York"
+    },
+    {
+      "id": "connect_to",
+      "type": "string",
+      "role": "content",
+      "label": "Connected cities",
+      "description": "Cities the arcs go to, comma separated (up to 6).",
+      "default": "Los Angeles, Chicago, Houston, Phoenix"
+    },
+    {
+      "id": "callouts",
+      "type": "number",
+      "role": "content",
+      "label": "Callouts",
+      "description": "How many of the biggest cities get a label.",
+      "default": 5,
+      "min": 0,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "bubble_color",
+      "type": "color",
+      "role": "style",
+      "label": "Bubble colour",
+      "description": "Bubbles, arcs and pulse.",
+      "default": "#3b82f6"
+    },
+    {
+      "id": "land_color",
+      "type": "color",
+      "role": "style",
+      "label": "Land colour",
+      "description": "Fill of the states.",
+      "default": "#2a3a52"
+    },
+    {
+      "id": "bg_from",
+      "type": "color",
+      "role": "style",
+      "label": "Background start",
+      "description": "Start of the diagonal background gradient.",
+      "default": "#0f172a"
+    },
+    {
+      "id": "bg_to",
+      "type": "color",
+      "role": "style",
+      "label": "Background end",
+      "description": "End of the diagonal background gradient.",
+      "default": "#1e293b"
+    }
+  ]
+}

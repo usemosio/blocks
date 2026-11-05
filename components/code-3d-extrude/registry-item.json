@@ -1,0 +1,78 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "code-3d-extrude",
+  "type": "hyperframes:component",
+  "title": "Code 3D Extrude",
+  "description": "A syntax-highlighted code card on a thick lit slab: it swings in from an angle, settles face-on with a cool key light and a green rim light on its edges, and then drifts a little at rest. WebGL.",
+  "tags": [
+    "shader",
+    "code",
+    "3d",
+    "slab",
+    "developer",
+    "reveal",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 8,
+  "useWhen": [
+    "A code snippet shown on a physical-looking slab that turns to face the viewer, for developer tools and tutorial intros.",
+    "A hero shot of a short feature snippet with some depth."
+  ],
+  "avoidWhen": [
+    "Long snippets: the slab is fitted to the frame, so long code gets small.",
+    "A flat, UI-style presentation of code."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/code-3d-extrude/code-3d-extrude.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "code-3d-extrude.html",
+      "target": "compositions/components/code-3d-extrude.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "code",
+      "type": "string",
+      "role": "content",
+      "label": "Code",
+      "description": "The snippet shown. Use line breaks; JavaScript-like syntax is highlighted with a GitHub-dark palette.",
+      "default": "async function loadConfig(path) {\n  const raw = await readFile(path, \"utf8\")\n  const config = JSON.parse(raw)\n  return validate(config)\n}"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "default": "#0b0f17"
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#05070b"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Code text needs 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

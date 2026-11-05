@@ -1,0 +1,333 @@
+<!doctype html>
+<!--
+  Glass Notification Aurora
+
+  Two frosted-glass notification cards slide over a slowly moving aurora backdrop: one fills a progress bar and flips to done, the other types a reply.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/liquid-glass-notification/liquid-glass-notification.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: adapted from a block that refracts its cards with a third-party glass library, three.js and an experimental HTML-in-canvas API: here the aurora is the same fragment shader in raw WebGL2 and the glass is CSS (backdrop blur, a bright edge and highlight, no refraction), the logo and messaging app are replaced by drawn generic icons and text, the status text swaps by crossfade instead of a timeline callback, and the cards fill the host frame (top right in a wide frame, centered near the top in a tall one).
+-->
+<html
+  lang="en"
+  data-composition-id="glass-notification-aurora"
+  data-composition-duration="8"
+  data-composition-variables='[
+  {
+    "id": "card1_title",
+    "type": "string",
+    "role": "content",
+    "label": "First card title",
+    "description": "Title of the progress card.",
+    "default": "Export"
+  },
+  {
+    "id": "card1_status",
+    "type": "string",
+    "role": "content",
+    "label": "First card status",
+    "description": "Status beside the title while it runs.",
+    "default": "rendering"
+  },
+  {
+    "id": "card1_status_done",
+    "type": "string",
+    "role": "content",
+    "label": "First card done status",
+    "description": "Status once the bar has filled.",
+    "default": "complete"
+  },
+  {
+    "id": "card1_text",
+    "type": "string",
+    "role": "content",
+    "label": "First card text",
+    "description": "Message while it runs.",
+    "default": "Your video preview is encoding."
+  },
+  {
+    "id": "card1_text_done",
+    "type": "string",
+    "role": "content",
+    "label": "First card done text",
+    "description": "Message once it is done.",
+    "default": "promo-final.mp4 is ready."
+  },
+  {
+    "id": "card2_title",
+    "type": "string",
+    "role": "content",
+    "label": "Second card title",
+    "description": "Title of the message card (its first letter fills the avatar).",
+    "default": "Messages"
+  },
+  {
+    "id": "card2_text",
+    "type": "string",
+    "role": "content",
+    "label": "Second card text",
+    "description": "Message of the second card, followed by typing dots.",
+    "default": "Miguel: can it feel alive but still native?"
+  },
+  {
+    "id": "chip_1",
+    "type": "string",
+    "role": "content",
+    "label": "Action chip 1",
+    "description": "First action chip.",
+    "default": "Reply"
+  },
+  {
+    "id": "chip_2",
+    "type": "string",
+    "role": "content",
+    "label": "Action chip 2",
+    "description": "Second action chip.",
+    "default": "Mark Read"
+  },
+  {
+    "id": "resolution",
+    "type": "number",
+    "role": "quality",
+    "label": "Resolution",
+    "description": "Scale of the aurora canvas relative to the frame. The aurora is soft, so 0.5 looks the same.",
+    "default": 0.5,
+    "min": 0.25,
+    "max": 1,
+    "step": 0.05
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glass Notification Aurora</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; background: #0a1230; font-family: "Inter", system-ui, sans-serif; color: #fff; pointer-events: none; }
+        #gn-clip { position: absolute; inset: 0; }
+        #gn-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .gn-card { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 16px; opacity: 0; box-sizing: border-box; overflow: hidden;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+          -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.08), 0 14px 40px rgba(0, 0, 0, 0.35); }
+        .gn-tile { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 24px rgba(0, 0, 0, 0.24); }
+        .gn-tile svg { width: 56%; height: 56%; display: block; }
+        .gn-body { flex: 1; min-width: 0; position: relative; }
+        .gn-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+        .gn-name { font-weight: 700; }
+        .gn-time { font-weight: 500; color: rgba(255, 255, 255, 0.6); position: relative; display: inline-block; }
+        .gn-time span { display: inline-block; }
+        .gn-time .gn-b { position: absolute; left: 0; top: 0; opacity: 0; white-space: nowrap; }
+        .gn-text { font-weight: 500; color: rgba(255, 255, 255, 0.9); line-height: 1.32; position: relative; }
+        .gn-text .gn-b { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; }
+        .gn-dot { border-radius: 50%; background: #06e3fa; box-shadow: 0 0 16px rgba(6, 227, 250, 0.65); }
+        .gn-progress { position: absolute; height: 3px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.2); }
+        .gn-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #06e3fa, #4fdb5e); box-shadow: 0 0 16px rgba(79, 219, 94, 0.55); }
+        .gn-actions { position: absolute; display: flex; opacity: 0; }
+        .gn-chip { border-radius: 999px; background: rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.95); font-weight: 700; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+        .gn-dots { display: inline-flex; margin-left: 5px; }
+        .gn-dots span { border-radius: 50%; background: rgba(255, 255, 255, 0.75); }
+      </style>
+      <div id="root" data-composition-id="glass-notification-aurora" data-duration="8" data-fps="30">
+        <div id="gn-clip" class="clip" data-start="0" data-duration="8" data-track-index="0">
+          <canvas id="gn-canvas"></canvas>
+          <div id="gn-c1" class="gn-card">
+            <div class="gn-tile" id="gn-t1"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5Z" fill="#fff"/></svg></div>
+            <div class="gn-body">
+              <div class="gn-head"><span class="gn-name" id="gn-n1"></span><span class="gn-dot" id="gn-dot"></span><span class="gn-time"><span id="gn-s1a"></span><span class="gn-b" id="gn-s1b"></span></span></div>
+              <div class="gn-text"><span id="gn-x1a"></span><span class="gn-b" id="gn-x1b"></span></div>
+            </div>
+            <div class="gn-progress" id="gn-prog"><div class="gn-fill" id="gn-fill"></div></div>
+          </div>
+          <div id="gn-c2" class="gn-card">
+            <div class="gn-tile" id="gn-t2" style="background:linear-gradient(135deg,#93c5fd,#2563eb)"></div>
+            <div class="gn-body">
+              <div class="gn-head"><span class="gn-name" id="gn-n2"></span><span class="gn-time" id="gn-time2">now</span></div>
+              <div class="gn-text"><span id="gn-x2"></span><span class="gn-dots" id="gn-dots"><span></span><span></span><span></span></span></div>
+            </div>
+            <div class="gn-actions" id="gn-actions"><span class="gn-chip" id="gn-chip1"></span><span class="gn-chip" id="gn-chip2"></span></div>
+          </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function str(x, f) { return typeof x === "string" && x.trim() ? x : f; }
+            function num(x, f, lo, hi) { var n = Number(x); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : f; }
+            function $(id) { return document.getElementById(id); }
+            $("gn-n1").textContent = str(vars.card1_title, "Export");
+            $("gn-s1a").textContent = str(vars.card1_status, "rendering");
+            $("gn-s1b").textContent = str(vars.card1_status_done, "complete");
+            $("gn-x1a").textContent = str(vars.card1_text, "Your video preview is encoding.");
+            $("gn-x1b").textContent = str(vars.card1_text_done, "promo-final.mp4 is ready.");
+            $("gn-n2").textContent = str(vars.card2_title, "Messages");
+            var t2 = str(vars.card2_text, "Miguel: can it feel alive but still native?");
+            $("gn-x2").textContent = t2;
+            $("gn-chip1").textContent = str(vars.chip_1, "Reply");
+            $("gn-chip2").textContent = str(vars.chip_2, "Mark Read");
+            $("gn-t2").textContent = (Array.from(str(vars.card2_title, "Messages"))[0] || "M").toUpperCase();
+
+            // Sizes follow K: cards are 520 x 118 design pixels at a 1080-high frame, and stretch to the width in portrait.
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var portrait = H > W;
+            var K = portrait ? Math.min(2.2, (W * 0.88) / 520) : H / 1080;
+            var cw = 520 * K, ch = 118 * K;
+            var left0 = portrait ? (W - cw) / 2 : W - 580 * K;
+            var top1 = portrait ? H * 0.08 : 60 * K, top2 = top1 + 136 * K;
+            var enterFrom = (portrait ? W : 640 * K) ;
+            [["gn-c1", top1], ["gn-c2", top2]].forEach(function (p) {
+              var e = $(p[0]);
+              e.style.width = cw + "px"; e.style.height = ch + "px"; e.style.left = left0 + "px"; e.style.top = p[1] + "px";
+              e.style.padding = 18 * K + "px " + 24 * K + "px"; e.style.borderRadius = 36 * K + "px"; e.style.gap = 16 * K + "px";
+            });
+            ["gn-t1", "gn-t2"].forEach(function (id) { var e = $(id); e.style.width = e.style.height = 48 * K + "px"; e.style.borderRadius = (id === "gn-t1" ? 14 : 24) * K + "px"; e.style.fontSize = 19 * K + "px"; });
+            $("gn-t1").style.background = "linear-gradient(135deg, #1b2347, #0b1022)";
+            document.querySelectorAll(".gn-name").forEach(function (e) { e.style.fontSize = 20 * K + "px"; });
+            document.querySelectorAll(".gn-time").forEach(function (e) { e.style.fontSize = 14 * K + "px"; });
+            document.querySelectorAll(".gn-text").forEach(function (e) { e.style.fontSize = 17 * K + "px"; });
+            var dot = $("gn-dot"); dot.style.width = dot.style.height = 8 * K + "px";
+            var prog = $("gn-prog"); prog.style.left = 168 * K + "px"; prog.style.right = 26 * K + "px"; prog.style.height = 3 * K + "px"; prog.style.bottom = 15 * K + "px";
+            var act = $("gn-actions"); act.style.right = 22 * K + "px"; act.style.bottom = 13 * K + "px"; act.style.gap = 8 * K + "px";
+            document.querySelectorAll(".gn-chip").forEach(function (e) { e.style.padding = 5 * K + "px " + 11 * K + "px"; e.style.fontSize = 12 * K + "px"; });
+            var dots = document.querySelectorAll("#gn-dots span");
+            dots.forEach(function (e) { e.style.width = e.style.height = 4 * K + "px"; e.style.marginLeft = (e === dots[0] ? 5 : 3) * K + "px"; });
+
+            // ---- aurora backdrop: raw WebGL2, time from the timeline ----
+            var FRAG = `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 outColor;
+uniform float uTime;
+uniform float uAspect;
+vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+float snoise(vec3 v){
+  const vec2 C=vec2(1.0/6.0,1.0/3.0);const vec4 D=vec4(0.0,0.5,1.0,2.0);
+  vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);
+  vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.0-g;
+  vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);
+  vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;
+  i=mod289(i);
+  vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+  float n_=0.142857142857;vec3 ns=n_*D.wyz-D.xzx;
+  vec4 j=p-49.0*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.0*x_);
+  vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.0-abs(x)-abs(y);
+  vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);
+  vec4 s0=floor(b0)*2.0+1.0;vec4 s1=floor(b1)*2.0+1.0;
+  vec4 sh=-step(h,vec4(0.0));
+  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+  vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);
+  vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+  p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+  vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);m=m*m;
+  return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+}
+void main(){
+  vec2 uv=vUv;float ar=uAspect;vec2 p=vec2(uv.x*ar,uv.y);float t=uTime*0.06;
+  float wx=snoise(vec3(p*1.4,t*0.5))*0.2;float wy=snoise(vec3(p*1.4+100.0,t*0.5))*0.2;
+  vec2 wp=p+vec2(wx,wy);
+  vec3 base=mix(vec3(0.03,0.05,0.12),vec3(0.04,0.10,0.25),smoothstep(0.0,1.0,uv.x*0.6+uv.y*0.4));
+  float angle=0.65;float ridgeUv=dot(wp,vec2(cos(angle),sin(angle)));
+  float ridge1=sin(ridgeUv*8.0+t*2.0+snoise(vec3(wp*0.8,t))*1.5);
+  float ridge2=sin(ridgeUv*5.5-t*1.4+snoise(vec3(wp*1.2+50.0,t*0.7))*2.0);
+  float ridge3=sin(ridgeUv*12.0+t*3.0+snoise(vec3(wp*0.6+80.0,t*0.4))*1.0);
+  float crease1=pow(abs(ridge1),0.35)*sign(ridge1)*0.5+0.5;
+  float crease2=pow(abs(ridge2),0.4)*sign(ridge2)*0.5+0.5;
+  float crease3=pow(abs(ridge3),0.5)*sign(ridge3)*0.5+0.5;
+  vec3 warm=mix(vec3(0.45,0.50,0.60),vec3(0.70,0.75,0.84),crease1);
+  float warmZone=smoothstep(0.15,0.75,uv.x+uv.y*0.4+snoise(vec3(uv*2.0,t))*0.3);
+  vec3 cool=mix(vec3(0.02,0.4,0.55),vec3(0.25,0.7,0.82),crease2);
+  float coolZone=smoothstep(0.25,0.85,1.2-uv.x+uv.y*0.5+snoise(vec3(uv*2.0+40.0,t*0.8))*0.25);
+  vec3 hot=mix(vec3(0.10,0.28,0.75),vec3(0.15,0.40,0.90),crease3);
+  float hotZone=smoothstep(0.5,0.9,snoise(vec3(uv*2.5+20.0,t*0.6))*0.5+0.5);
+  vec3 col=base;
+  col=mix(col,warm,warmZone*0.75*smoothstep(0.3,0.7,crease1));
+  col=mix(col,cool,coolZone*0.65*smoothstep(0.2,0.65,crease2));
+  col=mix(col,hot,hotZone*0.5*smoothstep(0.35,0.8,crease3));
+  float edgeGlow=pow(1.0-abs(ridge1),6.0)*0.4+pow(1.0-abs(ridge2),5.0)*0.25;
+  col+=edgeGlow*mix(warm,cool,uv.x)*0.8;
+  col*=1.0-pow(abs(ridge1),4.0)*0.15;
+  float vig=1.0-smoothstep(0.5,1.5,length((uv-0.5)*vec2(1.3,1.0)));
+  col*=0.65+vig*0.5;
+  float luma=dot(col,vec3(0.299,0.587,0.114));col=mix(vec3(luma),col,1.1);
+  col=clamp(col,0.0,1.0);col=pow(col,vec3(0.9));
+  outColor=vec4(col,1.0);
+}`;
+            var canvas = $("gn-canvas");
+            var res = num(vars.resolution, 0.5, 0.25, 1);
+            canvas.width = Math.max(2, Math.round(W * res)); canvas.height = Math.max(2, Math.round(H * res));
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            var drawAurora = function () {};
+            function fallback(msg) { console.warn("glass-notification-aurora: " + msg); canvas.style.display = "none"; root.style.background = "linear-gradient(135deg, #0a1230, #0a2a66 55%, #475569)"; }
+            if (!gl) { fallback("WebGL 2 is not available"); }
+            else {
+              try {
+                function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+                var p = gl.createProgram();
+                gl.attachShader(p, sh(gl.VERTEX_SHADER, "#version 300 es\nin vec2 a; out vec2 vUv; void main(){ vUv = a*0.5+0.5; gl_Position = vec4(a,0.0,1.0); }"));
+                gl.attachShader(p, sh(gl.FRAGMENT_SHADER, FRAG));
+                gl.linkProgram(p);
+                if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+                gl.useProgram(p);
+                var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+                var loc = gl.getAttribLocation(p, "a"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+                var uTime = gl.getUniformLocation(p, "uTime");
+                gl.uniform1f(gl.getUniformLocation(p, "uAspect"), W / H);
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                drawAurora = function (t) { gl.uniform1f(uTime, t); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); };
+              } catch (e) { fallback(String(e && e.message || e)); }
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            var clock = { t: 0 };
+            tl.to(clock, { t: 8, duration: 8, ease: "none", onUpdate: function () { drawAurora(clock.t); } }, 0);
+            drawAurora(0);
+
+            gsap.set(["#gn-c1", "#gn-c2"], { x: enterFrom, opacity: 0 });
+            gsap.set("#gn-actions", { y: 8 * K, opacity: 0 });
+            gsap.set("#gn-dots span", { opacity: 0.35 });
+            var P = 14 * K;
+            tl.to("#gn-c1", { x: -P, opacity: 1, duration: 0.38, ease: "power3.out" }, 0.18);
+            tl.to("#gn-c1", { x: 0, duration: 0.16, ease: "power2.out" }, 0.56);
+            tl.to("#gn-c2", { x: -P, opacity: 1, duration: 0.36, ease: "power3.out" }, 0.82);
+            tl.to("#gn-c2", { x: 0, duration: 0.16, ease: "power2.out" }, 1.18);
+            tl.to("#gn-fill", { width: "100%", duration: 3.4, ease: "none" }, 0.82);
+            tl.to("#gn-dot", { scale: 1.45, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, 1.1);
+            tl.to("#gn-dots span", { opacity: 1, y: -2 * K, duration: 0.22, ease: "power2.out", stagger: 0.08, yoyo: true, repeat: 5 }, 1.2);
+            tl.to("#gn-c2", { y: "+=" + 10 * K, duration: 0.18, ease: "power2.out" }, 2.55);
+            tl.to("#gn-c2", { y: "-=" + 10 * K, duration: 0.22, ease: "power2.out" }, 2.73);
+            tl.to("#gn-actions", { y: 0, opacity: 1, duration: 0.24, ease: "power2.out" }, 2.72);
+            tl.to("#gn-dot", { backgroundColor: "#4ade80", boxShadow: "0 0 18px rgba(74, 222, 128, 0.8)", duration: 0.15 }, 4.25);
+            // The status and the text swap by crossfade (no timeline callbacks, so seeking back stays correct).
+            tl.to(["#gn-s1a", "#gn-x1a"], { opacity: 0, duration: 0.15, ease: "none" }, 4.25);
+            tl.to(["#gn-s1b", "#gn-x1b"], { opacity: 1, duration: 0.15, ease: "none" }, 4.25);
+            tl.to("#gn-c1", { y: "-=" + 8 * K, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 4.25);
+            tl.to("#gn-c1", { x: enterFrom, opacity: 0, duration: 0.42, ease: "power2.in" }, 6.72);
+            tl.to("#gn-c2", { x: enterFrom, opacity: 0, duration: 0.42, ease: "power2.in" }, 6.9);
+            if (tl.duration() < 8) tl.to({}, { duration: 8 - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["glass-notification-aurora"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

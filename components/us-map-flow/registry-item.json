@@ -1,0 +1,123 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "us-map-flow",
+  "type": "hyperframes:component",
+  "title": "US Flow Map",
+  "description": "Dark US map where city dots appear, glowing arcs draw between them and light dots travel along each route.",
+  "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "flow",
+    "routes",
+    "hyperframes-port"
+  ],
+  "category": "data-viz",
+  "duration": 12,
+  "useWhen": [
+    "Routes, shipments, traffic or connections between US cities need to read as a network.",
+    "A few busy corridors should look heavier than quiet ones."
+  ],
+  "avoidWhen": [
+    "Values belong to states or to single points: use us-map or us-map-bubble.",
+    "More than about 16 routes: the arcs turn into a hairball."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/us-map-flow/us-map-flow.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "us-map-flow.html",
+      "target": "compositions/components/us-map-flow.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Headline written on with a wipe.",
+      "default": "Interstate Flow Connections"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "description": "Line under the headline.",
+      "default": "Relative volume of major city-to-city corridors"
+    },
+    {
+      "id": "source",
+      "type": "string",
+      "role": "content",
+      "label": "Source note",
+      "description": "Small credit line in the corner. Empty hides it.",
+      "default": "Source: Illustrative data"
+    },
+    {
+      "id": "cities",
+      "type": "string",
+      "role": "content",
+      "label": "Cities",
+      "description": "JSON object of city name to [longitude, latitude], lower 48 states only.",
+      "default": "{\"San Francisco\":[-122.4194,37.7749],\"New York\":[-74.006,40.7128],\"Los Angeles\":[-118.2437,34.0522],\"Chicago\":[-87.6298,41.8781],\"Seattle\":[-122.3321,47.6062],\"Austin\":[-97.7431,30.2672],\"Miami\":[-80.1918,25.7617],\"Denver\":[-104.9903,39.7392],\"Houston\":[-95.3698,29.7604],\"Atlanta\":[-84.388,33.749],\"Boston\":[-71.0589,42.3601],\"Dallas\":[-96.797,32.7767]}"
+    },
+    {
+      "id": "flows",
+      "type": "string",
+      "role": "content",
+      "label": "Flows",
+      "description": "JSON list of {from, to, volume}; volume 0 to 100 sets the arc width (up to 16 flows).",
+      "default": "[{\"from\":\"San Francisco\",\"to\":\"New York\",\"volume\":100},{\"from\":\"Los Angeles\",\"to\":\"Chicago\",\"volume\":85},{\"from\":\"Seattle\",\"to\":\"Austin\",\"volume\":70},{\"from\":\"New York\",\"to\":\"Miami\",\"volume\":90},{\"from\":\"Chicago\",\"to\":\"Denver\",\"volume\":65},{\"from\":\"Houston\",\"to\":\"Atlanta\",\"volume\":75},{\"from\":\"Boston\",\"to\":\"San Francisco\",\"volume\":80},{\"from\":\"Denver\",\"to\":\"Los Angeles\",\"volume\":60},{\"from\":\"Atlanta\",\"to\":\"Dallas\",\"volume\":55},{\"from\":\"Miami\",\"to\":\"New York\",\"volume\":50},{\"from\":\"Austin\",\"to\":\"Seattle\",\"volume\":45},{\"from\":\"Dallas\",\"to\":\"Chicago\",\"volume\":40}]"
+    },
+    {
+      "id": "arc_color",
+      "type": "color",
+      "role": "style",
+      "label": "Arc colour",
+      "description": "Arcs and city glow.",
+      "default": "#3b82f6"
+    },
+    {
+      "id": "dot_color",
+      "type": "color",
+      "role": "style",
+      "label": "Travelling dot colour",
+      "description": "The dots that move along each arc.",
+      "default": "#60a5fa"
+    },
+    {
+      "id": "land_color",
+      "type": "color",
+      "role": "style",
+      "label": "Land colour",
+      "description": "Fill of the states.",
+      "default": "#1e293b"
+    },
+    {
+      "id": "bg_from",
+      "type": "color",
+      "role": "style",
+      "label": "Background start",
+      "description": "Start of the diagonal background gradient.",
+      "default": "#0f172a"
+    },
+    {
+      "id": "bg_to",
+      "type": "color",
+      "role": "style",
+      "label": "Background end",
+      "description": "End of the diagonal background gradient.",
+      "default": "#1e293b"
+    }
+  ]
+}

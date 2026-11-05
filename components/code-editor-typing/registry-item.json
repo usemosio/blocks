@@ -1,0 +1,114 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "code-editor-typing",
+  "type": "hyperframes:component",
+  "title": "Code Editor Typing",
+  "description": "A full code editor window (activity bar, explorer, tabs, terminal, status bar) types a snippet character by character with a caret, then tilts in 3D.",
+  "tags": [
+    "code",
+    "editor",
+    "typing",
+    "developer",
+    "window",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 11,
+  "useWhen": [
+    "A developer-facing video needs a believable code editor typing out a snippet.",
+    "The code should be easy to swap (one text variable)."
+  ],
+  "avoidWhen": [
+    "You want a glass code card or a morphing diff: use glass-code-block or code-morph.",
+    "The snippet is longer than about 18 lines."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/code-editor-typing/code-editor-typing.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "code-editor-typing.html",
+      "target": "compositions/components/code-editor-typing.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "code",
+      "type": "string",
+      "role": "content",
+      "label": "Code",
+      "description": "The code that gets typed, up to 18 lines (a small Python-style highlighter colours it).",
+      "default": "# A small functional toolkit\ndef pluck_deep(key):\n    return lambda obj: reduce(lambda acc, k: acc[k], key.split('.'), obj)\n\ndef compose(*fns):\n    return lambda res: reduce(lambda acc, fn: fn(acc), fns, res)\n\ndef unfold(f, seed):\n    \"\"\"Build a list by repeatedly applying f to a seed.\"\"\"\n    acc = []\n    while True:\n        result = f(seed)\n        if result is None:\n            return acc\n        acc.append(result[0])\n        seed = result[1]\n"
+    },
+    {
+      "id": "file_name",
+      "type": "string",
+      "role": "content",
+      "label": "File name",
+      "description": "Name on the tab and in the file tree.",
+      "default": "functional_toolkit.py"
+    },
+    {
+      "id": "project_name",
+      "type": "string",
+      "role": "content",
+      "label": "Project name",
+      "description": "Name in the title bar, explorer and breadcrumbs.",
+      "default": "functional-toolkit"
+    },
+    {
+      "id": "kicker",
+      "type": "string",
+      "role": "content",
+      "label": "Kicker",
+      "description": "Small line above the title.",
+      "default": "Editor theme preview"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Big title above the window.",
+      "default": "Midnight"
+    },
+    {
+      "id": "note",
+      "type": "string",
+      "role": "content",
+      "label": "Note",
+      "description": "Small caption on the right of the title.",
+      "default": "Typing a small file, with a tests terminal below."
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Active tab, status bar and activity bar accent.",
+      "default": "#0078d4"
+    },
+    {
+      "id": "background_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background glow",
+      "description": "Light colour of the backdrop behind the window.",
+      "default": "#1d2a4a"
+    },
+    {
+      "id": "background_color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Background base",
+      "description": "Dark colour of the backdrop behind the window.",
+      "default": "#0b0f1c"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+<!doctype html>
+<!--
+  Sketched Photo Frame
+
+  A hand-drawn wobbly border draws itself around a photo panel with corner sparks and a handwritten caption; the whole unit tilts and boils like stop-motion.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/hw-frame/hw-frame.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License,
+  Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless
+  required by applicable law or agreed to in writing, software distributed under the License is
+  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+  or implied. See the License for the specific language governing permissions and limitations
+  under the License.
+
+  Changes by usemosio/blocks: fills the host frame (the frame, border weight and caption are sized from the frame's short side, so portrait and landscape both fit), variables for the caption, panel label, colours, tilt, boil and seed, Caveat from Google Fonts, the photo slot is a gradient panel with a label instead of an image, the shared hw runtime is inlined.
+-->
+<html
+  lang="en"
+  data-composition-id="hw-frame"
+  data-composition-duration="8"
+  data-composition-variables='[
+    {"id": "caption", "type": "string", "role": "content", "label": "Caption", "description": "Handwritten line under the frame.", "default": "our trip!"},
+    {"id": "label", "type": "string", "role": "content", "label": "Placeholder label", "description": "Text on the stand-in photo panel.", "default": "photo"},
+    {"id": "ink", "type": "color", "role": "style", "label": "Ink", "description": "Border and caption colour.", "default": "#f4f2ec"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Doodle colour", "description": "Colour of the corner sparks.", "default": "#ffb020"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "description": "Backdrop behind the frame.", "default": "#1b1a1e"},
+    {"id": "panel_from", "type": "color", "role": "style", "label": "Panel colour, top", "description": "Top of the stand-in photo gradient.", "default": "#35604a"},
+    {"id": "panel_to", "type": "color", "role": "style", "label": "Panel colour, bottom", "description": "Bottom of the stand-in photo gradient.", "default": "#14231c"},
+    {"id": "doodles", "type": "boolean", "role": "style", "label": "Corner sparks", "description": "Draw three small spark doodles at the corners.", "default": true},
+    {"id": "tilt", "type": "number", "role": "style", "label": "Tilt", "description": "Slight rotation of the whole framed unit.", "default": -1.2, "min": -8, "max": 8, "step": 0.1, "unit": "deg"},
+    {"id": "boil", "type": "boolean", "role": "motion", "label": "Line boil", "description": "Redraw the hand-made jitter every third frame.", "default": true},
+    {"id": "seed", "type": "number", "role": "motion", "label": "Seed", "description": "Changes the wobble of the hand-drawn border.", "default": 14, "min": 1, "max": 99, "step": 1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sketched Photo Frame</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; background: var(--hwf-bg, #1b1a1e); font-family: Caveat, cursive; pointer-events: none; }
+        #hwf-media { position: absolute; overflow: hidden; }
+        .hwf-fill { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: rgba(244, 242, 236, 0.9); }
+        #hwf-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        #hwf-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #hwf-caption { position: absolute; left: 0; width: 100%; text-align: center; font-weight: 700; opacity: 0; white-space: nowrap; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4); }
+      </style>
+
+      <div id="root" data-composition-id="hw-frame" data-duration="8" data-fps="30">
+        <div id="hwf-clip" class="clip" data-start="0" data-duration="8" data-track-index="0" style="position:absolute;inset:0">
+          <div id="hwf-media"><div class="hwf-fill" id="hwf-fill"></div></div>
+          <svg id="hwf-svg"><path id="hwf-border"></path></svg>
+          <div id="hwf-caption"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NS = "http://www.w3.org/2000/svg";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(v, f, lo, hi) { var n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : f; }
+            function str(v, f) { return typeof v === "string" ? v : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function bool(v, f) { return typeof v === "boolean" ? v : f; }
+            var caption = str(vars.caption, "our trip!");
+            var label = str(vars.label, "photo");
+            var ink = col(vars.ink, "#f4f2ec");
+            var accent = col(vars.accent, "#ffb020");
+            var doodlesOn = bool(vars.doodles, true);
+            var tilt = num(vars.tilt, -1.2, -8, 8);
+            var boilOn = bool(vars.boil, true);
+            var SEED = Math.round(num(vars.seed, 14, 1, 99));
+            root.style.setProperty("--hwf-bg", col(vars.background, "#1b1a1e"));
+            var DUR = 8;
+
+            function hash(n, seed) {
+              var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453;
+              return (x - Math.floor(x)) * 2 - 1;
+            }
+            function wobbleRect(w, h, r, seed, amp) {
+              function wob(n) { return hash(n, seed) * amp; }
+              var d = "M " + (r + wob(1)) + " " + wob(2);
+              d += " L " + (w / 2 + wob(3)) + " " + wob(4);
+              d += " L " + (w - r + wob(5)) + " " + wob(6);
+              d += " Q " + (w + wob(7)) + " " + wob(8) + " " + (w + wob(9)) + " " + (r + wob(10));
+              d += " L " + (w + wob(11)) + " " + (h / 2 + wob(12));
+              d += " L " + (w + wob(13)) + " " + (h - r + wob(14));
+              d += " Q " + (w + wob(15)) + " " + (h + wob(16)) + " " + (w - r + wob(17)) + " " + (h + wob(18));
+              d += " L " + (w / 2 + wob(19)) + " " + (h + wob(20));
+              d += " L " + (r + wob(21)) + " " + (h + wob(22));
+              d += " Q " + wob(23) + " " + (h + wob(24)) + " " + wob(25) + " " + (h - r + wob(26));
+              d += " L " + wob(27) + " " + (h / 2 + wob(28));
+              d += " L " + wob(29) + " " + (r + wob(30));
+              d += " Q " + wob(31) + " " + wob(32) + " " + (r + wob(33)) + " " + wob(34);
+              return d;
+            }
+
+            /* Fill the host: the framed unit is sized from the frame, line weights from its short side. */
+            var W = root.clientWidth || 1920;
+            var H = root.clientHeight || 1080;
+            var k = Math.min(W, H) / 1080;
+            var ASPECT = 960 / 620;
+            var sw = Math.min(W * 0.8, H * 0.6 * ASPECT, 1100 * k);
+            var sh = sw / ASPECT;
+            var capSize = 58 * k;
+            var gapBelow = 42 * k;
+            var unitH = sh + gapBelow + capSize * 1.2;
+            var sx = (W - sw) / 2;
+            var sy = Math.max(60 * k, (H - unitH) / 2);
+
+            var media = document.getElementById("hwf-media");
+            media.style.left = sx + "px"; media.style.top = sy + "px";
+            media.style.width = sw + "px"; media.style.height = sh + "px";
+            media.style.borderRadius = 10 * k + "px";
+            var fill = document.getElementById("hwf-fill");
+            fill.textContent = label;
+            fill.style.fontSize = 110 * k + "px";
+            fill.style.background = "linear-gradient(150deg, " + col(vars.panel_from, "#35604a") + " 0%, " + col(vars.panel_to, "#14231c") + " 100%)";
+
+            var svg = document.getElementById("hwf-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var border = document.getElementById("hwf-border");
+            border.setAttribute("stroke", ink);
+            border.setAttribute("stroke-width", 7 * k);
+            var m = 16 * k;
+            border.setAttribute("d", wobbleRect(sw + m * 2, sh + m * 2, 18 * k, SEED, 5 * k));
+            border.setAttribute("transform", "translate(" + (sx - m) + " " + (sy - m) + ")");
+
+            var doodles = [];
+            if (doodlesOn) {
+              [[sx - 40 * k, sy - 34 * k], [sx + sw + 40 * k, sy - 26 * k], [sx + sw + 36 * k, sy + sh + 30 * k]].forEach(function (pt, i) {
+                var p = document.createElementNS(NS, "path");
+                p.setAttribute("stroke", accent);
+                p.setAttribute("stroke-width", 5 * k);
+                var dd = "";
+                for (var j = 0; j < 3; j++) {
+                  var a = -0.6 - j * 0.5 + hash(i * 9 + j, SEED) * 0.2;
+                  var l = (26 + hash(i * 9 + j + 4, SEED) * 8) * k;
+                  dd += "M " + pt[0] + " " + pt[1] + " l " + (Math.cos(a) * l).toFixed(1) + " " + (Math.sin(a) * l).toFixed(1) + " ";
+                }
+                p.setAttribute("d", dd);
+                svg.appendChild(p);
+                doodles.push(p);
+              });
+            }
+
+            var cap = document.getElementById("hwf-caption");
+            cap.textContent = caption;
+            cap.style.color = ink;
+            cap.style.fontSize = capSize + "px";
+            cap.style.top = sy + sh + gapBelow + "px";
+
+            var IN = Math.min(0.8, Math.max(0.3, DUR * 0.08));
+            var OUT = Math.min(0.6, Math.max(0.25, DUR * 0.06));
+            var tl = gsap.timeline({ paused: true });
+            gsap.set(media, { opacity: 0, scale: 0.96 });
+            tl.to(media, { opacity: 1, scale: 1, duration: IN * 1.4, ease: "power2.out" }, IN * 0.8);
+            var blen = border.getTotalLength();
+            gsap.set(border, { strokeDasharray: blen, strokeDashoffset: blen });
+            tl.to(border, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" }, 0.2);
+            doodles.forEach(function (p, i) {
+              var l = p.getTotalLength();
+              gsap.set(p, { strokeDasharray: l, strokeDashoffset: l });
+              tl.to(p, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.1 + i * 0.12);
+            });
+            if (caption) tl.to(cap, { opacity: 1, duration: 0.4, ease: "power2.out" }, 1.4);
+
+            var unit = [media, svg, cap];
+            gsap.set(unit, { rotation: tilt, transformOrigin: "50% 50%" });
+            if (boilOn) {
+              var amp = 1.6 * k, rot = 0.35, fps = 30, drop = 3;
+              var boil = function () {
+                var step = Math.floor((tl.time() * fps) / drop);
+                for (var i = 0; i < unit.length; i++) {
+                  gsap.set(unit[i], {
+                    x: hash(step * 3 + i * 97, SEED) * amp,
+                    y: hash(step * 3 + 1 + i * 97, SEED) * amp,
+                    rotation: tilt + hash(step * 3 + 2 + i * 97, SEED) * rot,
+                  });
+                }
+              };
+              tl.eventCallback("onUpdate", boil);
+              boil();
+            }
+            tl.to(unit, { opacity: 0, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+            tl.set({}, {}, DUR);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["hw-frame"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

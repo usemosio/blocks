@@ -1,0 +1,105 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "exploded-stack",
+  "type": "hyperframes:component",
+  "title": "Exploded Stack",
+  "description": "Isometric layer plates sit as one stack, explode apart along the vertical axis with labels drawing in beside each layer, hold, then collapse back so the clip loops. Four layers with their own glyph motifs and an accent colour.",
+  "tags": [
+    "3d",
+    "isometric",
+    "diagram",
+    "layers",
+    "architecture",
+    "webgl",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 5,
+  "useWhen": [
+    "An architecture or stack explainer: four labelled layers that separate, are called out one by one and collapse again.",
+    "A loopable isometric diagram for a product or system overview."
+  ],
+  "avoidWhen": [
+    "More than four layers: the block is built for four.",
+    "A flat 2D diagram."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/exploded-stack/exploded-stack.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "exploded-stack.html",
+      "target": "compositions/components/exploded-stack.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "default": "How a request moves"
+    },
+    {
+      "id": "layer_1",
+      "type": "string",
+      "role": "content",
+      "label": "Top layer",
+      "default": "Interface"
+    },
+    {
+      "id": "layer_2",
+      "type": "string",
+      "role": "content",
+      "label": "Layer 2",
+      "default": "API gateway"
+    },
+    {
+      "id": "layer_3",
+      "type": "string",
+      "role": "content",
+      "label": "Layer 3",
+      "default": "Services"
+    },
+    {
+      "id": "layer_4",
+      "type": "string",
+      "role": "content",
+      "label": "Bottom layer",
+      "default": "Data"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "default": "#0a84ff"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the plates are drawn at, then scaled up. Edges and hairlines need 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

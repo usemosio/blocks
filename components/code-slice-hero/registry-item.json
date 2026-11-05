@@ -1,0 +1,248 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "code-slice-hero",
+  "type": "hyperframes:component",
+  "title": "Code Slice Hero",
+  "description": "A square-tiled headline surface where a sweeping depth field flips tile by tile to reveal a rear headline. Raw WebGL2, instanced tiles with cast shadows.",
+  "tags": [
+    "headline",
+    "tiles",
+    "flip",
+    "3d",
+    "kinetic-type",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "effects",
+  "duration": 8,
+  "useWhen": [
+    "A bold two-part headline should flip to its second half with a physical, tiled sweep.",
+    "A hero opening where the tiles' depth and soft shadows give the text weight."
+  ],
+  "avoidWhen": [
+    "Several lines of small copy: the tiles need large type.",
+    "Machines without WebGL 2: they only show the plain headlines."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/code-slice-hero/code-slice-hero.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "code-slice-hero.html",
+      "target": "compositions/components/code-slice-hero.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Front headline",
+      "description": "Front headline.",
+      "default": "MAKE IT"
+    },
+    {
+      "id": "reverseHeadline",
+      "type": "string",
+      "role": "content",
+      "label": "Rear headline",
+      "description": "Rear headline.",
+      "default": "MATTER."
+    },
+    {
+      "id": "direction",
+      "type": "enum",
+      "role": "motion",
+      "label": "Sweep direction",
+      "description": "Sweep direction.",
+      "default": "left-to-right",
+      "options": [
+        {
+          "value": "left-to-right",
+          "label": "Left to right"
+        },
+        {
+          "value": "right-to-left",
+          "label": "Right to left"
+        }
+      ]
+    },
+    {
+      "id": "sweepDuration",
+      "type": "number",
+      "role": "motion",
+      "label": "Sweep duration",
+      "description": "Sweep duration.",
+      "default": 4.2,
+      "min": 2.6,
+      "max": 4.5,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "sweepEaseStrength",
+      "type": "number",
+      "role": "motion",
+      "label": "Sweep easing strength",
+      "description": "0 = linear. Higher values start faster and slow more strongly toward the end.",
+      "default": 3,
+      "min": 0,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "flipDuration",
+      "type": "number",
+      "role": "motion",
+      "label": "Each tile flip",
+      "description": "Each tile flip.",
+      "default": 0.75,
+      "min": 0.65,
+      "max": 1.65,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "cursorRadius",
+      "type": "number",
+      "role": "style",
+      "label": "Influence radius",
+      "description": "Influence radius.",
+      "default": 210,
+      "min": 160,
+      "max": 480,
+      "step": 10,
+      "unit": "px"
+    },
+    {
+      "id": "cursorFalloff",
+      "type": "number",
+      "role": "style",
+      "label": "Influence falloff",
+      "description": "Influence falloff.",
+      "default": 1.4,
+      "min": 0.4,
+      "max": 3.5,
+      "step": 0.05
+    },
+    {
+      "id": "cursorDepth",
+      "type": "number",
+      "role": "style",
+      "label": "Depth (+ toward camera)",
+      "description": "Depth (+ toward camera).",
+      "default": 80,
+      "min": -320,
+      "max": 320,
+      "step": 10,
+      "unit": "px"
+    },
+    {
+      "id": "tiltStrength",
+      "type": "number",
+      "role": "style",
+      "label": "Pull / tilt strength",
+      "description": "Pull / tilt strength.",
+      "default": 55,
+      "min": 0,
+      "max": 55,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "noiseStrength",
+      "type": "number",
+      "role": "motion",
+      "label": "Organic variation",
+      "description": "Organic variation.",
+      "default": 2,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "flipBounce",
+      "type": "number",
+      "role": "motion",
+      "label": "Elastic flip bounce",
+      "description": "Elastic flip bounce.",
+      "default": 0.15,
+      "min": 0,
+      "max": 0.8,
+      "step": 0.05
+    },
+    {
+      "id": "cellSize",
+      "type": "number",
+      "role": "style",
+      "label": "Square cell size",
+      "description": "Square cell size.",
+      "default": 112,
+      "min": 24,
+      "max": 120,
+      "step": 4,
+      "unit": "px"
+    },
+    {
+      "id": "formationScale",
+      "type": "number",
+      "role": "style",
+      "label": "Local formation scale",
+      "description": "Local formation scale.",
+      "default": 1,
+      "min": 0.94,
+      "max": 1,
+      "step": 0.001
+    },
+    {
+      "id": "fontSize",
+      "type": "number",
+      "role": "style",
+      "label": "Maximum size",
+      "description": "Maximum size.",
+      "default": 310,
+      "min": 160,
+      "max": 480,
+      "step": 5,
+      "unit": "px"
+    },
+    {
+      "id": "behindColor",
+      "type": "color",
+      "role": "style",
+      "label": "Behind-tile background",
+      "description": "Behind-tile background.",
+      "default": "#212121"
+    },
+    {
+      "id": "shadowStrength",
+      "type": "number",
+      "role": "style",
+      "label": "Cast shadow strength",
+      "description": "Cast shadow strength.",
+      "default": 0.19,
+      "min": 0,
+      "max": 0.65,
+      "step": 0.01
+    },
+    {
+      "id": "shadowSoftness",
+      "type": "number",
+      "role": "style",
+      "label": "Cast shadow softness",
+      "description": "Cast shadow softness.",
+      "default": 4,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1,
+      "unit": "px"
+    }
+  ],
+  "webgl": true
+}

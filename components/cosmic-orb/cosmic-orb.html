@@ -1,0 +1,360 @@
+<!doctype html>
+<!--
+  Cosmic Orb
+
+  An iridescent soap-bubble planet: a slowly spinning sphere of nebula bands, dust lanes and twinkling stars wrapped in a refracting glass limb with chromatic aberration at the edge. A single WebGL fragment shader.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/cosmic-orb/cosmic-orb.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame (the orb is sized from the shorter side) instead of a fixed 1920×1080 scene; the shader is WebGL2 (GLSL ES 3.0 syntax, otherwise unchanged); the canvas is drawn at the `resolution` variable and the clock comes from the timeline; without WebGL the backdrop colour shows.
+-->
+<html
+  lang="en"
+  data-composition-id="cosmic-orb"
+  data-composition-duration="10"
+  data-composition-variables='[{"id": "hue", "type": "number", "role": "style", "label": "Nebula hue", "default": 268, "min": 0, "max": 360, "step": 1, "unit": "deg"},
+    {"id": "accent", "type": "number", "role": "style", "label": "Accent hue", "default": 196, "min": 0, "max": 360, "step": 1, "unit": "deg"},
+    {"id": "spin", "type": "number", "role": "motion", "label": "Spin rate", "default": 0.035, "min": 0, "max": 0.5, "step": 0.005, "unit": "turns/s"},
+    {"id": "stars", "type": "number", "role": "style", "label": "Star density", "default": 1, "min": 0, "max": 2, "step": 0.05},
+    {"id": "glow", "type": "number", "role": "style", "label": "Glow intensity", "default": 1, "min": 0, "max": 2, "step": 0.05},
+    {"id": "size", "type": "number", "role": "style", "label": "Orb size", "description": "Orb diameter as a share of the shorter side of the frame.", "default": 0.86, "min": 0.2, "max": 1.2, "step": 0.01},
+    {"id": "pulse", "type": "number", "role": "motion", "label": "Beat pulse", "default": 0, "min": 0, "max": 1, "step": 0.01},
+    {"id": "pulseEnvelope", "type": "string", "role": "motion", "label": "Beat pulse envelope", "description": "Comma-separated 0-1 samples spread evenly across the block, for example 0,0.2,1,0.4,0. Empty uses the flat pulse value.", "default": ""},
+    {"id": "backdrop", "type": "color", "role": "style", "label": "Backdrop", "default": "#04040a"},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. The orb is soft; 0.5 matches 1 in the stills.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cosmic Orb</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .cor-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .cor-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="cosmic-orb" data-duration="10" data-fps="30">
+        <div id="cor-clip" class="cor-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <canvas id="cor-canvas" class="cor-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "cosmic-orb";
+            var DUR = 10;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("cor-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "hue", "type": "number", "role": "style", "label": "Nebula hue", "default": 268, "min": 0, "max": 360, "step": 1, "unit": "deg"}, {"id": "accent", "type": "number", "role": "style", "label": "Accent hue", "default": 196, "min": 0, "max": 360, "step": 1, "unit": "deg"}, {"id": "spin", "type": "number", "role": "motion", "label": "Spin rate", "default": 0.035, "min": 0, "max": 0.5, "step": 0.005, "unit": "turns/s"}, {"id": "stars", "type": "number", "role": "style", "label": "Star density", "default": 1, "min": 0, "max": 2, "step": 0.05}, {"id": "glow", "type": "number", "role": "style", "label": "Glow intensity", "default": 1, "min": 0, "max": 2, "step": 0.05}, {"id": "size", "type": "number", "role": "style", "label": "Orb size", "description": "Orb diameter as a share of the shorter side of the frame.", "default": 0.86, "min": 0.2, "max": 1.2, "step": 0.01}, {"id": "pulse", "type": "number", "role": "motion", "label": "Beat pulse", "default": 0, "min": 0, "max": 1, "step": 0.01}, {"id": "pulseEnvelope", "type": "string", "role": "motion", "label": "Beat pulse envelope", "description": "Comma-separated 0-1 samples spread evenly across the block, for example 0,0.2,1,0.4,0. Empty uses the flat pulse value.", "default": ""}, {"id": "backdrop", "type": "color", "role": "style", "label": "Backdrop", "default": "#04040a"}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. The orb is soft; 0.5 matches 1 in the stills.", "default": 0.5, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = V.backdrop;
+            canvas.width = cw;
+            canvas.height = ch;
+            var ENV = String(V.pulseEnvelope).split(",").map(function (s) { return parseFloat(s); }).filter(function (n) { return isFinite(n); });
+            function pulseAt(t) {
+              if (ENV.length === 0) return V.pulse;
+              if (ENV.length === 1) return ENV[0];
+              var x = Math.min(1, Math.max(0, t / DUR)) * (ENV.length - 1);
+              var i = Math.floor(x);
+              var j = Math.min(i + 1, ENV.length - 1);
+              return ENV[i] + (ENV[j] - ENV[i]) * (x - i);
+            }
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 aPos;",
+              "out vec2 v_uv;",
+              "void main() { v_uv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5); gl_Position = vec4(aPos, 0.0, 1.0); }"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+
+uniform vec2 uRes;
+uniform float uTime;
+uniform float uRadius;
+uniform float uSpin;
+uniform float uHue;
+uniform float uAccent;
+uniform float uStars;
+uniform float uGlow;
+uniform float uPulse;
+const float TAU = 6.28318531;
+
+// One cheap hash for every random-looking thing in here.
+float h1(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+float h2(vec2 p) { return h1(dot(p, vec2(1.0, 157.31))); }
+
+vec3 hue2rgb(float h) {
+  return clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+}
+
+vec3 rotX(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(p.x, c * p.y - s * p.z, s * p.y + c * p.z); }
+vec3 rotY(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(c * p.x + s * p.z, p.y, -s * p.x + c * p.z); }
+vec3 rotZ(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(c * p.x - s * p.y, s * p.x + c * p.y, p.z); }
+
+vec3 safeDir(vec3 v) {
+  float l = dot(v, v);
+  if (l < 1e-6) return vec3(0.0, 0.0, -1.0);
+  return v * inversesqrt(l);
+}
+
+// Fixed axial tilt, then spin about the tilted polar axis.
+vec3 toBody(vec3 n, float spin) { return rotY(rotZ(rotX(n, -0.34), 0.42), -spin); }
+vec2 lonlat(vec3 d) { return vec2(atan(d.x, d.z), asin(clamp(d.y, -1.0, 1.0))); }
+
+float dens(float base) { return clamp(1.0 - (1.0 - base) * uStars, 0.0, 1.0); }
+
+// One star size-class: cell grid, seeded jitter, soft round core.
+float starField(vec2 q, float freq, float base, float rad) {
+  vec2 g = q * freq;
+  vec2 id = floor(g);
+  float h = h2(id);
+  if (h < dens(base)) return 0.0;
+  vec2 c = vec2(h2(id + vec2(3.7, 1.3)), h2(id + vec2(9.1, 5.5)));
+  float d = length(fract(g) - c);
+  float core = smoothstep(rad, 0.0, d);
+  // Twinkle: a per-star phase driven straight off uTime, no accumulator.
+  float tw = 0.62 + 0.38 * sin(uTime * 2.4 + h * 53.7);
+  return core * core * (0.45 + 0.55 * h1(h * 91.7)) * tw;
+}
+
+// 4-point diffraction glare, only worth paying for on the brightest class.
+float starGlare(vec2 q, float freq, float base) {
+  vec2 g = q * freq;
+  vec2 id = floor(g);
+  float h = h2(id);
+  if (h < dens(base)) return 0.0;
+  vec2 c = vec2(h2(id + vec2(3.7, 1.3)), h2(id + vec2(9.1, 5.5)));
+  vec2 dv = abs(fract(g) - c);
+  float hx = exp(-dv.x * 70.0) * exp(-dv.y * 9.0);
+  float hy = exp(-dv.y * 70.0) * exp(-dv.x * 9.0);
+  return max(hx, hy) * 0.45;
+}
+
+// Three size-classes at ~6 / 11 / 19 cell frequency.
+float starsAll(vec2 q, float gain) {
+  float s = starField(q, 6.0, 0.958, 0.20);
+  s += starGlare(q, 6.0, 0.958);
+  s += starField(q, 11.0, 0.920, 0.18) * 0.95;
+  s += starField(q, 19.0, 0.865, 0.17) * 0.75;
+  return s * gain;
+}
+
+vec3 nebula(vec2 q) {
+  // Two sin-field turbulence layers.
+  float t1 = sin(q.x * 3.1 + sin(q.y * 2.7) * 1.9) * sin(q.y * 4.3 + sin(q.x * 1.7) * 2.3);
+  float t2 = sin(q.x * 7.9 + sin(q.y * 5.1) * 1.3) * sin(q.y * 9.7 + sin(q.x * 4.4) * 1.1);
+  float turb = t1 * 0.66 + t2 * 0.34;
+
+  // Galaxy bands, warped by the turbulence.
+  float band = sin(q.y * 3.2 + turb * 1.7 + q.x * 0.55);
+  float bands = pow(max(0.0, band * 0.5 + 0.5), 3.2);
+
+  // Dust lanes: broad darkened swathes, not a thin curve.
+  float lane = sin(q.y * 2.9 + q.x * 1.3 + t1 * 1.6);
+  float dust = 0.22 + 0.78 * smoothstep(-0.45, 0.75, lane);
+
+  // Core bulge.
+  float dc = length(vec2((q.x - 0.55) * 0.5, (q.y + 0.12) * 1.1));
+  float core = exp(-dc * dc * 2.6);
+
+  // Two pocket glows.
+  float dA = length(vec2((q.x + 1.95) * 0.62, (q.y - 0.52) * 1.45));
+  float dB = length(vec2((q.x - 2.35) * 0.55, (q.y + 0.78) * 1.30));
+  float pA = exp(-dA * dA * 4.0);
+  float pB = exp(-dB * dB * 5.0);
+
+  vec3 cNeb = hue2rgb(uHue / 360.0);
+  vec3 cAcc = hue2rgb(uAccent / 360.0);
+  vec3 cWarm = hue2rgb(uHue / 360.0 + 0.07);
+
+  vec3 col = mix(cNeb, cWarm, 0.5 + 0.5 * turb) * bands * dust * 0.17;
+  col += mix(cNeb, vec3(1.0), 0.50) * core * dust * 0.13;
+  col += mix(cAcc, vec3(1.0), 0.60) * pA * 0.30 * uGlow;
+  col += mix(cNeb, vec3(1.0), 0.50) * pB * 0.24 * uGlow;
+  return col;
+}
+
+void main() {
+  vec2 p = (gl_FragCoord.xy - uRes * 0.5) / uRadius;
+  float r = length(p);
+  float aa = 1.4 / uRadius;
+  float spin = TAU * uSpin * uTime;
+
+  vec3 cNeb = hue2rgb(uHue / 360.0);
+  vec3 cAcc = hue2rgb(uAccent / 360.0);
+
+  float mask = smoothstep(1.0 + aa, 1.0 - aa, r);
+  float halo = exp(-max(0.0, r - 1.0) * 13.0) * (1.0 - mask);
+
+  vec3 body = vec3(0.0);
+  if (mask > 0.001) {
+    float rc = min(r, 1.0);
+    // Analytic sphere: the normal falls straight out of z = sqrt(1 - r^2).
+    float z = sqrt(max(0.0, 1.0 - rc * rc));
+    vec3 N = vec3(p.x, p.y, z);
+    vec2 q = lonlat(toBody(safeDir(N), spin));
+
+    float gain = 0.9 + 2.6 * uPulse;
+    body = nebula(q);
+    body += vec3(1.0) * starsAll(q, gain) * (0.95 + 0.15 * uGlow);
+
+    // Limb darkening.
+    body *= mix(0.32, 1.0, pow(z, 0.5));
+
+    // Refract-sampled back layer, split per channel: the chromatic
+    // aberration that reads as glass at the limb.
+    vec3 I = vec3(0.0, 0.0, -1.0);
+    vec3 dR = safeDir(refract(I, N, 1.0 / 1.09));
+    vec3 dG = safeDir(refract(I, N, 1.0 / 1.13));
+    vec3 dB = safeDir(refract(I, N, 1.0 / 1.17));
+    vec2 qR = lonlat(toBody(dR, spin));
+    vec2 qG = lonlat(toBody(dG, spin));
+    vec2 qB = lonlat(toBody(dB, spin));
+    vec3 back = vec3(starsAll(qR, gain), starsAll(qG, gain), starsAll(qB, gain));
+    float fres = pow(1.0 - z, 1.8);
+    body += back * fres * 2.2;
+    body += nebula(qG) * fres * 0.8;
+
+    // Aurora sheen riding the glass shell.
+    float ang = atan(p.y, p.x);
+    float sheen = smoothstep(0.72, 0.99, r) * smoothstep(1.0, 0.90, r);
+    float w = 0.5 + 0.5 * sin(ang * 2.0 + spin * 1.6);
+    body += (mix(cNeb, cAcc, w) * 0.55 + vec3(0.16)) * sheen * 0.30 * uGlow;
+
+    // Three speculars, fixed in screen space: the key light does not spin.
+    vec2 a1 = p - vec2(-0.34, 0.62);
+    vec2 a2 = p - vec2(0.58, 0.60);
+    vec2 a3 = p - vec2(0.24, -0.80);
+    float sp = exp(-dot(a1, a1) * 30.0) * 0.30;
+    sp += exp(-dot(a2, a2) * 150.0) * 0.80;
+    sp += exp(-dot(a3, a3) * 70.0) * 0.30;
+    body += vec3(1.0) * sp * (0.30 + 0.70 * pow(1.0 - z, 1.5)) * uGlow;
+
+    // Fresnel void glow hugging the inside of the rim.
+    body += mix(cAcc, vec3(1.0), 0.4) * pow(1.0 - z, 6.0) * 0.30 * uGlow;
+  }
+
+  vec3 haloCol = mix(cNeb, cAcc, 0.35);
+  vec3 outCol = body * mask + haloCol * halo * 0.22 * uGlow;
+  float outA = clamp(mask + halo * 0.16 * uGlow, 0.0, 1.0);
+  outColor = vec4(clamp(outCol, 0.0, 4.0), outA);
+}`;
+
+            var gl = canvas.getContext("webgl2", { alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.bindAttribLocation(prog, 0, "aPos");
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              gl.uniform2f(u("uRes"), cw, ch);
+              gl.uniform1f(u("uRadius"), V.size * Math.min(cw, ch) / 2);
+              gl.uniform1f(u("uSpin"), V.spin);
+              gl.uniform1f(u("uHue"), V.hue);
+              gl.uniform1f(u("uAccent"), V.accent);
+              gl.uniform1f(u("uStars"), V.stars);
+              gl.uniform1f(u("uGlow"), V.glow);
+              var timeLoc = u("uTime"), pulseLoc = u("uPulse");
+              paint = function (t) {
+                gl.uniform1f(timeLoc, t);
+                gl.uniform1f(pulseLoc, pulseAt(t));
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

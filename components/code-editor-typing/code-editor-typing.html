@@ -1,0 +1,794 @@
+<!doctype html>
+<!--
+  Code Editor Typing
+
+  A full code editor window (activity bar, explorer, tabs, terminal, status bar) types a snippet character by character with a caret, then tilts in 3D.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/code-editor-typing/code-editor-typing.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: adapted from a block themed on a well-known code editor: generic title, project and window text and a generic highlighter palette; the code is a variable with a small built-in Python-style tokenizer instead of hand-built token lists; the photo backdrop became a two-colour gradient; fills the host frame (a 1920x1080 design for wide frames, a 1080x1920 one for tall frames without the explorer, scaled to fit), caret positions are measured before the entrance tweens run, and Inter and JetBrains Mono come from Google Fonts.
+-->
+<html
+  lang="en"
+  data-composition-id="code-editor-typing"
+  data-composition-duration="11"
+  data-composition-variables='[
+  {
+    "id": "code",
+    "type": "string",
+    "role": "content",
+    "label": "Code",
+    "description": "The code that gets typed, up to 18 lines (a small Python-style highlighter colours it).",
+    "default": "# A small functional toolkit\ndef pluck_deep(key):\n    return lambda obj: reduce(lambda acc, k: acc[k], key.split(&#39;.&#39;), obj)\n\ndef compose(*fns):\n    return lambda res: reduce(lambda acc, fn: fn(acc), fns, res)\n\ndef unfold(f, seed):\n    \"\"\"Build a list by repeatedly applying f to a seed.\"\"\"\n    acc = []\n    while True:\n        result = f(seed)\n        if result is None:\n            return acc\n        acc.append(result[0])\n        seed = result[1]\n"
+  },
+  {
+    "id": "file_name",
+    "type": "string",
+    "role": "content",
+    "label": "File name",
+    "description": "Name on the tab and in the file tree.",
+    "default": "functional_toolkit.py"
+  },
+  {
+    "id": "project_name",
+    "type": "string",
+    "role": "content",
+    "label": "Project name",
+    "description": "Name in the title bar, explorer and breadcrumbs.",
+    "default": "functional-toolkit"
+  },
+  {
+    "id": "kicker",
+    "type": "string",
+    "role": "content",
+    "label": "Kicker",
+    "description": "Small line above the title.",
+    "default": "Editor theme preview"
+  },
+  {
+    "id": "title",
+    "type": "string",
+    "role": "content",
+    "label": "Title",
+    "description": "Big title above the window.",
+    "default": "Midnight"
+  },
+  {
+    "id": "note",
+    "type": "string",
+    "role": "content",
+    "label": "Note",
+    "description": "Small caption on the right of the title.",
+    "default": "Typing a small file, with a tests terminal below."
+  },
+  {
+    "id": "accent_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "Active tab, status bar and activity bar accent.",
+    "default": "#0078d4"
+  },
+  {
+    "id": "background_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background glow",
+    "description": "Light colour of the backdrop behind the window.",
+    "default": "#1d2a4a"
+  },
+  {
+    "id": "background_color_2",
+    "type": "color",
+    "role": "style",
+    "label": "Background base",
+    "description": "Dark colour of the backdrop behind the window.",
+    "default": "#0b0f1c"
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Code Editor Typing</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; font-family: Inter, system-ui, sans-serif; pointer-events: none; }
+          .cse-scene * {
+            box-sizing: border-box;
+            letter-spacing: 0;
+          }
+
+          .cse-scene {
+            --activity-bg: #181818;
+            --activity-fg: #d7d7d7;
+            --activity-muted: #868686;
+            --activity-active: var(--cse-accent, #0078d4);
+            --sidebar-bg: #181818;
+            --sidebar-fg: #cccccc;
+            --sidebar-border: #2b2b2b;
+            --tab-bg: #181818;
+            --tab-active-bg: #1f1f1f;
+            --tab-active-fg: #ffffff;
+            --tab-inactive-fg: #9d9d9d;
+            --tab-border: #2b2b2b;
+            --editor-bg: #1f1f1f;
+            --editor-fg: #cccccc;
+            --editor-line: rgba(255, 255, 255, 0.04);
+            --gutter-fg: #6e7681;
+            --gutter-active-fg: #cccccc;
+            --panel-bg: #181818;
+            --panel-border: #2b2b2b;
+            --status-bg: #181818;
+            --status-fg: #cccccc;
+            --status-border: #2b2b2b;
+            --title-bg: #181818;
+            --title-fg: #cccccc;
+            --token-comment: #6a9955;
+            --token-keyword: #c586c0;
+            --token-function: #dcdcaa;
+            --token-string: #ce9178;
+            --token-number: #b5cea8;
+            --token-variable: #9cdcfe;
+            --token-parameter: #9cdcfe;
+            --token-operator: #d4d4d4;
+            --token-punctuation: #d4d4d4;
+            --token-class-name: #4ec9b0;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform-origin: 0 0;
+            overflow: hidden;
+            color: var(--editor-fg);
+          }
+
+          .scene-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            padding: 54px 70px 92px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            perspective: 2200px;
+            perspective-origin: 56% 52%;
+          }
+
+          .header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            min-height: 66px;
+            text-shadow:
+              0 2px 12px rgba(0, 0, 0, 0.42),
+              0 14px 34px rgba(0, 0, 0, 0.32);
+          }
+
+          .kicker {
+            margin: 0 0 7px;
+            color: var(--gutter-fg);
+            font-size: 15px;
+            font-weight: 650;
+            text-transform: uppercase;
+            text-shadow:
+              0 2px 8px rgba(0, 0, 0, 0.48),
+              0 10px 26px rgba(0, 0, 0, 0.36);
+          }
+
+          .title {
+            margin: 0;
+            color: var(--editor-fg);
+            font-size: 44px;
+            line-height: 1;
+            font-weight: 760;
+          }
+
+          .source-note {
+            width: 510px;
+            color: var(--gutter-fg);
+            font-size: 16px;
+            line-height: 1.35;
+            text-align: right;
+            text-shadow:
+              0 2px 10px rgba(0, 0, 0, 0.46),
+              0 12px 30px rgba(0, 0, 0, 0.34);
+          }
+
+          .workbench {
+            height: var(--wb-h, 824px);
+            display: grid;
+            grid-template-columns: var(--wb-cols, 54px 290px 1fr);
+            grid-template-rows: 36px 1fr 26px;
+            overflow: hidden;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            background: var(--editor-bg);
+            box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+            transform: translateZ(0);
+            transform-origin: 82% 50%;
+            transform-style: preserve-3d;
+            will-change: transform;
+          }
+
+          .titlebar {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 120px 1fr 210px;
+            align-items: center;
+            background: var(--title-bg);
+            color: var(--title-fg);
+            border-bottom: 1px solid var(--tab-border);
+            font-size: 12px;
+          }
+
+          .traffic {
+            display: flex;
+            gap: 8px;
+            padding-left: 18px;
+          }
+
+          .traffic span {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+          }
+
+          .traffic span:nth-child(1) {
+            background: #ff5f57;
+          }
+          .traffic span:nth-child(2) {
+            background: #ffbd2e;
+          }
+          .traffic span:nth-child(3) {
+            background: #28c840;
+          }
+
+          .window-title {
+            justify-self: center;
+            opacity: 0.84;
+          }
+
+          .command-center {
+            justify-self: end;
+            width: 176px;
+            height: 22px;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid color-mix(in srgb, var(--title-fg), transparent 78%);
+            border-radius: 5px;
+            color: color-mix(in srgb, var(--title-fg), transparent 18%);
+          }
+
+          .activity {
+            grid-row: 2 / 3;
+            background: var(--activity-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            gap: 18px;
+          }
+
+          .activity-icon {
+            width: 28px;
+            height: 28px;
+            color: var(--activity-muted);
+          }
+
+          .activity-icon.active {
+            color: var(--activity-fg);
+            border-left: 2px solid var(--activity-active);
+            padding-left: 4px;
+          }
+
+          .sidebar {
+            grid-row: 2 / 3;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-fg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+          }
+
+          .sidebar-title {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: var(--sidebar-fg);
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+
+          .section-title {
+            height: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 14px;
+            background: color-mix(in srgb, var(--sidebar-bg), var(--sidebar-fg) 5%);
+            border-top: 1px solid var(--sidebar-border);
+            border-bottom: 1px solid var(--sidebar-border);
+            color: var(--sidebar-fg);
+            font-size: 11px;
+            font-weight: 700;
+          }
+
+          .tree {
+            padding: 8px 0;
+            font-size: 13px;
+            line-height: 24px;
+          }
+
+          .tree-row {
+            height: 24px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0 10px 0 18px;
+            color: color-mix(in srgb, var(--sidebar-fg), transparent 8%);
+            white-space: nowrap;
+          }
+
+          .tree-row.child {
+            padding-left: 34px;
+          }
+
+          .tree-row.selected {
+            background: color-mix(in srgb, var(--sidebar-fg), transparent 88%);
+            color: var(--sidebar-fg);
+          }
+
+          .editor-area {
+            grid-row: 2 / 3;
+            display: grid;
+            grid-template-rows: 36px 30px 1fr 138px;
+            min-width: 0;
+            background: var(--editor-bg);
+          }
+
+          .tabs {
+            display: flex;
+            background: var(--tab-bg);
+            border-bottom: 1px solid var(--tab-border);
+          }
+
+          .tab {
+            width: 205px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 13px;
+            border-right: 1px solid var(--tab-border);
+            background: var(--tab-active-bg);
+            color: var(--tab-active-fg);
+            border-top: 2px solid var(--activity-active);
+            font-size: 13px;
+          }
+
+          .tab.inactive {
+            background: var(--tab-bg);
+            color: var(--tab-inactive-fg);
+            border-top-color: transparent;
+          }
+
+          .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0 18px;
+            color: var(--gutter-fg);
+            border-bottom: 1px solid color-mix(in srgb, var(--tab-border), transparent 20%);
+            font-size: 12px;
+          }
+
+          .editor {
+            position: relative;
+            overflow: hidden;
+            background: var(--editor-bg);
+            color: var(--editor-fg);
+            font-family: "JetBrains Mono", Menlo, Consolas, monospace;
+            font-size: 18px;
+            line-height: 1.52;
+          }
+
+          .active-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 28px;
+            background: var(--editor-line);
+            will-change: transform;
+          }
+
+          .code {
+            position: relative;
+            padding: 20px 36px 18px 0;
+          }
+
+          .line {
+            height: 28px;
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            align-items: center;
+          }
+
+          .line-number {
+            padding-right: 18px;
+            color: var(--gutter-fg);
+            text-align: right;
+            user-select: none;
+          }
+
+          .line.is-active .line-number {
+            color: var(--gutter-active-fg);
+          }
+
+          .line-code {
+            white-space: pre;
+          }
+
+          .char {
+            opacity: 0;
+          }
+
+          .tok-comment {
+            color: var(--token-comment);
+          }
+          .tok-keyword {
+            color: var(--token-keyword);
+          }
+          .tok-function {
+            color: var(--token-function);
+          }
+          .tok-string {
+            color: var(--token-string);
+          }
+          .tok-number {
+            color: var(--token-number);
+          }
+          .tok-variable {
+            color: var(--token-variable);
+          }
+          .tok-parameter {
+            color: var(--token-parameter);
+          }
+          .tok-operator {
+            color: var(--token-operator);
+          }
+          .tok-punctuation {
+            color: var(--token-punctuation);
+          }
+          .tok-class-name {
+            color: var(--token-class-name);
+          }
+
+          .caret {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 3;
+            display: block;
+            width: 2px;
+            height: 22px;
+            background: var(--editor-fg);
+            pointer-events: none;
+            will-change: transform, opacity;
+          }
+
+          .terminal {
+            display: grid;
+            grid-template-rows: 32px 1fr;
+            background: var(--panel-bg);
+            border-top: 1px solid var(--panel-border);
+            color: var(--editor-fg);
+            font-family: "JetBrains Mono", Menlo, Consolas, monospace;
+            font-size: 14px;
+          }
+
+          .panel-tabs {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 0 18px;
+            border-bottom: 1px solid var(--panel-border);
+            color: var(--gutter-fg);
+            font-family:
+              Inter,
+              
+              BlinkMacSystemFont,
+              "Segoe UI",
+              sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+          }
+
+          .panel-tabs .active {
+            color: var(--editor-fg);
+            border-bottom: 1px solid var(--activity-active);
+            height: 32px;
+            display: flex;
+            align-items: center;
+          }
+
+          .terminal-body {
+            padding: 12px 20px;
+            color: var(--editor-fg);
+            line-height: 1.8;
+          }
+
+          .prompt {
+            color: var(--token-function);
+          }
+
+          .statusbar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--status-bg);
+            color: var(--status-fg);
+            border-top: 1px solid var(--status-border);
+            font-size: 12px;
+          }
+
+          .status-left,
+          .status-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 12px;
+          }
+
+          .remote {
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            margin-left: -12px;
+            background: var(--status-remote-bg, var(--activity-active));
+            color: var(--status-remote-fg, #ffffff);
+          }
+
+          .cse-scene svg {
+            display: block;
+          }
+
+          .cse-portrait .scene-content { padding: 70px 40px 80px; }
+          .cse-portrait .header { flex-direction: column; align-items: flex-start; gap: 14px; }
+          .cse-portrait .source-note { width: 100%; text-align: left; }
+          .cse-portrait .title { font-size: 64px; }
+          .cse-portrait .kicker { font-size: 20px; }
+          .cse-portrait .source-note { font-size: 20px; }
+          .cse-portrait .activity, .cse-portrait .sidebar { display: none; }
+          .cse-portrait .editor { font-size: 20px; }
+          .cse-portrait .line { grid-template-columns: 52px 1fr; }
+          .cse-portrait .code { padding-top: 24px; }
+          .cse-portrait .terminal { font-size: 18px; }
+          .cse-portrait .tab { width: 260px; font-size: 16px; }
+          .cse-portrait .breadcrumbs { font-size: 14px; }
+
+      </style>
+      <div id="root" data-composition-id="code-editor-typing" data-duration="11" data-fps="30">
+        <div id="cse-clip" class="clip" data-start="0" data-duration="11" data-track-index="0" style="position:absolute;inset:0">
+          <div id="cse-scene" class="cse-scene" style="--activity-bg:#181818;--activity-fg:#d7d7d7;--activity-muted:#868686;--sidebar-bg:#181818;--sidebar-fg:#cccccc;--sidebar-border:#2b2b2b;--tab-bg:#181818;--tab-active-bg:#1f1f1f;--tab-active-fg:#ffffff;--tab-inactive-fg:#9d9d9d;--tab-border:#2b2b2b;--editor-bg:#1f1f1f;--editor-fg:#cccccc;--editor-line:rgba(255,255,255,0.04);--gutter-fg:#6e7681;--gutter-active-fg:#cccccc;--panel-bg:#181818;--panel-border:#2b2b2b;--status-bg:#181818;--status-fg:#cccccc;--status-border:#2b2b2b;--title-bg:#181818;--title-fg:#cccccc;--token-comment:#6a9955;--token-keyword:#c586c0;--token-function:#dcdcaa;--token-string:#ce9178;--token-number:#b5cea8;--token-variable:#9cdcfe;--token-parameter:#9cdcfe;--token-operator:#d4d4d4;--token-punctuation:#d4d4d4;--token-class-name:#4ec9b0;color:#cccccc;">
+            <main class="scene-content">
+              <section class="header">
+                <div>
+                  <p class="kicker" id="cse-kicker"></p>
+                  <h1 class="title"><span id="cse-title"></span></h1>
+                </div>
+                <p class="source-note" id="cse-note"></p>
+              </section>
+              <section class="workbench">
+                <div class="titlebar">
+                  <div class="traffic"><span></span><span></span><span></span></div>
+                  <div class="window-title" id="cse-window"></div>
+                  <div class="command-center">Search</div>
+                </div>
+                <aside class="activity" aria-label="Activity bar">
+                  <svg class="activity-icon active" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" /></svg>
+                  <svg class="activity-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="m21 21-5.2-5.2M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" /></svg>
+                  <svg class="activity-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M8 18 3 12l5-6m8 12 5-6-5-6" /></svg>
+                  <svg class="activity-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 3v18m0-18 6 6m-6-6L6 9m6 12 6-6m-6 6-6-6" /></svg>
+                </aside>
+                <aside class="sidebar">
+                  <div class="sidebar-title">Explorer</div>
+                  <div class="section-title" id="cse-proj-head"></div>
+                  <div class="tree">
+                    <div class="tree-row">&#8964; src</div>
+                    <div class="tree-row child selected" id="cse-tree-file"></div>
+                    <div class="tree-row child">&#9671; test_toolkit.py</div>
+                    <div class="tree-row">&#9671; pyproject.toml</div>
+                    <div class="tree-row">&#9671; README.md</div>
+                  </div>
+                </aside>
+                <section class="editor-area">
+                  <div class="tabs"><div class="tab" id="cse-tab"></div><div class="tab inactive">README.md</div></div>
+                  <div class="breadcrumbs" id="cse-crumbs"></div>
+                  <div class="editor"><div class="active-line"></div><div class="code"></div></div>
+                  <div class="terminal">
+                    <div class="panel-tabs"><span class="active">Terminal</span><span>Problems</span><span>Output</span></div>
+                    <div class="terminal-body" id="cse-term"></div>
+                  </div>
+                </section>
+                <footer class="statusbar">
+                  <div class="status-left"><span class="remote">main</span><span>0 errors</span><span>0 warnings</span></div>
+                  <div class="status-right"><span>Ln 17, Col 1</span><span>Spaces: 4</span><span>UTF-8</span><span>Python 3.12</span></div>
+                </footer>
+              </section>
+            </main>
+          </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function str(x, f) { return typeof x === "string" && x.trim() ? x : f; }
+            function col(x, f) { return typeof x === "string" && x.trim() ? x.trim() : f; }
+            var DEFAULT_CODE = "# A small functional toolkit\ndef pluck_deep(key):\n    return lambda obj: reduce(lambda acc, k: acc[k], key.split('.'), obj)\n\ndef compose(*fns):\n    return lambda res: reduce(lambda acc, fn: fn(acc), fns, res)\n\ndef unfold(f, seed):\n    \"\"\"Build a list by repeatedly applying f to a seed.\"\"\"\n    acc = []\n    while True:\n        result = f(seed)\n        if result is None:\n            return acc\n        acc.append(result[0])\n        seed = result[1]\n";
+            var code = str(vars.code, DEFAULT_CODE).replace(/\t/g, "    ").split(/\r?\n/).slice(0, 18);
+            var file = str(vars.file_name, "functional_toolkit.py");
+            var project = str(vars.project_name, "functional-toolkit");
+            var scene = document.getElementById("cse-scene");
+            scene.style.setProperty("--cse-accent", col(vars.accent_color, "#0078d4"));
+            document.getElementById("cse-kicker").textContent = str(vars.kicker, "Editor theme preview");
+            document.getElementById("cse-title").textContent = str(vars.title, "Midnight");
+            document.getElementById("cse-note").textContent = str(vars.note, "Typing a small file, with a tests terminal below.");
+            document.getElementById("cse-window").textContent = project + " - Code Editor";
+            document.getElementById("cse-proj-head").textContent = "\u2304 " + project;
+            document.getElementById("cse-tree-file").textContent = "\u25C7 " + file;
+            document.getElementById("cse-tab").textContent = "\u25C7 " + file;
+            document.getElementById("cse-crumbs").textContent = project + " \u203A src \u203A " + file;
+            var term = document.getElementById("cse-term");
+            [["<span class=\"prompt\">" + project.replace(/</g, "&lt;") + " %</span> python -m pytest"], ["collected 3 items"], ["tests/test_toolkit.py ... <span class=\"tok-comment\">passed</span>"]].forEach(function (r) { var d = document.createElement("div"); d.innerHTML = r[0]; term.appendChild(d); });
+
+            // Background: two colours, with a soft glow, behind the window.
+            var bgA = col(vars.background_color, "#1d2a4a"), bgB = col(vars.background_color_2, "#0b0f1c");
+            root.style.background = "radial-gradient(120% 90% at 20% 15%, " + bgA + " 0%, " + bgB + " 70%), " + bgB;
+
+            // Design size: 1920x1080 for wide frames, 1080x1920 for tall ones; the scene is scaled to fit.
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var portrait = H > W;
+            var DW = portrait ? 1080 : 1920, DH = portrait ? 1920 : 1080;
+            var s = Math.min(W / DW, H / DH);
+            scene.style.width = DW + "px"; scene.style.height = DH + "px";
+            scene.style.transform = "translate(" + (-DW * s / 2) + "px," + (-DH * s / 2) + "px) scale(" + s + ")";
+            if (portrait) {
+              scene.classList.add("cse-portrait");
+              scene.style.setProperty("--wb-h", "1500px");
+              scene.style.setProperty("--wb-cols", "1fr");
+            }
+            var CODE_LINE = portrait ? 34 : 28;
+            if (portrait) scene.style.setProperty("--cse-line", CODE_LINE + "px");
+
+            // A small Python-style tokenizer.
+            var KEYWORDS = /^(def|return|lambda|while|if|elif|else|for|in|is|not|and|or|import|from|class|try|except|with|as|pass|yield|raise|break|continue|async|await)$/;
+            var CONSTS = /^(True|False|None)$/;
+            function tokenize(line) {
+              var out = [], i = 0, prevDef = false;
+              while (i < line.length) {
+                var rest = line.slice(i), m;
+                if ((m = /^#.*/.exec(rest))) { out.push([m[0], "comment"]); i += m[0].length; continue; }
+                if ((m = /^("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/.exec(rest))) { out.push([m[0], "string"]); i += m[0].length; continue; }
+                if ((m = /^\d+(\.\d+)?/.exec(rest))) { out.push([m[0], "number"]); i += m[0].length; continue; }
+                if ((m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(rest))) {
+                  var w = m[0], after = line.charAt(i + w.length), kind;
+                  if (KEYWORDS.test(w)) { kind = "keyword"; }
+                  else if (CONSTS.test(w)) { kind = "class-name"; }
+                  else if (prevDef || after === "(") { kind = "function"; }
+                  else { kind = "variable"; }
+                  prevDef = w === "def" || w === "class";
+                  out.push([w, kind]); i += w.length; continue;
+                }
+                if ((m = /^\s+/.exec(rest))) { out.push([m[0], "plain"]); i += m[0].length; continue; }
+                out.push([rest.charAt(0), /[=+\-*\/<>!%]/.test(rest.charAt(0)) ? "operator" : "punctuation"]); i += 1;
+              }
+              return out;
+            }
+
+            var tl = gsap.timeline({ paused: true });
+            function build() {
+              tl.clear();
+              var codeEl = scene.querySelector(".code");
+              var editor = scene.querySelector(".editor");
+              codeEl.textContent = "";
+              var oldCaret = editor.querySelector(".caret");
+              if (oldCaret) oldCaret.remove();
+              code.forEach(function (text, index) {
+                var line = document.createElement("div");
+                line.className = "line";
+                if (portrait) line.style.height = CODE_LINE + "px";
+                var num = document.createElement("span");
+                num.className = "line-number";
+                num.textContent = String(index + 1);
+                line.appendChild(num);
+                var lc = document.createElement("span");
+                lc.className = "line-code";
+                tokenize(text).forEach(function (seg) {
+                  Array.from(seg[0]).forEach(function (ch) {
+                    var sp = document.createElement("span");
+                    sp.className = seg[1] === "plain" ? "char" : "char tok-" + seg[1];
+                    sp.textContent = ch;
+                    lc.appendChild(sp);
+                  });
+                });
+                line.appendChild(lc);
+                codeEl.appendChild(line);
+              });
+              var caret = document.createElement("span");
+              caret.className = "caret";
+              editor.appendChild(caret);
+              if (portrait) { caret.style.height = "30px"; scene.querySelector(".active-line").style.height = CODE_LINE + "px"; }
+
+              var activeLine = scene.querySelector(".active-line");
+              var lineEls = gsap.utils.toArray(scene.querySelectorAll(".line"));
+              gsap.set([scene.querySelector(".header"), scene.querySelector(".workbench"), scene.querySelector(".terminal"), term.children, activeLine], { clearProps: "all" });
+              gsap.set(caret, { clearProps: "all" });
+              // Measure first, before any entrance transform is applied. Rects are in screen px, so divide by the scale.
+              var eb = editor.getBoundingClientRect();
+              function atChar(el) { var b = el.getBoundingClientRect(); return { x: (b.right - eb.left) / s + 2, y: (b.top - eb.top) / s + 3 }; }
+              function atLine(line) { var b = line.getBoundingClientRect(), c = line.querySelector(".line-code").getBoundingClientRect(); return { x: (c.left - eb.left) / s, y: (b.top - eb.top) / s + 3 }; }
+              function lineY(line) { return (line.getBoundingClientRect().top - eb.top) / s; }
+              var starts = [], sched = [], cursor = 0.95;
+              lineEls.forEach(function (line, li) {
+                var chars = gsap.utils.toArray(line.querySelectorAll(".char"));
+                starts[li] = cursor;
+                chars.forEach(function (ch, ci) { sched.push({ ch: ch, t: cursor + ci * 0.012, p: atChar(ch) }); });
+                cursor += Math.max(chars.length * 0.012, 0.08) + 0.045;
+              });
+              var lineInfo = lineEls.map(function (l) { return { y: lineY(l), p: atLine(l) }; });
+
+              gsap.set(activeLine, { y: lineInfo[0].y });
+              gsap.set(caret, lineInfo[0].p);
+              tl.from(scene.querySelector(".header"), { y: 24, opacity: 0, duration: 0.45, ease: "power3.out" }, 0);
+              tl.from(scene.querySelector(".workbench"), { y: 42, opacity: 0, scale: 0.986, duration: 0.58, ease: "power3.out" }, 0.1);
+              tl.from(activeLine, { opacity: 0, duration: 0.22, ease: "power2.out" }, 0.74);
+              starts.forEach(function (t, li) {
+                tl.set(activeLine, { y: lineInfo[li].y }, t);
+                tl.set(caret, lineInfo[li].p, t);
+                tl.call(function () { lineEls.forEach(function (it) { it.classList.toggle("is-active", it === lineEls[li]); }); }, [], t);
+              });
+              sched.forEach(function (c) {
+                tl.set(c.ch, { opacity: 1 }, c.t);
+                tl.set(caret, c.p, c.t + 0.002);
+              });
+              tl.to(caret, { opacity: 0, duration: 0.34, repeat: 25, yoyo: true, ease: "steps(1)" }, 0.95);
+              var tEnd = Math.max(cursor, 7.55);
+              tl.from(scene.querySelector(".terminal"), { y: 140, opacity: 0, duration: 0.56, ease: "power3.out" }, tEnd);
+              tl.from(term.children, { opacity: 0, y: 8, duration: 0.24, stagger: 0.16, ease: "power2.out" }, tEnd + 0.5);
+              var wb = scene.querySelector(".workbench");
+              tl.to(wb, { rotateY: -10.5, z: 74, duration: 0.72, ease: "power2.inOut" }, 9.35);
+              tl.to(wb, { rotateY: 0, z: 0, duration: 0.62, ease: "power2.inOut" }, 10.08);
+              if (tl.duration() < 11) tl.to({}, { duration: 11 - tl.duration() });
+              tl.seek(0);
+            }
+            build();
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { build(); }, function () {});
+            window.__timelines = window.__timelines || {};
+            window.__timelines["code-editor-typing"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

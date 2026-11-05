@@ -1,0 +1,216 @@
+<!doctype html>
+<!--
+  Handwritten Title
+
+  Handwritten display text with a word-by-word highlight sweep, a seeded squiggle underline that matches the text width, and a hand-drawn boil.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/hw-title/hw-title.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: the Caveat font file becomes the same family from Google Fonts, the stage fills the host frame (the text wraps and shrinks on a narrow frame, the underline stretches to the text width and reveals with a wipe), the family's shared helper functions are inlined, and the settings are variables. The overlay stays transparent; the demo supplies a dark plate.
+-->
+<html
+  lang="en"
+  data-composition-id="hw-title"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "text", "type": "string", "role": "content", "label": "Text", "description": "The handwritten line. It wraps on a narrow frame.", "default": "shine like the star you are"},
+    {"id": "font_size", "type": "number", "role": "style", "label": "Font size", "description": "Maximum text size in pixels; it shrinks on a narrow frame.", "default": 120, "min": 24, "max": 260, "step": 1, "unit": "px"},
+    {"id": "ink", "type": "color", "role": "style", "label": "Ink", "description": "Color of the text once the highlight has passed.", "default": "#f4f2ec"},
+    {"id": "underline_color", "type": "color", "role": "style", "label": "Underline color", "description": "Color of the squiggle underline.", "default": "#ffb020"},
+    {"id": "sweep", "type": "boolean", "role": "motion", "label": "Highlight sweep", "description": "Words light up one after another.", "default": true},
+    {"id": "sweep_start", "type": "number", "role": "motion", "label": "Sweep start", "description": "Second the highlight starts.", "default": 0.8, "min": 0, "max": 4, "step": 0.05, "unit": "s"},
+    {"id": "sweep_end", "type": "number", "role": "motion", "label": "Sweep end", "description": "Second the highlight finishes.", "default": 3.2, "min": 0.2, "max": 5.5, "step": 0.05, "unit": "s"},
+    {"id": "underline", "type": "boolean", "role": "style", "label": "Underline", "description": "Draw a squiggle under the text.", "default": true},
+    {"id": "wobble", "type": "number", "role": "style", "label": "Squiggle wobble", "description": "How wavy the underline is.", "default": 6, "min": 0, "max": 14, "step": 0.5},
+    {"id": "boil", "type": "boolean", "role": "motion", "label": "Boil", "description": "Jitter the whole line a little every third frame, like a hand-drawn loop.", "default": true},
+    {"id": "boil_amount", "type": "number", "role": "motion", "label": "Boil amount", "description": "How far the line jitters, in pixels.", "default": 1.4, "min": 0, "max": 6, "step": 0.1, "unit": "px"},
+    {"id": "seed", "type": "number", "role": "style", "label": "Seed", "description": "Changes the squiggle and the jitter pattern.", "default": 8, "min": 1, "max": 99, "step": 1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Handwritten Title</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          font-family: "Caveat", cursive;
+        }
+        .hwt-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #hwt-wrap {
+          position: relative;
+          max-width: 90cqw;
+          text-align: center;
+          margin-top: -2cqmin;
+        }
+        #hwt-line {
+          font-weight: 700;
+          line-height: 1.1;
+          text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
+        }
+        #hwt-line .hwt-w { display: inline; }
+        #hwt-under {
+          display: block;
+          width: 100%;
+          height: 0.3em;
+          overflow: visible;
+        }
+        #hwt-under path {
+          fill: none;
+          stroke-width: 7;
+          stroke-linecap: round;
+          vector-effect: non-scaling-stroke;
+        }
+      </style>
+
+      <div id="root" data-composition-id="hw-title" data-duration="6" data-fps="30">
+        <div id="hwt-clip" class="hwt-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="hwt-wrap">
+            <div id="hwt-line"></div>
+            <svg id="hwt-under" viewBox="0 0 600 34" preserveAspectRatio="none"><path id="hwt-under-path" d=""></path></svg>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (value === true || value === "true") return true;
+              if (value === false || value === "false") return false;
+              return fallback;
+            }
+            function hex(value, fallback) {
+              return typeof value === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim()) ? value.trim() : fallback;
+            }
+            function rgba(h, a) {
+              if (h.length === 4) h = "#" + h[1] + h[1] + h[2] + h[2] + h[3] + h[3];
+              return "rgba(" + parseInt(h.slice(1, 3), 16) + "," + parseInt(h.slice(3, 5), 16) + "," + parseInt(h.slice(5, 7), 16) + "," + a + ")";
+            }
+            function hash(n, seed) {
+              var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453;
+              return (x - Math.floor(x)) * 2 - 1;
+            }
+
+            var DUR = 6;
+            var text = str(vars.text, "shine like the star you are");
+            var fontSize = num(vars.font_size, 120, 24, 260);
+            var ink = hex(vars.ink, "#f4f2ec");
+            var accent = hex(vars.underline_color, "#ffb020");
+            var sweepOn = bool(vars.sweep, true);
+            var sweepStart = num(vars.sweep_start, 0.8, 0, 4);
+            var sweepEnd = Math.max(sweepStart + 0.2, num(vars.sweep_end, 3.2, 0.2, 5.5));
+            var underOn = bool(vars.underline, true);
+            var wobble = num(vars.wobble, 6, 0, 14);
+            var boilOn = bool(vars.boil, true);
+            var boilAmp = num(vars.boil_amount, 1.4, 0, 6);
+            var seed = num(vars.seed, 8, 1, 99);
+
+            var wrap = document.getElementById("hwt-wrap");
+            var line = document.getElementById("hwt-line");
+            var under = document.getElementById("hwt-under");
+            var underPath = document.getElementById("hwt-under-path");
+            // Shrink the type on a narrow frame so a long phrase wraps to at most three lines.
+            var size = Math.min(fontSize, root.clientWidth * 0.14);
+            line.style.fontSize = size + "px";
+            under.style.stroke = accent;
+            underPath.style.stroke = accent;
+
+            var FULL = ink, FAINT = rgba(ink, 0.32);
+            var words = [];
+            text.split(/\s+/).forEach(function (w, i) {
+              if (i > 0) line.appendChild(document.createTextNode(" "));
+              var span = document.createElement("span");
+              span.className = "hwt-w";
+              span.textContent = w;
+              span.style.color = sweepOn ? FAINT : FULL;
+              line.appendChild(span);
+              words.push(span);
+            });
+
+            // Seeded squiggle, drawn in a 600-wide box that stretches to the width of the text.
+            var segs = 7, uw = 600;
+            var d = "M 2 " + (16 + hash(0, seed) * 4).toFixed(1);
+            for (var i = 1; i <= segs; i++) {
+              var x = (uw / segs) * i;
+              var y = 16 + hash(i * 5 + 1, seed) * wobble;
+              var cx = x - uw / segs / 2 + hash(i * 5 + 2, seed) * 10;
+              var cy = 16 + (i % 2 ? -1 : 1) * (8 + hash(i * 5 + 3, seed) * 4);
+              d += " Q " + cx.toFixed(1) + " " + cy.toFixed(1) + " " + x.toFixed(1) + " " + y.toFixed(1);
+            }
+            underPath.setAttribute("d", d);
+            if (!underOn) under.style.display = "none";
+
+            var IN = Math.min(0.8, Math.max(0.3, DUR * 0.08));
+            var OUT = Math.min(0.6, Math.max(0.25, DUR * 0.06));
+            var tl = gsap.timeline({ paused: true });
+            gsap.set(wrap, { opacity: 0 });
+            tl.to(wrap, { opacity: 1, duration: IN, ease: "power2.out" }, 0.1);
+
+            var sw = { p: 0 };
+            var fadeAt = DUR - OUT - 0.05;
+            function update() {
+              if (sweepOn) {
+                var k = sw.p * words.length;
+                for (var j = 0; j < words.length; j++) {
+                  var f = Math.max(0, Math.min(1, k - j));
+                  words[j].style.color = f >= 1 ? FULL : f <= 0 ? FAINT : mix(f);
+                }
+              }
+              if (boilOn) {
+                var step = Math.floor((tl.time() * 30) / 3);
+                gsap.set(wrap, { x: hash(step * 3, seed) * boilAmp, y: hash(step * 3 + 1, seed) * boilAmp, rotation: hash(step * 3 + 2, seed) * boilAmp * 0.22 });
+              }
+            }
+            var mix = gsap.utils.interpolate(FAINT, rgba(ink, 1));
+            if (sweepOn) tl.to(sw, { p: 1, duration: sweepEnd - sweepStart, ease: "none" }, sweepStart);
+            if (underOn) {
+              var uAt = sweepOn ? sweepEnd - 0.2 : 0.8;
+              tl.fromTo(under, { clipPath: "inset(-12px 100% -12px -4px)" }, { clipPath: "inset(-12px -4px -12px -4px)", duration: 0.7, ease: "power2.inOut", immediateRender: true }, uAt);
+            }
+            tl.eventCallback("onUpdate", update);
+            tl.to(wrap, { opacity: 0, duration: OUT, ease: "power2.in" }, fadeAt);
+            tl.set({}, {}, DUR);
+            update();
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["hw-title"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

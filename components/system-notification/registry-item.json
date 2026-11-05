@@ -1,0 +1,106 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "system-notification",
+  "type": "hyperframes:component",
+  "title": "System Notification",
+  "description": "A frosted notification banner with an app icon, title and message slides in from the right and leaves again.",
+  "tags": [
+    "notification",
+    "overlay",
+    "ui",
+    "banner",
+    "social",
+    "hyperframes-port"
+  ],
+  "category": "ui",
+  "duration": 5,
+  "useWhen": [
+    "A message, alert or reminder pops over a scene, as a plot point or an overlay on screen footage.",
+    "A short notification beat of about five seconds with a clean slide in and out."
+  ],
+  "avoidWhen": [
+    "The notification should look like one specific real system: this one is deliberately generic.",
+    "Several notifications stack or reply to each other: use a chat flow block."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/macos-notification/macos-notification.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "system-notification.html",
+      "target": "compositions/components/system-notification.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "app_name",
+      "type": "string",
+      "role": "content",
+      "label": "App name",
+      "description": "Small uppercase name at the top.",
+      "default": "Inbox"
+    },
+    {
+      "id": "time_label",
+      "type": "string",
+      "role": "content",
+      "label": "Time label",
+      "description": "Text at the top right of the banner.",
+      "default": "now"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Bold first line.",
+      "default": "New message from Sam"
+    },
+    {
+      "id": "body",
+      "type": "string",
+      "role": "content",
+      "label": "Message",
+      "description": "Text under the title, two lines at most.",
+      "default": "The launch video looks great. Can we publish it tonight?"
+    },
+    {
+      "id": "icon_text",
+      "type": "string",
+      "role": "content",
+      "label": "Icon letters",
+      "description": "One or two letters in the app icon.",
+      "default": "IN"
+    },
+    {
+      "id": "icon_from",
+      "type": "color",
+      "role": "style",
+      "label": "Icon colour start",
+      "description": "Start of the icon gradient.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "icon_to",
+      "type": "color",
+      "role": "style",
+      "label": "Icon colour end",
+      "description": "End of the icon gradient.",
+      "default": "#1e3a8a"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Banner colour",
+      "description": "Base colour of the frosted banner.",
+      "default": "#1e1e1e"
+    }
+  ]
+}

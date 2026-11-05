@@ -1,0 +1,108 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "glass-hero",
+  "type": "hyperframes:component",
+  "title": "Glass Hero",
+  "description": "A glass object rises in front of a giant headline and turns, bending the type: a lens or a ring with real refraction, a little colour dispersion, a tint and studio reflections on its edge. A subline fades in beneath.",
+  "tags": [
+    "shader",
+    "glass",
+    "refraction",
+    "3d",
+    "hero",
+    "typography",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A hero title shot where a glass lens or ring floats in front of giant type and bends it.",
+    "Premium, product or brand openers that want a tactile glass moment."
+  ],
+  "avoidWhen": [
+    "The headline must stay perfectly legible: the glass distorts the letters it passes over.",
+    "A flat, graphic look."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/glass-hero/glass-hero.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "glass-hero.html",
+      "target": "compositions/components/glass-hero.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Headline behind the glass",
+      "default": "CLARITY"
+    },
+    {
+      "id": "subline",
+      "type": "string",
+      "role": "content",
+      "label": "Subline",
+      "default": "See every detail, nothing in the way."
+    },
+    {
+      "id": "shape",
+      "type": "enum",
+      "role": "style",
+      "label": "Glass shape",
+      "default": "lens",
+      "options": [
+        {
+          "value": "lens",
+          "label": "Lens"
+        },
+        {
+          "value": "ring",
+          "label": "Ring"
+        }
+      ]
+    },
+    {
+      "id": "glass_tint",
+      "type": "color",
+      "role": "style",
+      "label": "Glass tint",
+      "default": "#cfe9ff"
+    },
+    {
+      "id": "type_color",
+      "type": "color",
+      "role": "style",
+      "label": "Headline color",
+      "default": "#f4efe4"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#0b0b0c"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the glass is drawn at, then scaled up. Refraction edges are soft; 0.5 looks the same as 1 in the stills.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

@@ -1,0 +1,175 @@
+<!doctype html>
+<!--
+  Share Sheet Carousel
+
+  A share sheet springs up over a blurred backdrop, its preview cycling through four slides in quick cuts, then the Accept button is pressed.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/share-sheet-carousel/share-sheet-carousel.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License,
+  Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless
+  required by applicable law or agreed to in writing, software distributed under the License is
+  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+  or implied. See the License for the specific language governing permissions and limitations
+  under the License.
+
+  Changes by usemosio/blocks: made generic (no phone-OS wording or brand logo: the preview slides are four drawn colour cards with a word each, the logo strip is a drawn mark plus the sender name), the four photos and the logo file are replaced by variables for colours and words, Inter from Google Fonts, fills the host frame: the sheet is scaled to the frame and centred while the blurred backdrop fills it, the spring entry and cut rhythm are kept as measured.
+-->
+<html
+  lang="en"
+  data-composition-id="share-sheet-carousel"
+  data-composition-duration="7.2333"
+  data-composition-variables='[
+    {"id": "share_title", "type": "string", "role": "content", "label": "Sheet title", "description": "Heading at the top of the share sheet.", "default": "Share", "maxLength": 30},
+    {"id": "sender_name", "type": "string", "role": "content", "label": "Sender", "description": "Name shown as the sender offering the item, and in the preview strip.", "default": "Studio", "maxLength": 24},
+    {"id": "item_label", "type": "string", "role": "content", "label": "Item", "description": "What the sender is offering, completing the sentence 'would like to share ...'.", "default": "a video", "maxLength": 40},
+    {"id": "strip_text", "type": "string", "role": "content", "label": "Strip line", "description": "Small spaced caps line in the preview strip.", "default": "MADE WITH CARE · FRESH EVERY WEEK", "maxLength": 48},
+    {"id": "accept_label", "type": "string", "role": "content", "label": "Accept label", "description": "Right-hand action button.", "default": "Accept", "maxLength": 16},
+    {"id": "decline_label", "type": "string", "role": "content", "label": "Decline label", "description": "Left-hand action button.", "default": "Decline", "maxLength": 16},
+    {"id": "slide_color_1", "type": "color", "role": "style", "label": "Slide 1 colour", "description": "Colour of the first carousel slide.", "default": "#e4572e"},
+    {"id": "slide_color_2", "type": "color", "role": "style", "label": "Slide 2 colour", "description": "Colour of the second carousel slide.", "default": "#2e86ab"},
+    {"id": "slide_color_3", "type": "color", "role": "style", "label": "Slide 3 colour", "description": "Colour of the third carousel slide.", "default": "#7b4fd6"},
+    {"id": "slide_color_4", "type": "color", "role": "style", "label": "Slide 4 colour", "description": "Colour of the fourth carousel slide.", "default": "#2a9d6a"},
+    {"id": "slide_text_1", "type": "string", "role": "content", "label": "Slide 1 text", "description": "Word on the first slide.", "default": "Fresh", "maxLength": 14},
+    {"id": "slide_text_2", "type": "string", "role": "content", "label": "Slide 2 text", "description": "Word on the second slide.", "default": "Bold", "maxLength": 14},
+    {"id": "slide_text_3", "type": "string", "role": "content", "label": "Slide 3 text", "description": "Word on the third slide.", "default": "Simple", "maxLength": 14},
+    {"id": "slide_text_4", "type": "string", "role": "content", "label": "Slide 4 text", "description": "Word on the fourth slide.", "default": "Yours", "maxLength": 14},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accept colour", "description": "Colour of the Accept label.", "default": "#087a57"},
+    {"id": "strip_color", "type": "color", "role": "style", "label": "Strip colour", "description": "Background of the preview strip.", "default": "#f2ecdf"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Share Sheet Carousel</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; font-family: Inter, system-ui, sans-serif; background: #111; pointer-events: none; }
+        .ssc-bg { position: absolute; inset: -220px; filter: blur(46px) saturate(1.1) brightness(0.88); }
+        #ssc-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; }
+        .ssc-art { position: absolute; inset: 0; overflow: hidden; display: grid; place-items: center; }
+        .ssc-art::before { content: ""; position: absolute; width: 150%; aspect-ratio: 1; border-radius: 50%; left: -30%; top: -62%; background: rgba(255,255,255,0.14); }
+        .ssc-art::after { content: ""; position: absolute; width: 90%; aspect-ratio: 1; border-radius: 50%; right: -35%; bottom: -55%; background: rgba(0,0,0,0.16); }
+        .ssc-art b { position: relative; z-index: 1; color: #fff; font-size: 96px; font-weight: 700; letter-spacing: -2px; text-shadow: 0 4px 24px rgba(0,0,0,0.22); }
+        #ssc-card { position: absolute; left: 206px; top: 473px; width: 668px; height: 974px; background: #f9f9f9; border-radius: 34px; box-shadow: 0 18px 42px rgba(0,0,0,0.28); opacity: 0; }
+        #ssc-clipper { position: absolute; inset: 0; border-radius: 34px; overflow: hidden; }
+        #ssc-title { position: absolute; top: 49px; left: 0; width: 100%; text-align: center; font-size: 44px; font-weight: 600; color: #101010; line-height: 44px; }
+        #ssc-subtitle { position: absolute; top: 117px; left: 0; width: 100%; text-align: center; font-size: 29px; color: #313131; line-height: 29px; white-space: nowrap; }
+        #ssc-subtitle b { font-weight: 700; }
+        #ssc-imagebox { position: absolute; left: 43px; top: 191px; width: 582px; height: 632px; border-radius: 24px; overflow: hidden; }
+        .ssc-slide { position: absolute; left: 0; top: 0; width: 582px; height: 476px; }
+        #ssc-strip { position: absolute; left: 0; top: 476px; width: 582px; height: 156px; display: grid; place-items: center; align-content: center; gap: 14px; }
+        #ssc-wordmark { display: flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 700; color: #1d1b16; }
+        #ssc-wordmark svg { width: 40px; height: 40px; }
+        #ssc-strip-text { font-size: 16px; font-weight: 600; letter-spacing: 2.4px; color: #4a4438; text-transform: uppercase; }
+        #ssc-h { position: absolute; left: 0; top: 859px; width: 100%; height: 1.5px; background: #dfdfdf; }
+        #ssc-v { position: absolute; left: 333px; top: 861px; width: 1.5px; bottom: 0; background: #dfdfdf; }
+        #ssc-press { position: absolute; left: 335px; top: 861px; right: 0; bottom: 0; background: #e9e9e9; border-radius: 0 0 34px 0; opacity: 0; }
+        .ssc-btn { position: absolute; top: 861px; bottom: 0; display: grid; place-items: center; font-size: 34px; }
+        #ssc-decline { left: 0; width: 333px; color: #6f6f73; }
+        #ssc-accept { left: 335px; right: 0; font-weight: 600; }
+      </style>
+
+      <div id="root" data-composition-id="share-sheet-carousel" data-duration="7.2333" data-fps="30">
+        <div id="ssc-scene" class="clip" data-start="0" data-duration="7.2333" data-track-index="0" style="position:absolute;inset:0">
+          <div id="ssc-bgs"></div>
+          <div id="ssc-stage">
+            <div id="ssc-card">
+              <div id="ssc-clipper">
+                <div id="ssc-title"></div>
+                <div id="ssc-subtitle"></div>
+                <div id="ssc-imagebox">
+                  <div id="ssc-slides"></div>
+                  <div id="ssc-strip">
+                    <div id="ssc-wordmark"><svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="26" fill="#1d1b16"/><path d="M38 28 L72 50 L38 72 Z" fill="#f2ecdf"/></svg><span id="ssc-sender"></span></div>
+                    <div id="ssc-strip-text"></div>
+                  </div>
+                </div>
+                <div id="ssc-h"></div><div id="ssc-press"></div><div id="ssc-v"></div>
+                <div id="ssc-decline" class="ssc-btn"></div><div id="ssc-accept" class="ssc-btn"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function str(v, f, max) { return typeof v === "string" && v.trim() ? v.trim().slice(0, max || 60) : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            function $(id) { return document.getElementById(id); }
+            var DUR = 7.2333;
+            $("ssc-title").textContent = str(vars.share_title, "Share", 30);
+            var sender = str(vars.sender_name, "Studio", 24);
+            var sub = $("ssc-subtitle");
+            var b = document.createElement("b"); b.textContent = sender;
+            sub.appendChild(b);
+            sub.appendChild(document.createTextNode(" would like to share " + str(vars.item_label, "a video", 40)));
+            $("ssc-sender").textContent = sender;
+            $("ssc-strip").style.background = col(vars.strip_color, "#f2ecdf");
+            $("ssc-strip-text").textContent = str(vars.strip_text, "MADE WITH CARE · FRESH EVERY WEEK", 48);
+            $("ssc-decline").textContent = str(vars.decline_label, "Decline", 16);
+            var acc = $("ssc-accept");
+            acc.textContent = str(vars.accept_label, "Accept", 16);
+            acc.style.color = col(vars.accent, "#087a57");
+
+            var colors = [col(vars.slide_color_1, "#e4572e"), col(vars.slide_color_2, "#2e86ab"), col(vars.slide_color_3, "#7b4fd6"), col(vars.slide_color_4, "#2a9d6a")];
+            var words = [str(vars.slide_text_1, "Fresh", 14), str(vars.slide_text_2, "Bold", 14), str(vars.slide_text_3, "Simple", 14), str(vars.slide_text_4, "Yours", 14)];
+            function art(i) {
+              var d = document.createElement("div");
+              d.className = "ssc-art";
+              d.style.background = "linear-gradient(150deg, " + colors[i] + " 0%, color-mix(in srgb, " + colors[i] + ", #000 38%) 100%)";
+              var t = document.createElement("b"); t.textContent = words[i]; d.appendChild(t);
+              return d;
+            }
+            var bgs = [], slides = [];
+            for (var i = 0; i < 4; i++) {
+              var bg = art(i); bg.className += " ssc-bg"; bg.id = "ssc-bg-" + (i + 1); $("ssc-bgs").appendChild(bg); bgs.push(bg);
+              var sl = art(i); sl.className += " ssc-slide"; sl.id = "ssc-slide-" + (i + 1); $("ssc-slides").appendChild(sl); slides.push(sl);
+            }
+            gsap.set([bgs[0], slides[0]], { autoAlpha: 1 });
+            gsap.set([bgs[1], bgs[2], bgs[3], slides[1], slides[2], slides[3]], { autoAlpha: 0 });
+
+            /* Fill the host: the sheet is scaled to the frame and centred. */
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var s = Math.min((W * 0.8) / 668, (H * 0.9) / 974);
+            gsap.set("#ssc-stage", { scale: s, x: W / 2 - 540 * s, y: H / 2 - 960 * s });
+
+            var tl = gsap.timeline({ paused: true });
+            tl.set("#ssc-card", { y: 1450, autoAlpha: 0 }, 0.001);
+            tl.set("#ssc-press", { autoAlpha: 0 }, 0.001);
+            var SPRING = [[0.056667,1198,0.13],[0.09,903,0.21],[0.123333,648,0.36],[0.156667,437,0.43],[0.19,262,0.5],[0.223333,120,0.62],[0.256667,8,0.78],[0.29,-76,0.89],[0.323333,-138,1.0],[0.356667,-175,null],[0.39,-191,null],[0.423333,-192,null],[0.456667,-181,null],[0.49,-159,null],[0.523333,-131,null],[0.556667,-100,null],[0.59,-68,null],[0.623333,-41,null],[0.656667,-18,null],[0.69,-5,null],[0.723333,0,null]];
+            SPRING.forEach(function (st) {
+              var props = { y: st[1] };
+              if (st[2] !== null) props.autoAlpha = st[2];
+              tl.set("#ssc-card", props, st[0]);
+            });
+            var CUTS = [0.99,1.356667,1.69,2.023333,2.356667,2.69,3.09,3.456667,3.79,4.123333,4.456667,4.79,5.156667];
+            var cur = 0;
+            CUTS.forEach(function (t, i) {
+              var next = (i + 1) % 4;
+              tl.set([bgs[cur], slides[cur]], { autoAlpha: 0 }, t);
+              tl.set([bgs[next], slides[next]], { autoAlpha: 1 }, t);
+              cur = next;
+            });
+            tl.set("#ssc-card", { y: 3 }, 6.323333);
+            tl.set("#ssc-press", { autoAlpha: 1 }, 6.323333);
+            tl.set("#ssc-card", { y: 0 }, 6.656667);
+            tl.set("#ssc-press", { autoAlpha: 0 }, 6.656667);
+            tl.set({}, {}, DUR);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["share-sheet-carousel"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

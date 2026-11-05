@@ -1,0 +1,132 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "gallery-tunnel",
+  "type": "hyperframes:component",
+  "title": "Gallery Tunnel",
+  "description": "A flight down a rectangular corridor whose walls, floor and ceiling hold coloured slabs between thin edge mouldings, fading into fog: a continuous, loopable forward-motion backdrop. WebGL.",
+  "tags": [
+    "shader",
+    "background",
+    "tunnel",
+    "3d",
+    "corridor",
+    "motion",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 12,
+  "useWhen": [
+    "A forward-motion backdrop: a lit corridor of coloured panels for an intro, a gallery or a product reel.",
+    "A loopable travel shot that needs no footage: speed, palette and density are variables."
+  ],
+  "avoidWhen": [
+    "The scene needs photos in the panels: this block only has colour slabs.",
+    "The viewer is prone to motion discomfort: the flight is constant."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/gallery-tunnel/gallery-tunnel.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "gallery-tunnel.html",
+      "target": "compositions/components/gallery-tunnel.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Flight speed",
+      "default": 3,
+      "min": 0,
+      "max": 8,
+      "step": 0.1,
+      "unit": "segments/s"
+    },
+    {
+      "id": "palette",
+      "type": "string",
+      "role": "style",
+      "label": "Slab palette",
+      "description": "Comma-separated hex colours for the coloured slabs.",
+      "default": "#2563eb,#d4d4d4,#737373,#e5e5e5,#404040,#a3a3a3"
+    },
+    {
+      "id": "grid",
+      "type": "number",
+      "role": "style",
+      "label": "Grid density",
+      "description": "Slots per wall face per axis (2 gives 16 per segment).",
+      "default": 2,
+      "min": 1,
+      "max": 4,
+      "step": 1
+    },
+    {
+      "id": "fill",
+      "type": "number",
+      "role": "style",
+      "label": "Slot fill rate",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "fog",
+      "type": "number",
+      "role": "style",
+      "label": "Fog distance",
+      "description": "Depth, in segments, at which the corridor reaches the pure backdrop colour.",
+      "default": 14.25,
+      "min": 3,
+      "max": 14.5,
+      "step": 0.25,
+      "unit": "segments"
+    },
+    {
+      "id": "edgeColor",
+      "type": "color",
+      "role": "style",
+      "label": "Edge line colour",
+      "default": "#b0b0b0"
+    },
+    {
+      "id": "edgeOpacity",
+      "type": "number",
+      "role": "style",
+      "label": "Edge line opacity",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop and fog colour",
+      "default": "#000000"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the corridor is drawn at, then scaled up. Thin edge lines need 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

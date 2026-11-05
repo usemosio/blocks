@@ -1,0 +1,200 @@
+<!doctype html>
+<!--
+  Follow Lower Third
+
+  A pill-shaped profile bar slides up from the bottom, its Follow button is pressed and flips to Following, then the bar slides away.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/instagram-follow/instagram-follow.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: adapted from a social-network follow overlay: the platform's name, handle, photo and blue are replaced with a generic profile (name, handle and follower count are variables, the avatar is a drawn gradient circle with the name's initial), the sizes are container units so it fills any frame, and DM Sans loads from Google Fonts.
+-->
+<html
+  lang="en"
+  data-composition-id="follow-lower-third"
+  data-composition-duration="4.5"
+  data-composition-variables='[
+    {"id": "name", "type": "string", "role": "content", "label": "Name", "description": "Display name on the card; its first letter fills the avatar.", "default": "Studio Nova"},
+    {"id": "handle", "type": "string", "role": "content", "label": "Handle", "description": "Account handle line.", "default": "@studionova"},
+    {"id": "followers", "type": "string", "role": "content", "label": "Followers", "description": "Follower count line.", "default": "47.5K followers"},
+    {"id": "follow_label", "type": "string", "role": "content", "label": "Button label", "description": "Button text before the press.", "default": "Follow"},
+    {"id": "following_label", "type": "string", "role": "content", "label": "Pressed label", "description": "Button text after the press.", "default": "Following"},
+    {"id": "verified", "type": "boolean", "role": "style", "label": "Check mark", "description": "Show a check badge after the name.", "default": true},
+    {"id": "card_color", "type": "color", "role": "style", "label": "Card color", "description": "Background of the pill.", "default": "#1a1a1a"},
+    {"id": "button_color", "type": "color", "role": "style", "label": "Button color", "description": "Follow button and check badge.", "default": "#3b82f6"},
+    {"id": "following_color", "type": "color", "role": "style", "label": "Pressed color", "description": "Button color after it is pressed.", "default": "#2f2f2f"},
+    {"id": "avatar_color_a", "type": "color", "role": "style", "label": "Avatar color A", "description": "First color of the avatar gradient.", "default": "#ff8a3d"},
+    {"id": "avatar_color_b", "type": "color", "role": "style", "label": "Avatar color B", "description": "Second color of the avatar gradient.", "default": "#c13584"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Follow Lower Third</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+          font-family: "DM Sans", sans-serif;
+        }
+        .flt-stage { position: absolute; inset: 0; }
+        #flt-card {
+          position: absolute;
+          bottom: max(14.815cqmin, 9cqh);
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          align-items: center;
+          gap: 2.778cqmin;
+          background: var(--flt-card, #1a1a1a);
+          border-radius: 6.944cqmin;
+          padding: 2.315cqmin 3.704cqmin 2.315cqmin 2.315cqmin;
+          box-shadow: 0 0.741cqmin 3.704cqmin rgba(0, 0, 0, 0.4);
+          max-width: 96cqw;
+        }
+        #flt-avatar {
+          width: 11.111cqmin;
+          height: 11.111cqmin;
+          border-radius: 50%;
+          flex-shrink: 0;
+          border: 0.278cqmin solid #333;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: 5.185cqmin;
+          font-weight: 700;
+          background: linear-gradient(135deg, var(--flt-av-a, #ff8a3d), var(--flt-av-b, #c13584));
+        }
+        .flt-info { display: flex; flex-direction: column; gap: 0.185cqmin; margin-right: 1.852cqmin; min-width: 0; }
+        .flt-name-row { display: flex; align-items: center; gap: 0.926cqmin; }
+        #flt-name { font-size: 3.889cqmin; font-weight: 700; color: #fff; line-height: 1.3; letter-spacing: -0.01em; white-space: nowrap; }
+        #flt-badge { width: 3.148cqmin; height: 3.148cqmin; flex-shrink: 0; display: block; }
+        #flt-handle { font-size: 2.593cqmin; color: #a0a0a0; line-height: 1.3; white-space: nowrap; }
+        #flt-count { font-size: 2.315cqmin; color: #737373; line-height: 1.3; white-space: nowrap; }
+        #flt-btn {
+          position: relative;
+          width: 23.148cqmin;
+          height: 7.407cqmin;
+          border-radius: 3.704cqmin;
+          background: var(--flt-btn, #3b82f6);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .flt-label {
+          position: absolute;
+          font-size: 2.778cqmin;
+          font-weight: 700;
+          color: #fff;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 0.741cqmin;
+        }
+        #flt-following { opacity: 0; }
+        #flt-following svg { width: 1.667cqmin; height: 1.667cqmin; display: block; }
+      </style>
+
+      <div id="root" data-composition-id="follow-lower-third" data-duration="4.5" data-fps="30">
+        <div id="flt-clip" class="flt-stage clip" data-start="0" data-duration="4.5" data-track-index="0">
+          <div id="flt-card">
+            <div id="flt-avatar"></div>
+            <div class="flt-info">
+              <div class="flt-name-row">
+                <div id="flt-name"></div>
+                <svg id="flt-badge" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="20" fill="var(--flt-btn, #3b82f6)" /><path d="M17.5 27.5L10 20l2.5-2.5 5 5 10-10L30 15 17.5 27.5z" fill="#fff" /></svg>
+              </div>
+              <div id="flt-handle"></div>
+              <div id="flt-count"></div>
+            </div>
+            <div id="flt-btn">
+              <span id="flt-follow" class="flt-label"></span>
+              <span id="flt-following" class="flt-label"><span id="flt-following-text"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(value, fallback) {
+              return typeof value === "string" && value.trim() ? value : fallback;
+            }
+            function bool(value, fallback) {
+              if (value === true || value === "true") return true;
+              if (value === false || value === "false") return false;
+              return fallback;
+            }
+            function hex(value, fallback) {
+              return typeof value === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim()) ? value.trim() : fallback;
+            }
+            function rgba(h, a) {
+              if (h.length === 4) h = "#" + h[1] + h[1] + h[2] + h[2] + h[3] + h[3];
+              return "rgba(" + parseInt(h.slice(1, 3), 16) + "," + parseInt(h.slice(3, 5), 16) + "," + parseInt(h.slice(5, 7), 16) + "," + a + ")";
+            }
+
+            var name = str(vars.name, "Studio Nova");
+            var card = document.getElementById("flt-card");
+            document.getElementById("flt-name").textContent = name;
+            document.getElementById("flt-handle").textContent = str(vars.handle, "@studionova");
+            document.getElementById("flt-count").textContent = str(vars.followers, "47.5K followers");
+            document.getElementById("flt-follow").textContent = str(vars.follow_label, "Follow");
+            document.getElementById("flt-following-text").textContent = str(vars.following_label, "Following");
+            document.getElementById("flt-avatar").textContent = Array.from(name.trim())[0] || "S";
+            document.getElementById("flt-badge").style.display = bool(vars.verified, true) ? "block" : "none";
+            root.style.setProperty("--flt-card", hex(vars.card_color, "#1a1a1a"));
+            root.style.setProperty("--flt-btn", hex(vars.button_color, "#3b82f6"));
+            root.style.setProperty("--flt-av-a", hex(vars.avatar_color_a, "#ff8a3d"));
+            root.style.setProperty("--flt-av-b", hex(vars.avatar_color_b, "#c13584"));
+            var doneColor = hex(vars.following_color, "#2f2f2f");
+
+            var btn = document.getElementById("flt-btn");
+            var slide = root.clientHeight;
+            var tl = gsap.timeline({ paused: true });
+            gsap.set(card, { y: slide * 0.2, opacity: 0 });
+            tl.to(card, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.1);
+            tl.to(btn, { scale: 0.92, duration: 0.15, ease: "power2.out" }, 1.0);
+            tl.to(btn, { scale: 1, duration: 0.4, ease: "elastic.out(1, 0.4)" }, 1.15);
+            tl.to(btn, { backgroundColor: doneColor, duration: 0.12, ease: "none" }, 1.15);
+            tl.to("#flt-follow", { opacity: 0, duration: 0.08, ease: "none" }, 1.15);
+            tl.to("#flt-following", { opacity: 1, duration: 0.08, ease: "none" }, 1.18);
+            tl.to(card, { y: slide * 0.2, opacity: 0, duration: 0.25, ease: "power3.in" }, 3.8);
+            tl.set({}, {}, 4.5);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["follow-lower-third"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

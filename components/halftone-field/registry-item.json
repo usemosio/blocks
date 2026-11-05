@@ -1,0 +1,149 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "halftone-field",
+  "type": "hyperframes:component",
+  "title": "Halftone Field",
+  "description": "A flowing noise field printed as a grid of dots: each cell holds one dot whose size follows the field, so only the crests open up against the background, in a four-stop palette. A single WebGL fragment shader.",
+  "tags": [
+    "shader",
+    "background",
+    "halftone",
+    "dots",
+    "noise",
+    "led",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 10,
+  "useWhen": [
+    "A moving dot-matrix backdrop behind a title: LED wall, music, tech or poster looks.",
+    "A palette-driven animated texture: four colour stops and a background decide the whole mood."
+  ],
+  "avoidWhen": [
+    "A calm, soft gradient is wanted: use shader-mesh-gradient.",
+    "The render budget is tight: the noise is evaluated for every pixel on the CPU, keep `resolution` at 0.75 or lower."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/halftone-field/halftone-field.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "halftone-field.html",
+      "target": "compositions/components/halftone-field.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "frequency",
+      "type": "number",
+      "role": "style",
+      "label": "Field frequency",
+      "default": 2,
+      "min": 1,
+      "max": 10,
+      "step": 0.1
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Flow speed",
+      "default": 5,
+      "min": 0,
+      "max": 10,
+      "step": 0.1
+    },
+    {
+      "id": "cellSize",
+      "type": "number",
+      "role": "style",
+      "label": "Cell size",
+      "description": "Dot spacing, relative to a 1080 px frame.",
+      "default": 54,
+      "min": 1,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "id": "gamma",
+      "type": "number",
+      "role": "style",
+      "label": "Gamma (midtone crush)",
+      "default": 12,
+      "min": 1,
+      "max": 20,
+      "step": 0.1
+    },
+    {
+      "id": "paletteBias",
+      "type": "number",
+      "role": "style",
+      "label": "Palette bias",
+      "default": 2,
+      "min": 0,
+      "max": 20,
+      "step": 0.5
+    },
+    {
+      "id": "palette1",
+      "type": "color",
+      "role": "style",
+      "label": "Palette stop 1 (lows)",
+      "default": "#00aaff"
+    },
+    {
+      "id": "palette2",
+      "type": "color",
+      "role": "style",
+      "label": "Palette stop 2",
+      "default": "#c2ff67"
+    },
+    {
+      "id": "palette3",
+      "type": "color",
+      "role": "style",
+      "label": "Palette stop 3",
+      "default": "#6600ff"
+    },
+    {
+      "id": "palette4",
+      "type": "color",
+      "role": "style",
+      "label": "Palette stop 4 (crests)",
+      "default": "#000000"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "default": "#000000"
+    },
+    {
+      "id": "quantize",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Quantise to 30fps (stepped)",
+      "default": false
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Dots are fine, so 0.75 keeps them crisp.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

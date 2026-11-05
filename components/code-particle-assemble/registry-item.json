@@ -1,0 +1,78 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "code-particle-assemble",
+  "type": "hyperframes:component",
+  "title": "Code Particle Assemble",
+  "description": "A snippet of highlighted code assembles out of thousands of particles: each lit pixel of the text flies in from a seeded scatter in 3D, white and bright in flight, and lands in its true syntax colour. WebGL points.",
+  "tags": [
+    "shader",
+    "code",
+    "particles",
+    "developer",
+    "reveal",
+    "3d",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 8,
+  "useWhen": [
+    "A code snippet that should assemble itself out of dust: developer tools, API and tutorial intros.",
+    "A reveal that can sit behind or before a feature headline."
+  ],
+  "avoidWhen": [
+    "Long snippets: the particle count grows with the number of lit pixels.",
+    "The render budget is tight: tens of thousands of points are drawn per frame in software."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/code-particle-assemble/code-particle-assemble.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "code-particle-assemble.html",
+      "target": "compositions/components/code-particle-assemble.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "code",
+      "type": "string",
+      "role": "content",
+      "label": "Code",
+      "description": "The snippet shown. Use line breaks; JavaScript-like syntax is highlighted with a GitHub-dark palette.",
+      "default": "const app = pipe(\n  parse,\n  optimize,\n  emit,\n)"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "default": "#0b0f17"
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#05070b"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Code text needs 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

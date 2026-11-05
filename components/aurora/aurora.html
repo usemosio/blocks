@@ -1,0 +1,214 @@
+<!doctype html>
+<!--
+  Aurora
+
+  Green and violet aurora curtains ripple across a night sky.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/aurora/aurora.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: upstream mounts a WebGPU shader from the shaders.com library (MIT, a
+  1.4 MB bundled script). This block draws the same look with a small hand-written WebGL2 fragment
+  shader instead (no bundled files), fills whatever frame the host gives it, takes its colors and
+  settings from variables, draws at a reduced resolution (the `resolution` variable) and takes its
+  time from the timeline.
+-->
+<html
+  lang="en"
+  data-composition-id="aurora"
+  data-composition-duration="5"
+  data-composition-variables='[
+    { "id":"color_a","type":"color","role":"style","label":"Upper color","description":"Color of the curtains' upper reach.","default":"#a533f8" },
+    { "id":"color_b","type":"color","role":"style","label":"Lower color","description":"Color of the curtains' glowing lower edge.","default":"#3dff9a" },
+    { "id":"speed","type":"number","role":"motion","label":"Speed","description":"How fast it moves. 0 holds still.","default":1,"min":0,"max":4,"step":0.05 },
+    { "id":"waviness","type":"number","role":"style","label":"Waviness","description":"How strongly the curtains ripple sideways.","default":1,"min":0,"max":2,"step":0.01 },
+    { "id":"ray_density","type":"number","role":"style","label":"Ray detail","description":"How many vertical rays run through the curtains.","default":22,"min":4,"max":60,"step":1 },
+    { "id":"height","type":"number","role":"style","label":"Height","description":"How tall the curtains reach.","default":1,"min":0.3,"max":2,"step":0.01 },
+    { "id":"resolution","type":"number","role":"quality","label":"Resolution","description":"Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.","default":0.5,"min":0.25,"max":1,"step":0.05 }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Aurora</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: var(--aur-fallback, #03050d);
+          pointer-events: none;
+        }
+        .aur-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .aur-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="aurora" data-duration="5" data-fps="30">
+        <div id="aur-clip" class="aur-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <canvas id="aur-canvas" class="aur-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("aur-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            var DEFAULTS = {"color_a":"#a533f8","color_b":"#3dff9a","speed":1,"waviness":1,"ray_density":22,"height":1,"resolution":0.5};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function parseColor(s, fallback) {
+              var m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(String(s == null ? "" : s).trim());
+              if (!m) return fallback;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var P = {};
+            P.color_a = parseColor(vars.color_a, parseColor(DEFAULTS.color_a));
+            P.color_b = parseColor(vars.color_b, parseColor(DEFAULTS.color_b));
+            P.speed = num(vars.speed, DEFAULTS.speed, 0, 4);
+            P.waviness = num(vars.waviness, DEFAULTS.waviness, 0, 2);
+            P.ray_density = num(vars.ray_density, DEFAULTS.ray_density, 4, 60);
+            P.height = num(vars.height, DEFAULTS.height, 0.3, 2);
+            P.resolution = num(vars.resolution, DEFAULTS.resolution, 0.25, 1);
+            function css(c) { return "rgb(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + ")"; }
+            // Without WebGL the block still shows a plain backdrop.
+            root.style.setProperty("--aur-fallback", css(P.color_a));
+
+            var VERTEX = [
+              "#version 300 es",
+              "layout(location = 0) in vec2 a_position;",
+              "void main() { gl_Position = vec4(a_position, 0.0, 1.0); }"
+            ].join("\n");
+
+            var FRAGMENT = [
+              "#version 300 es",
+              "precision highp float;",
+              "uniform vec2 u_res; uniform float u_time;",
+              "out vec4 o;",
+              "float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}",
+              "float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}",
+              "float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}",
+              "vec3 pal(float x){return .5+.5*cos(6.28318*(x+vec3(0.,.33,.67)));}",
+              "uniform vec3 u_color_a,u_color_b; uniform float u_speed,u_waviness,u_ray_density,u_height;",
+              "void main(){",
+              "  vec2 uv=gl_FragCoord.xy/u_res; float t=u_time*u_speed;",
+              "  float x=(uv.x-.5)*3.0, y=uv.y;",
+              "  vec3 sky=mix(vec3(.004,.008,.025),vec3(.012,.03,.07),smoothstep(1.,.0,y));",
+              "  vec2 sp=gl_FragCoord.xy/u_res.y*60.; float st=h21(floor(sp)); ",
+              "  float star=step(.985,st)*smoothstep(.35,.0,length(fract(sp)-.5))*(.5+.5*sin(t*1.5+st*80.))*smoothstep(.3,.8,y);",
+              "  vec3 acc=vec3(0.);",
+              "  for(int i=0;i<4;i++){",
+              "    float fi=float(i);",
+              "    float xs=x*(1.+.28*fi)+fi*5.3;",
+              "    float wave=u_waviness*(.16*sin(xs*1.5+t*.4+fi*1.7)+.09*sin(xs*3.1-t*.31+fi)+.07*(fbm(vec2(xs*.8,t*.12+fi*4.))-.5)*2.);",
+              "    float base=.30+.07*fi+wave;",
+              "    float dy=y-base;",
+              "    float rise=smoothstep(-.03,.03,dy);",
+              "    float fall=exp(-max(dy,0.)*(4.2/u_height));",
+              "    float rays=pow(.35+.65*vn(vec2(xs*u_ray_density,fi*9.+t*.35)),1.6);",
+              "    float rays2=.7+.3*vn(vec2(xs*u_ray_density*.37+3.,dy*3.-t*.4));",
+              "    float k=rise*fall*rays*rays2;",
+              "    vec3 c=mix(u_color_b,u_color_a,smoothstep(0.,.3*u_height,dy));",
+              "    c=mix(c,u_color_b*1.15,exp(-max(dy,0.)*22.)*.7);",
+              "    acc+=c*k*(.62-.08*fi);",
+              "  }",
+              "  vec3 col=sky+vec3(star)*.9+acc;",
+              "  col=1.-exp(-col*1.35);",
+              "  o=vec4(col,1.);",
+              "}",
+            ].join("\n");
+
+            // The canvas is drawn at `resolution` × the frame size and stretched to fill it.
+            var width = Math.max(2, Math.round(root.clientWidth * P.resolution));
+            var height = Math.max(2, Math.round(root.clientHeight * P.resolution));
+            canvas.width = width;
+            canvas.height = height;
+            var gl = canvas.getContext("webgl2", { antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+
+            function compile(type, source) {
+              var s = gl.createShader(type);
+              gl.shaderSource(s, source);
+              gl.compileShader(s);
+              if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader compile failed");
+              return s;
+            }
+            var draw = function () {};
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var program = gl.createProgram();
+              gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(program);
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "link failed");
+              gl.useProgram(program);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, width, height);
+              function u(name) { return gl.getUniformLocation(program, name); }
+              gl.uniform2f(u("u_res"), width, height);
+              gl.uniform3fv(u("u_color_a"), P.color_a);
+              gl.uniform3fv(u("u_color_b"), P.color_b);
+              gl.uniform1f(u("u_speed"), P.speed);
+              gl.uniform1f(u("u_waviness"), P.waviness);
+              gl.uniform1f(u("u_ray_density"), P.ray_density);
+              gl.uniform1f(u("u_height"), P.height);
+              var timeLoc = u("u_time");
+              draw = function (frame) {
+                gl.uniform1f(timeLoc, frame / 30);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn("aurora:", err.message);
+            }
+
+            var total = parseFloat(root.dataset.duration || "5");
+            var totalFrames = Math.round(total * 30);
+            var clock = { frame: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.to(clock, {
+              frame: totalFrames,
+              duration: total,
+              ease: "none",
+              onUpdate: function () { draw(clock.frame); }
+            }, 0);
+            draw(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["aurora"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

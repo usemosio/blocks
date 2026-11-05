@@ -1,0 +1,152 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "indonesia-map",
+  "type": "hyperframes:component",
+  "title": "Indonesia Map",
+  "description": "Peta Indonesia per provinsi: provinsi muncul dari tengah, lalu singkatan, dan provinsi pilihan menyala bergantian. Di bingkai vertikal peta dibagi dua baris, barat dan timur.",
+  "tags": [
+    "data",
+    "map",
+    "geography",
+    "indonesia",
+    "choropleth",
+    "hyperframes-port"
+  ],
+  "category": "data-viz",
+  "duration": 12,
+  "useWhen": [
+    "A value per Indonesian province needs to be shown as a map: pelanggan, penjualan, cabang, jangkauan.",
+    "Two or three provinces should glow in turn after the map has filled in."
+  ],
+  "avoidWhen": [
+    "The data is by kabupaten or kota: this map stops at 33 provinces (no newer splits of Papua).",
+    "The data is for another country: use world-map or us-map."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/spain-map/spain-map.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "indonesia-map.html",
+      "target": "compositions/components/indonesia-map.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Headline written on with a wipe.",
+      "default": "Sebaran pelanggan per provinsi"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "description": "Line under the headline.",
+      "default": "Jumlah pelanggan aktif, contoh data"
+    },
+    {
+      "id": "source",
+      "type": "string",
+      "role": "content",
+      "label": "Source note",
+      "description": "Small credit line in the corner. Empty hides it.",
+      "default": "Data ilustrasi"
+    },
+    {
+      "id": "data",
+      "type": "string",
+      "role": "content",
+      "label": "Data",
+      "description": "JSON object of province code (AC, SU, SB, RI, KR, JA, SS, BB, BE, LA, BT, JK, JB, JT, YO, JI, BA, NB, NT, KB, KT, KS, KI, SA, GO, ST, SR, SN, SG, MA, MU, PB, PA) or name to value.",
+      "default": "{\"JK\":9800,\"JB\":8400,\"JI\":7600,\"JT\":6100,\"BT\":4200,\"SU\":3900,\"SN\":3100,\"BA\":2800,\"YO\":2600,\"KI\":2200,\"SS\":2100,\"LA\":1900,\"RI\":1800,\"KS\":1700,\"SB\":1600,\"NB\":1500,\"KB\":1400,\"KR\":1300,\"SG\":1100,\"ST\":1050,\"SA\":1000,\"KT\":950,\"JA\":900,\"AC\":850,\"NT\":750,\"BE\":700,\"BB\":650,\"GO\":600,\"SR\":500,\"PA\":480,\"MA\":450,\"MU\":400,\"PB\":350}"
+    },
+    {
+      "id": "min_value",
+      "type": "number",
+      "role": "style",
+      "label": "Bottom of the scale",
+      "description": "The value that gets the first colour of the ramp.",
+      "default": 300,
+      "min": 0,
+      "max": 1000000000,
+      "step": 1
+    },
+    {
+      "id": "max_value",
+      "type": "number",
+      "role": "style",
+      "label": "Top of the scale",
+      "description": "The value that gets the last colour of the ramp.",
+      "default": 10000,
+      "min": 1,
+      "max": 1000000000,
+      "step": 1
+    },
+    {
+      "id": "highlight",
+      "type": "string",
+      "role": "content",
+      "label": "Highlighted provinces",
+      "description": "Provinces that glow in turn, by code or name, comma separated (up to 6).",
+      "default": "JK, JB, JI"
+    },
+    {
+      "id": "ramp",
+      "type": "string",
+      "role": "style",
+      "label": "Colour ramp",
+      "description": "Colours from lowest to highest value, comma separated hex (2 to 6).",
+      "default": "#7f1d1d, #dc2626, #fbbf24"
+    },
+    {
+      "id": "empty_color",
+      "type": "color",
+      "role": "style",
+      "label": "No-data colour",
+      "description": "Fill for provinces without a value.",
+      "default": "#334155"
+    },
+    {
+      "id": "legend_low",
+      "type": "string",
+      "role": "content",
+      "label": "Legend low label",
+      "description": "Text at the low end of the colour bar.",
+      "default": "Rendah"
+    },
+    {
+      "id": "legend_high",
+      "type": "string",
+      "role": "content",
+      "label": "Legend high label",
+      "description": "Text at the high end of the colour bar.",
+      "default": "Tinggi"
+    },
+    {
+      "id": "bg_from",
+      "type": "color",
+      "role": "style",
+      "label": "Background start",
+      "description": "Start of the diagonal background gradient.",
+      "default": "#0f172a"
+    },
+    {
+      "id": "bg_to",
+      "type": "color",
+      "role": "style",
+      "label": "Background end",
+      "description": "End of the diagonal background gradient.",
+      "default": "#1e293b"
+    }
+  ]
+}

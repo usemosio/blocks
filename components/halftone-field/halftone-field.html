@@ -1,0 +1,301 @@
+<!doctype html>
+<!--
+  Halftone Field
+
+  A flowing noise field printed as a grid of dots: each cell holds one dot whose size follows the field, so only the crests open up against the background, in a four-stop palette. A single WebGL fragment shader.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/halftone-field/halftone-field.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame instead of a fixed 1920×1080 scene, with the cell size scaled from the shorter side; the shader is WebGL2 (GLSL ES 3.0 syntax, otherwise unchanged); the canvas is drawn at the `resolution` variable and the clock comes from the timeline; without WebGL the background colour shows.
+-->
+<html
+  lang="en"
+  data-composition-id="halftone-field"
+  data-composition-duration="10"
+  data-composition-variables='[{"id": "frequency", "type": "number", "role": "style", "label": "Field frequency", "default": 2, "min": 1, "max": 10, "step": 0.1},
+    {"id": "speed", "type": "number", "role": "motion", "label": "Flow speed", "default": 5, "min": 0, "max": 10, "step": 0.1},
+    {"id": "cellSize", "type": "number", "role": "style", "label": "Cell size", "description": "Dot spacing, relative to a 1080 px frame.", "default": 54, "min": 1, "max": 100, "step": 1},
+    {"id": "gamma", "type": "number", "role": "style", "label": "Gamma (midtone crush)", "default": 12, "min": 1, "max": 20, "step": 0.1},
+    {"id": "paletteBias", "type": "number", "role": "style", "label": "Palette bias", "default": 2, "min": 0, "max": 20, "step": 0.5},
+    {"id": "palette1", "type": "color", "role": "style", "label": "Palette stop 1 (lows)", "default": "#00aaff"},
+    {"id": "palette2", "type": "color", "role": "style", "label": "Palette stop 2", "default": "#c2ff67"},
+    {"id": "palette3", "type": "color", "role": "style", "label": "Palette stop 3", "default": "#6600ff"},
+    {"id": "palette4", "type": "color", "role": "style", "label": "Palette stop 4 (crests)", "default": "#000000"},
+    {"id": "background", "type": "color", "role": "style", "label": "Background", "default": "#000000"},
+    {"id": "quantize", "type": "boolean", "role": "motion", "label": "Quantise to 30fps (stepped)", "default": false},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Dots are fine, so 0.75 keeps them crisp.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Halftone Field</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .hlf-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .hlf-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="halftone-field" data-duration="10" data-fps="30">
+        <div id="hlf-clip" class="hlf-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <canvas id="hlf-canvas" class="hlf-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "halftone-field";
+            var DUR = 10;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("hlf-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "frequency", "type": "number", "role": "style", "label": "Field frequency", "default": 2, "min": 1, "max": 10, "step": 0.1}, {"id": "speed", "type": "number", "role": "motion", "label": "Flow speed", "default": 5, "min": 0, "max": 10, "step": 0.1}, {"id": "cellSize", "type": "number", "role": "style", "label": "Cell size", "description": "Dot spacing, relative to a 1080 px frame.", "default": 54, "min": 1, "max": 100, "step": 1}, {"id": "gamma", "type": "number", "role": "style", "label": "Gamma (midtone crush)", "default": 12, "min": 1, "max": 20, "step": 0.1}, {"id": "paletteBias", "type": "number", "role": "style", "label": "Palette bias", "default": 2, "min": 0, "max": 20, "step": 0.5}, {"id": "palette1", "type": "color", "role": "style", "label": "Palette stop 1 (lows)", "default": "#00aaff"}, {"id": "palette2", "type": "color", "role": "style", "label": "Palette stop 2", "default": "#c2ff67"}, {"id": "palette3", "type": "color", "role": "style", "label": "Palette stop 3", "default": "#6600ff"}, {"id": "palette4", "type": "color", "role": "style", "label": "Palette stop 4 (crests)", "default": "#000000"}, {"id": "background", "type": "color", "role": "style", "label": "Background", "default": "#000000"}, {"id": "quantize", "type": "boolean", "role": "motion", "label": "Quantise to 30fps (stepped)", "default": false}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Dots are fine, so 0.75 keeps them crisp.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = V.background;
+            canvas.width = cw;
+            canvas.height = ch;
+            function mapLinear(x, a1, a2, b1, b2) { return b1 + ((x - a1) * (b2 - b1)) / (a2 - a1); }
+            var PAL = [rgb(V.palette1), rgb(V.palette2), rgb(V.palette3), rgb(V.palette4)];
+            var BG = rgb(V.background);
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 aPos;",
+              "out vec2 v_uv;",
+              "void main() { v_uv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5); gl_Position = vec4(aPos, 0.0, 1.0); }"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+
+uniform vec2 uRes;
+uniform float uTime;
+uniform float uFreq;
+uniform float uSpeed;
+uniform float uCell;
+uniform float uGamma;
+uniform float uBias;
+uniform vec3 uPal0;
+uniform vec3 uPal1;
+uniform vec3 uPal2;
+uniform vec3 uPal3;
+uniform vec3 uBg;
+
+// 3D simplex noise — Ashima Arts / Stefan Gustavson (MIT).
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+      i.z + vec4(0.0, i1.z, i2.z, 1.0)) +
+      i.y + vec4(0.0, i1.y, i2.y, 1.0)) +
+      i.x + vec4(0.0, i1.x, i2.x, 1.0));
+
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+
+  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+
+  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
+
+// Full-saturation, full-value HSV: only the hue ramp survives.
+vec3 hue2rgb(float h) {
+  return clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+}
+
+// Piecewise-linear ramp across the four palette stops.
+vec3 ramp(float v) {
+  float x = clamp(v, 0.0, 1.0) * 3.0;
+  vec3 c = mix(uPal0, uPal1, clamp(x, 0.0, 1.0));
+  c = mix(c, uPal2, clamp(x - 1.0, 0.0, 1.0));
+  c = mix(c, uPal3, clamp(x - 2.0, 0.0, 1.0));
+  return c;
+}
+
+void main() {
+  // One sample per cell, taken at the cell centre.
+  vec2 cell = floor(gl_FragCoord.xy / uCell);
+  vec2 centre = (cell + 0.5) * uCell;
+
+  vec2 st = centre / uRes;
+  st.x *= uRes.x / uRes.y;
+
+  float hue = abs(snoise(vec3(st * uFreq, uTime * uSpeed)));
+  vec3 field = hue2rgb(hue);
+
+  // The gamma is the whole look: it crushes the midtones so most of the frame
+  // stays background and only the crests of the field open up.
+  float gray = pow(dot(field, vec3(0.2126, 0.7152, 0.0722)), uGamma);
+  float v = clamp(gray + uBias, 0.0, 1.0);
+
+  float radius = v * 0.5 * uCell;
+  float d = length(gl_FragCoord.xy - centre);
+  float mask = 1.0 - smoothstep(radius - 1.0, radius + 1.0, d);
+
+  outColor = vec4(mix(uBg, ramp(v), mask), 1.0);
+}
+`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.bindAttribLocation(prog, 0, "aPos");
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              gl.uniform2f(u("uRes"), cw, ch);
+              gl.uniform1f(u("uFreq"), mapLinear(V.frequency, 1, 10, 0.3, 6));
+              gl.uniform1f(u("uSpeed"), V.speed * 0.05);
+              gl.uniform1f(u("uCell"), mapLinear(V.cellSize, 1, 100, 6, 60) * Math.min(cw, ch) / 1080);
+              gl.uniform1f(u("uGamma"), mapLinear(V.gamma, 1, 20, 0.5, 8));
+              gl.uniform1f(u("uBias"), V.paletteBias * 0.05);
+              PAL.forEach(function (c, i) { gl.uniform3f(u("uPal" + i), c[0], c[1], c[2]); });
+              gl.uniform3f(u("uBg"), BG[0], BG[1], BG[2]);
+              var timeLoc = u("uTime");
+              paint = function (t) {
+                gl.uniform1f(timeLoc, V.quantize ? Math.floor(t * 30) / 30 : t);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

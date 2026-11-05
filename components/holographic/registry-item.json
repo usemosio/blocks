@@ -1,0 +1,107 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "holographic",
+  "type": "hyperframes:component",
+  "title": "Holographic Orb",
+  "description": "An iridescent foil orb with a shifting rainbow sheen, centred on black.",
+  "tags": [
+    "shader",
+    "webgl",
+    "orb",
+    "holographic",
+    "foil",
+    "rainbow",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A shiny, futuristic hero object: a launch, a collectible, a Y2K-style moment.",
+    "A rainbow foil accent on a dark frame."
+  ],
+  "avoidWhen": [
+    "You want a restrained, soft shimmer: use thin-film.",
+    "Brand colors must stay exact: the rainbow sheen cycles through the whole spectrum."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/holographic/holographic.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "holographic.html",
+      "target": "compositions/components/holographic.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame color behind the orb.",
+      "default": "#000000"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Diameter of the orb as a share of the shorter side of the frame.",
+      "default": 0.62,
+      "min": 0.2,
+      "max": 1.2,
+      "step": 0.01
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 0.8,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "saturation",
+      "type": "number",
+      "role": "style",
+      "label": "Saturation",
+      "description": "Strength of the rainbow colors.",
+      "default": 0.8,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "shine",
+      "type": "number",
+      "role": "style",
+      "label": "Shine",
+      "description": "Strength of the white highlight.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

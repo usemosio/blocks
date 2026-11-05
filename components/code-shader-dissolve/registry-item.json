@@ -1,0 +1,77 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "code-shader-dissolve",
+  "type": "hyperframes:component",
+  "title": "Code Shader Dissolve",
+  "description": "A code snippet appears through a noise dissolve: a glowing cyan edge with a small colour fringe sweeps over the card as the syntax-highlighted lines resolve, then the card holds crisp. WebGL shader over a card the block draws from a code variable.",
+  "tags": [
+    "shader",
+    "code",
+    "dissolve",
+    "developer",
+    "reveal",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 7,
+  "useWhen": [
+    "A code snippet that should materialise rather than just appear: developer tools, API and tutorial videos.",
+    "A reveal where the card should keep the exact syntax colours once it settles."
+  ],
+  "avoidWhen": [
+    "The code must be readable from the first frame.",
+    "Very long snippets: the card is fitted to the frame, so long code gets small."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/code-shader-dissolve/code-shader-dissolve.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "code-shader-dissolve.html",
+      "target": "compositions/components/code-shader-dissolve.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "code",
+      "type": "string",
+      "role": "content",
+      "label": "Code",
+      "description": "The snippet shown. Use line breaks; JavaScript-like syntax is highlighted with a GitHub-dark palette.",
+      "default": "function compile(src) {\n  const ast = parse(src)\n  const ir = optimize(ast)\n  return emit(ir)\n}"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "default": "#0b0f17"
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#05070b"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Code text needs 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

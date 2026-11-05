@@ -1,0 +1,371 @@
+<!doctype html>
+<!--
+  Magnetic Cursor
+
+  A page drawn through a WebGL shader that warps every pixel toward a moving cursor, with a Gaussian falloff and a little chromatic aberration, plus a repel pulse. Four captions explain what is happening.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/vfx-magnetic/vfx-magnetic.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame instead of a fixed 1920×1080 page; the page the shader bends (heading, paragraphs, hint, cards) is drawn on a 2D canvas from variables instead of being captured from live DOM with the experimental HTML-in-Canvas API, which render machines do not have; the captions no longer mention that API; the shader is unchanged apart from its fragment output name; the canvas is drawn at the `resolution` variable and the cursor path is driven by the timeline; without WebGL the canvas is hidden.
+-->
+<html
+  lang="en"
+  data-composition-id="vfx-magnetic"
+  data-composition-duration="15"
+  data-composition-variables='[{"id": "heading", "type": "string", "role": "content", "label": "Heading", "description": "Headline of the page. Words wrapped in [square brackets] get the accent colour.", "default": "Pixels bend toward your [cursor]"},
+    {"id": "body1", "type": "string", "role": "content", "label": "Paragraph 1", "default": "Move your mouse across this page. Every pixel is drawn through a WebGL shader that warps space toward your cursor position, like a magnet pulling iron filings beneath a thin rubber sheet."},
+    {"id": "body2", "type": "string", "role": "content", "label": "Paragraph 2", "default": "The distortion follows a Gaussian falloff: strong at close range, tapering smoothly to nothing. The text remains readable even under deformation."},
+    {"id": "hint", "type": "string", "role": "content", "label": "Hint line", "description": "Small monospace line above the cards.", "default": "WebGL2 shader distortion over a live page"},
+    {"id": "cards", "type": "string", "role": "content", "label": "Cards", "description": "Up to 3 cards as \"Title | description\", separated by semicolons.", "default": "Real-time | 60fps distortion over the whole page in one shader pass; Crisp type | The page is drawn at full fidelity before it is bent; GPU shaders | Gaussian warp plus chromatic aberration in one fragment shader"},
+    {"id": "captions", "type": "string", "role": "content", "label": "Captions", "description": "Four lines shown one after another at the bottom, separated by semicolons.", "default": "The whole page is drawn through a WebGL shader; A magnetic shader warps every pixel toward the cursor; Chromatic aberration splits RGB channels at the distortion site; A repel pulse pushes the page away again"},
+    {"id": "background", "type": "color", "role": "style", "label": "Page background", "default": "#0c0c0c"},
+    {"id": "ink", "type": "color", "role": "style", "label": "Heading colour", "default": "#f0f0f0"},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Accent words, card icons and the cursor dot.", "default": "#70c7ed"},
+    {"id": "strength", "type": "number", "role": "style", "label": "Pull strength", "default": 1, "min": 0, "max": 3, "step": 0.05},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Text edges need 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Magnetic Cursor</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .mgn-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .mgn-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .mgn-dot {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          margin: -10px 0 0 -10px;
+          border-radius: 50%;
+          background: var(--mgn-accent, #70c7ed);
+          box-shadow: 0 0 20px var(--mgn-accent, #70c7ed), 0 0 40px var(--mgn-accent, #70c7ed);
+          opacity: 0;
+        }
+        .mgn-subs {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 5cqh;
+          display: flex;
+          justify-content: center;
+        }
+        .mgn-sub {
+          position: absolute;
+          bottom: 0;
+          max-width: 86cqw;
+          padding: 0.9em 1.8em;
+          border-radius: 8px;
+          background: rgba(0, 0, 0, 0.7);
+          color: #fff;
+          font: 500 max(20px, 1.9cqmin) / 1.35 system-ui, -apple-system, "Segoe UI", sans-serif;
+          text-align: center;
+          opacity: 0;
+        }
+      </style>
+
+      <div id="root" data-composition-id="vfx-magnetic" data-duration="15" data-fps="30">
+        <div id="mgn-clip" class="mgn-stage clip" data-start="0" data-duration="15" data-track-index="0">
+          <canvas id="mgn-canvas" class="mgn-canvas"></canvas>
+          <div class="mgn-dot" id="mgn-dot"></div>
+          <div class="mgn-subs" id="mgn-subs"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "vfx-magnetic";
+            var DUR = 15;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("mgn-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "heading", "type": "string", "role": "content", "label": "Heading", "description": "Headline of the page. Words wrapped in [square brackets] get the accent colour.", "default": "Pixels bend toward your [cursor]"}, {"id": "body1", "type": "string", "role": "content", "label": "Paragraph 1", "default": "Move your mouse across this page. Every pixel is drawn through a WebGL shader that warps space toward your cursor position, like a magnet pulling iron filings beneath a thin rubber sheet."}, {"id": "body2", "type": "string", "role": "content", "label": "Paragraph 2", "default": "The distortion follows a Gaussian falloff: strong at close range, tapering smoothly to nothing. The text remains readable even under deformation."}, {"id": "hint", "type": "string", "role": "content", "label": "Hint line", "description": "Small monospace line above the cards.", "default": "WebGL2 shader distortion over a live page"}, {"id": "cards", "type": "string", "role": "content", "label": "Cards", "description": "Up to 3 cards as \"Title | description\", separated by semicolons.", "default": "Real-time | 60fps distortion over the whole page in one shader pass; Crisp type | The page is drawn at full fidelity before it is bent; GPU shaders | Gaussian warp plus chromatic aberration in one fragment shader"}, {"id": "captions", "type": "string", "role": "content", "label": "Captions", "description": "Four lines shown one after another at the bottom, separated by semicolons.", "default": "The whole page is drawn through a WebGL shader; A magnetic shader warps every pixel toward the cursor; Chromatic aberration splits RGB channels at the distortion site; A repel pulse pushes the page away again"}, {"id": "background", "type": "color", "role": "style", "label": "Page background", "default": "#0c0c0c"}, {"id": "ink", "type": "color", "role": "style", "label": "Heading colour", "default": "#f0f0f0"}, {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Accent words, card icons and the cursor dot.", "default": "#70c7ed"}, {"id": "strength", "type": "number", "role": "style", "label": "Pull strength", "default": 1, "min": 0, "max": 3, "step": 0.05}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Text edges need 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = V.background;
+            canvas.width = cw;
+            canvas.height = ch;
+            var SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+            var MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
+            root.style.setProperty("--mgn-accent", V.accent);
+            var content = document.createElement("canvas");
+            content.width = cw;
+            content.height = ch;
+            var U = W >= H ? Math.min(W / 1920, H / 1080) : W / 1080 * 1.2;
+            function wrap(ctx, text, maxW) {
+              var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = "";
+              words.forEach(function (w) {
+                var next = line ? line + " " + w : w;
+                if (line && ctx.measureText(next).width > maxW) { lines.push(line); line = w; } else line = next;
+              });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+            // The page the shader bends: heading, two paragraphs, a hint and three cards.
+            function drawContent() {
+              var ctx = content.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = V.background;
+              ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "alphabetic";
+              ctx.textAlign = "left";
+              var colW = Math.min(W * 0.94, 900 * U + 96 * U);
+              var inner = colW - 96 * U;
+              var x0 = (W - inner) / 2;
+              var items = [];
+              var hs = 64 * U, bs = 22 * U, hts = 15 * U;
+              ctx.font = "700 " + hs + "px " + SANS;
+              // heading with [accent] words, wrapped
+              var tokens = [];
+              String(V.heading).replace(/\[([^\]]*)\]|([^\[]+)/g, function (m, a, b) {
+                (a !== undefined ? [a] : b.split(/(\s+)/)).forEach(function (w) { if (w !== "") tokens.push({ t: w, accent: a !== undefined }); });
+              });
+              var lines = [[]], lw = 0;
+              tokens.forEach(function (tk) {
+                var w = ctx.measureText(tk.t).width;
+                if (lw + w > inner && lines[lines.length - 1].length && tk.t.trim()) { lines.push([]); lw = 0; }
+                if (!lines[lines.length - 1].length && !tk.t.trim()) return;
+                lines[lines.length - 1].push(tk); lw += w;
+              });
+              var headH = lines.length * hs * 1.15;
+              ctx.font = "400 " + bs + "px " + SANS;
+              var p1 = wrap(ctx, V.body1, inner), p2 = wrap(ctx, V.body2, inner);
+              var bodyH = (p1.length + p2.length) * bs * 1.7 + 24 * U;
+              var cards = String(V.cards).split(";").map(function (c) { return c.split("|").map(function (p) { return p.trim(); }); }).filter(function (c) { return c[0]; }).slice(0, 3);
+              var cardW = (inner - 20 * U * (cards.length - 1)) / Math.max(1, cards.length);
+              ctx.font = "400 " + (14 * U) + "px " + SANS;
+              var cardLines = cards.map(function (c) { return wrap(ctx, c[1] || "", cardW - 48 * U); });
+              var cardH = 24 * U * 2 + 40 * U + 14 * U + 16 * U + Math.max.apply(null, cardLines.map(function (l) { return l.length; }).concat([1])) * 14 * U * 1.5;
+              var total = headH + 32 * U + bodyH + 24 * U + hts + 48 * U + (cards.length ? cardH : 0);
+              var y = Math.max(24 * U, (H - total) / 2);
+              ctx.font = "700 " + hs + "px " + SANS;
+              lines.forEach(function (ln) {
+                var x = x0;
+                y += hs * 0.95;
+                ln.forEach(function (tk) {
+                  ctx.fillStyle = tk.accent ? V.accent : V.ink;
+                  ctx.fillText(tk.t, x, y);
+                  x += ctx.measureText(tk.t).width;
+                });
+                y += hs * 0.2;
+              });
+              y += 32 * U - hs * 0.0;
+              ctx.font = "400 " + bs + "px " + SANS;
+              ctx.fillStyle = "rgba(255,255,255,0.6)";
+              p1.forEach(function (l) { y += bs * 1.7; ctx.fillText(l, x0, y - bs * 0.45); });
+              y += 24 * U;
+              p2.forEach(function (l) { y += bs * 1.7; ctx.fillText(l, x0, y - bs * 0.45); });
+              y += 24 * U;
+              ctx.font = "400 " + hts + "px " + MONO;
+              ctx.fillStyle = "rgba(255,255,255,0.3)";
+              ctx.fillText(V.hint, x0, y + hts);
+              y += hts + 48 * U;
+              cards.forEach(function (c, i) {
+                var cx = x0 + i * (cardW + 20 * U);
+                ctx.fillStyle = "rgba(255,255,255,0.04)";
+                rrect(ctx, cx, y, cardW, cardH, 14 * U); ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.08)";
+                ctx.lineWidth = Math.max(1, U);
+                rrect(ctx, cx, y, cardW, cardH, 14 * U); ctx.stroke();
+                ctx.fillStyle = V.accent;
+                ctx.globalAlpha = 0.14;
+                rrect(ctx, cx + 24 * U, y + 24 * U, 40 * U, 40 * U, 10 * U); ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = V.accent;
+                ctx.beginPath(); ctx.arc(cx + 44 * U, y + 44 * U, 7 * U, 0, Math.PI * 2); ctx.fill();
+                ctx.font = "600 " + (16 * U) + "px " + SANS;
+                ctx.fillStyle = "rgba(255,255,255,0.85)";
+                ctx.fillText(c[0], cx + 24 * U, y + 24 * U + 40 * U + 14 * U + 12 * U);
+                ctx.font = "400 " + (14 * U) + "px " + SANS;
+                ctx.fillStyle = "rgba(255,255,255,0.4)";
+                cardLines[i].forEach(function (l, k) { ctx.fillText(l, cx + 24 * U, y + 24 * U + 40 * U + 14 * U + 12 * U + 14 * U * 1.6 + k * 14 * U * 1.5); });
+              });
+            }
+            drawContent();
+            var S = { x: 0.5, y: 0.5, repel: 0, strength: 0 };
+            var dot = document.getElementById("mgn-dot");
+            var subsBox = document.getElementById("mgn-subs");
+            var subs = String(V.captions).split(";").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 4).map(function (t) {
+              var el = document.createElement("div");
+              el.className = "mgn-sub";
+              el.textContent = t;
+              subsBox.appendChild(el);
+              return el;
+            });
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 aPos;",
+              "out vec2 v_uv;",
+              "void main() { v_uv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5); gl_Position = vec4(aPos, 0.0, 1.0); }"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+in vec2 v_uv;
+uniform sampler2D u_content;
+uniform vec2 u_mouse;
+uniform vec2 u_resolution;
+uniform float u_repel;
+uniform float u_strength;
+
+void main() {
+  vec2 uv = v_uv;
+  float aspect = u_resolution.x / u_resolution.y;
+  vec2 delta = u_mouse - uv;
+  vec2 aspectDelta = delta * vec2(aspect, 1.0);
+  float dist = length(aspectDelta);
+  float strength = exp(-dist * dist * 20.0) * 0.04 * u_strength;
+  float direction = mix(1.0, -1.0, u_repel);
+  vec2 displaced = uv + delta * strength * direction;
+  displaced = clamp(displaced, vec2(0.0), vec2(1.0));
+  float aberration = strength * 0.6;
+  vec2 aberDir = normalize(delta + 0.0001) * aberration;
+  float r = texture(u_content, displaced + aberDir * 0.3).r;
+  float g = texture(u_content, displaced).g;
+  float b = texture(u_content, displaced - aberDir * 0.3).b;
+  outColor = vec4(r, g, b, 1.0);
+}
+`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.bindAttribLocation(prog, 0, "aPos");
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              var tex = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, tex);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.uniform1i(u("u_content"), 0);
+              gl.uniform2f(u("u_resolution"), cw, ch);
+              var uploaded = false;
+              var mouseLoc = u("u_mouse"), repelLoc = u("u_repel"), strengthLoc = u("u_strength");
+              paint = function (t) {
+                if (!uploaded) { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content); uploaded = true; }
+                gl.uniform2f(mouseLoc, S.x, S.y);
+                gl.uniform1f(repelLoc, S.repel);
+                gl.uniform1f(strengthLoc, S.strength * V.strength);
+                dot.style.left = S.x * 100 + "%";
+                dot.style.top = S.y * 100 + "%";
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+            tl.to(dot, { opacity: 1, duration: 0.3 }, 0.5);
+            tl.to(S, { strength: 1, duration: 0.5, ease: "power2.out" }, 0.5);
+            // Cursor path: sweep the heading, circle the text, repel pulse, sweep the cards, leave.
+            tl.to(S, { x: 0.35, y: 0.3, duration: 2, ease: "power1.inOut" }, 1);
+            tl.to(S, { x: 0.6, y: 0.35, duration: 2, ease: "power1.inOut" }, 3);
+            tl.to(S, { x: 0.4, y: 0.5, duration: 1.5, ease: "sine.inOut" }, 5);
+            tl.to(S, { x: 0.55, y: 0.55, duration: 1.5, ease: "sine.inOut" }, 6.5);
+            tl.to(S, { repel: 1, duration: 0.2, ease: "power4.out" }, 8);
+            tl.to(S, { repel: 0, duration: 0.5, ease: "power2.out" }, 8.5);
+            tl.to(S, { x: 0.3, y: 0.75, duration: 2, ease: "power1.inOut" }, 9);
+            tl.to(S, { x: 0.65, y: 0.72, duration: 2, ease: "power1.inOut" }, 11);
+            tl.to(S, { x: 0.8, y: 0.2, duration: 1.5, ease: "power2.inOut" }, 13);
+            tl.to(S, { strength: 0, duration: 0.5 }, 14);
+            tl.to(dot, { opacity: 0, duration: 0.3 }, 14.2);
+            [[1, 3.5], [4, 6.5], [7.5, 9.5], [10.5, 13]].forEach(function (w, i) {
+              if (!subs[i]) return;
+              tl.to(subs[i], { opacity: 1, duration: 0.3 }, w[0]);
+              tl.to(subs[i], { opacity: 0, duration: 0.3 }, w[1]);
+            });
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

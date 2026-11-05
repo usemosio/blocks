@@ -1,0 +1,133 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vfx-magnetic",
+  "type": "hyperframes:component",
+  "title": "Magnetic Cursor",
+  "description": "A page drawn through a WebGL shader that warps every pixel toward a moving cursor, with a Gaussian falloff and a little chromatic aberration, plus a repel pulse. Four captions explain what is happening.",
+  "tags": [
+    "shader",
+    "cursor",
+    "distortion",
+    "warp",
+    "showcase",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 15,
+  "useWhen": [
+    "A demo of an interactive-looking page where pixels bend toward a cursor, for tech and product videos.",
+    "A text-and-cards screen that should feel alive without changing its layout."
+  ],
+  "avoidWhen": [
+    "The shot is just a backdrop with no content: the shader only bends the built-in page.",
+    "You need the effect on your own video footage: copy the shader into your composition and feed it your frame as a texture."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/vfx-magnetic/vfx-magnetic.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "vfx-magnetic.html",
+      "target": "compositions/components/vfx-magnetic.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "heading",
+      "type": "string",
+      "role": "content",
+      "label": "Heading",
+      "description": "Headline of the page. Words wrapped in [square brackets] get the accent colour.",
+      "default": "Pixels bend toward your [cursor]"
+    },
+    {
+      "id": "body1",
+      "type": "string",
+      "role": "content",
+      "label": "Paragraph 1",
+      "default": "Move your mouse across this page. Every pixel is drawn through a WebGL shader that warps space toward your cursor position, like a magnet pulling iron filings beneath a thin rubber sheet."
+    },
+    {
+      "id": "body2",
+      "type": "string",
+      "role": "content",
+      "label": "Paragraph 2",
+      "default": "The distortion follows a Gaussian falloff: strong at close range, tapering smoothly to nothing. The text remains readable even under deformation."
+    },
+    {
+      "id": "hint",
+      "type": "string",
+      "role": "content",
+      "label": "Hint line",
+      "description": "Small monospace line above the cards.",
+      "default": "WebGL2 shader distortion over a live page"
+    },
+    {
+      "id": "cards",
+      "type": "string",
+      "role": "content",
+      "label": "Cards",
+      "description": "Up to 3 cards as \"Title | description\", separated by semicolons.",
+      "default": "Real-time | 60fps distortion over the whole page in one shader pass; Crisp type | The page is drawn at full fidelity before it is bent; GPU shaders | Gaussian warp plus chromatic aberration in one fragment shader"
+    },
+    {
+      "id": "captions",
+      "type": "string",
+      "role": "content",
+      "label": "Captions",
+      "description": "Four lines shown one after another at the bottom, separated by semicolons.",
+      "default": "The whole page is drawn through a WebGL shader; A magnetic shader warps every pixel toward the cursor; Chromatic aberration splits RGB channels at the distortion site; A repel pulse pushes the page away again"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Page background",
+      "default": "#0c0c0c"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Heading colour",
+      "default": "#f0f0f0"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Accent words, card icons and the cursor dot.",
+      "default": "#70c7ed"
+    },
+    {
+      "id": "strength",
+      "type": "number",
+      "role": "style",
+      "label": "Pull strength",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Text edges need 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

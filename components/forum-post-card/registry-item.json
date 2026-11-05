@@ -1,0 +1,130 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "forum-post-card",
+  "type": "hyperframes:component",
+  "title": "Forum Post Card",
+  "description": "A dark forum post card (community, author, title, body, vote and comment counts) rises in, gets an upvote with a spring and a count change, then drops out.",
+  "tags": [
+    "social",
+    "forum",
+    "post",
+    "card",
+    "overlay",
+    "hyperframes-port"
+  ],
+  "category": "social",
+  "duration": 5,
+  "useWhen": [
+    "A forum or community post needs to appear on screen as a quote, a reaction or social proof.",
+    "A like or upvote moment with a springy press should land inside five seconds."
+  ],
+  "avoidWhen": [
+    "It should look like one specific real site: this card is deliberately generic.",
+    "A thread with many replies: use a chat flow block."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/reddit-post/reddit-post.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "forum-post-card.html",
+      "target": "compositions/components/forum-post-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "community",
+      "type": "string",
+      "role": "content",
+      "label": "Community",
+      "description": "Name of the community or board.",
+      "default": "Motion Design Club"
+    },
+    {
+      "id": "author",
+      "type": "string",
+      "role": "content",
+      "label": "Author line",
+      "description": "Author and age under the community name.",
+      "default": "placeholder_user · 3h"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Post title",
+      "description": "Headline of the post, three lines at most.",
+      "default": "I made my first animated promo in one afternoon"
+    },
+    {
+      "id": "body",
+      "type": "string",
+      "role": "content",
+      "label": "Post body",
+      "description": "Text under the title, three lines at most.",
+      "default": "No timeline, no keyframes: I wrote the scenes as text and the video appeared. Here is how it went and what I would change."
+    },
+    {
+      "id": "votes",
+      "type": "string",
+      "role": "content",
+      "label": "Votes",
+      "description": "Vote count before the upvote.",
+      "default": "4.2k"
+    },
+    {
+      "id": "votes_after",
+      "type": "string",
+      "role": "content",
+      "label": "Votes after upvote",
+      "description": "Vote count after the upvote lands.",
+      "default": "4.3k"
+    },
+    {
+      "id": "comments",
+      "type": "string",
+      "role": "content",
+      "label": "Comments",
+      "description": "Comment count.",
+      "default": "328"
+    },
+    {
+      "id": "share_label",
+      "type": "string",
+      "role": "content",
+      "label": "Share label",
+      "description": "Text on the share button.",
+      "default": "Share"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the upvoted arrow and count.",
+      "default": "#f97316"
+    },
+    {
+      "id": "icon_color",
+      "type": "color",
+      "role": "style",
+      "label": "Community icon colour",
+      "description": "Background of the round community icon.",
+      "default": "#4a90d9"
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "description": "Background of the card.",
+      "default": "#1a1a2e"
+    }
+  ]
+}

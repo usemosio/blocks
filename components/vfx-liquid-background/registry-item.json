@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vfx-liquid-background",
+  "type": "hyperframes:component",
+  "title": "Liquid Page Waves",
+  "description": "A page floats on a liquid surface: vertex waves and ripples roll across it with a slight camera tilt, intensify, and the page crossfades into a second one while the surface settles to still. WebGL over two built-in pages.",
+  "tags": [
+    "shader",
+    "transition",
+    "waves",
+    "liquid",
+    "background",
+    "distortion",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "transitions",
+  "duration": 12,
+  "useWhen": [
+    "A fluid, rippling crossfade between two screens, for product tours and app showcases.",
+    "A page that should feel alive on a liquid surface before it changes."
+  ],
+  "avoidWhen": [
+    "Text-heavy screens that must stay perfectly readable during the transition.",
+    "A fast, hard cut."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/vfx-liquid-background/vfx-liquid-background.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "vfx-liquid-background.html",
+      "target": "compositions/components/vfx-liquid-background.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "brand",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A brand",
+      "default": "Vault"
+    },
+    {
+      "id": "nav",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A menu",
+      "description": "Menu items separated by commas.",
+      "default": "Portfolio, Markets, Activity, Settings"
+    },
+    {
+      "id": "balance_label",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A label",
+      "default": "TOTAL BALANCE"
+    },
+    {
+      "id": "balance",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A value",
+      "default": "$2,847,391.24"
+    },
+    {
+      "id": "change",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A change",
+      "default": "+12.4%"
+    },
+    {
+      "id": "holdings",
+      "type": "string",
+      "role": "content",
+      "label": "Panel A cards",
+      "description": "Up to 4 cards as \"Name | price | change\", separated by semicolons.",
+      "default": "Savings | $1,204,000 | +4.2%; Equity | $862,310 | +18.9%; Bonds | $514,225 | +1.1%; Cash | $266,856 | -0.3%"
+    },
+    {
+      "id": "author",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B author",
+      "default": "Sarah Chen"
+    },
+    {
+      "id": "handle",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B handle",
+      "default": "@sarahchen"
+    },
+    {
+      "id": "prompt",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B composer text",
+      "default": "Share an update"
+    },
+    {
+      "id": "posts",
+      "type": "string",
+      "role": "content",
+      "label": "Panel B posts",
+      "description": "Up to 3 posts as \"Name | text\", separated by semicolons.",
+      "default": "Maya Okafor | Shipped the new dashboard today. The team did incredible work and the first numbers look great.; Leo Martins | Ten tiny experiments beat one big plan. Start small, learn fast.; Priya Nair | Morning reminder: take a walk before the standup."
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the scene is drawn at, then scaled up. Page text needs 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

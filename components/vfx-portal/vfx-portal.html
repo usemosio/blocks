@@ -1,0 +1,393 @@
+<!doctype html>
+<!--
+  Portal Reveal
+
+  A landing page tears open from the centre in a glowing, colour-cycling portal and the dark theme of the same page is revealed behind it, with chromatic aberration and edge distortion along the rim. WebGL shader over two built-in pages (light and dark).
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/vfx-portal/vfx-portal.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame; rewritten from three.js (not loaded: it only drew two flat quads) to raw WebGL2 with one full-screen shader that blends the light page over the dark one; the two pages are drawn on 2D canvases from variables (brand, headline, menu, cards) instead of being captured from live DOM with the experimental HTML-in-Canvas API, and the product name and copy are placeholders; the portal is measured from the shorter side of the frame; the camera push-through of the original has no visible effect (the quads rescale to fill the view) and is left out; the canvas is drawn at the `resolution` variable.
+-->
+<html
+  lang="en"
+  data-composition-id="vfx-portal"
+  data-composition-duration="10"
+  data-composition-variables='[{"id": "brand", "type": "string", "role": "content", "label": "Brand name", "description": "Logo text on both pages (a placeholder name).", "default": "Lumen"},
+    {"id": "title", "type": "string", "role": "content", "label": "Headline", "description": "Use | for a line break.", "default": "Ship faster|See it live"},
+    {"id": "subtitle", "type": "string", "role": "content", "label": "Subtitle", "default": "Ship faster with a platform that handles the hard parts. Analytics, infrastructure, and developer tools, all in one place."},
+    {"id": "button", "type": "string", "role": "content", "label": "Button", "default": "Get started"},
+    {"id": "nav", "type": "string", "role": "content", "label": "Menu", "description": "Menu items separated by commas; the last one is shown as a button.", "default": "Product, Pricing, Docs, Sign In"},
+    {"id": "cards", "type": "string", "role": "content", "label": "Cards", "description": "Up to 4 cards as \"Title | description\", separated by semicolons.", "default": "Lightning Fast | Sub-millisecond response times with edge deployment across 40+ regions worldwide.; Secure by Default | End-to-end encryption and role-based access out of the box.; Plug and Play | 200+ integrations. Connect your existing stack in minutes, not weeks.; Real-time Insights | Live dashboards, anomaly detection and recommendations."},
+    {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Button and icon colour on the light page.", "default": "#2563eb"},
+    {"id": "accent2", "type": "color", "role": "style", "label": "Accent 2", "description": "Second accent of the dark page gradient.", "default": "#60a5fa"},
+    {"id": "glow", "type": "color", "role": "style", "label": "Portal glow colour", "default": "#2563eb"},
+    {"id": "glow2", "type": "color", "role": "style", "label": "Portal glow colour 2", "default": "#4a90ff"},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Page text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Portal Reveal</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .vpt-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .vpt-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="vfx-portal" data-duration="10" data-fps="30">
+        <div id="vpt-clip" class="vpt-stage clip" data-start="0" data-duration="10" data-track-index="0">
+          <canvas id="vpt-canvas" class="vpt-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "vfx-portal";
+            var DUR = 10;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("vpt-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "brand", "type": "string", "role": "content", "label": "Brand name", "description": "Logo text on both pages (a placeholder name).", "default": "Lumen"}, {"id": "title", "type": "string", "role": "content", "label": "Headline", "description": "Use | for a line break.", "default": "Ship faster|See it live"}, {"id": "subtitle", "type": "string", "role": "content", "label": "Subtitle", "default": "Ship faster with a platform that handles the hard parts. Analytics, infrastructure, and developer tools, all in one place."}, {"id": "button", "type": "string", "role": "content", "label": "Button", "default": "Get started"}, {"id": "nav", "type": "string", "role": "content", "label": "Menu", "description": "Menu items separated by commas; the last one is shown as a button.", "default": "Product, Pricing, Docs, Sign In"}, {"id": "cards", "type": "string", "role": "content", "label": "Cards", "description": "Up to 4 cards as \"Title | description\", separated by semicolons.", "default": "Lightning Fast | Sub-millisecond response times with edge deployment across 40+ regions worldwide.; Secure by Default | End-to-end encryption and role-based access out of the box.; Plug and Play | 200+ integrations. Connect your existing stack in minutes, not weeks.; Real-time Insights | Live dashboards, anomaly detection and recommendations."}, {"id": "accent", "type": "color", "role": "style", "label": "Accent", "description": "Button and icon colour on the light page.", "default": "#2563eb"}, {"id": "accent2", "type": "color", "role": "style", "label": "Accent 2", "description": "Second accent of the dark page gradient.", "default": "#60a5fa"}, {"id": "glow", "type": "color", "role": "style", "label": "Portal glow colour", "default": "#2563eb"}, {"id": "glow2", "type": "color", "role": "style", "label": "Portal glow colour 2", "default": "#4a90ff"}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Page text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = "#000";
+            canvas.width = cw;
+            canvas.height = ch;
+            var SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+            var U = W >= H ? Math.min(W / 1920, H / 1080) : W / 1080 * 1.25;
+            function wrap(ctx, text, maxW) {
+              var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = "";
+              words.forEach(function (w) {
+                var next = line ? line + " " + w : w;
+                if (line && ctx.measureText(next).width > maxW) { lines.push(line); line = w; } else line = next;
+              });
+              if (line) lines.push(line);
+              return lines;
+            }
+            function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+            var THEMES = {
+              light: { bg: "#fafafa", ink: "#111111", nav: "#555555", sub: "#666666", logo: ["#111111", "#111111"], btn: [V.accent, V.accent], card: "#ffffff", cardLine: "#e5e7eb", icon: "#eff6ff", iconInk: V.accent, cardTitle: "#111111", cardDesc: "#777777", glow: 0 },
+              dark: { bg: "#0a0a0f", ink: "#f0f0f5", nav: "rgba(255,255,255,0.5)", sub: "rgba(255,255,255,0.5)", logo: ["#93c5fd", "#bfdbfe"], btn: [V.accent, V.accent2], card: "rgba(255,255,255,0.03)", cardLine: "rgba(255,255,255,0.08)", icon: "rgba(37,99,235,0.15)", iconInk: "#93c5fd", cardTitle: "#f0f0f5", cardDesc: "rgba(255,255,255,0.45)", glow: 1 }
+            };
+            // One page (a landing page) in a light and a dark theme, laid out for any frame size.
+            function drawPage(el, th) {
+              var ctx = el.getContext("2d");
+              ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
+              ctx.fillStyle = th.bg;
+              ctx.fillRect(0, 0, W, H);
+              ctx.textBaseline = "alphabetic";
+              ctx.textAlign = "left";
+              var pad = 64 * U, portrait = W < H;
+              function grad(x0, x1, c) { var g = ctx.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, c[0]); g.addColorStop(1, c[1]); return g; }
+              // top bar
+              var ty = 28 * U + 24 * U;
+              ctx.font = "800 " + 24 * U + "px " + SANS;
+              ctx.fillStyle = grad(pad, pad + ctx.measureText(V.brand).width, th.logo);
+              ctx.fillText(V.brand, pad, ty);
+              var items = String(V.nav).split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+              var cta = items.length > 1 ? items.pop() : "";
+              var x = W - pad;
+              if (cta) {
+                ctx.font = "600 " + 14 * U + "px " + SANS;
+                var bw = ctx.measureText(cta).width + 48 * U, bh = 40 * U;
+                ctx.fillStyle = grad(x - bw, x, th.btn);
+                rrect(ctx, x - bw, ty - 24 * U + 4 * U, bw, bh, 8 * U); ctx.fill();
+                ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+                ctx.fillText(cta, x - bw / 2, ty - 24 * U + 4 * U + bh / 2 + 5 * U);
+                ctx.textAlign = "left";
+                x -= bw + 36 * U;
+              }
+              if (!portrait) {
+                ctx.font = "500 " + 15 * U + "px " + SANS;
+                ctx.fillStyle = th.nav;
+                items.slice().reverse().forEach(function (it) { var w = ctx.measureText(it).width; ctx.fillText(it, x - w, ty); x -= w + 36 * U; });
+              }
+              // cards
+              var cards = String(V.cards).split(";").map(function (c) { return c.split("|").map(function (p) { return p.trim(); }); }).filter(function (c) { return c[0]; }).slice(0, 4);
+              var cols = portrait ? 2 : Math.max(1, cards.length), rows = Math.ceil(cards.length / cols);
+              var gap = 24 * U, cardW = (W - pad * 2 - gap * (cols - 1)) / cols;
+              ctx.font = "400 " + 14 * U + "px " + SANS;
+              var lines = cards.map(function (c) { return wrap(ctx, c[1] || "", cardW - 64 * U); });
+              var maxL = Math.max.apply(null, lines.map(function (l) { return l.length; }).concat([1]));
+              var cardH = 32 * U * 2 + 44 * U + 16 * U + 18 * U * 1.3 + 6 * U + maxL * 14 * U * 1.5;
+              var cardsTop = H - 56 * U - rows * cardH - (rows - 1) * gap;
+              cards.forEach(function (c, i) {
+                var cx = pad + (i % cols) * (cardW + gap), cy = cardsTop + Math.floor(i / cols) * (cardH + gap);
+                if (th.glow) { ctx.shadowColor = "rgba(37,99,235,0.12)"; ctx.shadowBlur = 20 * U; }
+                ctx.fillStyle = th.card; rrect(ctx, cx, cy, cardW, cardH, 16 * U); ctx.fill();
+                ctx.shadowBlur = 0; ctx.shadowColor = "transparent";
+                ctx.strokeStyle = th.cardLine; ctx.lineWidth = Math.max(1, U);
+                rrect(ctx, cx, cy, cardW, cardH, 16 * U); ctx.stroke();
+                ctx.fillStyle = th.icon; rrect(ctx, cx + 32 * U, cy + 32 * U, 44 * U, 44 * U, 10 * U); ctx.fill();
+                ctx.fillStyle = th.iconInk;
+                ctx.beginPath(); ctx.arc(cx + 54 * U, cy + 54 * U, 8 * U, 0, Math.PI * 2); ctx.fill();
+                var ly = cy + 32 * U + 44 * U + 16 * U + 18 * U;
+                ctx.font = "700 " + 18 * U + "px " + SANS; ctx.fillStyle = th.cardTitle;
+                ctx.fillText(c[0], cx + 32 * U, ly);
+                ctx.font = "400 " + 14 * U + "px " + SANS; ctx.fillStyle = th.cardDesc;
+                lines[i].forEach(function (l, k) { ctx.fillText(l, cx + 32 * U, ly + 6 * U + 14 * U * 1.5 * (k + 1)); });
+              });
+              // hero, centred in the space between the bar and the cards
+              var top = 28 * U + 64 * U, bottom = cardsTop - 24 * U;
+              var ts = 72 * U * (portrait ? 1.05 : 1);
+              ctx.font = "800 " + ts + "px " + SANS;
+              var tl2 = String(V.title).split("|");
+              ctx.font = "400 " + 20 * U + "px " + SANS;
+              var subL = wrap(ctx, V.subtitle, Math.min(W - 2 * pad, 640 * U));
+              var heroH = tl2.length * ts * 1.05 + 24 * U + subL.length * 20 * U * 1.6 + 24 * U + 52 * U;
+              var y = top + Math.max(0, (bottom - top - heroH) / 2);
+              ctx.textAlign = "center";
+              ctx.font = "800 " + ts + "px " + SANS; ctx.fillStyle = th.ink;
+              tl2.forEach(function (l) { y += ts * 0.95; ctx.fillText(l.trim(), W / 2, y); y += ts * 0.1; });
+              y += 24 * U;
+              ctx.font = "400 " + 20 * U + "px " + SANS; ctx.fillStyle = th.sub;
+              subL.forEach(function (l) { y += 20 * U * 1.6; ctx.fillText(l, W / 2, y - 6 * U); });
+              y += 24 * U;
+              ctx.font = "700 " + 17 * U + "px " + SANS;
+              var bw2 = ctx.measureText(V.button).width + 80 * U, bh2 = 52 * U;
+              ctx.fillStyle = grad(W / 2 - bw2 / 2, W / 2 + bw2 / 2, th.btn);
+              rrect(ctx, W / 2 - bw2 / 2, y, bw2, bh2, 12 * U); ctx.fill();
+              ctx.fillStyle = "#fff"; ctx.fillText(V.button, W / 2, y + bh2 / 2 + 6 * U);
+            }
+            var pages = [0, 1].map(function () { var el = document.createElement("canvas"); el.width = cw; el.height = ch; return el; });
+            drawPage(pages[0], THEMES.light);
+            drawPage(pages[1], THEMES.dark);
+            var GLOW = rgb(V.glow), GLOW2 = rgb(V.glow2);
+            // Animation state, tweened by the timeline below.
+            var S = { portalRadius: 0, energyIntensity: 0, chromaticStrength: 0, distortionStrength: 0, edgeWidth: 0.06 };
+
+            var VERTEX = [
+              "#version 300 es",
+              "in vec2 aPos;",
+              "out vec2 v_uv;",
+              "void main() { v_uv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5); gl_Position = vec4(aPos, 0.0, 1.0); }"
+            ].join("\n");
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+in vec2 v_uv;
+uniform sampler2D tLight;
+uniform sampler2D tDark;
+uniform float portalRadius;
+uniform vec2 portalCenter;
+uniform float edgeWidth;
+uniform vec3 glowColor;
+uniform vec3 glowColor2;
+uniform float chromaticStrength;
+uniform float distortionStrength;
+uniform float time;
+uniform float energyIntensity;
+uniform vec2 u_aspect;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+void main() {
+  // v_uv runs top-down; the shader works with y up
+  vec2 uv = vec2(v_uv.x, 1.0 - v_uv.y);
+  vec2 aspect = u_aspect;
+  vec2 centered = (uv - portalCenter) * aspect;
+  float dist = length(centered);
+
+  // Noise-modulated edge for organic tear look
+  float angle = atan(centered.y, centered.x);
+  float edgeNoise = noise(vec2(angle * 3.0, time * 2.0)) * 0.03 * energyIntensity;
+  float portalEdge = portalRadius + edgeNoise;
+
+  // Distortion near portal edge: warp UVs radially
+  float edgeDist = abs(dist - portalEdge);
+  float distortMask = smoothstep(edgeWidth * 1.5, 0.0, edgeDist) * distortionStrength;
+  vec2 distortDir = normalize(centered + 0.0001);
+  vec2 distortedUv = uv + distortDir * distortMask * sin(angle * 8.0 + time * 5.0);
+
+  // Chromatic aberration near portal edge
+  float chromaMask = smoothstep(edgeWidth * 2.0, 0.0, edgeDist) * chromaticStrength;
+  vec2 chromaOffset = distortDir * chromaMask;
+  float r = texture(tLight, vec2(distortedUv.x + chromaOffset.x, 1.0 - (distortedUv.y + chromaOffset.y))).r;
+  float g = texture(tLight, vec2(distortedUv.x, 1.0 - distortedUv.y)).g;
+  float b = texture(tLight, vec2(distortedUv.x - chromaOffset.x, 1.0 - (distortedUv.y - chromaOffset.y))).b;
+  vec3 lightColor = vec3(r, g, b);
+
+  // Portal mask: inside = transparent (show dark behind), outside = light
+  float mask = smoothstep(portalEdge - 0.008, portalEdge + 0.008, dist);
+
+  // Glow ring at portal edge
+  float glowInner = smoothstep(edgeWidth, 0.0, edgeDist);
+  float glowOuter = smoothstep(edgeWidth * 2.5, edgeWidth * 0.5, edgeDist);
+  float glow = glowInner * glowOuter * energyIntensity;
+
+  // Animated color cycling along the ring
+  float colorPhase = fract(angle / 6.2832 + time * 0.4);
+  vec3 ringColor = mix(glowColor, glowColor2, sin(colorPhase * 6.2832) * 0.5 + 0.5);
+
+  // Secondary energy sparks
+  float sparks = noise(vec2(angle * 12.0, time * 8.0));
+  sparks = pow(sparks, 4.0) * glowInner * energyIntensity * 2.0;
+
+  vec3 finalColor = lightColor * mask;
+  finalColor += ringColor * glow * 2.5;
+  finalColor += vec3(1.0, 0.9, 1.0) * sparks;
+
+  // When portal is large enough, alpha fades out completely
+  float alpha = mask + glow * 0.5 + sparks * 0.3;
+  alpha = clamp(alpha, 0.0, 1.0);
+
+  // The dark page sits behind: ordinary alpha blending of the front layer over it
+  vec3 dark = texture(tDark, v_uv).rgb;
+  outColor = vec4(finalColor * alpha + dark * (1.0 - alpha), 1.0);
+}
+`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.bindAttribLocation(prog, 0, "aPos");
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              var buffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+              gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+              gl.enableVertexAttribArray(0);
+              gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+              gl.viewport(0, 0, cw, ch);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              [0, 1].forEach(function (unit) {
+                var texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pages[unit]);
+              });
+              gl.uniform1i(u("tLight"), 0);
+              gl.uniform1i(u("tDark"), 1);
+              gl.uniform2f(u("portalCenter"), 0.5, 0.5);
+              // radius and rim are measured in units of the shorter side, so a vertical frame opens as wide as a wide one
+              gl.uniform2f(u("u_aspect"), W >= H ? W / H : 1, W >= H ? 1 : H / W);
+              gl.uniform3f(u("glowColor"), GLOW[0], GLOW[1], GLOW[2]);
+              gl.uniform3f(u("glowColor2"), GLOW2[0], GLOW2[1], GLOW2[2]);
+              var loc = ["portalRadius", "edgeWidth", "chromaticStrength", "distortionStrength", "energyIntensity", "time"].reduce(function (o, n) { o[n] = u(n); return o; }, {});
+              paint = function (t) {
+                gl.uniform1f(loc.portalRadius, S.portalRadius);
+                gl.uniform1f(loc.edgeWidth, S.edgeWidth);
+                gl.uniform1f(loc.chromaticStrength, S.chromaticStrength);
+                gl.uniform1f(loc.distortionStrength, S.distortionStrength);
+                gl.uniform1f(loc.energyIntensity, S.energyIntensity);
+                gl.uniform1f(loc.time, t);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+            // Hold on the light page, the portal tears open, pushes through and settles on the dark page.
+            tl.to(S, { energyIntensity: 0.3, duration: 1.2, ease: "power2.in" }, 0.3);
+            tl.to(S, { portalRadius: 0.85, duration: 3.5, ease: "power2.inOut" }, 1.5);
+            tl.to(S, { energyIntensity: 1.0, duration: 0.6, ease: "power3.out" }, 1.5);
+            tl.to(S, { chromaticStrength: 0.035, duration: 2.0, ease: "power2.in" }, 1.5);
+            tl.to(S, { distortionStrength: 0.06, duration: 2.5, ease: "power2.inOut" }, 1.5);
+            tl.to(S, { edgeWidth: 0.08, duration: 2.0, ease: "sine.inOut" }, 2.0);
+            tl.to(S, { portalRadius: 1.8, duration: 2.0, ease: "power3.in" }, 5.0);
+            tl.to(S, { energyIntensity: 1.5, duration: 0.8, ease: "power2.in" }, 5.0);
+            tl.to(S, { energyIntensity: 0.0, duration: 1.2, ease: "power2.out" }, 6.2);
+            tl.to(S, { chromaticStrength: 0.06, duration: 1.0, ease: "power3.in" }, 5.5);
+            tl.to(S, { chromaticStrength: 0.0, duration: 1.0, ease: "power2.out" }, 6.8);
+            tl.to(S, { distortionStrength: 0.0, duration: 1.0, ease: "power2.out" }, 6.5);
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

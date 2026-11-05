@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "cosmic-orb",
+  "type": "hyperframes:component",
+  "title": "Cosmic Orb",
+  "description": "An iridescent soap-bubble planet: a slowly spinning sphere of nebula bands, dust lanes and twinkling stars wrapped in a refracting glass limb with chromatic aberration at the edge. A single WebGL fragment shader.",
+  "tags": [
+    "shader",
+    "background",
+    "showcase",
+    "3d",
+    "planet",
+    "stars",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 10,
+  "useWhen": [
+    "A hero backdrop with a glowing planet or crystal ball, a music or space video, an intro card that needs a centrepiece.",
+    "A beat-reactive centrepiece: feed `pulseEnvelope` a 0-1 envelope sampled from the track."
+  ],
+  "avoidWhen": [
+    "The shot is a clean product or UI scene where a cosmic look is out of place.",
+    "The render budget is tight and the frame is large: WebGL runs in software on CPU render machines, keep `resolution` low."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/cosmic-orb/cosmic-orb.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "cosmic-orb.html",
+      "target": "compositions/components/cosmic-orb.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "hue",
+      "type": "number",
+      "role": "style",
+      "label": "Nebula hue",
+      "default": 268,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "accent",
+      "type": "number",
+      "role": "style",
+      "label": "Accent hue",
+      "default": 196,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "unit": "deg"
+    },
+    {
+      "id": "spin",
+      "type": "number",
+      "role": "motion",
+      "label": "Spin rate",
+      "default": 0.035,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.005,
+      "unit": "turns/s"
+    },
+    {
+      "id": "stars",
+      "type": "number",
+      "role": "style",
+      "label": "Star density",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "glow",
+      "type": "number",
+      "role": "style",
+      "label": "Glow intensity",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Orb size",
+      "description": "Orb diameter as a share of the shorter side of the frame.",
+      "default": 0.86,
+      "min": 0.2,
+      "max": 1.2,
+      "step": 0.01
+    },
+    {
+      "id": "pulse",
+      "type": "number",
+      "role": "motion",
+      "label": "Beat pulse",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "pulseEnvelope",
+      "type": "string",
+      "role": "motion",
+      "label": "Beat pulse envelope",
+      "description": "Comma-separated 0-1 samples spread evenly across the block, for example 0,0.2,1,0.4,0. Empty uses the flat pulse value.",
+      "default": ""
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#04040a"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. The orb is soft; 0.5 matches 1 in the stills.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

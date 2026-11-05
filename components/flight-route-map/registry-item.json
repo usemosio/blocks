@@ -1,0 +1,155 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "flight-route-map",
+  "type": "hyperframes:component",
+  "title": "Flight Route Map",
+  "description": "A plane flies a glowing route between two labelled pins over a drawn map, the camera drifts, the destination gets a hand-drawn circle and an arrival badge.",
+  "tags": [
+    "map",
+    "route",
+    "flight",
+    "travel",
+    "pin",
+    "transport",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 6,
+  "useWhen": [
+    "A journey from one place to another needs to read at a glance: a trip, a delivery, an expansion.",
+    "The scene is an opener or a transition card with a headline."
+  ],
+  "avoidWhen": [
+    "The map must show real geography: this draws an abstract map.",
+    "You need more than two stops."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/nyc-paris-flight/nyc-paris-flight.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "flight-route-map.html",
+      "target": "compositions/components/flight-route-map.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "origin",
+      "type": "string",
+      "role": "content",
+      "label": "Origin",
+      "description": "Name of the departure point, on its pin and in the headline.",
+      "default": "Harbor City",
+      "maxLength": 24
+    },
+    {
+      "id": "origin_code",
+      "type": "string",
+      "role": "content",
+      "label": "Origin code",
+      "description": "Small line under the origin name.",
+      "default": "HBR / NORTH",
+      "maxLength": 20
+    },
+    {
+      "id": "destination",
+      "type": "string",
+      "role": "content",
+      "label": "Destination",
+      "description": "Name of the arrival point, on its pin and in the headline.",
+      "default": "Summit City",
+      "maxLength": 24
+    },
+    {
+      "id": "destination_code",
+      "type": "string",
+      "role": "content",
+      "label": "Destination code",
+      "description": "Small line under the destination name.",
+      "default": "SMT / EAST",
+      "maxLength": 20
+    },
+    {
+      "id": "eyebrow",
+      "type": "string",
+      "role": "content",
+      "label": "Eyebrow",
+      "description": "Small line above the headline.",
+      "default": "Six-second hop",
+      "maxLength": 40
+    },
+    {
+      "id": "joiner",
+      "type": "string",
+      "role": "content",
+      "label": "Joiner",
+      "description": "Accent word between the two names in the headline.",
+      "default": "TO",
+      "maxLength": 10
+    },
+    {
+      "id": "route_note",
+      "type": "string",
+      "role": "content",
+      "label": "Route note",
+      "description": "Line under the headline.",
+      "default": "A long way, compressed",
+      "maxLength": 40
+    },
+    {
+      "id": "arrived",
+      "type": "string",
+      "role": "content",
+      "label": "Arrival badge",
+      "description": "Badge that pops next to the destination.",
+      "default": "ARRIVED",
+      "maxLength": 16
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Route colour",
+      "description": "Colour of the route, pins and plane.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "doodle",
+      "type": "color",
+      "role": "style",
+      "label": "Circle colour",
+      "description": "Colour of the hand-drawn circle and the badge.",
+      "default": "#e5322d"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Headline and label colour.",
+      "default": "#1d1d1f"
+    },
+    {
+      "id": "ocean",
+      "type": "color",
+      "role": "style",
+      "label": "Ocean",
+      "description": "Sea colour of the map.",
+      "default": "#dfe7f1"
+    },
+    {
+      "id": "land",
+      "type": "color",
+      "role": "style",
+      "label": "Land",
+      "description": "Colour of the landmasses.",
+      "default": "#f6f6f2"
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "follow-lower-third",
+  "type": "hyperframes:component",
+  "title": "Follow Lower Third",
+  "description": "A pill-shaped profile bar slides up from the bottom, its Follow button is pressed and flips to Following, then the bar slides away.",
+  "tags": [
+    "lower-third",
+    "social",
+    "follow",
+    "profile",
+    "overlay",
+    "adapted",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 4.5,
+  "useWhen": [
+    "A creator or brand needs a quick 'follow me' call-out over footage.",
+    "A short, vertical-video lower third with a button press."
+  ],
+  "avoidWhen": [
+    "You want a full profile card with bio, tabs and a cursor: use profile-follow-card.",
+    "A real platform's look is required: this is a generic pill."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/instagram-follow/instagram-follow.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "follow-lower-third.html",
+      "target": "compositions/components/follow-lower-third.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "name",
+      "type": "string",
+      "role": "content",
+      "label": "Name",
+      "description": "Display name on the card; its first letter fills the avatar.",
+      "default": "Studio Nova"
+    },
+    {
+      "id": "handle",
+      "type": "string",
+      "role": "content",
+      "label": "Handle",
+      "description": "Account handle line.",
+      "default": "@studionova"
+    },
+    {
+      "id": "followers",
+      "type": "string",
+      "role": "content",
+      "label": "Followers",
+      "description": "Follower count line.",
+      "default": "47.5K followers"
+    },
+    {
+      "id": "follow_label",
+      "type": "string",
+      "role": "content",
+      "label": "Button label",
+      "description": "Button text before the press.",
+      "default": "Follow"
+    },
+    {
+      "id": "following_label",
+      "type": "string",
+      "role": "content",
+      "label": "Pressed label",
+      "description": "Button text after the press.",
+      "default": "Following"
+    },
+    {
+      "id": "verified",
+      "type": "boolean",
+      "role": "style",
+      "label": "Check mark",
+      "description": "Show a check badge after the name.",
+      "default": true
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card color",
+      "description": "Background of the pill.",
+      "default": "#1a1a1a"
+    },
+    {
+      "id": "button_color",
+      "type": "color",
+      "role": "style",
+      "label": "Button color",
+      "description": "Follow button and check badge.",
+      "default": "#3b82f6"
+    },
+    {
+      "id": "following_color",
+      "type": "color",
+      "role": "style",
+      "label": "Pressed color",
+      "description": "Button color after it is pressed.",
+      "default": "#2f2f2f"
+    },
+    {
+      "id": "avatar_color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Avatar color A",
+      "description": "First color of the avatar gradient.",
+      "default": "#ff8a3d"
+    },
+    {
+      "id": "avatar_color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Avatar color B",
+      "description": "Second color of the avatar gradient.",
+      "default": "#c13584"
+    }
+  ]
+}

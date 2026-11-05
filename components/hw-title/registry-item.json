@@ -1,0 +1,160 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hw-title",
+  "type": "hyperframes:component",
+  "title": "Handwritten Title",
+  "description": "Handwritten display text with a word-by-word highlight sweep, a seeded squiggle underline that matches the text width, and a hand-drawn boil.",
+  "tags": [
+    "handwritten",
+    "typography",
+    "title-card",
+    "overlay",
+    "highlight",
+    "hyperframes-port"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A short motivational line, caption or title that should feel written by hand over footage or a dark board.",
+    "You want the words to light up in reading order and finish with an underline."
+  ],
+  "avoidWhen": [
+    "The text is a long paragraph: this is a one-to-two-line title.",
+    "You want letters written stroke by stroke: use handwrite or handwriting-text."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/hw-title/hw-title.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "hw-title.html",
+      "target": "compositions/components/hw-title.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "text",
+      "type": "string",
+      "role": "content",
+      "label": "Text",
+      "description": "The handwritten line. It wraps on a narrow frame.",
+      "default": "shine like the star you are"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels; it shrinks on a narrow frame.",
+      "default": 120,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Color of the text once the highlight has passed.",
+      "default": "#f4f2ec"
+    },
+    {
+      "id": "underline_color",
+      "type": "color",
+      "role": "style",
+      "label": "Underline color",
+      "description": "Color of the squiggle underline.",
+      "default": "#ffb020"
+    },
+    {
+      "id": "sweep",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Highlight sweep",
+      "description": "Words light up one after another.",
+      "default": true
+    },
+    {
+      "id": "sweep_start",
+      "type": "number",
+      "role": "motion",
+      "label": "Sweep start",
+      "description": "Second the highlight starts.",
+      "default": 0.8,
+      "min": 0,
+      "max": 4,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "sweep_end",
+      "type": "number",
+      "role": "motion",
+      "label": "Sweep end",
+      "description": "Second the highlight finishes.",
+      "default": 3.2,
+      "min": 0.2,
+      "max": 5.5,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "underline",
+      "type": "boolean",
+      "role": "style",
+      "label": "Underline",
+      "description": "Draw a squiggle under the text.",
+      "default": true
+    },
+    {
+      "id": "wobble",
+      "type": "number",
+      "role": "style",
+      "label": "Squiggle wobble",
+      "description": "How wavy the underline is.",
+      "default": 6,
+      "min": 0,
+      "max": 14,
+      "step": 0.5
+    },
+    {
+      "id": "boil",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Boil",
+      "description": "Jitter the whole line a little every third frame, like a hand-drawn loop.",
+      "default": true
+    },
+    {
+      "id": "boil_amount",
+      "type": "number",
+      "role": "motion",
+      "label": "Boil amount",
+      "description": "How far the line jitters, in pixels.",
+      "default": 1.4,
+      "min": 0,
+      "max": 6,
+      "step": 0.1,
+      "unit": "px"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Changes the squiggle and the jitter pattern.",
+      "default": 8,
+      "min": 1,
+      "max": 99,
+      "step": 1
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "plastic",
+  "type": "hyperframes:component",
+  "title": "Plastic Orb",
+  "description": "A glossy white plastic orb with soft studio reflections, on black.",
+  "tags": [
+    "shader",
+    "webgl",
+    "orb",
+    "3d-look",
+    "glossy",
+    "product",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A hero object for a product intro, app icon moment or abstract title card.",
+    "A clean studio-lit 3D look with no 3D assets."
+  ],
+  "avoidWhen": [
+    "You want an iridescent or metallic surface: use thin-film or holographic.",
+    "The orb must hold a logo or image: this one is a plain surface."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/plastic/plastic.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "plastic.html",
+      "target": "compositions/components/plastic.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Plastic color",
+      "description": "Color of the plastic.",
+      "default": "#f2f2f2"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame color behind the orb.",
+      "default": "#000000"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Diameter of the orb as a share of the shorter side of the frame.",
+      "default": 0.62,
+      "min": 0.2,
+      "max": 1.2,
+      "step": 0.01
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "gloss",
+      "type": "number",
+      "role": "style",
+      "label": "Gloss",
+      "description": "Sharpness and strength of the reflections.",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

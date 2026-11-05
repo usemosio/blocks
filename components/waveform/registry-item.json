@@ -1,0 +1,115 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "waveform",
+  "type": "hyperframes:component",
+  "title": "Waveform Bars",
+  "description": "Equalizer bars in a blue to pink gradient pulse across the middle of the frame, like an audio visualizer.",
+  "tags": [
+    "shader",
+    "webgl",
+    "audio",
+    "equalizer",
+    "visualizer",
+    "bars",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 5,
+  "useWhen": [
+    "A music, podcast or voice moment needs an audio-visualizer look with no audio analysis.",
+    "A tech backdrop of pulsing bars in two brand colors."
+  ],
+  "avoidWhen": [
+    "The bars must follow a real audio track: this one is generated from time, not from sound.",
+    "You need a single flowing line: use sine-wave."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/waveform/waveform.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "waveform.html",
+      "target": "compositions/components/waveform.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_a",
+      "type": "color",
+      "role": "style",
+      "label": "Left color",
+      "description": "Color of the bars at the left edge.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_b",
+      "type": "color",
+      "role": "style",
+      "label": "Right color",
+      "description": "Color of the bars at the right edge.",
+      "default": "#93c5fd"
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "How fast it moves. 0 holds still.",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "bars",
+      "type": "number",
+      "role": "style",
+      "label": "Bars",
+      "description": "How many bars span the frame.",
+      "default": 32,
+      "min": 6,
+      "max": 96,
+      "step": 1
+    },
+    {
+      "id": "max_height",
+      "type": "number",
+      "role": "style",
+      "label": "Max height",
+      "description": "Tallest a bar gets, as a share of the shorter side of the frame.",
+      "default": 0.55,
+      "min": 0.1,
+      "max": 0.9,
+      "step": 0.01
+    },
+    {
+      "id": "glow",
+      "type": "number",
+      "role": "style",
+      "label": "Glow",
+      "description": "Soft halo around the bars.",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Lower renders faster; raise it if edges look soft.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

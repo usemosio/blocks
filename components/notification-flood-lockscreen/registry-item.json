@@ -1,0 +1,114 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "notification-flood-lockscreen",
+  "type": "hyperframes:component",
+  "title": "Notification Flood Lock Screen",
+  "description": "A phone lock screen fills with a stack of escalating message notifications, then a last one answers the flood.",
+  "tags": [
+    "lock-screen",
+    "notifications",
+    "ad",
+    "phone",
+    "stack",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 12,
+  "useWhen": [
+    "A problem should pile up visually as a stack of incoming messages before the product answers it.",
+    "The ad is a vertical social video."
+  ],
+  "avoidWhen": [
+    "You need a calm single notification: use a notification block.",
+    "The messages must carry real app branding."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/slack-notification-ad/slack-notification-ad.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "notification-flood-lockscreen.html",
+      "target": "compositions/components/notification-flood-lockscreen.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "requests",
+      "type": "string",
+      "role": "content",
+      "label": "Incoming messages",
+      "description": "Up to 11 notifications, one per line, written as sender | message.",
+      "default": "Sarah Chen | Hey! Any chance you could get the launch video done by Friday?\nMarcus Webb | also need a 30s demo cut for the keynote\n#social | Priya: can we get the launch video resized for vertical?\nDana Okafor | onboarding video needs a v2 with the new UI\n#sales | Tom: customer wants a 1-min walkthrough by EOD\nLeila Haddad | CEO is asking for a sizzle reel for the board deck\n#events | Jordan: offsite recap video??\nMiguel Reyes | can you do a Spanish version of the demo too?\n#marketing | Ava: we need 3 ad variants, portrait, square, landscape\nRaj Patel | investor update needs a quick video walkthrough\nBen Liu | one more: launch day video"
+    },
+    {
+      "id": "payoff_title",
+      "type": "string",
+      "role": "content",
+      "label": "Payoff sender",
+      "description": "Sender of the last notification, the answer to the flood (the name of whoever the video promotes).",
+      "default": "Studio North"
+    },
+    {
+      "id": "payoff_text",
+      "type": "string",
+      "role": "content",
+      "label": "Payoff message",
+      "description": "Message of the last notification.",
+      "default": "Heard you needed some videos?"
+    },
+    {
+      "id": "date_text",
+      "type": "string",
+      "role": "content",
+      "label": "Date line",
+      "description": "Line above the clock.",
+      "default": "Thursday, August 14"
+    },
+    {
+      "id": "times",
+      "type": "string",
+      "role": "content",
+      "label": "Clock times",
+      "description": "Four clock readings, comma separated; the clock changes three times during the flood.",
+      "default": "9:41, 9:42, 9:45, 9:51"
+    },
+    {
+      "id": "request_color",
+      "type": "color",
+      "role": "style",
+      "label": "Message icon colour 1",
+      "description": "Start of the gradient of the message icon.",
+      "default": "#6d5bd0"
+    },
+    {
+      "id": "request_color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Message icon colour 2",
+      "description": "End of the gradient of the message icon.",
+      "default": "#3aa0e8"
+    },
+    {
+      "id": "payoff_color",
+      "type": "color",
+      "role": "style",
+      "label": "Payoff icon colour 1",
+      "description": "Start of the gradient of the payoff tile.",
+      "default": "#ff7a59"
+    },
+    {
+      "id": "payoff_color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Payoff icon colour 2",
+      "description": "End of the gradient of the payoff tile.",
+      "default": "#e8317d"
+    }
+  ]
+}

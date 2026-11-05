@@ -1,0 +1,153 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ai-answer-rank",
+  "type": "hyperframes:component",
+  "title": "AI Answer Rank",
+  "description": "A question types into a chat card, the assistant answers with a ranked list of three picks, then re-ranks: the promoted brand slides into its slot, the picks below step down, and the brand row lands with an accent highlight and a check.",
+  "tags": [
+    "mock-ui",
+    "ai",
+    "chat",
+    "ranking",
+    "list",
+    "marketing",
+    "ad-template",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 9,
+  "useWhen": [
+    "An answer-engine or AI-visibility pitch: 'is your brand in the AI answer?'",
+    "A ranked list where one item takes the top slot."
+  ],
+  "avoidWhen": [
+    "You want a full chat or prompt flow with a loading state and toast: use ai-prompt-flow.",
+    "The chat should show a real product's interface: this one is placeholder UI."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/ai-answer-rank/ai-answer-rank.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "ai-answer-rank.html",
+      "target": "compositions/components/ai-answer-rank.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "prompt",
+      "type": "string",
+      "role": "content",
+      "label": "Prompt",
+      "description": "The question typed into the user bubble. Up to about 60 characters keeps it on one or two lines.",
+      "default": "What's the best CRM for a small team?"
+    },
+    {
+      "id": "lead",
+      "type": "string",
+      "role": "content",
+      "label": "Answer lead-in",
+      "description": "The assistant line above the ranked list.",
+      "default": "Here are the top picks:"
+    },
+    {
+      "id": "rowA",
+      "type": "string",
+      "role": "content",
+      "label": "Pick 1",
+      "description": "First pick in the original answer: a product other than the brand this video promotes.",
+      "portrays": [
+        "competitor_name"
+      ],
+      "default": "Brand A"
+    },
+    {
+      "id": "rowB",
+      "type": "string",
+      "role": "content",
+      "label": "Pick 2",
+      "description": "Second pick in the original answer: a product other than the brand this video promotes.",
+      "portrays": [
+        "competitor_name"
+      ],
+      "default": "Brand B"
+    },
+    {
+      "id": "rowC",
+      "type": "string",
+      "role": "content",
+      "label": "Pick 3",
+      "description": "Third pick in the original answer. It drops out of the top three when the brand lands.",
+      "portrays": [
+        "competitor_name"
+      ],
+      "default": "Brand C"
+    },
+    {
+      "id": "brand",
+      "type": "string",
+      "role": "content",
+      "label": "Brand",
+      "description": "The brand this video promotes, by its real name. It slides into the answer and takes the highlight.",
+      "portrays": [
+        "subject_name"
+      ],
+      "default": "Your brand"
+    },
+    {
+      "id": "brandRank",
+      "type": "enum",
+      "role": "content",
+      "label": "Brand rank",
+      "description": "The slot the brand lands in. Picks at and below it step down one place.",
+      "portrays": [
+        "recommended_position"
+      ],
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "1st"
+        },
+        {
+          "value": "2",
+          "label": "2nd"
+        },
+        {
+          "value": "3",
+          "label": "3rd"
+        }
+      ]
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Highlight, monogram and check on the brand row, the one accent element.",
+      "default": "#16a34a"
+    },
+    {
+      "id": "ink",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Text colour; every placeholder surface is this ink at an alpha step.",
+      "default": "#18181b"
+    },
+    {
+      "id": "ground",
+      "type": "color",
+      "role": "style",
+      "label": "Ground",
+      "description": "Chat card surface; the page around it is the ground tinted toward the ink.",
+      "default": "#fcfcfb"
+    }
+  ]
+}

@@ -1,0 +1,321 @@
+<!doctype html>
+<!--
+  Code 3D Extrude
+
+  A syntax-highlighted code card on a thick lit slab: it swings in from an angle, settles face-on with a cool key light and a green rim light on its edges, and then drifts a little at rest. WebGL.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/code-3d-extrude/code-3d-extrude.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame and fits the slab by the frame aspect; rewritten from three.js (not loaded) to raw WebGL2: the slab is a box with a lit body and an unlit code face, with the same two directional lights, camera fit and swing-in (its rounded, bevelled outline is a plain square-cornered box here); the baked Shiki tokens are replaced by a `code` variable highlighted by a small tokenizer in the same GitHub-dark colours; the font is JetBrains Mono from Google Fonts; the canvas is drawn at the `resolution` variable.
+-->
+<html
+  lang="en"
+  data-composition-id="code-3d-extrude"
+  data-composition-duration="8"
+  data-composition-variables='[{"id": "code", "type": "string", "role": "content", "label": "Code", "description": "The snippet shown. Use line breaks; JavaScript-like syntax is highlighted with a GitHub-dark palette.", "default": "async function loadConfig(path) {\n  const raw = await readFile(path, \"utf8\")\n  const config = JSON.parse(raw)\n  return validate(config)\n}"},
+    {"id": "card_color", "type": "color", "role": "style", "label": "Card colour", "default": "#0b0f17"},
+    {"id": "backdrop", "type": "color", "role": "style", "label": "Backdrop", "default": "#05070b"},
+    {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Code text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Code 3D Extrude</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&amp;display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          background: #000;
+          pointer-events: none;
+        }
+        .cex-stage {
+          position: absolute;
+          inset: 0;
+        }
+        .cex-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="code-3d-extrude" data-duration="8" data-fps="30">
+        <div id="cex-clip" class="cex-stage clip" data-start="0" data-duration="8" data-track-index="0">
+          <canvas id="cex-canvas" class="cex-canvas"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NAME = "code-3d-extrude";
+            var DUR = 8;
+            var root = document.getElementById("root");
+            var canvas = document.getElementById("cex-canvas");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function clampNum(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function hex(value, fallback) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || "").trim());
+              if (!m) return fallback;
+              var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+              return "#" + h.toLowerCase();
+            }
+            function rgb(value) {
+              var h = hex(value, "#000000").slice(1);
+              return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+            }
+            var DEFS = [{"id": "code", "type": "string", "role": "content", "label": "Code", "description": "The snippet shown. Use line breaks; JavaScript-like syntax is highlighted with a GitHub-dark palette.", "default": "async function loadConfig(path) {\n  const raw = await readFile(path, \"utf8\")\n  const config = JSON.parse(raw)\n  return validate(config)\n}"}, {"id": "card_color", "type": "color", "role": "style", "label": "Card colour", "default": "#0b0f17"}, {"id": "backdrop", "type": "color", "role": "style", "label": "Backdrop", "default": "#05070b"}, {"id": "resolution", "type": "number", "role": "quality", "label": "Resolution", "description": "Share of the frame size the shader is drawn at, then scaled up. Code text needs 0.75.", "default": 0.75, "min": 0.25, "max": 1, "step": 0.05}];
+            var V = {};
+            DEFS.forEach(function (d) {
+              var raw = vars[d.id];
+              if (d.type === "number") V[d.id] = clampNum(raw, d.default, d.min, d.max);
+              else if (d.type === "color") V[d.id] = hex(raw, d.default);
+              else if (d.type === "boolean") V[d.id] = typeof raw === "boolean" ? raw : raw === "true" ? true : raw === "false" ? false : d.default;
+              else V[d.id] = typeof raw === "string" ? raw.trim() : d.default;
+            });
+
+            var W = Math.max(2, root.clientWidth);
+            var H = Math.max(2, root.clientHeight);
+            var cw = Math.max(2, Math.round(W * V.resolution));
+            var ch = Math.max(2, Math.round(H * V.resolution));
+            root.style.background = V.backdrop;
+            canvas.width = cw;
+            canvas.height = ch;
+            var CODE_FONT = "'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace";
+            var KEYWORDS = /^(async|await|function|const|let|var|return|if|else|import|from|export|new|class|for|of|in|while|true|false|null|undefined|try|catch|throw|default|switch|case|break|typeof|yield)$/;
+            // A small highlighter in the GitHub-dark palette (keywords, function names, parameters, constants, strings, comments).
+            function tokenize(src) {
+              var lines = String(src).split("\n"), constSet = {}, paramSet = {}, out = [];
+              var inParams = false, afterFn = false, afterDecl = false;
+              lines.forEach(function (line) {
+                var toks = [], re = /(\/\/.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`[^`]*`)|(\d+(?:\.\d+)?)|([A-Za-z_$][\w$]*)|(\s+)|(=>|[=+\-*/<>!&|?:]+)|(.)/g, m;
+                while ((m = re.exec(line))) {
+                  var s = m[0], c = "#E1E4E8";
+                  if (m[1]) c = "#6A737D";
+                  else if (m[2]) c = "#9ECBFF";
+                  else if (m[3]) c = "#79B8FF";
+                  else if (m[4]) {
+                    var rest = line.slice(re.lastIndex);
+                    if (KEYWORDS.test(s)) { c = "#F97583"; afterFn = s === "function"; afterDecl = /^(const|let|var)$/.test(s); }
+                    else if (afterFn) { c = "#B392F0"; afterFn = false; }
+                    else if (afterDecl) { c = "#79B8FF"; constSet[s] = 1; afterDecl = false; }
+                    else if (inParams) { c = "#FFAB70"; paramSet[s] = 1; }
+                    else if (paramSet[s]) c = "#FFAB70";
+                    else if (constSet[s] || /^[A-Z]/.test(s)) c = "#79B8FF";
+                    else if (/^\s*\(/.test(rest)) c = "#B392F0";
+                    else if (/^\s*[,)]/.test(rest) && /\($/.test(line.slice(0, line.length - rest.length - s.length).trim()) ) c = "#B392F0";
+                  } else if (m[6]) c = "#F97583";
+                  else if (m[7]) { if (s === "(" && /function\s+[\w$]+\s*$/.test(line.slice(0, m.index))) inParams = true; else if (s === ")") inParams = false; }
+                  toks.push({ t: s, c: c });
+                }
+                out.push(toks);
+              });
+              return out;
+            }
+            // Draw the code onto a 2D canvas (the texture the shader works on).
+            function drawCode(fontPx, lineH, padX, padY, weight, bg) {
+              var lines = tokenize(V.code);
+              var font = weight + " " + fontPx + "px " + CODE_FONT;
+              var m = document.createElement("canvas").getContext("2d");
+              m.font = font;
+              var maxW = 0;
+              lines.forEach(function (l) { var w = 0; l.forEach(function (k) { w += m.measureText(k.t).width; }); maxW = Math.max(maxW, w); });
+              var cwid = Math.max(2, Math.ceil(maxW + padX * 2)), chei = Math.max(2, Math.ceil(lines.length * lineH + padY * 2));
+              var c = document.createElement("canvas");
+              c.width = cwid; c.height = chei;
+              var ctx = c.getContext("2d");
+              ctx.fillStyle = bg; ctx.fillRect(0, 0, cwid, chei);
+              ctx.textBaseline = "top"; ctx.font = font;
+              lines.forEach(function (l, i) {
+                var x = padX;
+                l.forEach(function (k) { ctx.fillStyle = k.c; ctx.fillText(k.t, x, padY + i * lineH); x += ctx.measureText(k.t).width; });
+              });
+              return { canvas: c, W: cwid, H: chei };
+            }
+            function perspective(fovy, aspect, near, far) {
+              var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+              return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
+            }
+            var FOV = 45 * Math.PI / 180, ASPECT = cw / ch;
+            function mulberry32(a) {
+              return function () {
+                a |= 0;
+                a = (a + 0x6d2b79f5) | 0;
+                var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var BG = rgb(V.backdrop);
+            var code = drawCode(38, 56, 80, 70, 600, V.card_color);
+            var SLAB_H = 6.2, SLAB_W = SLAB_H * code.W / code.H;
+            var T = Math.tan(FOV / 2);
+            // camera distance so the whole slab fits at about 78% of the frame
+            var FIT_Z = Math.max(SLAB_H / 2 / T / 0.78, SLAB_W / 2 / (T * ASPECT) / 0.78);
+            var S = { rotY: -1.0, rotX: 0.4, camZ: FIT_Z + 6 };
+            function rotModel(rx, ry) {
+              var cx = Math.cos(rx), sx = Math.sin(rx), cy = Math.cos(ry), sy = Math.sin(ry);
+              // Ry * Rx, column-major
+              return new Float32Array([cy, sx * sy, -cx * sy, 0, 0, cx, sx, 0, sy, -sx * cy, cx * cy, 0, 0, 0, 0, 1]);
+            }
+            var codeEpoch = 0, rebuild = function () {};
+            if (document.fonts && document.fonts.load) {
+              document.fonts.load("600 40px 'JetBrains Mono'").then(function () { codeEpoch++; rebuild(); if (paint) paint(tl.time()); }, function () {});
+            }
+
+            var VERTEX = `#version 300 es
+precision highp float;
+in vec3 aPos;
+in vec3 aNormal;
+in vec2 aUv;
+in float aKind;
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProj;
+out vec2 vUv;
+out vec3 vN;
+out float vKind;
+void main() {
+  vUv = aUv;
+  vKind = aKind;
+  vN = mat3(uModel) * aNormal;
+  gl_Position = uProj * uView * uModel * vec4(aPos, 1.0);
+}`;
+            var FRAGMENT = `#version 300 es
+precision highp float;
+out vec4 outColor;
+in vec2 vUv;
+in vec3 vN;
+in float vKind;
+uniform sampler2D uTex;
+void main() {
+  if (vKind < 0.5) {
+    // the face is an unlit "screen" showing the exact syntax colours
+    outColor = vec4(texture(uTex, vec2(vUv.x, 1.0 - vUv.y)).rgb, 1.0);
+    return;
+  }
+  // the slab body: dark metal with a cool key light, a green rim light and a little ambient
+  vec3 n = normalize(vN);
+  vec3 base = vec3(0.078, 0.114, 0.169);
+  vec3 keyDir = normalize(vec3(5.0, 7.0, 9.0));
+  vec3 rimDir = normalize(vec3(-7.0, -3.0, 5.0));
+  vec3 keyCol = vec3(0.737, 0.831, 1.0) * 1.25;
+  vec3 rimCol = vec3(0.31, 1.0, 0.627) * 0.45;
+  vec3 diff = base * 0.6 * (vec3(0.5) + keyCol * max(dot(n, keyDir), 0.0) + rimCol * max(dot(n, rimDir), 0.0));
+  vec3 viewDir = vec3(0.0, 0.0, 1.0);
+  float specK = pow(max(dot(n, normalize(keyDir + viewDir)), 0.0), 40.0);
+  float specR = pow(max(dot(n, normalize(rimDir + viewDir)), 0.0), 40.0);
+  vec3 spec = (keyCol * specK + rimCol * specR) * 0.35;
+  outColor = vec4(diff * 2.0 + spec, 1.0);
+}
+`;
+
+            var gl = canvas.getContext("webgl2", { alpha: false, antialias: true, depth: true, stencil: false, preserveDrawingBuffer: true });
+            function compile(type, source) {
+              var shader = gl.createShader(type);
+              gl.shaderSource(shader, source);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+              return shader;
+            }
+            var paint = null;
+            try {
+              if (!gl) throw new Error("WebGL2 is not available");
+              var prog = gl.createProgram();
+              gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
+              gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || "link failed");
+              gl.useProgram(prog);
+              // A slab (box): the face carries the code texture, the other five faces are the body.
+              function box(w, h, d) {
+                var x = w / 2, y = h / 2, z = d / 2, v = [], faces = [
+                  [[-x, -y, z], [x, -y, z], [x, y, z], [-x, y, z], [0, 0, 1], 0],
+                  [[x, -y, -z], [-x, -y, -z], [-x, y, -z], [x, y, -z], [0, 0, -1], 1],
+                  [[x, -y, z], [x, -y, -z], [x, y, -z], [x, y, z], [1, 0, 0], 1],
+                  [[-x, -y, -z], [-x, -y, z], [-x, y, z], [-x, y, -z], [-1, 0, 0], 1],
+                  [[-x, y, z], [x, y, z], [x, y, -z], [-x, y, -z], [0, 1, 0], 1],
+                  [[-x, -y, -z], [x, -y, -z], [x, -y, z], [-x, -y, z], [0, -1, 0], 1]
+                ];
+                var uvs = [[0, 0], [1, 0], [1, 1], [0, 1]], idx = [0, 1, 2, 0, 2, 3];
+                faces.forEach(function (f) {
+                  idx.forEach(function (i) { v.push(f[i][0], f[i][1], f[i][2], f[4][0], f[4][1], f[4][2], uvs[i][0], uvs[i][1], f[5]); });
+                });
+                return new Float32Array(v);
+              }
+              var slab = box(SLAB_W, SLAB_H, 0.74);
+              var buf = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+              gl.bufferData(gl.ARRAY_BUFFER, slab, gl.STATIC_DRAW);
+              [["aPos", 3, 0], ["aNormal", 3, 12], ["aUv", 2, 24], ["aKind", 1, 32]].forEach(function (s) {
+                var loc = gl.getAttribLocation(prog, s[0]);
+                gl.enableVertexAttribArray(loc);
+                gl.vertexAttribPointer(loc, s[1], gl.FLOAT, false, 36, s[2]);
+              });
+              gl.viewport(0, 0, cw, ch);
+              gl.enable(gl.DEPTH_TEST);
+              function u(name) { return gl.getUniformLocation(prog, name); }
+              gl.uniformMatrix4fv(u("uProj"), false, perspective(FOV, ASPECT, 0.1, 200));
+              var tex = gl.createTexture();
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, tex);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              function uploadCode() { gl.activeTexture(gl.TEXTURE0); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, code.canvas); }
+              uploadCode();
+              gl.uniform1i(u("uTex"), 0);
+              var modelLoc = u("uModel"), viewLoc = u("uView");
+              // The slab keeps its size; only the text is redrawn when the web font arrives.
+              rebuild = function () { code = drawCode(38, 56, 80, 70, 600, V.card_color); uploadCode(); };
+              paint = function (t) {
+                gl.uniformMatrix4fv(modelLoc, false, rotModel(S.rotX, S.rotY));
+                gl.uniformMatrix4fv(viewLoc, false, new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -S.camZ, 1]));
+                gl.clearColor(BG[0], BG[1], BG[2], 1);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 36);
+              };
+            } catch (err) {
+              canvas.style.display = "none";
+              if (window.console) console.warn(NAME + ":", err.message);
+            }
+
+            var tl = gsap.timeline({ paused: true, onUpdate: function () { if (paint) paint(tl.time()); } });
+            // The slab swings in from an angle and settles face-on, then drifts a little at rest.
+            tl.to(S, { rotY: 0, rotX: 0, camZ: FIT_Z, duration: DUR * 0.6, ease: "power3.out" }, 0);
+            tl.to(S, { rotY: 0.06, rotX: -0.02, duration: DUR * 0.4, ease: "sine.inOut" }, DUR * 0.6);
+
+            // The block lasts DUR seconds even when nothing is tweened at the end.
+            tl.set({}, {}, DUR);
+            if (paint) paint(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

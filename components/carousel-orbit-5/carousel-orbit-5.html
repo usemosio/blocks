@@ -1,0 +1,1006 @@
+<!doctype html>
+<!--
+  Orbit Carousel, Column
+
+  Cards stacked along a vertical column that spins, near cards overlapping the far ones.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/carousel-orbit-5/carousel-orbit-5.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a
+  copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable law
+  or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+  specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame (a 16:9 host shows the original 3840×2160 stage scaled
+  to fit; a tall host gets a centred stage of the same scale), the twelve bundled photos are replaced by drawn cards (gradient
+  panel, line glyph, title) whose titles and colours are variables, with an optional `images` variable
+  that swaps the photos back in, text and background are variables, text is set in Geist from Google Fonts,
+  the page is wrapped as a sub-composition, and the card art, the white ground and the neutral colours are
+  new.
+-->
+<html
+  lang="en"
+  data-composition-id="carousel-orbit-5"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id":"titles","type":"string","role":"content","label":"Card titles","description":"Comma- or line-separated titles, one per card, repeated if there are fewer than the 24 cards. A shop can list its products.","default":"Linen Shirt, Ceramic Mug, Canvas Tote, Oak Stool, Wool Throw, Glass Vase, Field Notebook, Desk Mat, Soy Candle, Clay Planter, Tea Set, Cutting Board"},
+    {"id":"palette","type":"string","role":"style","label":"Card colours","description":"Comma-separated colours for the drawn cards, cycled in order. Title and glyph colour follow each card&#39;s brightness.","default":"#0a0a0a, #2563eb, #f4f4f5, #27272a, #e4e4e7, #1d4ed8"},
+    {"id":"images","type":"string","role":"content","label":"Images","description":"Optional JSON array of image URLs or paths, e.g. [\"a.jpg\",\"b.jpg\"]. When set, photos replace the drawn cards (they are fitted into square cards and repeated if there are fewer than 24); titles, colours and glyphs then do not apply. Empty by default.","default":""},
+    {"id":"show_glyphs","type":"boolean","role":"style","label":"Glyphs","description":"Draw a simple line glyph on each drawn card.","default":true},
+    {"id":"card_radius","type":"number","role":"style","label":"Corner radius","description":"Card corner rounding as a share of the card size.","default":3,"min":0,"max":50,"step":1,"unit":"%"},
+    {"id":"speed","type":"number","role":"motion","label":"Speed","description":"Time scale of the carousel motion. 1 is the designed pace.","default":1,"min":0.25,"max":3,"step":0.05},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Scene background.","default":"#ffffff"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Orbit Carousel, Column</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&amp;display=block"
+      />
+      <style>
+      #root {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        container-type: size;
+        font-family: var(--font-display, Geist, system-ui, sans-serif);
+        pointer-events: none;
+      }
+      .co5-clip { position: absolute; inset: 0; }
+      .co5-scaler { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+      .co5-stage { position: absolute; inset: 0; }
+      .co5-is3d { transform-style: preserve-3d; }
+      .co5-card { position: absolute; left: 0; top: 0; will-change: transform; }
+      .co5-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: var(--co5-radius, 45px);
+        overflow: hidden;
+        background: #e4e4e7;
+        box-shadow: inset 0 0 0 4px rgba(10, 10, 10, 0.07);
+      }
+      .co5-inner img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .co5-idx { position: absolute; left: 100px; top: 90px; font-weight: 600; font-size: 64px; line-height: 1; letter-spacing: 0.04em; opacity: 0.6; }
+      .co5-glyph {
+        position: absolute; left: 50%; top: 42%; width: 560px; height: 560px; margin: -280px 0 0 -280px;
+        fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85;
+      }
+      .co5-title { position: absolute; left: 100px; right: 100px; bottom: 90px; font-weight: 600; font-size: 128px; line-height: 1.04; letter-spacing: -0.03em; }
+      .co5-textline {
+        position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
+        font-weight: 700; letter-spacing: -0.02em; white-space: nowrap;
+      }
+      .co5-textline.above.cards-over-right { clip-path: inset(0 50% 0 0); }
+      .co5-textline.above.cards-over-left { clip-path: inset(0 0 0 50%); }
+      .co5-textdrift { display: flex; align-items: center; will-change: transform; }
+      .co5-word { display: inline-block; overflow: hidden; padding: 0.06em 0; }
+      .co5-word + .co5-word { margin-left: 0.26em; }
+      .co5-word > span { display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="carousel-orbit-5" data-duration="6" data-fps="30" data-layout-allow-overflow="">
+        <div id="co5-partA" class="co5-clip clip" data-start="0" data-duration="6" data-track-index="0">
+          <div id="co5-scaler" class="co5-scaler"><div id="co5-stage" class="co5-stage"></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var TAG = "co5";
+            var DATA = {
+              "family": "orbit",
+              "n": 24,
+              "controls": {
+                "radius": 870,
+                "elementCount": 122,
+                "offset": 42.3,
+                "rotationX": 0,
+                "rotationY": 184,
+                "rotationZ": 90,
+                "perspectiveBoost": 114.6,
+                "scaleMin": -0.3,
+                "scaleMax": 21.1,
+                "spinDegPerSec": 151.53333333333333,
+                "spinTurns": {
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                }
+              },
+              "comp": {
+                "cameraZoom": 5669.2913,
+                "cameraDistance": 5669.2913,
+                "duration": 6,
+                "fps": 30
+              },
+              "motion": {
+                "arrive": 1.6,
+                "arriveMul": 4,
+                "arriveMin": 0.16,
+                "exit": 0.9,
+                "exitMul": 6,
+                "exitMin": 0.22,
+                "entryStaggerTotal": 0.45,
+                "entryDuration": 0.55,
+                "entryLead": 0.25,
+                "orbitSpinDegPerSec": 24,
+                "orbitSpinScale": 1,
+                "boostCap": 0.5,
+                "speedScale": 1
+              },
+              "look": {
+                "background": "#EDEDEF",
+                "cardRadius": 0,
+                "cardShadow": "none",
+                "imageHeight": null,
+                "centerPath": true,
+                "endFade": 0.06,
+                "fitBox": 1500
+              },
+              "keys": {
+                "Rotation Y": [
+                  {
+                    "time": 0,
+                    "value": 184,
+                    "flags": "02020000",
+                    "easeIn": {
+                      "speed": 0,
+                      "influence": 0.333333
+                    },
+                    "easeOut": {
+                      "speed": -726.055701,
+                      "influence": 0.124734
+                    }
+                  },
+                  {
+                    "time": 1.5,
+                    "value": -43.3,
+                    "flags": "02020000",
+                    "easeIn": {
+                      "speed": -1714.26342,
+                      "influence": 0.063927
+                    },
+                    "easeOut": {
+                      "speed": 0,
+                      "influence": 0.333333
+                    }
+                  }
+                ]
+              },
+              "path": null,
+              "text": null,
+              "ending": null,
+              "outro": null,
+              "ring": null,
+              "cutAt": null,
+              "titles": "Linen Shirt, Ceramic Mug, Canvas Tote, Oak Stool, Wool Throw, Glass Vase, Field Notebook, Desk Mat, Soy Candle, Clay Planter, Tea Set, Cutting Board",
+              "palette": "#0a0a0a, #2563eb, #f4f4f5, #27272a, #e4e4e7, #1d4ed8",
+              "line1": "",
+              "line2": "",
+              "rotatePortrait": false,
+              "fit": true,
+              "tilt": false
+            };
+            var R = (function () {
+          
+          
+                  const lerp = (a, b, t) => a + (b - a) * t;
+                  const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
+          
+                  const aeLinear = (v, a, b, c, d) => (a === b ? c : lerp(c, d, clamp01((v - a) / (b - a))));
+          
+                  const aeEase = (v, a, b, c, d) => {
+                    const t = clamp01((v - a) / (b - a));
+                    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                    return lerp(c, d, e);
+                  };
+                  const wrap01 = (x) => {
+                    let p = x % 1;
+                    if (p < 0) p += 1;
+                    return p;
+                  };
+                  const DEG = 180 / Math.PI;
+          
+                  function buildPath(vertices, closed, samplesPerSeg, center) {
+                    samplesPerSeg = samplesPerSeg || 64;
+                    const n = vertices.length;
+                    const segCount = closed ? n : n - 1;
+                    const pts = [];
+                    for (let s = 0; s < segCount; s++) {
+                      const a = vertices[s],
+                        b = vertices[(s + 1) % n];
+                      const p0 = a.p,
+                        p1 = [a.p[0] + a.out[0], a.p[1] + a.out[1]];
+                      const p2 = [b.p[0] + b.in[0], b.p[1] + b.in[1]],
+                        p3 = b.p;
+                      const last = s === segCount - 1 ? samplesPerSeg : samplesPerSeg - 1;
+                      for (let k = 0; k <= last; k++) {
+                        const t = k / samplesPerSeg,
+                          mt = 1 - t;
+                        const x =
+                          mt * mt * mt * p0[0] +
+                          3 * mt * mt * t * p1[0] +
+                          3 * mt * t * t * p2[0] +
+                          t * t * t * p3[0];
+                        const y =
+                          mt * mt * mt * p0[1] +
+                          3 * mt * mt * t * p1[1] +
+                          3 * mt * t * t * p2[1] +
+                          t * t * t * p3[1];
+                        pts.push([x, y]);
+                      }
+                    }
+                    if (center) {
+                      let x0 = Infinity,
+                        x1 = -Infinity,
+                        y0 = Infinity,
+                        y1 = -Infinity;
+                      for (const q of pts) {
+                        x0 = Math.min(x0, q[0]);
+                        x1 = Math.max(x1, q[0]);
+                        y0 = Math.min(y0, q[1]);
+                        y1 = Math.max(y1, q[1]);
+                      }
+                      const sx = center[0] - (x0 + x1) / 2,
+                        sy = center[1] - (y0 + y1) / 2;
+                      for (const q of pts) {
+                        q[0] += sx;
+                        q[1] += sy;
+                      }
+                    }
+                    const cum = [0];
+                    for (let i = 1; i < pts.length; i++) {
+                      const dx = pts[i][0] - pts[i - 1][0],
+                        dy = pts[i][1] - pts[i - 1][1];
+                      cum.push(cum[i - 1] + Math.hypot(dx, dy));
+                    }
+                    const total = cum[cum.length - 1];
+                    function locate(pct) {
+                      const target = pct * total;
+                      let lo = 0,
+                        hi = cum.length - 1;
+                      while (hi - lo > 1) {
+                        const mid = (lo + hi) >> 1;
+                        if (cum[mid] <= target) lo = mid;
+                        else hi = mid;
+                      }
+                      const segLen = cum[hi] - cum[lo] || 1;
+                      return { i: lo, j: hi, f: (target - cum[lo]) / segLen };
+                    }
+                    return {
+                      closed,
+                      length: total,
+                      pointOnPath(pct) {
+                        pct = closed ? wrap01(pct) : clamp01(pct);
+                        const { i, j, f } = locate(pct);
+                        return [lerp(pts[i][0], pts[j][0], f), lerp(pts[i][1], pts[j][1], f)];
+                      },
+                      tangentOnPath(pct) {
+                        pct = closed ? wrap01(pct) : clamp01(pct);
+                        const { i, j } = locate(pct);
+                        const dx = pts[j][0] - pts[i][0],
+                          dy = pts[j][1] - pts[i][1];
+                        const l = Math.hypot(dx, dy) || 1;
+                        return [dx / l, dy / l];
+                      },
+                    };
+                  }
+          
+                  function pathRig(path, ctl, comp, n, u) {
+                    const spc = ctl.spacing / 100;
+                    const phase = ctl.phaseOffset / 100;
+                    const manual = ctl.moveCarousel / 100;
+                    const dAng = (ctl.depthAngle || 0) / DEG;
+                    const rotAmt = (ctl.rotationFollow || 0) / 100;
+                    const cx = comp.width / 2,
+                      cy = comp.height / 2;
+                    const maxDist = Math.hypot(cx, cy);
+                    const out = new Array(n);
+                    for (let idx = 0; idx < n; idx++) {
+                      const off = (idx / n) * spc + phase;
+                      const pct = wrap01(u + off + manual);
+                      const pos = path.pointOnPath(pct);
+          
+                      const dx = pos[0] - cx,
+                        dy = pos[1] - cy;
+                      const projected = dx * Math.sin(dAng) + dy * Math.cos(dAng);
+                      const norm = (projected / maxDist + 1) / 2;
+                      const depthScale = aeLinear(norm, 0, 1, ctl.scaleMin, 100);
+                      const mixed = aeLinear(ctl.scaleDepth / 100, 0, 1, 100, depthScale);
+                      const scale = (mixed * (ctl.globalScale / 100)) / 100;
+          
+                      const tang = path.tangentOnPath(pct);
+                      const rotZ = Math.atan2(tang[1], tang[0]) * DEG * rotAmt;
+          
+                      let x = pos[0],
+                        y = pos[1],
+                        z = 0;
+                      if (ctl.parent) {
+                        const rx = (ctl.xSlider || 0) / DEG,
+                          ry = (ctl.ySlider || 0) / DEG;
+                        const a = ctl.parent.anchor,
+                          P = ctl.parent.position;
+          
+                        let l = [pos[0] - a[0], pos[1] - a[1], 0];
+                        l = [
+                          l[0] * Math.cos(ry) + l[2] * Math.sin(ry),
+                          l[1],
+                          -l[0] * Math.sin(ry) + l[2] * Math.cos(ry),
+                        ];
+                        l = [
+                          l[0],
+                          l[1] * Math.cos(rx) - l[2] * Math.sin(rx),
+                          l[1] * Math.sin(rx) + l[2] * Math.cos(rx),
+                        ];
+                        x = P[0] + l[0];
+                        y = P[1] + l[1];
+                        z = (P[2] || 0) + l[2];
+                      }
+          
+                      let rotY = 0,
+                        rotX = 0;
+                      if (ctl.parent) {
+                        const camZ = -(comp.cameraDistance || comp.cameraZoom || 5669);
+                        const vx = cx - x,
+                          vy = cy - y,
+                          vz = camZ - z;
+                        rotY = Math.atan2(vx, -vz) * DEG;
+                        rotX = -Math.atan2(vy, Math.hypot(vx, vz)) * DEG;
+                      }
+                      if (ctl.yAngle3d) {
+                        const dist = Math.abs(x - cx);
+                        let r = aeEase(dist, 0, (comp.refWidth || comp.width) * (700 / 1920), 0, ctl.yAngle3d);
+                        if (ctl.mirrorY !== false && x < cx) r = -r;
+                        rotY += r;
+                      }
+                      out[idx] = { x, y, z, scale, rotZ, rotY, rotX, pct, depth: norm };
+                    }
+                    return out;
+                  }
+          
+                  function orbitRig(ctl, comp, n, u) {
+                    const r = ctl.radius;
+                    const rawCnt = Math.max(1, ctl.elementCount);
+                    const cnt = Math.floor(rawCnt);
+                    const off = ctl.offset;
+          
+                    const st = ctl.spinTurns || { x: 0, y: 1, z: 0 };
+                    const rx = ((ctl.rotationX || 0) + u * 360 * (st.x || 0)) / DEG;
+                    const ry = ((ctl.rotationY || 0) + u * 360 * (st.y || 0)) / DEG;
+                    const rz = ((ctl.rotationZ || 0) + u * 360 * (st.z || 0)) / DEG;
+                    const cx = comp.width / 2,
+                      cy = comp.height / 2;
+                    const camZ = -(comp.cameraDistance || comp.cameraZoom || 2000);
+                    const cd = Math.abs(camZ);
+                    const ga = Math.PI * (3 - Math.sqrt(5));
+                    const getP = (index, c) => {
+                      const i = (((index - 0.5 + off) % c) + c) % c;
+                      const inc = Math.acos(Math.max(-1, Math.min(1, 1 - 2 * (i / c))));
+                      const azi = ga * i;
+                      return [
+                        Math.sin(inc) * Math.cos(azi) * r,
+                        Math.cos(inc) * r,
+                        Math.sin(inc) * Math.sin(azi) * r,
+                      ];
+                    };
+                    const out = new Array(n);
+                    for (let k = 0; k < n; k++) {
+                      const index = k + 1;
+                      const a = getP(index, cnt),
+                        b = getP(index, cnt + 1),
+                        f = rawCnt % 1;
+                      let p = [lerp(a[0], b[0], f), lerp(a[1], b[1], f), lerp(a[2], b[2], f)];
+          
+                      p = [
+                        p[0],
+                        p[1] * Math.cos(rx) - p[2] * Math.sin(rx),
+                        p[1] * Math.sin(rx) + p[2] * Math.cos(rx),
+                      ];
+                      p = [
+                        p[0] * Math.cos(ry) + p[2] * Math.sin(ry),
+                        p[1],
+                        -p[0] * Math.sin(ry) + p[2] * Math.cos(ry),
+                      ];
+                      p = [
+                        p[0] * Math.cos(rz) - p[1] * Math.sin(rz),
+                        p[0] * Math.sin(rz) + p[1] * Math.cos(rz),
+                        p[2],
+                      ];
+                      const jitter = 1 + (index % 2) * 0.01;
+                      const x = cx + p[0] * jitter,
+                        y = cy + p[1] * jitter,
+                        z = p[2] * jitter;
+          
+                      const d = Math.hypot(x - cx, y - cy, z - camZ);
+                      const t = clamp01(aeLinear(d, cd - r, cd + r, 0, 1));
+                      const s = aeLinear(t, 0, 1, ctl.scaleMax, ctl.scaleMin);
+                      const finalS = aeLinear(ctl.perspectiveBoost, 0, 100, 100, s);
+          
+                      const behindCam = z <= camZ * 0.92;
+          
+                      const vx = cx - x,
+                        vy = cy - y,
+                        vz = camZ - z;
+                      const yaw = Math.atan2(vx, -vz) * DEG;
+                      const pitch = -Math.atan2(vy, Math.hypot(vx, vz)) * DEG;
+                      out[k] = {
+                        x,
+                        y,
+                        z,
+                        scale: finalS / 100,
+                        rotZ: 0,
+                        rotY: yaw,
+                        rotX: pitch,
+                        visible: index <= cnt && !behindCam,
+                        depth: 1 - t,
+                      };
+                    }
+                    return out;
+                  }
+          
+                  function aeCurve(keys) {
+                    const segs = [];
+                    for (let i = 0; i < keys.length - 1; i++) {
+                      const a = keys[i],
+                        b = keys[i + 1],
+                        T = b.time - a.time;
+                      const linear = !a.easeOut || !b.easeIn || (a.flags && a.flags.startsWith("0101"));
+                      let P1, P2;
+                      if (linear) {
+                        P1 = [a.time + T / 3, a.value + (b.value - a.value) / 3];
+                        P2 = [a.time + (2 * T) / 3, a.value + (2 * (b.value - a.value)) / 3];
+                      } else {
+                        const lo = a.easeOut.influence * T,
+                          li = b.easeIn.influence * T;
+                        P1 = [a.time + lo, a.value + a.easeOut.speed * lo];
+                        P2 = [b.time - li, b.value - b.easeIn.speed * li];
+                      }
+                      segs.push({
+                        t0: a.time,
+                        t1: b.time,
+                        P0: [a.time, a.value],
+                        P1,
+                        P2,
+                        P3: [b.time, b.value],
+                      });
+                    }
+                    const bez = (p0, p1, p2, p3, s) => {
+                      const m = 1 - s;
+                      return m * m * m * p0 + 3 * m * m * s * p1 + 3 * m * s * s * p2 + s * s * s * p3;
+                    };
+                    return {
+                      first: keys[0].value,
+                      last: keys[keys.length - 1].value,
+                      duration: keys[keys.length - 1].time - keys[0].time,
+                      at(t) {
+                        if (t <= segs[0].t0) return keys[0].value;
+                        const sg = segs.find((g) => t <= g.t1) || segs[segs.length - 1];
+                        if (t >= sg.t1) return sg.P3[1];
+          
+                        let s = (t - sg.t0) / (sg.t1 - sg.t0);
+                        for (let k = 0; k < 8; k++) {
+                          const x = bez(sg.P0[0], sg.P1[0], sg.P2[0], sg.P3[0], s) - t;
+                          const m = 1 - s;
+                          const dx =
+                            3 * m * m * (sg.P1[0] - sg.P0[0]) +
+                            6 * m * s * (sg.P2[0] - sg.P1[0]) +
+                            3 * s * s * (sg.P3[0] - sg.P2[0]);
+                          if (Math.abs(dx) < 1e-9) break;
+                          s -= x / dx;
+                          s = s < 0 ? 0 : s > 1 ? 1 : s;
+                        }
+                        return bez(sg.P0[1], sg.P1[1], sg.P2[1], sg.P3[1], s);
+                      },
+                    };
+                  }
+          
+                  function chainedDrive(keys, mode) {
+                    const c = aeCurve(keys),
+                      T = c.duration,
+                      delta = c.last - c.first;
+                    return {
+                      cycle: T,
+                      at(t) {
+                        if (T <= 0) return c.first;
+                        const k = Math.floor(t / T),
+                          r = t - k * T;
+                        if (mode === "pingpong")
+                          return k % 2 === 0 ? c.at(keys[0].time + r) : c.at(keys[0].time + (T - r));
+                        return c.at(keys[0].time + r) + k * delta;
+                      },
+                    };
+                  }
+          
+                  function buildProgress(opts) {
+                    const dur = opts.duration,
+                      cruise = opts.cruise;
+                    const sign = cruise < 0 ? -1 : 1;
+                    const c = Math.abs(cruise);
+                    const cap = opts.boostCap == null ? 0.5 : opts.boostCap;
+                    const vIn = Math.max(
+                      Math.min(c * (opts.arriveMul || 4), c + cap),
+                      opts.arriveMin || 0.16,
+                    );
+                    const vOut = Math.max(Math.min(c * (opts.exitMul || 6), c + cap), opts.exitMin || 0.22);
+                    const tA = opts.arrive || 1.6,
+                      tX = opts.exit || 0.9;
+                    const N = Math.max(600, Math.round(dur * 120));
+                    const lut = new Float64Array(N + 1);
+                    let acc = 0,
+                      prevV = null;
+                    for (let i = 0; i <= N; i++) {
+                      const t = (i / N) * dur;
+                      let v;
+                      if (t < tA) {
+                        const k = 1 - Math.pow(1 - t / tA, 4);
+                        v = lerp(vIn, c, k);
+                      } else if (t > dur - tX) {
+                        const k = Math.pow((t - (dur - tX)) / tX, 3);
+                        v = lerp(c, vOut, k);
+                      } else v = c;
+                      if (prevV !== null) acc += ((prevV + v) / 2) * (dur / N);
+                      prevV = v;
+                      lut[i] = acc * sign;
+                    }
+                    return {
+                      duration: dur,
+                      travel: lut[N],
+                      at(t) {
+                        const f = clamp01(t / dur) * N,
+                          i = Math.floor(f),
+                          g = f - i;
+                        return i >= N ? lut[N] : lerp(lut[i], lut[i + 1], g);
+                      },
+                    };
+                  }
+          
+                  
+              return { buildPath: buildPath, pathRig: pathRig, orbitRig: orbitRig, buildProgress: buildProgress, aeCurve: aeCurve, chainedDrive: chainedDrive, aeLinear: aeLinear, aeEase: aeEase };
+            })();
+          
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, fallback, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+            function str(v, fallback) {
+              return typeof v === "string" && v.trim() ? v : fallback;
+            }
+            function flag(v, fallback) {
+              if (typeof v === "boolean") return v;
+              if (typeof v === "string") return !/^(false|0|no|off)$/i.test(v.trim());
+              return fallback;
+            }
+            function list(s) {
+              return String(s).split(/[,\n]/).map(function (x) { return x.trim(); }).filter(Boolean);
+            }
+            function hex(c) {
+              var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(c).trim());
+              if (!m) return null;
+              var h = m[1];
+              if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+              return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+            }
+            function css(rgb) {
+              return "rgb(" + rgb.map(function (v) { return Math.round(Math.min(255, Math.max(0, v))); }).join(",") + ")";
+            }
+            function mix(a, b, k) {
+              return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+            }
+            function lum(rgb) {
+              return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+            }
+          
+            var root = document.getElementById("root");
+            var W = root.clientWidth || 1920,
+              H = root.clientHeight || 1080;
+            var portrait = H > W;
+            var baseW = portrait ? 2160 : 3840,
+              baseH = portrait ? 3840 : 2160;
+            var scale = Math.min(W / baseW, H / baseH);
+            var comp = Object.assign({}, DATA.comp, { width: W / scale, height: H / scale, refWidth: 3840 });
+            var cx = comp.width / 2,
+              cy = comp.height / 2;
+            var offX = cx - 1920,
+              offY = cy - 1080;
+            var family = DATA.family;
+            // Wide open paths cross the whole frame; in a tall frame they run top to bottom.
+            var rotate = DATA.rotatePortrait && portrait;
+          
+            root.style.background = str(vars.background, "#ffffff");
+          
+            var look = DATA.look,
+              n = DATA.n,
+              motion = Object.assign({}, DATA.motion),
+              ctl = Object.assign({}, DATA.controls);
+            if (DATA.tilt) {
+              ctl.xSlider = num(vars.tilt, ctl.xSlider, -180, 180);
+              ctl.yAngle3d = num(vars.fan, ctl.yAngle3d, -180, 0);
+            }
+            var sp = num(vars.speed, 1, 0.25, 3);
+            motion.speedScale = sp;
+          
+            // Cards: drawn panels by default, or the images the host lists.
+            var images = [];
+            if (typeof vars.images === "string" && vars.images.trim()) {
+              try {
+                var parsed = JSON.parse(vars.images);
+                if (Array.isArray(parsed)) images = parsed;
+              } catch (e) {
+                images = list(vars.images);
+              }
+            } else if (Array.isArray(vars.images)) images = vars.images;
+            images = images
+              .map(function (x) { return x && typeof x === "object" ? x.url || x.src || "" : x; })
+              .filter(function (x) { return typeof x === "string" && x.trim(); });
+            var titles = list(str(vars.titles, DATA.titles));
+            if (!titles.length) titles = list(DATA.titles);
+            var palette = list(str(vars.palette, DATA.palette)).map(hex).filter(Boolean);
+            if (!palette.length) palette = list(DATA.palette).map(hex);
+            var glyphs = flag(vars.show_glyphs, true);
+            var radiusPct = num(vars.card_radius, 3, 0, 50);
+          
+            var GLYPHS = [
+              '<circle cx="50" cy="50" r="30"/><circle cx="50" cy="50" r="6" fill="currentColor"/>',
+              '<rect x="22" y="22" width="56" height="56" rx="6"/><rect x="40" y="40" width="20" height="20" rx="3"/>',
+              '<path d="M50 20 L80 76 L20 76 Z"/>',
+              '<path d="M28 78 V52 M50 78 V28 M72 78 V62"/>',
+              '<path d="M50 18 L82 50 L50 82 L18 50 Z"/>',
+              '<circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="20"/><circle cx="50" cy="50" r="8"/>',
+            ];
+            var BOX = look.fitBox;
+          
+            var scaler = document.getElementById(TAG + "-scaler");
+            var stage = document.getElementById(TAG + "-stage");
+            [scaler].concat(Array.prototype.slice.call(document.querySelectorAll("." + TAG + "-scaler"))).forEach(function (el) {
+              if (!el) return;
+              el.style.width = comp.width + "px";
+              el.style.height = comp.height + "px";
+              el.style.transform = "scale(" + scale + ")";
+            });
+            root.style.setProperty("--" + TAG + "-radius", ((BOX * radiusPct) / 100).toFixed(1) + "px");
+          
+            var is3d = family === "orbit" || family === "vision";
+            if (is3d) {
+              stage.style.perspective = comp.cameraZoom + "px";
+              stage.style.perspectiveOrigin = "50% 50%";
+            }
+            var camShift = (comp.cameraDistance || comp.cameraZoom) - comp.cameraZoom;
+            var group = document.createElement("div");
+            group.className = TAG + "-stage" + (is3d ? " " + TAG + "-is3d" : "");
+            group.id = TAG + "-group";
+            var gx = [];
+            if (look.zoom && look.zoom !== 1) gx.push("scale(" + look.zoom + ")");
+            if (camShift) gx.push("translateZ(" + -camShift + "px)");
+            if (gx.length) group.style.transform = gx.join(" ");
+            var squeeze = document.createElement("div");
+            squeeze.className = TAG + "-stage" + (is3d ? " " + TAG + "-is3d" : "");
+            squeeze.id = TAG + "-squeeze";
+            group.appendChild(squeeze);
+          
+            // Headline (text + circle blocks only)
+            var TXT = DATA.text ? Object.assign({}, DATA.text) : null;
+            var OUT = DATA.outro ? Object.assign({}, DATA.outro) : null;
+            var textLayers = [];
+            if (TXT) {
+              TXT.words = str(vars.line1, DATA.line1).trim().split(/\s+/);
+              OUT.words = str(vars.line2, DATA.line2).trim().split(/\s+/);
+              // Size the headline so the longer line fits the frame (about 0.55 em per character).
+              var longest = Math.max(TXT.words.join(" ").length, OUT.words.join(" ").length, 8);
+              TXT.fontSize = Math.min(TXT.fontSize, (comp.width * 0.9) / (longest * 0.55));
+              OUT.fontSize = TXT.fontSize;
+              TXT.color = OUT.color = str(vars.text_color, "#0a0a0a");
+              ["below", "above"].forEach(function (cls) {
+                var line = document.createElement("div");
+                line.className = TAG + "-textline " + cls + " cards-over-" + (TXT.cardsOverOn || "right");
+                line.id = TAG + "-text-" + cls;
+                line.style.fontSize = TXT.fontSize + "px";
+                line.style.color = TXT.color;
+                var drift = document.createElement("div");
+                drift.className = TAG + "-textdrift";
+                drift.id = TAG + "-drift-" + cls;
+                TXT.words.forEach(function (w, k) {
+                  var box = document.createElement("span");
+                  box.className = TAG + "-word";
+                  var inner = document.createElement("span");
+                  inner.textContent = w;
+                  inner.id = TAG + "-w" + k + "-" + cls;
+                  box.appendChild(inner);
+                  drift.appendChild(box);
+                });
+                line.appendChild(drift);
+                textLayers.push(line);
+              });
+              stage.appendChild(textLayers[0]);
+            }
+            stage.appendChild(group);
+            if (TXT) stage.appendChild(textLayers[1]);
+          
+            var els = [],
+              inners = [];
+            for (var i = 0; i < n; i++) {
+              var el = document.createElement("div");
+              el.className = TAG + "-card";
+              el.id = TAG + "-card-" + i;
+              el.style.width = BOX + "px";
+              el.style.height = BOX + "px";
+              el.style.marginLeft = -BOX / 2 + "px";
+              el.style.marginTop = -BOX / 2 + "px";
+              var inner = document.createElement("div");
+              inner.className = TAG + "-inner";
+              inner.id = el.id + "-inner";
+              if (images.length) {
+                var img = document.createElement("img");
+                img.src = images[i % images.length];
+                img.alt = "";
+                inner.appendChild(img);
+              } else {
+                var base = palette[i % palette.length];
+                var dark = lum(base) < 0.55;
+                var shade = lum(base) < 0.12 ? mix(base, [255, 255, 255], 0.1) : mix(base, [0, 0, 0], dark ? 0.0 : 0.07);
+                if (dark && lum(base) >= 0.12) shade = mix(base, [0, 0, 0], 0.28);
+                var ink = dark ? "#ffffff" : "#0a0a0a";
+                inner.style.background = "linear-gradient(155deg," + css(base) + "," + css(shade) + ")";
+                inner.style.color = ink;
+                inner.classList.add(TAG + "-drawn");
+                var idx = document.createElement("span");
+                idx.className = TAG + "-idx";
+                idx.textContent = (i % titles.length < 9 ? "0" : "") + (i % titles.length + 1);
+                inner.appendChild(idx);
+                if (glyphs) {
+                  var g = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                  g.setAttribute("viewBox", "0 0 100 100");
+                  g.setAttribute("class", TAG + "-glyph");
+                  g.innerHTML = GLYPHS[(i % titles.length) % GLYPHS.length];
+                  inner.appendChild(g);
+                }
+                var title = document.createElement("span");
+                title.className = TAG + "-title";
+                title.textContent = titles[i % titles.length];
+                inner.appendChild(title);
+              }
+              if (!is3d) el.style.zIndex = String(n - i);
+              el.appendChild(inner);
+              squeeze.appendChild(el);
+              els.push(el);
+              inners.push(inner);
+            }
+          
+            // Path
+            var path = null;
+            if (DATA.path) {
+              var verts = DATA.path.vertices.map(function (v) {
+                var st = num(vars.path_stretch, 1, 0.5, 2);
+                var cyy = DATA.path.stretchAround;
+                var f = DATA.path.stretchable ? st : 1;
+                return {
+                  p: [v.p[0], cyy + (v.p[1] - cyy) * f],
+                  in: [v.in[0], v.in[1] * f],
+                  out: [v.out[0], v.out[1] * f],
+                };
+              });
+              var rigW = rotate ? 3840 : comp.width,
+                rigH = rotate ? 2160 : comp.height;
+              if (look.centerPath) path = R.buildPath(verts, DATA.path.closed, 64, [rigW / 2, rigH / 2]);
+              else {
+                verts = verts.map(function (v) {
+                  return { p: [v.p[0] + offX, v.p[1] + offY], in: v.in, out: v.out };
+                });
+                path = R.buildPath(verts, DATA.path.closed, 64, null);
+              }
+            }
+            var rigComp = rotate ? Object.assign({}, comp, { width: 3840, height: 2160 }) : comp;
+            var parent = null;
+            if (ctl.parent) {
+              parent = {
+                anchor: [ctl.parent.anchor[0] + offX, ctl.parent.anchor[1] + offY, ctl.parent.anchor[2]],
+                position: [ctl.parent.position[0] + offX, ctl.parent.position[1] + offY, ctl.parent.position[2]],
+              };
+            }
+          
+            var K = DATA.keys || {};
+            var drives = {};
+            for (var name in K) {
+              var cumulative =
+                /^(Move Carousel|Rotation [XYZ])$/.test(name) && Math.abs(K[name][K[name].length - 1].value - K[name][0].value) > 1e-6;
+              drives[name] = R.chainedDrive(K[name], cumulative ? "accumulate" : "pingpong");
+            }
+            var tt = function (t) { return t * motion.speedScale; };
+            var baseSpeed = (ctl.speed || 0) / 1000;
+            var fallbackCruise = family === "orbit" ? (motion.orbitSpinDegPerSec || 24) / 360 : baseSpeed;
+            var prog = R.buildProgress(Object.assign({ duration: comp.duration, cruise: fallbackCruise }, motion));
+            var hasMove = !!drives["Move Carousel"],
+              hasSpin = !!(drives["Rotation X"] || drives["Rotation Y"] || drives["Rotation Z"]);
+            function controlsAt(t) {
+              var c = Object.assign({}, ctl);
+              if (parent) c.parent = parent;
+              for (var nm in drives) {
+                var v = drives[nm].at(tt(t));
+                if (nm === "Move Carousel") c.moveCarousel = v;
+                else if (nm === "Depth Angle") c.depthAngle = v;
+                else if (nm === "Rotation Follow") c.rotationFollow = v;
+                else if (nm === "Rotation X") c.rotationX = v;
+                else if (nm === "Rotation Y") c.rotationY = v;
+                else if (nm === "Rotation Z") c.rotationZ = v;
+              }
+              if (family === "orbit") c.spinTurns = { x: 0, y: 0, z: 0 };
+              return c;
+            }
+            function uAt(t) {
+              if (family === "orbit") return hasSpin ? 0 : prog.at(t);
+              return hasMove ? baseSpeed * tt(t) : prog.at(t);
+            }
+            var endFade = path && !path.closed ? (look.endFade == null ? 0.06 : look.endFade) : 0;
+          
+            var RING = DATA.ring || null;
+            var converge = RING && RING.entry === "converge";
+            var cvE = converge ? gsap.parseEase(RING.ease || "power3.out") : null;
+            var ringStartRef = 0;
+            var fit = 1;
+            if (TXT) ringStartRef = (TXT.words.length - 1) * TXT.wordStagger;
+            function convergeFactor(i, t) {
+              var per = (RING.stagger || 0.5) / n,
+                s0 = ringStartRef + i * per,
+                d = RING.duration || 0.8;
+              var e = t <= s0 ? 0 : t >= s0 + d ? 1 : cvE((t - s0) / d);
+              return 1 + ((RING.from || 3) - 1) * (1 - e);
+            }
+            function poseList(t) {
+              var u = uAt(t),
+                c = controlsAt(t);
+              var poses = family === "orbit" ? R.orbitRig(c, comp, n, u) : R.pathRig(path, c, rigComp, n, u);
+              for (var i = 0; i < n; i++) {
+                var p = poses[i];
+                if (rotate) {
+                  var rx = cx - (p.y - 1080),
+                    ry = cy + (p.x - 1920);
+                  p.x = rx;
+                  p.y = ry;
+                }
+                if (converge) {
+                  var f = convergeFactor(i, t);
+                  p.x = cx + (p.x - cx) * f;
+                  p.y = cy + (p.y - cy) * f;
+                }
+                p.alpha = p.visible === false ? 0 : 1;
+                if (endFade) {
+                  var e = Math.min(p.pct, 1 - p.pct) / endFade;
+                  p.alpha *= e < 1 ? e : 1;
+                }
+              }
+              return poses;
+            }
+            function render(t) {
+              var poses = poseList(t);
+              for (var i = 0; i < n; i++) {
+                var p = poses[i],
+                  el = els[i];
+                el.style.opacity = p.alpha;
+                el.style.transform =
+                  "translate3d(" + p.x.toFixed(2) + "px," + p.y.toFixed(2) + "px," + (-p.z).toFixed(2) + "px)" +
+                  (p.rotY ? " rotateY(" + p.rotY.toFixed(3) + "deg)" : "") +
+                  (p.rotX ? " rotateX(" + p.rotX.toFixed(3) + "deg)" : "") +
+                  (p.rotZ ? " rotateZ(" + p.rotZ.toFixed(3) + "deg)" : "") +
+                  " scale(" + p.scale.toFixed(5) + ")";
+              }
+            }
+          
+            // Shrink the whole scene when its cards would reach past the frame (looked up over the whole
+            // timeline from the same pose function that draws it, so it is the same on every render).
+            if (DATA.fit) {
+              var zoom = look.zoom || 1,
+                P = comp.cameraZoom;
+              var t0 = converge ? ringStartRef + (RING.stagger || 0.5) + (RING.duration || 0.8) : 0,
+                t1 = DATA.cutAt || comp.duration;
+              var mx = 1,
+                my = 1;
+              for (var ts = t0; ts <= t1 + 1e-6; ts += 0.1) {
+                var ps = poseList(ts);
+                for (var q = 0; q < n; q++) {
+                  var pp = ps[q];
+                  if (pp.alpha === 0) continue;
+                  var f3 = is3d ? P / Math.max(1, P - (-pp.z - camShift)) : 1;
+                  var half = (BOX / 2) * pp.scale * f3;
+                  var skew = pp.rotZ ? Math.abs(Math.cos((pp.rotZ * Math.PI) / 180)) + Math.abs(Math.sin((pp.rotZ * Math.PI) / 180)) : 1;
+                  mx = Math.max(mx, (Math.abs(pp.x - cx) * f3 + half * skew) * zoom);
+                  my = Math.max(my, (Math.abs(pp.y - cy) * f3 + half * skew) * zoom);
+                }
+              }
+              fit = Math.min(1, (0.96 * cx) / mx, (0.96 * cy) / my);
+            }
+            var fitScale = scale * fit;
+            [scaler].concat(Array.prototype.slice.call(document.querySelectorAll("." + TAG + "-scaler"))).forEach(function (el) {
+              if (!el) return;
+              el.style.transform = "translate(" + (W * (1 - fit)) / 2 + "px," + (H * (1 - fit)) / 2 + "px) scale(" + fitScale + ")";
+            });
+          
+            var clock = { t: 0 };
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo(clock, { t: 0 }, { t: comp.duration, duration: comp.duration, ease: "none", onUpdate: function () { render(clock.t); } }, 0);
+          
+            var ringStart = 0;
+            if (TXT) {
+              var wd = TXT.wordDuration,
+                ws = TXT.wordStagger;
+              TXT.words.forEach(function (w, k) {
+                var targets = textLayers.map(function (L) { return L.firstChild.children[k].firstChild; });
+                tl.fromTo(targets, { xPercent: 110 }, { xPercent: 0, duration: wd, ease: "power3.out", immediateRender: true }, k * ws);
+              });
+              ringStart = (TXT.words.length - 1) * ws;
+              if (TXT.driftPx) {
+                var d0 = wd * (TXT.driftOverlapAt == null ? 0.61 : TXT.driftOverlapAt);
+                var px = TXT.driftPx * 2 * (comp.width / 3840);
+                var DE = TXT.driftEase || { power: 1, linear: 1 };
+                var kk = DE.linear == null ? 0.35 : DE.linear,
+                  pw = DE.power || 3;
+                var driftEase = function (x) { return (1 - kk) * (1 - Math.pow(1 - x, pw)) + kk * x; };
+                var xFrom = TXT.driftEndsCentered ? px : 0,
+                  xTo = TXT.driftEndsCentered ? 0 : -px;
+                tl.fromTo(textLayers.map(function (L) { return L.firstChild; }), { x: xFrom }, { x: xTo, duration: (DATA.cutAt || comp.duration) - d0, ease: driftEase, immediateRender: true }, d0);
+              }
+            }
+            ringStartRef = ringStart;
+            var each = motion.entryStaggerTotal / n,
+              lead = TXT ? 0 : motion.entryLead || 0,
+              eDur = motion.entryDuration;
+            var E = gsap.parseEase("power3.out");
+            for (var j = 0; j < n; j++) {
+              if (converge) break;
+              var start = ringStart + j * each - lead;
+              if (start >= 0) {
+                tl.fromTo(inners[j], { autoAlpha: 0, scale: 0.72 }, { autoAlpha: 1, scale: 1, duration: eDur, ease: "power3.out", immediateRender: true }, start);
+                continue;
+              }
+              if (start + eDur <= 0) continue;
+              var p0 = -start / eDur,
+                e0 = E(p0);
+              var tail = (function (p0, e0) { return function (x) { return (E(p0 + x * (1 - p0)) - e0) / (1 - e0); }; })(p0, e0);
+              tl.fromTo(inners[j], { autoAlpha: e0, scale: 0.72 + 0.28 * e0 }, { autoAlpha: 1, scale: 1, duration: eDur + start, ease: tail, immediateRender: true }, 0);
+            }
+          
+            var END = DATA.ending || null;
+            var cutAt = DATA.cutAt || comp.duration;
+            if (END) {
+              var tA = END.textScaleAt,
+                tB = tA + (END.imagesDelay == null ? 0.2 : END.imagesDelay);
+              if (TXT && END.textScaleTo != null)
+                tl.fromTo(textLayers, { scale: 1 }, { scale: END.textScaleTo, duration: cutAt - tA, ease: END.ease || "power2.in", immediateRender: true }, tA);
+              if (END.imagesTo != null)
+                tl.fromTo(squeeze, { scale: 1 }, { scale: END.imagesTo, duration: cutAt - tB, ease: END.ease || "power2.in", immediateRender: true }, tB);
+            }
+            if (OUT) {
+              var line = document.getElementById(TAG + "-outro-line");
+              var driftEl = document.getElementById(TAG + "-outro-drift");
+              line.style.fontSize = OUT.fontSize + "px";
+              line.style.color = OUT.color;
+              OUT.words.forEach(function (w) {
+                var s = document.createElement("span");
+                s.className = TAG + "-word";
+                s.textContent = w;
+                driftEl.appendChild(s);
+              });
+              var sd = OUT.scaleDuration || 0.8;
+              tl.fromTo(line, { scale: OUT.scaleFrom == null ? 1.4 : OUT.scaleFrom }, { scale: OUT.scaleTo == null ? 1 : OUT.scaleTo, duration: sd, ease: OUT.ease || "power2.out", immediateRender: true }, cutAt);
+            }
+            if (tl.duration() < comp.duration) tl.to({}, { duration: comp.duration - tl.duration() });
+            render(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["carousel-orbit-5"] = tl;
+          })();
+          
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,165 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rack-focus",
+  "type": "hyperframes:component",
+  "title": "Rack Focus",
+  "description": "A focus pull with real aperture bokeh: a night scene of lights spread from 1.2 m to 80 m, where the focal plane travels from the string of bulbs in front of the lens to the lit towers behind it, and every light is an image of the lens aperture sized by its circle of confusion. WebGL point sprites.",
+  "tags": [
+    "shader",
+    "bokeh",
+    "focus",
+    "depth",
+    "camera",
+    "cinematic",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 6,
+  "useWhen": [
+    "A camera-style focus pull on a night scene: bokeh discs sharpen into lamps and towers, for a cinematic opener or a lens-themed transition.",
+    "A depth-of-field backdrop whose bokeh shape (blades, cat-eye) matches a lens look."
+  ],
+  "avoidWhen": [
+    "The shot is flat, single-plane content: a focus pull only reads with depth, so use this block as its own scene.",
+    "The render budget is tight: about 1,500 additive sprites are drawn per frame on a CPU renderer."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/rack-focus/rack-focus.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "rack-focus.html",
+      "target": "compositions/components/rack-focus.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "nearfocus",
+      "type": "number",
+      "role": "style",
+      "label": "Near focal distance",
+      "default": 1.2,
+      "min": 0.2,
+      "max": 100,
+      "step": 0.05,
+      "unit": "m"
+    },
+    {
+      "id": "farfocus",
+      "type": "number",
+      "role": "style",
+      "label": "Far focal distance",
+      "default": 80,
+      "min": 0.3,
+      "max": 400,
+      "step": 0.5,
+      "unit": "m"
+    },
+    {
+      "id": "focallength",
+      "type": "number",
+      "role": "style",
+      "label": "Focal length",
+      "default": 85,
+      "min": 12,
+      "max": 300,
+      "step": 1,
+      "unit": "mm"
+    },
+    {
+      "id": "aperture",
+      "type": "number",
+      "role": "style",
+      "label": "Aperture (f-number)",
+      "default": 1.8,
+      "min": 0.95,
+      "max": 22,
+      "step": 0.05
+    },
+    {
+      "id": "blades",
+      "type": "number",
+      "role": "style",
+      "label": "Aperture blades (bokeh shape)",
+      "default": 6,
+      "min": 3,
+      "max": 14,
+      "step": 1
+    },
+    {
+      "id": "catseye",
+      "type": "number",
+      "role": "style",
+      "label": "Cat eye clipping at the corners",
+      "default": 0.62,
+      "min": 0,
+      "max": 1,
+      "step": 0.02
+    },
+    {
+      "id": "pullstart",
+      "type": "number",
+      "role": "timing",
+      "label": "Pull start",
+      "default": 1.2,
+      "min": 0,
+      "max": 30,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "pullduration",
+      "type": "number",
+      "role": "timing",
+      "label": "Pull duration",
+      "default": 3.2,
+      "min": 0.1,
+      "max": 30,
+      "step": 0.05,
+      "unit": "s"
+    },
+    {
+      "id": "pullease",
+      "type": "string",
+      "role": "motion",
+      "label": "Pull easing (GSAP ease)",
+      "default": "power2.inOut"
+    },
+    {
+      "id": "bokeh",
+      "type": "number",
+      "role": "style",
+      "label": "Bokeh exposure",
+      "default": 1,
+      "min": 0,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "backdrop",
+      "type": "color",
+      "role": "style",
+      "label": "Backdrop",
+      "default": "#05060a"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the lights are drawn at, then scaled up. Fine wires and filaments need 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

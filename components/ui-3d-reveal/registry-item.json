@@ -1,0 +1,137 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "ui-3d-reveal",
+  "type": "hyperframes:component",
+  "title": "3D UI Reveal",
+  "description": "A logo mark draws on, then a design-tool window (layers, canvas, properties) flies in flat, pushes in, tilts into 3D and flies away, ending on a logo, tagline and link pill.",
+  "tags": [
+    "3d",
+    "ui",
+    "mockup",
+    "reveal",
+    "product-showcase",
+    "outro",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 13,
+  "useWhen": [
+    "A product or app needs a cinematic 'here is the interface' moment: reveal, push in, tilt, leave.",
+    "A short brand open and close (logo draws on, tagline, link) around a UI showcase."
+  ],
+  "avoidWhen": [
+    "The real interface of your own product must be shown: use a screenshot or screen recording.",
+    "The video is short and light: this runs 13 seconds and keeps a 3D layer busy."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/ui-3d-reveal/ui-3d-reveal.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "ui-3d-reveal.html",
+      "target": "compositions/components/ui-3d-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "project_name",
+      "type": "string",
+      "role": "content",
+      "label": "Project name",
+      "description": "File name in the toolbar.",
+      "default": "Untitled project"
+    },
+    {
+      "id": "page_name",
+      "type": "string",
+      "role": "content",
+      "label": "Page name",
+      "description": "Page next to the file name.",
+      "default": "Design system"
+    },
+    {
+      "id": "frame_name",
+      "type": "string",
+      "role": "content",
+      "label": "Frame name",
+      "description": "Name of the frame in the layers and over the canvas.",
+      "default": "Home screen"
+    },
+    {
+      "id": "selected_layer",
+      "type": "string",
+      "role": "content",
+      "label": "Selected layer",
+      "description": "Layer highlighted in the list and outlined on the canvas.",
+      "default": "Create card"
+    },
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Sample app headline",
+      "description": "Heading of the sample app on the canvas; use \\n for a line break.",
+      "default": "Turn your ideas into\\nfinished designs"
+    },
+    {
+      "id": "input_hint",
+      "type": "string",
+      "role": "content",
+      "label": "Sample app input hint",
+      "description": "Placeholder in the sample app's input.",
+      "default": "Describe what you want to make ..."
+    },
+    {
+      "id": "button_label",
+      "type": "string",
+      "role": "content",
+      "label": "Sample app button",
+      "description": "Label of the sample app's button.",
+      "default": "Generate"
+    },
+    {
+      "id": "tagline",
+      "type": "string",
+      "role": "content",
+      "label": "Tagline",
+      "description": "Line typed in under the logo at the end.",
+      "default": "Design in motion."
+    },
+    {
+      "id": "pill_text",
+      "type": "string",
+      "role": "content",
+      "label": "Link pill",
+      "description": "Text in the pill under the tagline. Keep it short.",
+      "default": "example.com"
+    },
+    {
+      "id": "logo_colors",
+      "type": "string",
+      "role": "style",
+      "label": "Logo colours",
+      "description": "Four hex colours for the four shapes of the mark, comma separated.",
+      "default": "#0a0a0a, #525252, #2563eb, #a3a3a3"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Selection outline, Share button and glow.",
+      "default": "#18a0fb"
+    }
+  ],
+  "checkAt": [
+    1.5,
+    3.5,
+    4.5,
+    12
+  ]
+}

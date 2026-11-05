@@ -1,0 +1,181 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "share-sheet-carousel",
+  "type": "hyperframes:component",
+  "title": "Share Sheet Carousel",
+  "description": "A share sheet springs up over a blurred backdrop, its preview cycling through four slides in quick cuts, then the Accept button is pressed.",
+  "tags": [
+    "share",
+    "sheet",
+    "carousel",
+    "dialog",
+    "ui",
+    "social",
+    "hyperframes-port"
+  ],
+  "category": "ui-blocks",
+  "duration": 7.2333,
+  "useWhen": [
+    "A spot shows something being shared, received or accepted: an invite, a gift, a file.",
+    "A quick rhythmic slideshow sits inside a UI frame."
+  ],
+  "avoidWhen": [
+    "You need real photos in the preview: this draws coloured word cards.",
+    "The scene should be a full chat: use chat-flow."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/share-sheet-carousel/share-sheet-carousel.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "share-sheet-carousel.html",
+      "target": "compositions/components/share-sheet-carousel.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "share_title",
+      "type": "string",
+      "role": "content",
+      "label": "Sheet title",
+      "description": "Heading at the top of the share sheet.",
+      "default": "Share",
+      "maxLength": 30
+    },
+    {
+      "id": "sender_name",
+      "type": "string",
+      "role": "content",
+      "label": "Sender",
+      "description": "Name shown as the sender offering the item, and in the preview strip.",
+      "default": "Studio",
+      "maxLength": 24
+    },
+    {
+      "id": "item_label",
+      "type": "string",
+      "role": "content",
+      "label": "Item",
+      "description": "What the sender is offering, completing the sentence 'would like to share ...'.",
+      "default": "a video",
+      "maxLength": 40
+    },
+    {
+      "id": "strip_text",
+      "type": "string",
+      "role": "content",
+      "label": "Strip line",
+      "description": "Small spaced caps line in the preview strip.",
+      "default": "MADE WITH CARE · FRESH EVERY WEEK",
+      "maxLength": 48
+    },
+    {
+      "id": "accept_label",
+      "type": "string",
+      "role": "content",
+      "label": "Accept label",
+      "description": "Right-hand action button.",
+      "default": "Accept",
+      "maxLength": 16
+    },
+    {
+      "id": "decline_label",
+      "type": "string",
+      "role": "content",
+      "label": "Decline label",
+      "description": "Left-hand action button.",
+      "default": "Decline",
+      "maxLength": 16
+    },
+    {
+      "id": "slide_color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Slide 1 colour",
+      "description": "Colour of the first carousel slide.",
+      "default": "#e4572e"
+    },
+    {
+      "id": "slide_color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Slide 2 colour",
+      "description": "Colour of the second carousel slide.",
+      "default": "#2e86ab"
+    },
+    {
+      "id": "slide_color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Slide 3 colour",
+      "description": "Colour of the third carousel slide.",
+      "default": "#7b4fd6"
+    },
+    {
+      "id": "slide_color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Slide 4 colour",
+      "description": "Colour of the fourth carousel slide.",
+      "default": "#2a9d6a"
+    },
+    {
+      "id": "slide_text_1",
+      "type": "string",
+      "role": "content",
+      "label": "Slide 1 text",
+      "description": "Word on the first slide.",
+      "default": "Fresh",
+      "maxLength": 14
+    },
+    {
+      "id": "slide_text_2",
+      "type": "string",
+      "role": "content",
+      "label": "Slide 2 text",
+      "description": "Word on the second slide.",
+      "default": "Bold",
+      "maxLength": 14
+    },
+    {
+      "id": "slide_text_3",
+      "type": "string",
+      "role": "content",
+      "label": "Slide 3 text",
+      "description": "Word on the third slide.",
+      "default": "Simple",
+      "maxLength": 14
+    },
+    {
+      "id": "slide_text_4",
+      "type": "string",
+      "role": "content",
+      "label": "Slide 4 text",
+      "description": "Word on the fourth slide.",
+      "default": "Yours",
+      "maxLength": 14
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accept colour",
+      "description": "Colour of the Accept label.",
+      "default": "#087a57"
+    },
+    {
+      "id": "strip_color",
+      "type": "color",
+      "role": "style",
+      "label": "Strip colour",
+      "description": "Background of the preview strip.",
+      "default": "#f2ecdf"
+    }
+  ]
+}

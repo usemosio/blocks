@@ -1,0 +1,295 @@
+<!doctype html>
+<!--
+  Flight Route Map
+
+  A plane flies a glowing route between two labelled pins over a drawn map, the camera drifts, the destination gets a hand-drawn circle and an arrival badge.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/nyc-paris-flight/nyc-paris-flight.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License,
+  Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless
+  required by applicable law or agreed to in writing, software distributed under the License is
+  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+  or implied. See the License for the specific language governing permissions and limitations
+  under the License.
+
+  Changes by usemosio/blocks: fills the host frame (the route runs left to right in a wide frame and bottom to top in a tall one), renamed from nyc-paris-flight and made generic (origin, destination, codes, headline and badge are variables, no real cities, no distance), the OpenStreetMap map image is replaced by a drawn map (ocean, graticule, seeded landmasses), the sound effect file is dropped, the plane follows the path from the timeline instead of CSS offset-path, colours are variables.
+-->
+<html
+  lang="en"
+  data-composition-id="flight-route-map"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id": "origin", "type": "string", "role": "content", "label": "Origin", "description": "Name of the departure point, on its pin and in the headline.", "default": "Harbor City", "maxLength": 24},
+    {"id": "origin_code", "type": "string", "role": "content", "label": "Origin code", "description": "Small line under the origin name.", "default": "HBR / NORTH", "maxLength": 20},
+    {"id": "destination", "type": "string", "role": "content", "label": "Destination", "description": "Name of the arrival point, on its pin and in the headline.", "default": "Summit City", "maxLength": 24},
+    {"id": "destination_code", "type": "string", "role": "content", "label": "Destination code", "description": "Small line under the destination name.", "default": "SMT / EAST", "maxLength": 20},
+    {"id": "eyebrow", "type": "string", "role": "content", "label": "Eyebrow", "description": "Small line above the headline.", "default": "Six-second hop", "maxLength": 40},
+    {"id": "joiner", "type": "string", "role": "content", "label": "Joiner", "description": "Accent word between the two names in the headline.", "default": "TO", "maxLength": 10},
+    {"id": "route_note", "type": "string", "role": "content", "label": "Route note", "description": "Line under the headline.", "default": "A long way, compressed", "maxLength": 40},
+    {"id": "arrived", "type": "string", "role": "content", "label": "Arrival badge", "description": "Badge that pops next to the destination.", "default": "ARRIVED", "maxLength": 16},
+    {"id": "accent", "type": "color", "role": "style", "label": "Route colour", "description": "Colour of the route, pins and plane.", "default": "#2563eb"},
+    {"id": "doodle", "type": "color", "role": "style", "label": "Circle colour", "description": "Colour of the hand-drawn circle and the badge.", "default": "#e5322d"},
+    {"id": "ink", "type": "color", "role": "style", "label": "Text colour", "description": "Headline and label colour.", "default": "#1d1d1f"},
+    {"id": "ocean", "type": "color", "role": "style", "label": "Ocean", "description": "Sea colour of the map.", "default": "#dfe7f1"},
+    {"id": "land", "type": "color", "role": "style", "label": "Land", "description": "Colour of the landmasses.", "default": "#f6f6f2"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flight Route Map</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; font-family: Inter, system-ui, sans-serif; color: var(--frm-ink, #1d1d1f); background: var(--frm-ocean, #dfe7f1); pointer-events: none; }
+        #frm-plane-map { position: absolute; inset: 0; transform-origin: 52% 48%; }
+        #frm-map, #frm-route, #frm-doodle { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        #frm-route path, #frm-doodle path { fill: none; stroke-linecap: round; }
+        .frm-tick { position: absolute; border-radius: 999px; background: #fff; opacity: 0; }
+        .frm-pin { position: absolute; border-radius: 999px; background: #fff; transform: translate(-50%, -50%); }
+        .frm-label { position: absolute; background: rgba(255, 255, 255, 0.84); font-weight: 800; line-height: 1; white-space: nowrap; box-shadow: 0 18px 38px rgba(29, 29, 31, 0.16); }
+        .frm-label span { display: block; color: #6e6e73; font-weight: 700; }
+        #frm-plane { position: absolute; left: 0; top: 0; filter: drop-shadow(0 12px 12px rgba(0, 0, 0, 0.24)); }
+        #frm-plane svg { width: 100%; height: 100%; overflow: visible; display: block; }
+        #frm-pulse { position: absolute; border-radius: 999px; opacity: 0; }
+        #frm-badge { position: absolute; background: rgba(255, 255, 255, 0.92); font-weight: 900; line-height: 1; opacity: 0; transform-origin: center; white-space: nowrap; box-shadow: 0 20px 44px rgba(29, 29, 31, 0.14); }
+        #frm-title { position: absolute; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(255, 255, 255, 0.86); box-shadow: 0 28px 70px rgba(29, 29, 31, 0.12); backdrop-filter: blur(22px); }
+        #frm-eyebrow { color: #6e6e73; font-weight: 800; }
+        #frm-headline { font-weight: 900; line-height: 0.95; }
+        #frm-headline span { color: var(--frm-accent, #2563eb); }
+        #frm-meta { display: flex; align-items: center; color: #6e6e73; font-weight: 800; }
+        #frm-meta i { display: block; border-radius: 999px; background: var(--frm-accent, #2563eb); }
+        #frm-white { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="flight-route-map" data-duration="6" data-fps="30">
+        <div id="frm-clip" class="clip" data-start="0" data-duration="6" data-track-index="0" style="position:absolute;inset:0">
+          <div id="frm-plane-map">
+            <svg id="frm-map"></svg>
+            <svg id="frm-route"><path id="frm-glow"></path><path id="frm-path"></path><path id="frm-thread"></path></svg>
+            <div id="frm-ticks"></div>
+            <div id="frm-pin-a" class="frm-pin"><div class="frm-label" id="frm-label-a"></div></div>
+            <div id="frm-pin-b" class="frm-pin"><div class="frm-label" id="frm-label-b"></div></div>
+            <div id="frm-plane"><svg viewBox="-64 -64 128 128"><path d="M 58 0 C 52 -10 37 -15 15 -16 L -18 -56 C -23 -62 -34 -58 -32 -49 L -21 -15 L -48 -12 C -56 -11 -60 -6 -60 0 C -60 6 -56 11 -48 12 L -21 15 L -32 49 C -34 58 -23 62 -18 56 L 15 16 C 37 15 52 10 58 0 Z" fill="#fff"></path><path id="frm-plane-fill" d="M 54 0 C 46 -6 33 -9 14 -10 L -19 -50 C -21 -53 -25 -52 -25 -47 L -15 -10 L -49 -6 C -53 -5 -55 -2 -55 0 C -55 2 -53 5 -49 6 L -15 10 L -25 47 C -25 52 -21 53 -19 50 L 14 10 C 33 9 46 6 54 0 Z"></path><circle cx="18" cy="0" r="6" fill="#f5f5f7" opacity="0.95"></circle></svg></div>
+            <svg id="frm-doodle"><path id="frm-doodle-a"></path><path id="frm-doodle-b"></path></svg>
+            <div id="frm-pulse"></div>
+            <div id="frm-badge"></div>
+          </div>
+          <div id="frm-title"><div id="frm-eyebrow"></div><div id="frm-headline"></div><div id="frm-meta"><i></i><p id="frm-note"></p></div></div>
+          <div id="frm-white"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var NS = "http://www.w3.org/2000/svg";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function str(v, f, max) { return typeof v === "string" && v.trim() ? v.trim().slice(0, max || 40) : f; }
+            function col(v, f) { return typeof v === "string" && v ? v : f; }
+            var origin = str(vars.origin, "Harbor City", 24), destination = str(vars.destination, "Summit City", 24);
+            var accent = col(vars.accent, "#2563eb"), doodleCol = col(vars.doodle, "#e5322d");
+            root.style.setProperty("--frm-ink", col(vars.ink, "#1d1d1f"));
+            root.style.setProperty("--frm-accent", accent);
+            root.style.setProperty("--frm-ocean", col(vars.ocean, "#dfe7f1"));
+            var DUR = 6;
+            function $(id) { return document.getElementById(id); }
+            function px(el, props) { for (var p in props) el.style[p] = props[p] + "px"; }
+            function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+            var W = root.clientWidth || 1920, H = root.clientHeight || 1080;
+            var portrait = H > W;
+            var k = Math.min(W, H) / 1080;
+
+            /* Route: left-low to right-high in a wide frame, bottom to top in a tall one. */
+            var A = portrait ? { x: W * 0.27, y: H * 0.8 } : { x: W * 0.16, y: H * 0.54 };
+            var B = portrait ? { x: W * 0.74, y: H * 0.3 } : { x: W * 0.84, y: H * 0.36 };
+            var c1 = portrait ? { x: W * 0.05, y: H * 0.5 } : { x: W * 0.34, y: H * 0.48 };
+            var c2 = portrait ? { x: W * 0.9, y: H * 0.6 } : { x: W * 0.58, y: H * 0.23 };
+            var routeD = "M " + A.x + " " + A.y + " C " + c1.x + " " + c1.y + " " + c2.x + " " + c2.y + " " + B.x + " " + B.y;
+
+            /* The map: ocean, a graticule, two drawn landmasses and a few islands. */
+            var map = $("frm-map");
+            map.setAttribute("viewBox", "0 0 " + W + " " + H);
+            function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var a in attrs) e.setAttribute(a, attrs[a]); (parent || map).appendChild(e); return e; }
+            var defs = el("defs", {});
+            var rg = el("radialGradient", { id: "frm-sea", cx: "50%", cy: "30%", r: "70%" }, defs);
+            el("stop", { offset: "0", "stop-color": "#ffffff", "stop-opacity": "0.5" }, rg);
+            el("stop", { offset: "1", "stop-color": "#ffffff", "stop-opacity": "0" }, rg);
+            el("rect", { x: 0, y: 0, width: W, height: H, fill: "url(#frm-sea)" });
+            var grid = 120 * k;
+            for (var gx = grid / 2; gx < W; gx += grid) el("line", { x1: gx, y1: 0, x2: gx, y2: H, stroke: "#fff", "stroke-opacity": 0.55, "stroke-width": 1.5 * k });
+            for (var gy = grid / 2; gy < H; gy += grid) el("line", { x1: 0, y1: gy, x2: W, y2: gy, stroke: "#fff", "stroke-opacity": 0.55, "stroke-width": 1.5 * k });
+            var landFill = col(vars.land, "#f6f6f2");
+            function blob(cx, cy, r, seed, n, squash) {
+              var rnd = mulberry32(seed), pts = [], i;
+              for (i = 0; i < n; i++) {
+                var a = (i / n) * Math.PI * 2, rr = r * (0.62 + rnd() * 0.55);
+                pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * (squash || 1)]);
+              }
+              var d = "M " + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+              for (i = 0; i < n; i++) {
+                var p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+                d += " C " + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + " " + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + " " +
+                  (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + " " + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + " " + p2[0].toFixed(1) + " " + p2[1].toFixed(1);
+              }
+              return d + " Z";
+            }
+            var R = Math.min(W, H);
+            [[A.x - R * 0.1, A.y - R * 0.04, R * 0.42, 11, 1.0], [A.x + R * 0.28, A.y + R * 0.3, R * 0.2, 12, 0.8], [B.x + R * 0.1, B.y - R * 0.02, R * 0.4, 5, 0.9], [B.x - R * 0.3, B.y - R * 0.34, R * 0.18, 6, 0.8],
+             [(A.x + B.x) / 2 + R * 0.05, (A.y + B.y) / 2 + R * 0.12, R * 0.07, 14, 0.8], [(A.x + B.x) / 2 - R * 0.18, (A.y + B.y) / 2 - R * 0.08, R * 0.05, 15, 0.9]].forEach(function (b) {
+              el("path", { d: blob(b[0], b[1], b[2], b[3], 9, b[4]), fill: landFill, stroke: "#c9d3df", "stroke-width": 2 * k });
+            });
+
+            var route = $("frm-route");
+            route.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var glow = $("frm-glow"), path = $("frm-path"), thread = $("frm-thread");
+            [glow, path, thread].forEach(function (p) { p.setAttribute("d", routeD); });
+            glow.setAttribute("stroke", accent); glow.setAttribute("stroke-opacity", 0.23); glow.setAttribute("stroke-width", 24 * k); glow.style.filter = "blur(" + 4 * k + "px)";
+            path.setAttribute("stroke", accent); path.setAttribute("stroke-width", 9 * k);
+            thread.setAttribute("stroke", "#fff"); thread.setAttribute("stroke-opacity", 0.86); thread.setAttribute("stroke-width", 3 * k);
+            var LEN = path.getTotalLength();
+            [glow, path, thread].forEach(function (p) { p.style.strokeDasharray = LEN; p.style.strokeDashoffset = LEN; });
+
+            var ticks = [];
+            for (var t = 1; t <= 6; t++) {
+              var pt = path.getPointAtLength((LEN * t) / 7);
+              var tk = document.createElement("div");
+              tk.className = "frm-tick";
+              tk.style.border = 3 * k + "px solid " + accent;
+              px(tk, { width: 14 * k, height: 14 * k, left: pt.x - 7 * k, top: pt.y - 7 * k });
+              tk.style.boxSizing = "border-box";
+              $("frm-ticks").appendChild(tk);
+              ticks.push(tk);
+            }
+
+            function pin(id, labelId, P, name, code, side) {
+              var pe = $(id), lb = $(labelId);
+              px(pe, { left: P.x, top: P.y, width: 26 * k, height: 26 * k });
+              pe.style.border = 7 * k + "px solid " + accent;
+              pe.style.boxShadow = "0 " + 15 * k + "px " + 34 * k + "px rgba(0,0,0,.18), 0 0 0 " + 10 * k + "px " + accent + "20";
+              pe.style.boxSizing = "border-box";
+              lb.innerHTML = "";
+              lb.appendChild(document.createTextNode(name));
+              var sp = document.createElement("span"); sp.textContent = code; lb.appendChild(sp);
+              lb.style.top = 32 * k + "px";
+              lb.style.minWidth = 142 * k + "px";
+              lb.style.padding = 12 * k + "px " + 16 * k + "px " + 13 * k + "px";
+              lb.style.borderRadius = 20 * k + "px";
+              lb.style.fontSize = 22 * k + "px";
+              lb.style.color = col(vars.ink, "#1d1d1f");
+              sp.style.marginTop = 7 * k + "px"; sp.style.fontSize = 13 * k + "px";
+              if (side === "left") lb.style.left = 28 * k + "px"; else lb.style.right = 28 * k + "px";
+            }
+            pin("frm-pin-a", "frm-label-a", A, origin, str(vars.origin_code, "HBR / NORTH", 20), "left");
+            pin("frm-pin-b", "frm-label-b", B, destination, str(vars.destination_code, "SMT / EAST", 20), "left");
+
+            var plane = $("frm-plane");
+            var PS = 112 * k;
+            px(plane, { width: PS, height: PS });
+            $("frm-plane-fill").setAttribute("fill", accent);
+            function placePlane(p) {
+              var d = 2;
+              var a = path.getPointAtLength(Math.max(0, LEN * p - d)), b = path.getPointAtLength(Math.min(LEN, LEN * p + d));
+              var m = path.getPointAtLength(LEN * p);
+              var ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+              gsap.set(plane, { x: m.x - PS / 2, y: m.y - PS / 2, rotation: ang, transformOrigin: "50% 50%" });
+            }
+
+            /* hand-drawn circle around the destination, drawn twice */
+            function loop(cx, cy, rx, ry, seed, off) {
+              var rnd = mulberry32(seed), n = 14, d = "";
+              for (var i = 0; i <= n; i++) {
+                var a = off + (i / n) * Math.PI * 2.08, j = 1 + (rnd() - 0.5) * 0.12;
+                var x = cx + Math.cos(a) * rx * j, y = cy + Math.sin(a) * ry * j;
+                d += (i ? " L " : "M ") + x.toFixed(1) + " " + y.toFixed(1);
+              }
+              return d;
+            }
+            var dsvg = $("frm-doodle");
+            dsvg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var da = $("frm-doodle-a"), db = $("frm-doodle-b");
+            da.setAttribute("d", loop(B.x, B.y, 105 * k, 85 * k, 21, 3.5)); db.setAttribute("d", loop(B.x, B.y, 112 * k, 90 * k, 33, 3.9));
+            da.setAttribute("stroke", doodleCol); da.setAttribute("stroke-width", 13 * k); da.setAttribute("stroke-linejoin", "round");
+            db.setAttribute("stroke", doodleCol); db.setAttribute("stroke-width", 6 * k); db.setAttribute("stroke-opacity", 0.82); db.setAttribute("stroke-linejoin", "round");
+            var dl = 900 * k;
+            [da, db].forEach(function (p) { var l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; p._len = l; });
+
+            var pulse = $("frm-pulse");
+            px(pulse, { width: 126 * k, height: 126 * k, left: B.x - 63 * k, top: B.y - 63 * k });
+            pulse.style.border = 4 * k + "px solid " + doodleCol + "57";
+            var badge = $("frm-badge");
+            badge.textContent = str(vars.arrived, "ARRIVED", 16);
+            badge.style.color = doodleCol;
+            badge.style.fontSize = 24 * k + "px";
+            badge.style.padding = 15 * k + "px " + 20 * k + "px " + 16 * k + "px";
+            badge.style.borderRadius = "999px";
+            badge.style.left = (B.x - 60 * k) + "px";
+            badge.style.top = B.y + 100 * k + "px";
+
+            var title = $("frm-title");
+            var tw = Math.min(W - 80 * k, 800 * k);
+            px(title, { left: portrait ? (W - tw) / 2 : 82 * k, top: portrait ? 70 * k : 70 * k, width: tw });
+            title.style.padding = 30 * k + "px " + 34 * k + "px " + 33 * k + "px";
+            title.style.borderRadius = 30 * k + "px";
+            $("frm-eyebrow").textContent = str(vars.eyebrow, "Six-second hop", 40);
+            $("frm-eyebrow").style.fontSize = 19 * k + "px";
+            var head = $("frm-headline");
+            head.style.marginTop = 11 * k + "px";
+            head.style.fontSize = 84 * k + "px";
+            head.appendChild(document.createTextNode(origin.toUpperCase() + " "));
+            var j = document.createElement("span"); j.textContent = str(vars.joiner, "TO", 10); head.appendChild(j);
+            head.appendChild(document.createTextNode(" " + destination.toUpperCase()));
+            $("frm-meta").style.marginTop = 18 * k + "px";
+            $("frm-meta").style.gap = 14 * k + "px";
+            $("frm-meta").style.fontSize = 25 * k + "px";
+            var mi = $("frm-meta").querySelector("i"); mi.style.width = 54 * k + "px"; mi.style.height = 6 * k + "px";
+            $("frm-note").textContent = str(vars.route_note, "A long way, compressed", 40);
+
+            /* timeline */
+            var st = { p: 0 };
+            var tl = gsap.timeline({ paused: true, defaults: { overwrite: "auto" } });
+            var mp = $("frm-plane-map");
+            tl.from(mp, { scale: 1.1, x: -38 * k, y: 20 * k, opacity: 0.94, duration: 1.05, ease: "power2.out" }, 0.16);
+            tl.from(title, { y: 28 * k, scale: 0.97, opacity: 0, duration: 0.52, ease: "expo.out" }, 0.24);
+            tl.from("#frm-eyebrow", { x: -22 * k, opacity: 0, duration: 0.36, ease: "power3.out" }, 0.32);
+            tl.from("#frm-headline", { y: 34 * k, opacity: 0, duration: 0.5, ease: "back.out(1.45)" }, 0.4);
+            tl.from("#frm-meta", { x: -26 * k, opacity: 0, duration: 0.38, ease: "circ.out" }, 0.58);
+            tl.from("#frm-pin-a", { scale: 0.12, opacity: 0, duration: 0.34, ease: "back.out(2.8)" }, 0.7);
+            tl.from("#frm-pin-b", { scale: 0.12, opacity: 0, duration: 0.34, ease: "elastic.out(1, 0.5)" }, 0.86);
+            tl.from(plane, { opacity: 0, duration: 0.3, ease: "power2.out" }, 1.08);
+            tl.to(glow, { strokeDashoffset: 0, duration: 3.1, ease: "power1.inOut" }, 1.16);
+            tl.to(path, { strokeDashoffset: 0, duration: 3.05, ease: "power2.inOut" }, 1.2);
+            tl.to(thread, { strokeDashoffset: 0, duration: 2.92, ease: "sine.inOut" }, 1.26);
+            tl.to(st, { p: 1, duration: 3.25, ease: "sine.inOut", onUpdate: function () { placePlane(st.p); } }, 1.17);
+            tl.to(mp, { scale: 1.025, duration: 3.2, ease: "sine.inOut" }, 1.28);
+            ticks.forEach(function (tk, i) {
+              tl.fromTo(tk, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.16, ease: "back.out(3)" }, 1.34 + i * 0.44);
+              tl.to(tk, { scale: 0.6, opacity: 0.18, duration: 0.34, ease: "power2.out" }, 1.48 + i * 0.44);
+            });
+            tl.fromTo(pulse, { scale: 0.52, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.26, ease: "back.out(2.4)" }, 4.06);
+            tl.to(da, { strokeDashoffset: 0, duration: 0.54, ease: "power2.out" }, 4.18);
+            tl.to(db, { strokeDashoffset: 0, duration: 0.36, ease: "power3.out" }, 4.36);
+            tl.to(pulse, { scale: 1.5, opacity: 0, duration: 0.58, ease: "power3.out" }, 4.64);
+            tl.to(plane, { scale: 1.23, duration: 0.16, ease: "back.out(3)" }, 4.96);
+            tl.to(plane, { scale: 0.9, duration: 0.12, ease: "power2.in" }, 5.12);
+            tl.to(plane, { scale: 1, duration: 0.22, ease: "elastic.out(1, 0.45)" }, 5.24);
+            gsap.set(badge, { scale: 0.78 });
+            tl.to(badge, { scale: 1, opacity: 1, duration: 0.28, ease: "back.out(2.4)" }, 5.02);
+            tl.to(badge, { scale: 1.06, duration: 0.16, yoyo: true, repeat: 1, ease: "sine.inOut" }, 5.3);
+            tl.set({}, {}, DUR);
+            placePlane(0);
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["flight-route-map"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

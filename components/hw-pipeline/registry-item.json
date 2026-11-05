@@ -1,0 +1,112 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hw-pipeline",
+  "type": "hyperframes:component",
+  "title": "Hand-Drawn Flowchart",
+  "description": "Wobbled boxes with handwritten labels joined by curved connectors, drawing on in sequence from a list of steps.",
+  "tags": [
+    "handwritten",
+    "diagram",
+    "flowchart",
+    "overlay",
+    "hyperframes-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 7,
+  "useWhen": [
+    "A process or pipeline of 2 to 6 steps should draw itself on screen like a quick whiteboard sketch.",
+    "The look should be hand-made and a little imperfect."
+  ],
+  "avoidWhen": [
+    "You need data-heavy diagrams with precise geometry: use a data-viz block.",
+    "More than 6 steps or long labels."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/hw-pipeline/hw-pipeline.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "hw-pipeline.html",
+      "target": "compositions/components/hw-pipeline.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "nodes",
+      "type": "string",
+      "role": "content",
+      "label": "Steps",
+      "description": "Box labels in order, comma separated (1 to 6).",
+      "default": "Idea, Record, Shine!"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Label size",
+      "description": "Label size in design pixels (shrinks when many boxes).",
+      "default": 56,
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "ink_color",
+      "type": "color",
+      "role": "style",
+      "label": "Ink",
+      "description": "Box and label colour.",
+      "default": "#f4f2ec"
+    },
+    {
+      "id": "accent_color",
+      "type": "color",
+      "role": "style",
+      "label": "Arrow colour",
+      "description": "Connector colour.",
+      "default": "#ffb020"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the drawing sits over your own scene.",
+      "default": false
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background colour when not transparent.",
+      "default": "#1c1b18"
+    },
+    {
+      "id": "boil",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Boil",
+      "description": "Lines jitter slightly every third frame, like hand-redrawn animation.",
+      "default": true
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "style",
+      "label": "Seed",
+      "description": "Changes the wobble of the hand-drawn lines.",
+      "default": 11,
+      "min": 1,
+      "max": 999,
+      "step": 1
+    }
+  ]
+}

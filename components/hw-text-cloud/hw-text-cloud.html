@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+  Hand-Drawn Speech Bubble
+
+  A wobbly hand-drawn speech bubble: the outline draws on, the paper fill fades in and handwritten text types per character.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/heygen-com/hyperframes/blob/bd6cff8157a1a0ed5075527e673cc4f321fe9123/registry/blocks/hw-text-cloud/hw-text-cloud.html
+
+  Copyright HeyGen, Inc. and the Hyperframes contributors. Licensed under the Apache License, Version
+  2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable
+  law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+
+  Changes by usemosio/blocks: fills the host frame (the bubble is sized from the frame, centered above the middle); text, tail side, colours, background, boil and seed are variables; Caveat comes from Google Fonts instead of a bundled file; the family helper functions are inlined.
+-->
+<html
+  lang="en"
+  data-composition-id="hw-text-cloud"
+  data-composition-duration="6"
+  data-composition-variables='[
+  {
+    "id": "text",
+    "type": "string",
+    "role": "content",
+    "label": "Text",
+    "description": "What the speech bubble says.",
+    "default": "what are you looking at?"
+  },
+  {
+    "id": "tip_side",
+    "type": "enum",
+    "role": "style",
+    "label": "Tail side",
+    "description": "Which bottom corner the tail points from.",
+    "default": "bottom-left",
+    "options": [
+      {
+        "value": "bottom-left",
+        "label": "Bottom left"
+      },
+      {
+        "value": "bottom-right",
+        "label": "Bottom right"
+      }
+    ]
+  },
+  {
+    "id": "text_scale",
+    "type": "number",
+    "role": "style",
+    "label": "Text size",
+    "description": "Multiplier on the text size, which follows the bubble size.",
+    "default": 1,
+    "min": 0.4,
+    "max": 2,
+    "step": 0.05
+  },
+  {
+    "id": "ink_color",
+    "type": "color",
+    "role": "style",
+    "label": "Ink",
+    "description": "Outline and text colour.",
+    "default": "#26241f"
+  },
+  {
+    "id": "paper_color",
+    "type": "color",
+    "role": "style",
+    "label": "Paper",
+    "description": "Bubble fill colour.",
+    "default": "#f4f2ec"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the bubble sits over your own scene.",
+    "default": false
+  },
+  {
+    "id": "background",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background colour when not transparent.",
+    "default": "#2a4d6e"
+  },
+  {
+    "id": "boil",
+    "type": "boolean",
+    "role": "motion",
+    "label": "Boil",
+    "description": "The bubble jitters slightly every third frame, like hand-redrawn animation.",
+    "default": true
+  },
+  {
+    "id": "seed",
+    "type": "number",
+    "role": "style",
+    "label": "Seed",
+    "description": "Changes the wobble of the outline.",
+    "default": 6,
+    "min": 1,
+    "max": 999,
+    "step": 1
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hand-Drawn Speech Bubble</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=block" />
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; container-type: size; font-family: "Caveat", cursive; pointer-events: none; }
+        #hwc-wrap { position: absolute; }
+        #hwc-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        #hwc-fill { fill: var(--hwc-paper, #f4f2ec); opacity: 0; }
+        #hwc-stroke { fill: none; stroke: var(--hwc-ink, #26241f); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+        #hwc-text { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; color: var(--hwc-ink, #26241f); line-height: 1.05; }
+        #hwc-text .hwc-ch { opacity: 0; }
+      </style>
+      <div id="root" data-composition-id="hw-text-cloud" data-duration="6" data-fps="30">
+        <div id="hwc-clip" class="clip" data-start="0" data-duration="6" data-track-index="0" style="position:absolute;inset:0">
+          <div id="hwc-wrap"><svg id="hwc-svg"><path id="hwc-fill"></path><path id="hwc-stroke"></path></svg><div id="hwc-text"></div></div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+            function num(x, f, lo, hi) { var n = Number(x); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : f; }
+            function col(x, f) { return typeof x === "string" && x.trim() ? x.trim() : f; }
+            var text = typeof vars.text === "string" && vars.text.trim() ? vars.text : "what are you looking at?";
+            var seed = num(vars.seed, 6, 1, 999);
+            var side = vars.tip_side === "bottom-right" ? "bottom-right" : "bottom-left";
+            var boilOn = vars.boil !== false && vars.boil !== "false";
+            var DUR = 6;
+            root.style.setProperty("--hwc-ink", col(vars.ink_color, "#26241f"));
+            root.style.setProperty("--hwc-paper", col(vars.paper_color, "#f4f2ec"));
+            if (!(vars.transparent === true || vars.transparent === "true")) root.style.background = col(vars.background, "#2a4d6e");
+            function hash(n, s) { var x = Math.sin(n * 127.1 + s * 311.7) * 43758.5453; return (x - Math.floor(x)) * 2 - 1; }
+
+            // Bubble size: 0.52 of the frame height in landscape, 0.78 of the width in portrait (design: 560 x 300).
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920;
+            var bw = Math.min(W * 0.78, H * 0.52 * (W > H ? 1 : 2));
+            if (W > H) bw = H * 0.52;
+            var bh = bw * (300 / 560);
+            var tipLen = bw * (90 / 560);
+            var fontSize = bw * (58 / 560) * num(vars.text_scale, 1, 0.4, 2);
+            var wrap = document.getElementById("hwc-wrap");
+            wrap.style.width = bw + "px"; wrap.style.height = bh + tipLen * 0.4 + "px";
+            wrap.style.left = (W - bw) / 2 + "px";
+            wrap.style.top = Math.max(0, H * 0.4 - bh / 2) + "px";
+
+            function cloudPath(Wd, Hd, len, s) {
+              var cx = Wd / 2, cy = Hd / 2 - 14 * Wd / 560, rx = Wd / 2 - 12 * Wd / 560, ry = Hd / 2 - 34 * Wd / 560;
+              var N = 16, pts = [];
+              for (var i = 0; i < N; i++) {
+                var a = (i / N) * Math.PI * 2, wr = 1 + hash(i * 11 + 3, s) * 0.06;
+                pts.push([cx + Math.cos(a) * rx * wr, cy + Math.sin(a) * ry * wr]);
+              }
+              var mx = (pts[0][0] + pts[N - 1][0]) / 2, my = (pts[0][1] + pts[N - 1][1]) / 2;
+              var d = "M" + mx.toFixed(1) + " " + my.toFixed(1);
+              for (var j = 0; j < N; j++) {
+                var p = pts[j], q = pts[(j + 1) % N];
+                d += " Q" + p[0].toFixed(1) + " " + p[1].toFixed(1) + " " + ((p[0] + q[0]) / 2).toFixed(1) + " " + ((p[1] + q[1]) / 2).toFixed(1);
+              }
+              d += "Z";
+              var left = side !== "bottom-right", u = Wd / 560;
+              var bx = cx + (left ? -rx * 0.45 : rx * 0.45), by = cy + ry * 0.92;
+              var tx = bx + (left ? -len * 0.5 : len * 0.5), ty = by + len;
+              d += " M " + (bx - 26 * u).toFixed(1) + " " + (by - 6 * u).toFixed(1) +
+                " Q " + (bx - 8 * u + hash(31, s) * 6 * u).toFixed(1) + " " + ((by + ty) / 2).toFixed(1) + " " + tx.toFixed(1) + " " + ty.toFixed(1) +
+                " Q " + (bx + 18 * u).toFixed(1) + " " + ((by + ty) / 2).toFixed(1) + " " + (bx + 30 * u).toFixed(1) + " " + (by - 2 * u).toFixed(1);
+              return d;
+            }
+            var svg = document.getElementById("hwc-svg");
+            svg.setAttribute("viewBox", "0 0 " + bw + " " + (bh + tipLen * 0.4));
+            var d = cloudPath(bw, bh, tipLen, seed);
+            var fillEl = document.getElementById("hwc-fill"), stroke = document.getElementById("hwc-stroke");
+            fillEl.setAttribute("d", d); stroke.setAttribute("d", d);
+            var tx = document.getElementById("hwc-text");
+            tx.style.left = bw * 0.12 + "px"; tx.style.top = bh * 0.1 + "px";
+            tx.style.width = bw * 0.76 + "px"; tx.style.height = bh * 0.62 + "px";
+            tx.style.fontSize = fontSize + "px";
+            var inner = document.createElement("div");
+            Array.from(text).forEach(function (ch) {
+              var s = document.createElement("span"); s.className = "hwc-ch"; s.textContent = ch; inner.appendChild(s);
+            });
+            tx.appendChild(inner);
+
+            var tl = gsap.timeline({ paused: true });
+            var len = stroke.getTotalLength();
+            gsap.set(stroke, { strokeDasharray: len, strokeDashoffset: len });
+            tl.to(stroke, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, 0.3);
+            tl.to(fillEl, { opacity: 0.94, duration: 0.4, ease: "power2.out" }, 0.85);
+            var chars = tx.querySelectorAll(".hwc-ch");
+            var delay = Math.min(0.03, 1.8 / Math.max(1, chars.length));
+            tl.to(chars, { opacity: 1, duration: 0.02, stagger: delay, ease: "none" }, 1.2);
+            if (boilOn) {
+              var boil = function () {
+                var step = Math.floor((tl.time() * 30) / 3);
+                gsap.set(wrap, { x: hash(step * 3, seed) * 1.6, y: hash(step * 3 + 1, seed) * 1.6, rotation: hash(step * 3 + 2, seed) * 0.4 });
+              };
+              tl.eventCallback("onUpdate", boil);
+              boil();
+            }
+            var OUT = Math.min(0.6, Math.max(0.25, DUR * 0.06));
+            tl.to(wrap, { opacity: 0, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+            if (tl.duration() < DUR) tl.to({}, { duration: DUR - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["hw-text-cloud"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

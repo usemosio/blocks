@@ -1,0 +1,123 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "spiral-galaxy",
+  "type": "hyperframes:component",
+  "title": "Spiral Galaxy",
+  "description": "A spiral galaxy of 20,000 additive stars: differential rotation winds the arms over time, the core glows warm and the rim fades to cold. Drawn with WebGL points over a dark backdrop with a soft rim-coloured halo.",
+  "tags": [
+    "shader",
+    "background",
+    "galaxy",
+    "space",
+    "stars",
+    "particles",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "shaders",
+  "duration": 10,
+  "useWhen": [
+    "A space or sci-fi backdrop that rotates slowly behind a title, in your own core and rim colours.",
+    "A calm looping hero for music, astronomy or \"everything in motion\" stories."
+  ],
+  "avoidWhen": [
+    "A clean product scene where a galaxy would distract.",
+    "The render budget is tight: 20,000 points per frame in software; lower the star count."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/spiral-galaxy/spiral-galaxy.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "spiral-galaxy.html",
+      "target": "compositions/components/spiral-galaxy.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "stars",
+      "type": "number",
+      "role": "style",
+      "label": "Star count",
+      "default": 20000,
+      "min": 2000,
+      "max": 40000,
+      "step": 1000
+    },
+    {
+      "id": "arms",
+      "type": "number",
+      "role": "style",
+      "label": "Arm count",
+      "default": 3,
+      "min": 2,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "rate",
+      "type": "number",
+      "role": "motion",
+      "label": "Rotation rate",
+      "default": 0.25,
+      "min": 0,
+      "max": 1.5,
+      "step": 0.05,
+      "unit": "rad/s"
+    },
+    {
+      "id": "glow",
+      "type": "number",
+      "role": "style",
+      "label": "Core brightness",
+      "default": 1.9,
+      "min": 0.2,
+      "max": 4,
+      "step": 0.1
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Star size",
+      "description": "Star size in pixels on a 1080 px frame.",
+      "default": 10,
+      "min": 2,
+      "max": 40,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "core",
+      "type": "color",
+      "role": "style",
+      "label": "Core colour",
+      "default": "#f5f5f5"
+    },
+    {
+      "id": "rim",
+      "type": "color",
+      "role": "style",
+      "label": "Rim colour",
+      "default": "#1e3a8a"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the stars are drawn at, then scaled up. Soft stars look the same at 0.5.",
+      "default": 0.5,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "vfx-portal",
+  "type": "hyperframes:component",
+  "title": "Portal Reveal",
+  "description": "A landing page tears open from the centre in a glowing, colour-cycling portal and the dark theme of the same page is revealed behind it, with chromatic aberration and edge distortion along the rim. WebGL shader over two built-in pages (light and dark).",
+  "tags": [
+    "shader",
+    "transition",
+    "portal",
+    "reveal",
+    "theme",
+    "dark-mode",
+    "webgl",
+    "hyperframes-port"
+  ],
+  "category": "transitions",
+  "duration": 10,
+  "useWhen": [
+    "A light-to-dark theme reveal for a product or app: the page tears open and the dark UI appears inside the portal.",
+    "Any before/after reveal that should feel like a glowing rift."
+  ],
+  "avoidWhen": [
+    "You need to reveal your own scenes: the block plays between its two built-in pages; copy the shader and feed it your two frames as textures.",
+    "A quiet, minimal cut."
+  ],
+  "author": "HeyGen (Hyperframes)",
+  "authorUrl": "https://github.com/heygen-com/hyperframes",
+  "license": "Apache-2.0",
+  "source": {
+    "repo": "heygen-com/hyperframes",
+    "path": "registry/blocks/vfx-portal/vfx-portal.html",
+    "commit": "bd6cff8157a1a0ed5075527e673cc4f321fe9123"
+  },
+  "files": [
+    {
+      "path": "vfx-portal.html",
+      "target": "compositions/components/vfx-portal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "brand",
+      "type": "string",
+      "role": "content",
+      "label": "Brand name",
+      "description": "Logo text on both pages (a placeholder name).",
+      "default": "Lumen"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Headline",
+      "description": "Use | for a line break.",
+      "default": "Ship faster|See it live"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "default": "Ship faster with a platform that handles the hard parts. Analytics, infrastructure, and developer tools, all in one place."
+    },
+    {
+      "id": "button",
+      "type": "string",
+      "role": "content",
+      "label": "Button",
+      "default": "Get started"
+    },
+    {
+      "id": "nav",
+      "type": "string",
+      "role": "content",
+      "label": "Menu",
+      "description": "Menu items separated by commas; the last one is shown as a button.",
+      "default": "Product, Pricing, Docs, Sign In"
+    },
+    {
+      "id": "cards",
+      "type": "string",
+      "role": "content",
+      "label": "Cards",
+      "description": "Up to 4 cards as \"Title | description\", separated by semicolons.",
+      "default": "Lightning Fast | Sub-millisecond response times with edge deployment across 40+ regions worldwide.; Secure by Default | End-to-end encryption and role-based access out of the box.; Plug and Play | 200+ integrations. Connect your existing stack in minutes, not weeks.; Real-time Insights | Live dashboards, anomaly detection and recommendations."
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Button and icon colour on the light page.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "accent2",
+      "type": "color",
+      "role": "style",
+      "label": "Accent 2",
+      "description": "Second accent of the dark page gradient.",
+      "default": "#60a5fa"
+    },
+    {
+      "id": "glow",
+      "type": "color",
+      "role": "style",
+      "label": "Portal glow colour",
+      "default": "#2563eb"
+    },
+    {
+      "id": "glow2",
+      "type": "color",
+      "role": "style",
+      "label": "Portal glow colour 2",
+      "default": "#4a90ff"
+    },
+    {
+      "id": "resolution",
+      "type": "number",
+      "role": "quality",
+      "label": "Resolution",
+      "description": "Share of the frame size the shader is drawn at, then scaled up. Page text needs 0.75.",
+      "default": 0.75,
+      "min": 0.25,
+      "max": 1,
+      "step": 0.05
+    }
+  ],
+  "webgl": true
+}
