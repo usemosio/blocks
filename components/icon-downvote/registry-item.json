@@ -1,0 +1,119 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "icon-downvote",
+  "type": "hyperframes:component",
+  "title": "Downvote Icon",
+  "description": "An animated downvote icon: the strokes draw in, then it plays its hover animation.",
+  "tags": [
+    "icon",
+    "icons",
+    "lucide-animated-port",
+    "downvote"
+  ],
+  "category": "icons",
+  "duration": 3,
+  "checkAt": [
+    0.89,
+    1.05,
+    1.2,
+    1.39
+  ],
+  "useWhen": [
+    "A video needs a downvote glyph that draws itself on and then moves.",
+    "A crisp line icon on a UI mockup, a feature list or a callout."
+  ],
+  "avoidWhen": [
+    "A filled or photographic image is needed.",
+    "The icon must stay perfectly still: use a static SVG."
+  ],
+  "author": "pqoqubbw",
+  "authorUrl": "https://github.com/pqoqubbw/icons",
+  "license": "MIT",
+  "licenses": "Icon paths are derived from Lucide (https://lucide.dev), ISC License; see THIRD_PARTY.md.",
+  "source": {
+    "repo": "https://github.com/pqoqubbw/icons",
+    "path": "icons/downvote.tsx",
+    "commit": "4662fff2b60fdcf4751b32013606756caf7c4c26"
+  },
+  "files": [
+    {
+      "path": "icon-downvote.html",
+      "target": "compositions/components/icon-downvote.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "animation",
+      "type": "enum",
+      "role": "motion",
+      "label": "Animation",
+      "description": "Draw the strokes, play the hover motion, or both.",
+      "default": "both",
+      "options": [
+        {
+          "value": "draw",
+          "label": "Draw"
+        },
+        {
+          "value": "action",
+          "label": "Action"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        }
+      ]
+    },
+    {
+      "id": "loop",
+      "type": "boolean",
+      "role": "motion",
+      "label": "Loop",
+      "description": "Repeat the hover motion a few times instead of playing it once.",
+      "default": true
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "role": "motion",
+      "label": "Speed",
+      "description": "Playback speed multiplier.",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Icon size in pixels.",
+      "default": 48,
+      "min": 8,
+      "max": 1000,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Color",
+      "description": "Stroke color.",
+      "default": "#171717"
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Stroke width",
+      "description": "Stroke width in a 24-unit grid.",
+      "default": 2,
+      "min": 0.5,
+      "max": 6,
+      "step": 0.25
+    }
+  ]
+}

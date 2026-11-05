@@ -1,0 +1,292 @@
+<!doctype html>
+<!--
+  Map Pin Off Icon
+
+  An animated icon from lucide-animated: the strokes draw in, then it plays its hover animation.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://github.com/pqoqubbw/icons/blob/4662fff2b60fdcf4751b32013606756caf7c4c26/icons/map-pin-off.tsx
+
+  MIT License
+
+  Copyright (c) 2024-2026 pqoqubbw
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  The icon paths are derived from Lucide (https://lucide.dev):
+
+  ISC License
+
+  Copyright (c) 2026 Lucide Icons and Contributors
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+  ---
+
+  The following Lucide icons are derived from the Feather project:
+
+  airplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out
+
+  The MIT License (MIT) (for the icons listed above)
+
+  Copyright (c) 2013-present Cole Bemis
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html
+  lang="en"
+  data-composition-id="icon-map-pin-off"
+  data-composition-duration="3.5"
+  data-composition-variables='[{"id":"animation","type":"enum","role":"motion","label":"Animation","description":"Draw the strokes, play the hover motion, or both.","default":"both","options":[{"value":"draw","label":"Draw"},{"value":"action","label":"Action"},{"value":"both","label":"Both"}]},{"id":"loop","type":"boolean","role":"motion","label":"Loop","description":"Repeat the hover motion a few times instead of playing it once.","default":true},{"id":"speed","type":"number","role":"motion","label":"Speed","description":"Playback speed multiplier.","default":1,"min":0.25,"max":4,"step":0.05},{"id":"size","type":"number","role":"style","label":"Size","description":"Icon size in pixels.","default":48,"min":8,"max":1000,"step":1,"unit":"px"},{"id":"color","type":"color","role":"style","label":"Color","description":"Stroke color.","default":"#171717"},{"id":"stroke_width","type":"number","role":"style","label":"Stroke width","description":"Stroke width in a 24-unit grid.","default":2,"min":0.5,"max":6,"step":0.25}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Map Pin Off Icon</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+        }
+        #icon-map-pin-off-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #icon-map-pin-off-host { display: flex; line-height: 0; }
+      </style>
+
+      <div id="root" data-composition-id="icon-map-pin-off" data-duration="3.5" data-fps="30">
+        <div id="icon-map-pin-off-stage" class="clip" data-start="0" data-duration="3.5" data-track-index="0">
+          <div id="icon-map-pin-off-host">
+          <svg id="icon-map-pin-off-k1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+            <path id="icon-map-pin-off-k2" d="M12.75 7.09a3 3 0 0 1 2.16 2.16" pathLength="1" data-draw="k2" />
+            <path id="icon-map-pin-off-k3" d="M17.072 17.072c-1.634 2.17-3.527 3.912-4.471 4.727a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 1.432-4.568" pathLength="1" data-draw="k3" />
+            <path id="icon-map-pin-off-k4" d="m2 2 20 20" pathLength="1" data-draw="k4" />
+            <path id="icon-map-pin-off-k5" d="M8.475 2.818A8 8 0 0 1 20 10c0 1.183-.31 2.377-.81 3.533" pathLength="1" data-draw="k5" />
+            <path id="icon-map-pin-off-k6" d="M9.13 9.13a3 3 0 0 0 3.74 3.74" pathLength="1" data-draw="k6" />
+          </svg>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            gsap.registerPlugin(CustomEase);
+            var NAME = "icon-map-pin-off", SVG = "icon-map-pin-off-k1", DURATION = 3.5;
+            var root = document.getElementById("root");
+            var host = document.getElementById("icon-map-pin-off-host");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(value, fallback, min, max) {
+              var n = Number(value);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+            }
+
+            // ---- The hover animation, resolved from the source component ----
+            // Each track is one property of one element: e (element id), p (property), v (keyframes),
+            // t (keyframe times 0..1), s / ss (easing: bezier points, name, or spring), d (seconds),
+            // dl (delay), at (start inside the phase), r (repeats), y (1 reverse, 2 mirror), rd (repeat
+            // delay), i (jump, no tween), o (pixel offset of the outer svg).
+            // a = tracks of the hover, n = tracks of the pointer leaving; ad / nd = their lengths.
+            var INIT = {"k1":{"y":0},"k4":{"opacity":1}};
+            var ORIGIN = {"k1":"50% 50%"};
+            var CYCLES = [
+              { ad: 0.6, nd: 0.523,
+                a: [
+                {"e":"k4","p":"opacity","v":[0,1],"s":"easeOut","d":0.1,"dl":0.3},
+                {"e":"k4","p":"pathLength","v":[0,1],"s":"easeOut","d":0.3,"dl":0.3},
+                {"e":"k1","p":"y","v":[0,-5,-3],"t":[0,0.6,1],"s":"easeOut","d":0.5,"o":1}
+              ],
+                n: [
+                {"e":"k1","p":"y","v":[-3,0],"s":{"k":500,"c":25,"m":1,"d":0.523},"d":0.523,"o":1}
+              ] }
+            ];
+            var CYCLES_MAX = 1;
+
+            // ---- Player: turns the data above into one GSAP timeline ----
+            var animation = ["draw", "action", "both"].indexOf(vars.animation) >= 0 ? vars.animation : "both";
+            var loop = typeof vars.loop === "boolean" ? vars.loop : true;
+            var S = 1 / num(vars.speed, 1, 0.25, 4);
+            var size = num(vars.size, 48, 8, 1000);
+            var color = typeof vars.color === "string" && vars.color ? vars.color : "#171717";
+            var strokeWidth = num(vars.stroke_width, 2, 0.5, 6);
+            var K = size / 28; // pixel offsets of the outer svg were drawn for a 28px icon
+            var SW = strokeWidth / 2; // stroke widths were drawn for the default 2
+            var HOLD = 0.25, GAP = 0.35;
+
+            var svg = document.getElementById(SVG);
+            svg.setAttribute("width", size);
+            svg.setAttribute("height", size);
+            svg.setAttribute("stroke-width", strokeWidth);
+            host.style.color = color;
+            function $(k) { return document.getElementById(NAME + "-" + k); }
+
+            // Motion's springs: x(t) from rest to 1 with stiffness k, damping c, mass m.
+            function springUnit(t, k, c, m) {
+              if (t <= 0) return 0;
+              var w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+              if (z < 1) {
+                var wd = w0 * Math.sqrt(1 - z * z);
+                return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + ((z * w0) / wd) * Math.sin(wd * t));
+              }
+              if (z === 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+              var r = w0 * Math.sqrt(z * z - 1), a = z * w0 - r, b = z * w0 + r;
+              return 1 - (b * Math.exp(-a * t) - a * Math.exp(-b * t)) / (b - a);
+            }
+            var BEZIER = { easeIn: [0.42, 0, 1, 1], easeOut: [0, 0, 0.58, 1], easeInOut: [0.42, 0, 0.58, 1] };
+            var eases = {};
+            function E(d) {
+              if (d === "linear" || d === undefined) return "none";
+              if (typeof d === "string") d = BEZIER[d];
+              if (Array.isArray(d)) {
+                var key = d.join(",");
+                return eases[key] || (eases[key] = CustomEase.create(NAME + "-e" + Object.keys(eases).length, key));
+              }
+              return function (p) { return p >= 1 ? 1 : springUnit(p * d.d, d.k, d.c, d.m); };
+            }
+
+            var ATTRS = { d: 1, cx: 1, cy: 1, r: 1, rx: 1, ry: 1, x1: 1, x2: 1, y1: 1, y2: 1, width: 1, height: 1, points: 1 };
+            // Motion property -> GSAP vars.
+            function V(p, v, outer) {
+              var o = {};
+              if (outer === 2) o.attr = { patternTransform: "translate(" + v + " 0)" };
+              else if (p === "x" || p === "translateX") o.x = outer ? v * K : v;
+              else if (p === "y" || p === "translateY") o.y = outer ? v * K : v;
+              else if (p === "rotate") o.rotation = v;
+              else if (p === "pathLength") o.strokeDasharray = v + " 1";
+              else if (p === "pathOffset") o.strokeDashoffset = -v;
+              else if (p === "strokeWidth") o.strokeWidth = v * SW;
+              else if (p === "origin") o.transformOrigin = v;
+              else if (ATTRS[p]) o.attr = (function () { var a = {}; a[p] = v; return a; })();
+              else o[p] = v;
+              return o;
+            }
+            function initVars(k) {
+              var o = {}, s = INIT[k] || {};
+              for (var p in s) { var v = V(p, s[p], $(k) === svg); for (var q in v) o[q] = v[q]; }
+              if (ORIGIN[k]) o.transformOrigin = ORIGIN[k];
+              return o;
+            }
+            for (var k in INIT) gsap.set($(k), initVars(k));
+            for (var k2 in ORIGIN) if (!INIT[k2]) gsap.set($(k2), { transformOrigin: ORIGIN[k2] });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // One track: keyframes of one property on one element, as a small timeline.
+            function track(t, T) {
+              var el = $(t.e), D = (t.d || 0) * S, start = T + ((t.at || 0) + (t.dl || 0)) * S;
+              if (t.i) { tl.set(el, V(t.p, t.v[0], t.o), start); return; }
+              var n = t.v.length, reps = t.r || 0;
+              var seg = gsap.timeline({ repeat: t.y === 1 ? reps : 0, yoyo: t.y === 1, repeatDelay: (t.rd || 0) * S });
+              // "mirror" plays the keyframes backwards with the easing mirrored too, so each pass is written out.
+              var passes = t.y === 2 ? reps + 1 : 1;
+              for (var j = 0; j < passes; j++) {
+                var back = t.y === 2 && j % 2 === 1;
+                var base = j * (D + (t.rd || 0) * S);
+                for (var i = 0; i < n - 1; i++) {
+                  var a = t.t ? t.t[i] : i / (n - 1), b = t.t ? t.t[i + 1] : (i + 1) / (n - 1);
+                  var from = t.v[i], to = t.v[i + 1], e = t.ss ? t.ss[i] : t.s;
+                  if (back) {
+                    var ra = t.t ? 1 - t.t[n - 1 - i] : i / (n - 1), rb = t.t ? 1 - t.t[n - 2 - i] : (i + 1) / (n - 1);
+                    a = ra; b = rb; from = t.v[n - 1 - i]; to = t.v[n - 2 - i]; e = t.ss ? t.ss[n - 2 - i] : t.s;
+                  }
+                  var vars2 = V(t.p, to, t.o);
+                  vars2.duration = Math.max(0.001, (b - a) * D);
+                  vars2.ease = E(e);
+                  vars2.immediateRender = false;
+                  seg.fromTo(el, V(t.p, from, t.o), vars2, base + a * D);
+                }
+              }
+              tl.add(seg, start);
+            }
+
+            // Strokes draw in, one after the other.
+            var T0 = 0.3 * S;
+            if (animation !== "action") {
+              var shapes = [].slice.call(svg.querySelectorAll("[data-draw]"));
+              var dd = 0.5 * S, st = Math.min(0.12, 0.6 / Math.max(1, shapes.length)) * S;
+              shapes.forEach(function (el, i) {
+                var rest = initVars(el.getAttribute("data-draw"));
+                tl.fromTo(el, { strokeDasharray: "1 1", strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: dd, ease: "power2.out", immediateRender: true }, i * st);
+                tl.set(el, { strokeDasharray: rest.strokeDasharray || "none", strokeDashoffset: rest.strokeDashoffset || 0 }, i * st + dd);
+              });
+              if (shapes.length) T0 = ((shapes.length - 1) * st / S + 0.5 + 0.25) * S;
+            }
+
+            // The hover motion, then the leave motion, a few times.
+            if (animation !== "draw") {
+              var count = loop ? CYCLES_MAX : 1, T = T0;
+              for (var c = 0; c < count; c++) {
+                var cy = CYCLES[Math.min(c, CYCLES.length - 1)];
+                cy.a.forEach(function (t) { track(t, T); });
+                var Tn = T + (cy.ad + HOLD) * S;
+                cy.n.forEach(function (t) { track(t, Tn); });
+                T = Tn + (cy.nd + GAP) * S;
+              }
+            }
+
+            var total = parseFloat(root.dataset.duration || String(DURATION));
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines[NAME] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
