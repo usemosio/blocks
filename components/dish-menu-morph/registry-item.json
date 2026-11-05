@@ -1,0 +1,135 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dish-menu-morph",
+  "type": "hyperframes:component",
+  "title": "Dish Menu Morph",
+  "description": "A menu page that cycles through three dishes: a three-line icon morphs into the next dish's line art, the headline letters slide out and in, the dish illustration flies off at 45 degrees and back, and the menu items slide up with their prices.",
+  "tags": [
+    "menu",
+    "food",
+    "morphsvg",
+    "text-effects",
+    "restaurant",
+    "cycle",
+    "codepen-port"
+  ],
+  "category": "commerce",
+  "duration": 9.5,
+  "useWhen": [
+    "A restaurant or food stall promo should step through its signature dishes with prices.",
+    "A menu section needs a tidy swap animation between items."
+  ],
+  "avoidWhen": [
+    "You need real food photography: this block draws simple illustrations (use product-grid-reveal for photos).",
+    "The menu has many items per dish."
+  ],
+  "author": "oliviale",
+  "authorUrl": "https://codepen.io/oliviale",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/oliviale/pen/zYvxXWw"
+  },
+  "files": [
+    {
+      "path": "dish-menu-morph.html",
+      "target": "compositions/components/dish-menu-morph.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "kicker",
+      "type": "string",
+      "role": "content",
+      "label": "Kicker",
+      "description": "Small text above the dish name.",
+      "default": "Menu hari ini"
+    },
+    {
+      "id": "menu_label",
+      "type": "string",
+      "role": "content",
+      "label": "Menu label",
+      "description": "Label next to the morphing icon.",
+      "default": "Menu"
+    },
+    {
+      "id": "dish_1",
+      "type": "string",
+      "role": "content",
+      "label": "Dish 1",
+      "description": "Name of the first dish.",
+      "default": "Mie Ayam"
+    },
+    {
+      "id": "items_1",
+      "type": "string",
+      "role": "content",
+      "label": "Dish 1 items",
+      "description": "Up to three lines, each 'name | price'.",
+      "default": "Mie Ayam Bakso | Rp18.000\nMie Ayam Pangsit | Rp20.000\nMie Ayam Jamur | Rp19.000"
+    },
+    {
+      "id": "dish_2",
+      "type": "string",
+      "role": "content",
+      "label": "Dish 2",
+      "description": "Name of the second dish.",
+      "default": "Sate Ayam"
+    },
+    {
+      "id": "items_2",
+      "type": "string",
+      "role": "content",
+      "label": "Dish 2 items",
+      "description": "Up to three lines, each 'name | price'.",
+      "default": "Sate Ayam 10 tusuk | Rp25.000\nSate Taichan | Rp27.000\nLontong Sate | Rp12.000"
+    },
+    {
+      "id": "dish_3",
+      "type": "string",
+      "role": "content",
+      "label": "Dish 3",
+      "description": "Name of the third dish.",
+      "default": "Es Teler"
+    },
+    {
+      "id": "items_3",
+      "type": "string",
+      "role": "content",
+      "label": "Dish 3 items",
+      "description": "Up to three lines, each 'name | price'.",
+      "default": "Es Teler Original | Rp15.000\nEs Teler Durian | Rp22.000\nEs Teler Mini | Rp10.000"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Icon, dish illustration and price colour.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Headline and item text colour.",
+      "default": "#0a0a0a"
+    }
+  ],
+  "checkAt": [
+    0.9,
+    3,
+    5.6,
+    8.8
+  ]
+}

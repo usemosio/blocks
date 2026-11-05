@@ -1,0 +1,126 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "pie-slice-sweep",
+  "type": "hyperframes:component",
+  "title": "Pie Slice Sweep",
+  "description": "Pie slices start as one wedge at the top and sweep out to their own start and end angles while their radius shrinks, on a power3 in-out ease, then each slice gets its percentage and a legend appears below.",
+  "tags": [
+    "chart",
+    "pie",
+    "data",
+    "shapes",
+    "sweep",
+    "codepen-port"
+  ],
+  "category": "data-viz",
+  "duration": 5,
+  "useWhen": [
+    "A split of two to five parts (sales channels, budget, audience) should sweep into place.",
+    "A simple share-of-total beat in an explainer or report video."
+  ],
+  "avoidWhen": [
+    "You need a donut with a number in the middle: use goal-ring-card.",
+    "There are many small categories."
+  ],
+  "author": "GreenSock",
+  "authorUrl": "https://codepen.io/GreenSock",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/GreenSock/pen/eYMRGJo"
+  },
+  "files": [
+    {
+      "path": "pie-slice-sweep.html",
+      "target": "compositions/components/pie-slice-sweep.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading above the pie. Leave empty for none.",
+      "default": "Penjualan per kanal"
+    },
+    {
+      "id": "values",
+      "type": "string",
+      "role": "content",
+      "label": "Values",
+      "description": "Comma-separated values (two to five). They are normalised to 100 percent.",
+      "default": "45, 30, 25"
+    },
+    {
+      "id": "labels",
+      "type": "string",
+      "role": "content",
+      "label": "Labels",
+      "description": "Comma-separated labels for the legend.",
+      "default": "Dine-in, Bawa pulang, Antar"
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Color 1",
+      "description": "First slice.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Color 2",
+      "description": "Second slice.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Color 3",
+      "description": "Third slice.",
+      "default": "#93b4f8"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Color 4",
+      "description": "Fourth slice.",
+      "default": "#64748b"
+    },
+    {
+      "id": "color_5",
+      "type": "color",
+      "role": "style",
+      "label": "Color 5",
+      "description": "Fifth slice.",
+      "default": "#cbd5e1"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the title and the legend.",
+      "default": "#0a0a0a"
+    }
+  ],
+  "checkAt": [
+    1.2,
+    2.2,
+    3.2,
+    4.6
+  ]
+}

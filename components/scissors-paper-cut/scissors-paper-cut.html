@@ -1,0 +1,200 @@
+<!doctype html>
+<!--
+  Scissors Paper Cut
+
+  A pair of scissors snips along a looping figure-eight path, cutting a paper triangle in two; the halves fly apart, blur out, and sprinkle confetti dots that fall under gravity, over and over.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/aaroniker/pen/RwwZGmj
+
+  Copyright (c) 2019 aaroniker - https://codepen.io/aaroniker/pen/RwwZGmj
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Note: the author's pen says it is from the Dribbble shot Cutting Paper To Infinity (dribbble.com/shots/4189148); this port follows the pen.
+
+  Changes by usemosio/blocks: the loader (a fixed 360x100 box) is scaled to the host frame; repeat: -1 timelines repeat a fixed four times; onStart/onComplete callbacks become explicit sets and the confetti dots are created up front with seeded angle, size and speed; colours are variables on a dark background; the pen's footer links and logo are dropped.
+-->
+<html
+  lang="en"
+  data-composition-id="scissors-paper-cut"
+  data-composition-duration="5.7"
+  data-composition-variables='[
+    {"id":"paper","type":"color","role":"style","label":"Paper color","description":"Colour of the paper and the confetti dots.","default":"#f5f5f4"},
+    {"id":"blade","type":"color","role":"style","label":"Blade color","description":"Colour of the scissor blades.","default":"#ffffff"},
+    {"id":"handle","type":"color","role":"style","label":"Handle color","description":"Colour of the scissor handles.","default":"#2563eb"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#0a0a0a"},
+    {"id":"size","type":"number","role":"style","label":"Size","description":"Multiplier on the automatic loader size.","default":1,"min":0.5,"max":1.6,"step":0.05,"unit":"x"},
+    {"id":"seed","type":"number","role":"motion","label":"Seed","description":"Changes the confetti directions.","default":3,"min":1,"max":9999,"step":1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Scissors Paper Cut</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--spc-bg, #0a0a0a);
+        }
+        .spc-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .spc-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .spc-scaler { width: 360px; height: 100px; flex: none; transform-origin: 50% 50%; }
+        .loader { --blade: #fff; --shape: #2563eb; --dot: #fff; --paper: #f5f5f4; width: 360px; height: 100px; position: relative; }
+        .loader .scissor { --o: 32; left: -26px; top: -60px; width: 50px; height: 84px; z-index: 1; position: absolute; transform-origin: 25px 46px; }
+        .loader .scissor > div { top: 0; height: 84px; position: absolute; display: flex; align-items: flex-end; }
+        .loader .scissor > div:before, .loader .scissor > div:after { content: ""; position: absolute; }
+        .loader .scissor > div:before { width: 4px; height: 46px; top: 0; background: var(--blade); }
+        .loader .scissor > div:after { width: 2px; height: 2px; top: 45px; z-index: 2; border-radius: 1px; background: var(--dot); }
+        .loader .scissor > div svg { display: block; position: relative; z-index: 1; width: 28px; height: 40px; color: var(--shape); }
+        .loader .scissor > div:nth-child(1) { left: 0; transform-origin: 25px 46px; transform: rotate(calc(var(--o) * 1deg)); }
+        .loader .scissor > div:nth-child(1):before { right: 1px; border-radius: 4px 0 0 0; }
+        .loader .scissor > div:nth-child(1):after { right: 2px; }
+        .loader .scissor > div:nth-child(2) { right: 0; transform-origin: 3px 46px; transform: rotate(calc(var(--o) * -1deg)); }
+        .loader .scissor > div:nth-child(2):before { left: 1px; border-radius: 0 4px 0 0; }
+        .loader .scissor > div:nth-child(2):after { left: 2px; }
+        .loader span { display: block; position: absolute; border-radius: 50%; background: var(--paper); opacity: 0; }
+        .loader .paper { --before-top-y: 50; --before-bottom-x: 0; --before-middle-y: 50; position: absolute; left: 50%; top: 50%; margin: -26px 0 0 -38px; width: 56px; height: 56px; transform: rotateZ(-28deg); }
+        .loader .paper:before { content: ""; position: absolute; inset: 0; background: var(--paper); clip-path: polygon(0 calc(var(--before-top-y) * 1%), calc(var(--before-bottom-x) * 1%) 100%, 100% calc(var(--before-middle-y) * 1%)); }
+        .loader .paper div { --cut-before-o: 1; --cut-before-x: 0; --cut-before-y: 0; --cut-before-r: 0; --cut-before-b: 0; --cut-after-o: 0; --cut-after-x: 0; --cut-after-y: 0; --cut-after-r: 0; --cut-after-b: 0; }
+        .loader .paper div:before, .loader .paper div:after { --c: 0%; content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 49%; background: var(--paper); clip-path: polygon(var(--c) 0, 0 100%, 100% 100%); }
+        .loader .paper div:before { opacity: var(--cut-before-o); transform: translate(calc(var(--cut-before-x) * 1px), calc(var(--cut-before-y) * 1px)) rotate(calc(var(--cut-before-r) * 1deg)); filter: blur(calc(var(--cut-before-b) * 1px)); }
+        .loader .paper div:after { --c: 100%; opacity: var(--cut-after-o); transform: translate(calc(var(--cut-after-x) * 1px), calc(var(--cut-after-y) * 1px)) rotate(calc(var(--cut-after-r) * 1deg)); filter: blur(calc(var(--cut-after-b) * 1px)); }
+      </style>
+
+      <div id="root" data-composition-id="scissors-paper-cut" data-duration="5.7" data-fps="30">
+        <div id="spc-clip" class="spc-stage clip" data-start="0" data-duration="5.7" data-track-index="0">
+          <div class="spc-center"><div class="spc-scaler" id="spc-scaler">
+            <div class="loader" id="spc-loader">
+              <div class="scissor" id="spc-scissor">
+                <div><svg><use xlink:href="#spc-base" /></svg></div>
+                <div><svg><use xlink:href="#spc-flip" /></svg></div>
+              </div>
+              <div class="paper" id="spc-paper"><div id="spc-cut"></div></div>
+            </div>
+          </div></div>
+          <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <symbol viewBox="0 0 28 40" id="spc-base" fill="currentColor"><path d="M26,0 C27.1045695,0 28,0.8954305 28,2 L28,25 L27.960112,24.9351895 C27.9865447,25.2866651 28,25.6417612 28,26 C28,33.7319865 21.7319865,40 14,40 C6.2680135,40 0,33.7319865 0,26 C0,18.2680135 6.2680135,12 14,12 C16.550378,12 19.9414765,12.6819568 22.0008915,13.8734665 L22,2 C22,0.8954305 22.8954305,0 24,0 L26,0 Z M14,16 C8.4771525,16 4,20.4771525 4,26 C4,31.5228475 8.4771525,36 14,36 C19.5228475,36 24,31.5228475 24,26 C24,20.4771525 19.5228475,16 14,16 Z"></path></symbol>
+            <symbol viewBox="0 0 28 40" id="spc-flip" fill="currentColor"><path d="M2,0 C0.8954305,0 0,0.8954305 0,2 L0,25 L0.0398880483,24.9351895 C0.0134552846,25.2866651 0,25.6417612 0,26 C0,33.7319865 6.2680135,40 14,40 C21.7319865,40 28,33.7319865 28,26 C28,18.2680135 21.7319865,12 14,12 C11.449622,12 8.05852354,12.6819568 5.99910852,13.8734665 L6,2 C6,0.8954305 5.1045695,0 4,0 L2,0 Z M14,16 C19.5228475,16 24,20.4771525 24,26 C24,31.5228475 19.5228475,36 14,36 C8.4771525,36 4,31.5228475 4,26 C4,20.4771525 8.4771525,16 14,16 Z"></path></symbol>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MotionPathPlugin.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/Physics2DPlugin.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 5.7;
+
+            root.style.setProperty("--spc-bg", col(vars.background, "#0a0a0a"));
+            var loader = document.getElementById("spc-loader");
+            loader.style.setProperty("--paper", col(vars.paper, "#f5f5f4"));
+            loader.style.setProperty("--blade", col(vars.blade, "#ffffff"));
+            loader.style.setProperty("--dot", col(vars.paper, "#f5f5f4"));
+            loader.style.setProperty("--shape", col(vars.handle, "#2563eb"));
+            var size = Math.min((W * 0.92) / 360, (H * 0.3) / 100) * num(vars.size, 1, 0.5, 1.6);
+            document.getElementById("spc-scaler").style.transform = "scale(" + size + ")";
+            gsap.registerPlugin(MotionPathPlugin, Physics2DPlugin);
+            var scissor = document.getElementById("spc-scissor"), paper = document.getElementById("spc-paper"), cut = document.getElementById("spc-cut");
+            var rand = rng(Math.round(num(vars.seed, 3, 1, 9999)));
+            var P = 1.42, cycles = Math.max(1, Math.round(total / P)), tl = gsap.timeline({ paused: true });
+            tl.to(scissor, { repeat: cycles - 1, duration: P, ease: "none", motionPath: {
+              path: "M43.9810017,95.4108211 C111.962705,125.226874 238.51326,0 303.357347,0 C368.201433,0 383.889518,65.5947682 315.907815,95.4108211 C247.926112,125.226874 121.040326,0 56.53147,0 C-7.97738609,0 -24.0007016,65.5947682 43.9810017,95.4108211 Z",
+              autoRotate: 90 } }, 0);
+            tl.fromTo(scissor, { "--o": 32 }, { repeat: cycles * 4 - 1, repeatDelay: 0.165, duration: 0.19, yoyo: true, ease: "power2.in", "--o": 0 }, 0);
+            tl.fromTo(paper, { rotate: -28, x: 10, y: -10 }, { duration: 0.71, rotate: 28, x: 20, y: 0, yoyo: true, repeat: cycles * 2 - 1, ease: "power1.in", yoyoEase: "power1.in" }, 0);
+            // one 1.42 s cycle of each of the paper, cut and fade timelines
+            function cycle(c) {
+              var t0 = c * P;
+              // paper outline sweeps
+              tl.fromTo(paper, { "--before-bottom-x": 0, "--before-middle-y": 50 }, { "--before-bottom-x": 100, "--before-middle-y": 0, duration: 0.52, immediateRender: false, ease: "none" }, t0 + 0.19);
+              tl.set(paper, { "--before-middle-y": 50 }, t0 + 0.71);
+              tl.fromTo(paper, { "--before-top-y": 50, "--before-bottom-x": 100 }, { "--before-top-y": 0, "--before-bottom-x": 0, duration: 0.52, immediateRender: false, ease: "none" }, t0 + 0.9);
+              tl.set(paper, { "--before-top-y": 50, "--before-bottom-x": 0 }, t0 + 1.42);
+              // the two cut halves fly apart
+              tl.set(cut, { "--cut-before-y": 0, "--cut-before-r": 0, "--cut-before-x": 0, "--cut-after-y": 0, "--cut-after-r": 0, "--cut-after-x": 0, "--cut-before-o": 1, "--cut-before-b": 0, "--cut-after-o": 0, "--cut-after-b": 0 }, t0);
+              tl.fromTo(cut, { "--cut-before-y": 0, "--cut-before-r": 0, "--cut-before-x": 0 }, { "--cut-before-y": -60, "--cut-before-r": -30, "--cut-before-x": -24, duration: 0.56, ease: "back.out(1.5)", immediateRender: false }, t0 + 0.15);
+              tl.fromTo(cut, { "--cut-after-y": 0, "--cut-after-r": 0, "--cut-after-x": 0 }, { "--cut-after-y": -60, "--cut-after-r": 30, "--cut-after-x": 24, duration: 0.56, ease: "back.out(1.5)", immediateRender: false }, t0 + 0.86);
+              // and blur out
+              tl.fromTo(cut, { "--cut-before-o": 1, "--cut-before-b": 0 }, { "--cut-before-o": 0, "--cut-before-b": 6, duration: 0.4, ease: "none", immediateRender: false }, t0 + 0.31);
+              tl.set(cut, { "--cut-after-o": 1 }, t0 + 0.71);
+              tl.fromTo(cut, { "--cut-after-o": 1, "--cut-after-b": 0 }, { "--cut-after-o": 0, "--cut-after-b": 6, duration: 0.4, ease: "none", immediateRender: false }, t0 + 1.02);
+              tl.set(cut, { "--cut-before-o": 1, "--cut-before-b": 0 }, t0 + 1.42);
+              // confetti where each cut starts
+              [[0.15, 200, -70, -30], [0.86, 156, 210, 250]].forEach(function (e) {
+                for (var q = 0; q < 3; q++) {
+                  var angle = e[2] + rand() * (e[3] - e[2]), dsize = 2 + rand(), velocity = 80 + rand() * 40;
+                  var dot = document.createElement("span");
+                  loader.appendChild(dot);
+                  gsap.set(dot, { opacity: 0, x: e[1], y: 32, width: dsize, height: dsize });
+                  var at = t0 + e[0];
+                  tl.set(dot, { opacity: 1, x: e[1], y: 32 }, at);
+                  tl.to(dot, { duration: 0.6, physics2D: { angle: angle, velocity: velocity, gravity: 100 } }, at);
+                  tl.to(dot, { opacity: 0, duration: 0.45 }, at + 0.15);
+                }
+              });
+            }
+            for (var c = 0; c < cycles; c++) cycle(c);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["scissors-paper-cut"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "fruit-burst-reveal",
+  "type": "hyperframes:component",
+  "title": "Fruit Burst Reveal",
+  "description": "A product reveal in one drawn scene: a line draws a circle and splashes droplets, a coloured fill sweeps diagonally across it, the core, stalk and leaf pop in with elastic overshoots, the whole piece wobbles, swells and bursts into particles before a caption rises.",
+  "tags": [
+    "product",
+    "reveal",
+    "illustration",
+    "particles",
+    "physics2d",
+    "burst",
+    "codepen-port"
+  ],
+  "category": "commerce",
+  "duration": 7.6,
+  "useWhen": [
+    "A fresh product (drink, fruit, snack) needs a playful splash-and-pop reveal with a caption.",
+    "A launch beat where a drawn object builds, wobbles and bursts."
+  ],
+  "avoidWhen": [
+    "The product must be a real photo or an exact logo.",
+    "A calm premium tone is wanted: the burst is lively."
+  ],
+  "author": "chrisgannon",
+  "authorUrl": "https://codepen.io/chrisgannon",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/chrisgannon/pen/LRyQQV"
+  },
+  "files": [
+    {
+      "path": "fruit-burst-reveal.html",
+      "target": "compositions/components/fruit-burst-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Text that rises after the burst. Leave empty for none.",
+      "default": "Jus jeruk segar"
+    },
+    {
+      "id": "fruit_color",
+      "type": "color",
+      "role": "style",
+      "label": "Fruit color",
+      "description": "Colour of the fill and half of the droplets.",
+      "default": "#f97316"
+    },
+    {
+      "id": "leaf_color",
+      "type": "color",
+      "role": "style",
+      "label": "Leaf color",
+      "description": "Colour of the leaf.",
+      "default": "#16a34a"
+    },
+    {
+      "id": "line_color",
+      "type": "color",
+      "role": "style",
+      "label": "Line color",
+      "description": "Outline, stalk and the other droplets.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "core_color",
+      "type": "color",
+      "role": "style",
+      "label": "Core color",
+      "description": "Colour of the core.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the caption.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes the droplet directions.",
+      "default": 5,
+      "min": 1,
+      "max": 9999,
+      "step": 1
+    }
+  ],
+  "checkAt": [
+    1.4,
+    3,
+    4.6,
+    6.6
+  ]
+}

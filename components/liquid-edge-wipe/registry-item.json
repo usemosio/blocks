@@ -1,0 +1,162 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "liquid-edge-wipe",
+  "type": "hyperframes:component",
+  "title": "Liquid Edge Wipe",
+  "description": "Three layered colour panels flood up the frame with wobbly liquid edges, each point on the edge with its own random delay, then peel away upward to reveal the next scene.",
+  "tags": [
+    "transition",
+    "wipe",
+    "liquid",
+    "overlay",
+    "svg",
+    "codepen-port"
+  ],
+  "category": "transitions",
+  "duration": 4.6,
+  "useWhen": [
+    "A scene change needs a soft, organic wipe rather than a hard cut or a straight slide.",
+    "A title card or section break should flood the frame in brand colours and then reveal what comes next."
+  ],
+  "avoidWhen": [
+    "You need a crisp geometric transition: use venetian-blinds or iris-wipe.",
+    "The edge must stay perfectly straight and corporate."
+  ],
+  "author": "osublake",
+  "authorUrl": "https://codepen.io/osublake",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/osublake/pen/BYwgBg"
+  },
+  "files": [
+    {
+      "path": "liquid-edge-wipe.html",
+      "target": "compositions/components/liquid-edge-wipe.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Scene A text",
+      "description": "Text on the outgoing scene.",
+      "default": "Menu baru hari ini"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Scene B text",
+      "description": "Text on the incoming scene.",
+      "default": "Segar setiap hari"
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Layer 1",
+      "description": "First (back) wipe layer.",
+      "default": "#cfdcfb"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Layer 2",
+      "description": "Second wipe layer.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Layer 3",
+      "description": "Third (front) wipe layer.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "background_a",
+      "type": "color",
+      "role": "style",
+      "label": "Scene A background",
+      "description": "Background of the outgoing scene.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "background_b",
+      "type": "color",
+      "role": "style",
+      "label": "Scene B background",
+      "description": "Background of the incoming scene.",
+      "default": "#f5f5f4"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of both scene texts.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels; it also shrinks with the frame width.",
+      "default": 120,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "points",
+      "type": "number",
+      "role": "motion",
+      "label": "Edge points",
+      "description": "How many points shape the wobbly edge.",
+      "default": 10,
+      "min": 4,
+      "max": 24,
+      "step": 1
+    },
+    {
+      "id": "point_spread",
+      "type": "number",
+      "role": "motion",
+      "label": "Point delay",
+      "description": "Largest random delay of a single edge point, in seconds.",
+      "default": 0.3,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "unit": "s"
+    },
+    {
+      "id": "layer_delay",
+      "type": "number",
+      "role": "motion",
+      "label": "Layer delay",
+      "description": "Delay between one layer and the next, in seconds.",
+      "default": 0.25,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "unit": "s"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes the random edge shape.",
+      "default": 7,
+      "min": 1,
+      "max": 9999,
+      "step": 1
+    }
+  ]
+}

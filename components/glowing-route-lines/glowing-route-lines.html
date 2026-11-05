@@ -1,0 +1,162 @@
+<!doctype html>
+<!--
+  Glowing Route Lines
+
+  Three thin route lines with rounded corners enter from the frame edges; on each, a short stretch of the line draws and travels along it while a soft glow capsule rides ahead, aligned to the path, on a loop.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/GreenSock/pen/ZYOJGvj
+
+  Copyright (c) 2026 GreenSock - https://codepen.io/GreenSock/pen/ZYOJGvj
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: the three tracks are generated from the frame size so they cross the frame edges at 1080x1920 and 1920x1080; the glow, line and label colours and the label are variables; the glow is softer and one accent colour; the looping tweens repeat a fixed two times.
+-->
+<html
+  lang="en"
+  data-composition-id="glowing-route-lines"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id":"label","type":"string","role":"content","label":"Label","description":"Optional centered text. Leave empty for lines only.","default":"Antar sampai tujuan"},
+    {"id":"glow_color","type":"color","role":"style","label":"Glow color","description":"Colour of the travelling glow.","default":"#2563eb"},
+    {"id":"line_color","type":"color","role":"style","label":"Line color","description":"Colour of the drawn line segment.","default":"#0a0a0a"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the label.","default":"#0a0a0a"},
+    {"id":"glow_size","type":"number","role":"style","label":"Glow size","description":"Scale of the glow capsule.","default":1.5,"min":0.4,"max":2.5,"step":0.05,"unit":"x"},
+    {"id":"loop_duration","type":"number","role":"motion","label":"Loop duration","description":"Seconds for one pass along each line.","default":3,"min":1.5,"max":6,"step":0.1,"unit":"s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glowing Route Lines</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--grl-bg, #fff);
+        }
+        .grl-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        #grl-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .grl-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 10cqw; font-family: Geist, system-ui, sans-serif; font-weight: 700; font-size: min(9cqw, 9cqh); letter-spacing: -0.04em; line-height: 1.05; color: var(--grl-text, #0a0a0a); text-wrap: balance; }
+      </style>
+
+      <div id="root" data-composition-id="glowing-route-lines" data-duration="6" data-fps="30">
+        <div id="grl-clip" class="grl-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <svg id="grl-svg" aria-hidden="true">
+            <defs><filter id="grl-blur" x="-100%" y="-300%" width="300%" height="700%" color-interpolation-filters="sRGB"><feGaussianBlur id="grl-blur-n" stdDeviation="14"></feGaussianBlur></filter></defs>
+          </svg>
+          <div class="grl-label" id="grl-label"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MotionPathPlugin.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 6;
+
+            var bg = col(vars.background, "#ffffff"), glow = col(vars.glow_color, "#2563eb"), line = col(vars.line_color, "#0a0a0a");
+            root.style.setProperty("--grl-bg", bg);
+            root.style.setProperty("--grl-text", col(vars.text_color, "#0a0a0a"));
+            var svg = document.getElementById("grl-svg");
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var sx = W / 998, sy = H / 771, k = Math.min(W, H) / 771;
+            var glowScale = num(vars.glow_size, 1.5, 0.4, 2.5);
+            document.getElementById("grl-blur-n").setAttribute("stdDeviation", 14 * k * glowScale);
+            var lab = document.getElementById("grl-label");
+            var label = typeof vars.label === "string" ? vars.label : "Antar sampai tujuan";
+            lab.textContent = label;
+            var NS = "http://www.w3.org/2000/svg";
+            function P(x, y) { return (x * sx).toFixed(2) + "," + (y * sy).toFixed(2); }
+            var tracks = [
+              "M " + P(499, 0) + " L " + P(499, 114.2) + " A " + (40 * sx) + "," + (40 * sy) + " 0 0 1 " + P(459, 154.2) + " L " + P(0, 154.2),
+              "M " + P(998, 616.8) + " L " + P(728.6, 616.8) + " A " + (30 * sx) + "," + (30 * sy) + " 0 0 0 " + P(698.6, 646.8) + " L " + P(698.6, 771),
+              "M " + P(0, 578.25) + " L " + P(224.4, 578.25) + " A " + (18.18 * sx) + "," + (18.18 * sy) + " 0 0 1 " + P(232.72, 612.59) + " L " + P(0, 732.45)
+            ];
+            var loop = num(vars.loop_duration, 3, 1.5, 6);
+            gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin);
+            var tl = gsap.timeline({ paused: true });
+            var reps = Math.max(1, Math.round(total / loop)) - 1;
+            tracks.forEach(function (d, i) {
+              var track = document.createElementNS(NS, "path");
+              track.setAttribute("d", d); track.setAttribute("fill", "none"); track.setAttribute("stroke", line);
+              track.setAttribute("stroke-opacity", "0.15"); track.setAttribute("stroke-width", 2 * k);
+              var draw = document.createElementNS(NS, "path");
+              draw.setAttribute("d", d); draw.setAttribute("fill", "none"); draw.setAttribute("stroke", line);
+              draw.setAttribute("stroke-width", 2.5 * k); draw.setAttribute("stroke-linecap", "round");
+              var move = document.createElementNS(NS, "ellipse");
+              move.setAttribute("rx", 44 * k * glowScale); move.setAttribute("ry", 11 * k * glowScale);
+              move.setAttribute("fill", glow); move.setAttribute("fill-opacity", "0.55"); move.setAttribute("filter", "url(#grl-blur)");
+              svg.appendChild(track); svg.appendChild(draw); svg.appendChild(move);
+              gsap.set(move, { transformOrigin: "50% 50%" });
+              var seg = gsap.timeline({ repeat: reps })
+                .to(move, { duration: loop, ease: "none", motionPath: { path: track, align: track, alignOrigin: [0.5, 0.5], autoRotate: true } }, 0)
+                .fromTo(draw, { drawSVG: "4% 6%" }, { duration: loop, ease: "none", drawSVG: "94% 96%" }, 0);
+              tl.add(seg, i * 0.35);
+            });
+            if (label) tl.from(lab, { opacity: 0, y: 30 * k, duration: 0.8, ease: "power2.out" }, 0.3);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["glowing-route-lines"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

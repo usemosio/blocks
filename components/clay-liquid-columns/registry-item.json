@@ -1,0 +1,203 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "clay-liquid-columns",
+  "type": "hyperframes:component",
+  "title": "Clay Liquid Columns",
+  "description": "Five frosted-glass columns fill with coloured liquid that overshoots and settles with an elastic bounce, a percentage counting up above each, while a chunky clay-style info card with an icon pops in below every column.",
+  "tags": [
+    "data",
+    "infographic",
+    "progress",
+    "columns",
+    "glass",
+    "liquid",
+    "codepen-port"
+  ],
+  "category": "data-viz",
+  "duration": 5,
+  "useWhen": [
+    "Five comparable percentages (progress, scores, shares) should fill up like liquid with a satisfying bounce.",
+    "A dashboard-style recap with tidy labelled cards."
+  ],
+  "avoidWhen": [
+    "You need more than five values or precise axes: use animated-bar-chart.",
+    "A flat, minimal chart is wanted."
+  ],
+  "author": "dermalhealth",
+  "authorUrl": "https://codepen.io/dermalhealth",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/dermalhealth/pen/rajQWyJ"
+  },
+  "files": [
+    {
+      "path": "clay-liquid-columns.html",
+      "target": "compositions/components/clay-liquid-columns.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label_1",
+      "type": "string",
+      "role": "content",
+      "label": "Label 1",
+      "description": "Title on card 1.",
+      "default": "PENJUALAN"
+    },
+    {
+      "id": "label_2",
+      "type": "string",
+      "role": "content",
+      "label": "Label 2",
+      "description": "Title on card 2.",
+      "default": "PELANGGAN"
+    },
+    {
+      "id": "label_3",
+      "type": "string",
+      "role": "content",
+      "label": "Label 3",
+      "description": "Title on card 3.",
+      "default": "REPEAT ORDER"
+    },
+    {
+      "id": "label_4",
+      "type": "string",
+      "role": "content",
+      "label": "Label 4",
+      "description": "Title on card 4.",
+      "default": "ULASAN"
+    },
+    {
+      "id": "label_5",
+      "type": "string",
+      "role": "content",
+      "label": "Label 5",
+      "description": "Title on card 5.",
+      "default": "STOK"
+    },
+    {
+      "id": "value_1",
+      "type": "number",
+      "role": "content",
+      "label": "Value 1",
+      "description": "Percent for column 1.",
+      "default": 25,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_2",
+      "type": "number",
+      "role": "content",
+      "label": "Value 2",
+      "description": "Percent for column 2.",
+      "default": 40,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_3",
+      "type": "number",
+      "role": "content",
+      "label": "Value 3",
+      "description": "Percent for column 3.",
+      "default": 80,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_4",
+      "type": "number",
+      "role": "content",
+      "label": "Value 4",
+      "description": "Percent for column 4.",
+      "default": 60,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_5",
+      "type": "number",
+      "role": "content",
+      "label": "Value 5",
+      "description": "Percent for column 5.",
+      "default": 95,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "description",
+      "type": "string",
+      "role": "content",
+      "label": "Card text",
+      "description": "Small text on every card.",
+      "default": "Keterangan singkat untuk tiap indikator."
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Color 1",
+      "description": "Liquid colour of column 1.",
+      "default": "#7aa2f7"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Color 2",
+      "description": "Liquid colour of column 2.",
+      "default": "#5b8def"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Color 3",
+      "description": "Liquid colour of column 3.",
+      "default": "#3b78ea"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Color 4",
+      "description": "Liquid colour of column 4.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_5",
+      "type": "color",
+      "role": "style",
+      "label": "Color 5",
+      "description": "Liquid colour of column 5.",
+      "default": "#1e4fc4"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#0a0a0a"
+    }
+  ],
+  "checkAt": [
+    0.8,
+    1.6,
+    2.6,
+    4.4
+  ]
+}

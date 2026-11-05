@@ -1,0 +1,98 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "add-to-cart-button",
+  "type": "hyperframes:component",
+  "title": "Add To Cart Button",
+  "description": "A button is pressed and squashes; a shirt pops out of its top, drops into a cart icon that ticks and drives off to the right while the label returns, with morphing shapes and an elastic settle.",
+  "tags": [
+    "button",
+    "ecommerce",
+    "morphsvg",
+    "microinteraction",
+    "cart",
+    "codepen-port"
+  ],
+  "category": "commerce",
+  "duration": 4,
+  "useWhen": [
+    "An online-shop promo needs the add-to-cart moment shown as a satisfying micro-interaction.",
+    "A product or app UI demo needs a button that confirms an action."
+  ],
+  "avoidWhen": [
+    "You need a full checkout flow: use checkout-flow.",
+    "The product is not clothing and the shirt would confuse: pick a plainer cart icon such as icon-shopping-cart."
+  ],
+  "author": "aaroniker",
+  "authorUrl": "https://codepen.io/aaroniker",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/aaroniker/pen/pogGgbx"
+  },
+  "files": [
+    {
+      "path": "add-to-cart-button.html",
+      "target": "compositions/components/add-to-cart-button.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label",
+      "type": "string",
+      "role": "content",
+      "label": "Label",
+      "description": "Button text (keep it short).",
+      "default": "Ke keranjang"
+    },
+    {
+      "id": "button_color",
+      "type": "color",
+      "role": "style",
+      "label": "Button color",
+      "description": "Button background.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Label colour.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Tick color",
+      "description": "Colour of the check mark in the cart.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Multiplier on the automatic button size.",
+      "default": 1,
+      "min": 0.5,
+      "max": 1.6,
+      "step": 0.05,
+      "unit": "x"
+    }
+  ],
+  "checkAt": [
+    0.5,
+    1.2,
+    1.8,
+    3.2
+  ]
+}

@@ -1,0 +1,158 @@
+<!doctype html>
+<!--
+  Turning Squares Disc
+
+  Inside a round window, a lattice of squares turns a quarter turn while two interleaved sets slide in opposite directions; then the colours swap, the dark squares become light on an accent field, and it turns again, looping seamlessly.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/chrisgannon/pen/abZxwLm
+
+  Copyright (c) 2022 chrisgannon - https://codepen.io/chrisgannon/pen/abZxwLm
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: fills the host frame (the circle is sized from the frame); the explicit rectangle lists are generated in a loop; colours are variables on a white, ink and accent palette; the endless loop plays three times.
+-->
+<html
+  lang="en"
+  data-composition-id="turning-squares-disc"
+  data-composition-duration="6"
+  data-composition-variables='[
+    {"id":"color_light","type":"color","role":"style","label":"Light color","description":"Background of the first half and the squares of the second.","default":"#ffffff"},
+    {"id":"color_dark","type":"color","role":"style","label":"Dark color","description":"Squares of the first half and the ring.","default":"#0a0a0a"},
+    {"id":"accent","type":"color","role":"style","label":"Accent","description":"Background of the second half.","default":"#2563eb"},
+    {"id":"background","type":"color","role":"style","label":"Outside color","description":"Colour outside the round window.","default":"#0a0a0a"},
+    {"id":"size","type":"number","role":"style","label":"Window size","description":"Window diameter as a share of the shorter frame side.","default":0.8,"min":0.4,"max":1.2,"step":0.02,"unit":"x"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Turning Squares Disc</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--tsd-bg, #0a0a0a);
+        }
+        .tsd-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        #tsd-svg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); overflow: visible; }
+      </style>
+
+      <div id="root" data-composition-id="turning-squares-disc" data-duration="6" data-fps="30">
+        <div id="tsd-clip" class="tsd-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <svg id="tsd-svg" xmlns="http://www.w3.org/2000/svg" viewBox="150 50 500 500" aria-hidden="true">
+            <defs><clipPath id="tsd-mask"><circle cx="400" cy="300" r="200" /></clipPath></defs>
+            <g clip-path="url(#tsd-mask)">
+              <rect id="tsd-bg" x="0" y="0" width="800" height="600" />
+              <g id="tsd-black"></g>
+              <g id="tsd-white" opacity="0"></g>
+            </g>
+            <circle id="tsd-ring" cx="400" cy="300" r="200" fill="none" stroke-width="5" />
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 6;
+
+            var light = col(vars.color_light, "#ffffff"), dark = col(vars.color_dark, "#0a0a0a"), accent = col(vars.accent, "#2563eb");
+            root.style.setProperty("--tsd-bg", col(vars.background, "#0a0a0a"));
+            var s = Math.min(W, H) * num(vars.size, 0.8, 0.4, 1.2) * 500 / 400;
+            var svg = document.getElementById("tsd-svg");
+            svg.style.width = s + "px"; svg.style.height = s + "px";
+            document.getElementById("tsd-ring").setAttribute("stroke", dark);
+            var NS = "http://www.w3.org/2000/svg", P = 141.42;
+            function layer(parent, x0, y0, fill) {
+              var A = [], B = [];
+              for (var r = 0; r < 4; r++) {
+                for (var i = -1; i < 8; i++) {
+                  var rect = document.createElementNS(NS, "rect");
+                  rect.setAttribute("x", x0 + P * i); rect.setAttribute("y", y0 + P * r);
+                  rect.setAttribute("width", 100); rect.setAttribute("height", 100); rect.setAttribute("fill", fill);
+                  parent.appendChild(rect);
+                  (r % 2 ? B : A).push(rect);
+                }
+              }
+              return { A: A, B: B };
+            }
+            var black = layer(document.getElementById("tsd-black"), -98.79, 41.34, dark);
+            var white = layer(document.getElementById("tsd-white"), -169.5, -29.37, light);
+            var bg = document.getElementById("tsd-bg");
+            gsap.set(black.A.concat(black.B, white.A, white.B), { transformOrigin: "50% 50%" });
+            var one = gsap.timeline({ repeat: 2, defaults: { duration: 1 } });
+            one.set(bg, { attr: { fill: light } })
+              .set("#tsd-black", { autoAlpha: 1 }).set("#tsd-white", { autoAlpha: 0 })
+              .fromTo(black.A, { rotation: 45, x: P }, { rotation: -45, ease: "power1.inOut", x: 0 })
+              .fromTo(black.B, { rotation: -45, x: -P }, { rotation: 45, ease: "power2.inOut", x: 0 }, 0)
+              .add("rev")
+              .set("#tsd-black", { autoAlpha: 0 }, "rev").set("#tsd-white", { autoAlpha: 1 }, "rev")
+              .set(bg, { attr: { fill: accent } }, "rev")
+              .fromTo(white.A, { rotation: 45, x: P }, { rotation: -45, ease: "sine.inOut", x: 0 }, "rev")
+              .fromTo(white.B, { rotation: -45, x: -P }, { rotation: 45, ease: "power2.inOut", x: 0 }, "rev");
+            var tl = gsap.timeline({ paused: true });
+            tl.add(one, 0);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["turning-squares-disc"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

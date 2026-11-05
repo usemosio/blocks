@@ -1,0 +1,174 @@
+<!doctype html>
+<!--
+  Wavy Stroke Bands
+
+  Nine wavy lines, each drawn three times as a thick soft halo, a medium band and a core line, draw on and off in a staggered wave while their width swells and the colour shifts from one tone to another.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/creativeocean/pen/bGGZWEw
+
+  Copyright (c) 2025 creativeocean - https://codepen.io/creativeocean/pen/bGGZWEw
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: fills the host frame (the band of lines is scaled to the frame and turned vertical in portrait frames); the red-to-red hue sweep becomes a colour variable pair on a neutral palette; repeat: -1 and the starting-progress offset are replaced by two plain loops that start from empty; an optional title is added.
+-->
+<html
+  lang="en"
+  data-composition-id="wavy-stroke-bands"
+  data-composition-duration="5.2"
+  data-composition-variables='[
+    {"id":"title","type":"string","role":"content","label":"Title","description":"Optional centered text over the lines. Leave empty for lines only.","default":""},
+    {"id":"color","type":"color","role":"style","label":"Start color","description":"Colour the lines start with.","default":"#2563eb"},
+    {"id":"color_end","type":"color","role":"style","label":"End color","description":"Colour the lines shift to.","default":"#0a0a0a"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the title.","default":"#0a0a0a"},
+    {"id":"stroke_width","type":"number","role":"style","label":"Line width","description":"Width of the core line in the 1200-unit drawing.","default":15,"min":4,"max":30,"step":1,"unit":"px"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Wavy Stroke Bands</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--wsb-bg, #fff);
+        }
+        .wsb-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        #wsb-svg { position: absolute; left: 50%; top: 50%; overflow: visible; }
+        .wsb-title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 10cqw; font-family: Geist, system-ui, sans-serif; font-weight: 700; font-size: min(9cqw, 11cqh); letter-spacing: -0.04em; line-height: 1.05; color: var(--wsb-text, #0a0a0a); text-wrap: balance; }
+      </style>
+
+      <div id="root" data-composition-id="wavy-stroke-bands" data-duration="5.2" data-fps="30">
+        <div id="wsb-clip" class="wsb-stage clip" data-start="0" data-duration="5.2" data-track-index="0">
+          <svg id="wsb-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 40 1200 390" fill="none" stroke-linecap="round" aria-hidden="true">
+            <path class="wsb-line wsb-line3" d="M-10,348c15,17,24,43,68,47s97-43,183-12s165,73,283,49 s290-98,472-87c131.22,7.93,225.6,51.07,304,38" />
+            <path class="wsb-line wsb-line2" d="M-10,348c15,17,24,43,68,47s97-43,183-12s165,73,283,49 s290-98,472-87c131.22,7.93,225.6,51.07,304,38" />
+            <path class="wsb-line wsb-line1" d="M-10,348c15,17,24,43,68,47s97-43,183-12s165,73,283,49 s290-98,472-87c131.22,7.93,225.6,51.07,304,38" />
+            <path class="wsb-line wsb-line3" d="M-10,319c28-9,68.84,25.02,116,26c48,1,83.41-12.8,124-7 c42,6,84,45,161,59s144,12,263-36s234-86,371-62s216,52,279,62" />
+            <path class="wsb-line wsb-line2" d="M-10,319c28-9,68.84,25.02,116,26c48,1,83.41-12.8,124-7 c42,6,84,45,161,59s144,12,263-36s234-86,371-62s216,52,279,62" />
+            <path class="wsb-line wsb-line1" d="M-10,319c28-9,68.84,25.02,116,26c48,1,83.41-12.8,124-7 c42,6,84,45,161,59s144,12,263-36s234-86,371-62s216,52,279,62" />
+            <path class="wsb-line wsb-line3" d="M-10,296c27-13,59-22,107,0c71.61,32.82,113,14,175,22 s117,50,223,45s165-45,277-73s210-56,532,43" />
+            <path class="wsb-line wsb-line2" d="M-10,296c27-13,59-22,107,0c71.61,32.82,113,14,175,22 s117,50,223,45s165-45,277-73s210-56,532,43" />
+            <path class="wsb-line wsb-line1" d="M-10,296c27-13,59-22,107,0c71.61,32.82,113,14,175,22 s117,50,223,45s165-45,277-73s210-56,532,43" />
+            <path class="wsb-line wsb-line3" d="M-10,263c15-6,85-39,117-13c52.68,42.81,124,38,182,35 s123,63,275,32s235-75,349-72s242,13,391,64" />
+            <path class="wsb-line wsb-line2" d="M-10,263c15-6,85-39,117-13c52.68,42.81,124,38,182,35 s123,63,275,32s235-75,349-72s242,13,391,64" />
+            <path class="wsb-line wsb-line1" d="M-10,263c15-6,85-39,117-13c52.68,42.81,124,38,182,35 s123,63,275,32s235-75,349-72s242,13,391,64" />
+            <path class="wsb-line wsb-line3" d="M-10,225c0,0,39-33,79-38s61,24,100,44s101-7,159,19 s81,48,221,37s245-55,311-68s160-16,240-1s137,39,208,55" />
+            <path class="wsb-line wsb-line2" d="M-10,225c0,0,39-33,79-38s61,24,100,44s101-7,159,19 s81,48,221,37s245-55,311-68s160-16,240-1s137,39,208,55" />
+            <path class="wsb-line wsb-line1" d="M-10,225c0,0,39-33,79-38s61,24,100,44s101-7,159,19 s81,48,221,37s245-55,311-68s160-16,240-1s137,39,208,55" />
+            <path class="wsb-line wsb-line3" d="M-10,192c0,0,51-54,91-59s60,8,99,28s83,24,141,50 s152,48,292,37s203-51,269-64s142-15,222,0s136,37,207,53" />
+            <path class="wsb-line wsb-line2" d="M-10,192c0,0,51-54,91-59s60,8,99,28s83,24,141,50 s152,48,292,37s203-51,269-64s142-15,222,0s136,37,207,53" />
+            <path class="wsb-line wsb-line1" d="M-10,192c0,0,51-54,91-59s60,8,99,28s83,24,141,50 s152,48,292,37s203-51,269-64s142-15,222,0s136,37,207,53" />
+            <path class="wsb-line wsb-line3" d="M-10,144c0,0,54-39,94-44s85,7,124,27s59,25,117,51 s153,52,293,41s188-53,254-66s148-13,228,2s181,38,211,38" />
+            <path class="wsb-line wsb-line2" d="M-10,144c0,0,54-39,94-44s85,7,124,27s59,25,117,51 s153,52,293,41s188-53,254-66s148-13,228,2s181,38,211,38" />
+            <path class="wsb-line wsb-line1" d="M-10,144c0,0,54-39,94-44s85,7,124,27s59,25,117,51 s153,52,293,41s188-53,254-66s148-13,228,2s181,38,211,38" />
+            <path class="wsb-line wsb-line3" d="M-10,115c0,0,66-50,145-47s176.71,58.34,234,75 c86,25,187,47,352,7s150.3-93.53,404-31c142,35,190,26,190,26" />
+            <path class="wsb-line wsb-line2" d="M-10,115c0,0,66-50,145-47s176.71,58.34,234,75 c86,25,187,47,352,7s150.3-93.53,404-31c142,35,190,26,190,26" />
+            <path class="wsb-line wsb-line1" d="M-10,115c0,0,66-50,145-47s176.71,58.34,234,75 c86,25,187,47,352,7s150.3-93.53,404-31c142,35,190,26,190,26" />
+            <path class="wsb-line wsb-line3" d="M-10,88c0,0,100-71,231-36s199,100,373,85s187-94,320-94 s301,87,418,60" />
+            <path class="wsb-line wsb-line2" d="M-10,88c0,0,100-71,231-36s199,100,373,85s187-94,320-94 s301,87,418,60" />
+            <path class="wsb-line wsb-line1" d="M-10,88c0,0,100-71,231-36s199,100,373,85s187-94,320-94 s301,87,418,60" />
+          </svg>
+          <div class="wsb-title" id="wsb-title"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 5.2;
+
+            root.style.setProperty("--wsb-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--wsb-text", col(vars.text_color, "#0a0a0a"));
+            var svg = document.getElementById("wsb-svg");
+            var portrait = H > W;
+            var bw = portrait ? H : W, bh = portrait ? W : H;
+            svg.style.width = bw + "px"; svg.style.height = bh + "px";
+            svg.style.marginLeft = -bw / 2 + "px"; svg.style.marginTop = -bh / 2 + "px";
+            if (portrait) svg.style.transform = "rotate(90deg)";
+            var c1 = col(vars.color, "#2563eb"), c2 = col(vars.color_end, "#0a0a0a");
+            var sw = num(vars.stroke_width, 15, 4, 30);
+            var ttl = document.getElementById("wsb-title");
+            var title = typeof vars.title === "string" ? vars.title.trim() : "";
+            ttl.textContent = title;
+            gsap.registerPlugin(DrawSVGPlugin);
+            gsap.set(".wsb-line", { attr: { stroke: c1, "stroke-width": sw } });
+            gsap.set(".wsb-line2", { attr: { "stroke-width": sw * 20 / 15 }, opacity: 0.4 });
+            gsap.set(".wsb-line3", { attr: { "stroke-width": sw * 25 / 15 }, opacity: 0.15 });
+            var lines = Array.prototype.slice.call(svg.querySelectorAll(".wsb-line"));
+            var tl = gsap.timeline({ paused: true });
+            lines.forEach(function (el, i) {
+              var one = gsap.timeline({ defaults: { duration: 1, ease: "power2.inOut" }, repeat: 1, repeatDelay: (27 - i) / 50 })
+                .to(el, { duration: 2, attr: { stroke: c2 } }, 0)
+                .from(el, { attr: { "stroke-width": 1 }, yoyo: true, repeat: 1 }, i / 50)
+                .fromTo(el, { drawSVG: 0 }, { drawSVG: "35% 70%", ease: "sine.in" }, i / 50)
+                .to(el, { drawSVG: "100% 100%", ease: "sine.out" }, 1 + i / 50);
+              tl.add(one, 0);
+            });
+            if (title) tl.from(ttl, { opacity: 0, y: 24, duration: 1, ease: "power2.out" }, 0.4);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["wavy-stroke-bands"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

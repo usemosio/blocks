@@ -1,0 +1,202 @@
+<!doctype html>
+<!--
+  Folded Ribbon Steps
+
+  A five-step ribbon infographic: each front panel wipes up in turn, its folded back strip grows in behind it, and an arrowhead pops out of the last step with an elastic overshoot. Each step carries a number and a label.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/DeveloperZahid/pen/raOzJQK
+
+  Copyright (c) 2025 DeveloperZahid - https://codepen.io/DeveloperZahid/pen/raOzJQK
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: fills the host frame (the ribbon is sized from the frame, so it reads in 1080x1920 and 1920x1080); step numbers, labels and a title are variables; the five theme colours are neutral blue-to-ink variables; the Chrome-only box-reflect and the GSDevTools scrubber are dropped.
+-->
+<html
+  lang="en"
+  data-composition-id="folded-ribbon-steps"
+  data-composition-duration="6.4"
+  data-composition-variables='[
+    {"id":"title","type":"string","role":"content","label":"Title","description":"Heading above the ribbon.","default":"Alur pemesanan"},
+    {"id":"step_1","type":"string","role":"content","label":"Step 1","description":"Label under step 1.","default":"Pilih menu"},
+    {"id":"step_2","type":"string","role":"content","label":"Step 2","description":"Label under step 2.","default":"Pesan"},
+    {"id":"step_3","type":"string","role":"content","label":"Step 3","description":"Label under step 3.","default":"Bayar"},
+    {"id":"step_4","type":"string","role":"content","label":"Step 4","description":"Label under step 4.","default":"Dimasak"},
+    {"id":"step_5","type":"string","role":"content","label":"Step 5","description":"Label under step 5.","default":"Diantar"},
+    {"id":"color_1","type":"color","role":"style","label":"Step 1 color","description":"Ribbon colour of step 1.","default":"#bcd0fa"},
+    {"id":"color_2","type":"color","role":"style","label":"Step 2 color","description":"Ribbon colour of step 2.","default":"#86abf6"},
+    {"id":"color_3","type":"color","role":"style","label":"Step 3 color","description":"Ribbon colour of step 3.","default":"#4f86f0"},
+    {"id":"color_4","type":"color","role":"style","label":"Step 4 color","description":"Ribbon colour of step 4.","default":"#2563eb"},
+    {"id":"color_5","type":"color","role":"style","label":"Step 5 color","description":"Ribbon colour of step 5 and the arrowhead.","default":"#0a0a0a"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the title and the labels.","default":"#0a0a0a"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Folded Ribbon Steps</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--frs-bg, #fff); font-family: Geist, system-ui, sans-serif; color: var(--frs-text, #0a0a0a);
+        }
+        .frs-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .frs-wrap { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
+        .frs-title { font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; text-align: center; }
+        .frs-ribbon { position: relative; display: grid; grid-template-columns: repeat(5, var(--f)); gap: var(--g); height: var(--h); }
+        .frs-seg { display: contents; }
+        .frs-back, .frs-front, .frs-arrow { background-color: var(--theme); grid-row: 1 / -1; }
+        .frs-back { align-self: start; filter: contrast(88%); grid-column-end: span 2; background-image: linear-gradient(100deg, rgba(0,0,0,.5) 30%, var(--theme) 60%); }
+        .frs-front, .frs-arrow { z-index: 1; }
+        .frs-front { position: relative; display: flex; align-items: flex-start; justify-content: center; padding-top: calc(var(--f) * 0.16); color: #fff; font-weight: 700; font-size: calc(var(--f) * 0.34); letter-spacing: -0.02em; }
+        .frs-front.frs-light { color: #0a0a0a; }
+        .frs-arrow { position: relative; top: 1px; grid-column-end: -1; align-self: start; transform: translateY(-100%) scaleX(1.4); transform-origin: 50% 100%; clip-path: polygon(50% 0%, 100% 100%, 0% 100%); }
+        .frs-labels { display: grid; grid-template-columns: repeat(5, var(--f)); gap: var(--g); margin-top: calc(var(--f) * 0.28); }
+        .frs-label { text-align: center; font-weight: 600; font-size: calc(var(--f) * 0.19); line-height: 1.15; opacity: 0; margin: 0 calc(var(--g) * -0.45); }
+      </style>
+
+      <div id="root" data-composition-id="folded-ribbon-steps" data-duration="6.4" data-fps="30">
+        <div id="frs-clip" class="frs-stage clip" data-start="0" data-duration="6.4" data-track-index="0">
+          <div class="frs-wrap" id="frs-wrap">
+            <div class="frs-title" id="frs-title"></div>
+            <div class="frs-ribbon" id="frs-ribbon"></div>
+            <div class="frs-labels" id="frs-labels"></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 6.4;
+
+            root.style.setProperty("--frs-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--frs-text", col(vars.text_color, "#0a0a0a"));
+            var f = Math.min((W * 0.88) / 6.44, (H * 0.7) / 3.6);
+            var g = f * 0.36, h = f * 1.88;
+            var wrap = document.getElementById("frs-wrap");
+            wrap.style.setProperty("--f", f + "px");
+            wrap.style.setProperty("--g", g + "px");
+            wrap.style.setProperty("--h", h + "px");
+            var ribbon = document.getElementById("frs-ribbon");
+            var labels = document.getElementById("frs-labels");
+            var title = document.getElementById("frs-title");
+            title.textContent = str(vars.title, "Alur pemesanan");
+            title.style.fontSize = f * 0.42 + "px";
+            title.style.marginBottom = f * 0.55 + "px";
+            title.style.marginTop = f * 0.5 + "px";
+            var defColors = ["#bcd0fa", "#86abf6", "#4f86f0", "#2563eb", "#0a0a0a"];
+            var defLabels = ["Pilih menu", "Pesan", "Bayar", "Dimasak", "Diantar"];
+            var fronts = [], backs = [], labelEls = [], arrow;
+            for (var i = 0; i < 5; i++) {
+              var theme = col(vars["color_" + (i + 1)], defColors[i]);
+              var seg = document.createElement("div");
+              seg.className = "frs-seg";
+              seg.style.setProperty("--theme", theme);
+              seg.style.setProperty("--start-from", i + 1);
+              var front = document.createElement("div");
+              front.className = "frs-front" + (i < 2 ? " frs-light" : "");
+              front.style.gridColumnStart = i + 1;
+              front.style.clipPath = "polygon(0% 100%, 100% 100%, 100% 0%, 0% 0%)";
+              front.textContent = String(i + 1);
+              fronts.push(front);
+              if (i < 4) {
+                var back = document.createElement("div");
+                back.className = "frs-back";
+                back.style.gridColumnStart = i + 1;
+                var cw = 2 * f + g;
+                back.style.clipPath = "polygon(0px 0px, " + f + "px 0px, 100% " + h + "px, " + (cw - f) + "px " + h + "px, 0px 0px)";
+                backs.push(back);
+                seg.appendChild(back);
+                seg.appendChild(front);
+              } else {
+                arrow = document.createElement("div");
+                arrow.className = "frs-arrow";
+                arrow.style.gridColumnStart = 5;
+                arrow.style.setProperty("background-color", theme);
+                seg.appendChild(front);
+                seg.appendChild(arrow);
+              }
+              ribbon.appendChild(seg);
+              var lab = document.createElement("div");
+              lab.className = "frs-label";
+              lab.textContent = str(vars["step_" + (i + 1)], defLabels[i]);
+              labels.appendChild(lab);
+              labelEls.push(lab);
+            }
+            var FD = 0.5, BD = 0.25, ST = FD + BD;
+            var tl = gsap.timeline({ paused: true });
+            tl.from(title, { opacity: 0, y: f * 0.2, duration: 0.5, ease: "power2.out" }, 0);
+            tl.from(fronts, { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)", stagger: ST, duration: FD, ease: "none" }, 0.4);
+            tl.fromTo(backs, { height: 0 }, { height: h, stagger: ST, duration: BD, ease: "none" }, 0.4 + FD);
+            tl.fromTo(arrow, { height: 0 }, { height: h * 0.35, duration: 1.0, ease: "elastic.out(1,0.3)" }, 0.4 + 4 * ST + BD);
+            labelEls.forEach(function (el, i) {
+              tl.to(el, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.4 + i * ST + FD);
+            });
+
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["folded-ribbon-steps"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

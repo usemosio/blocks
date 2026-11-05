@@ -1,0 +1,178 @@
+<!doctype html>
+<!--
+  Fruit Burst Reveal
+
+  A product reveal in one drawn scene: a line draws a circle and splashes droplets, a coloured fill sweeps diagonally across it, the core, stalk and leaf pop in with elastic overshoots, the whole piece wobbles, swells and bursts into particles before a caption rises.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/chrisgannon/pen/LRyQQV
+
+  Copyright (c) 2019 chrisgannon - https://codepen.io/chrisgannon/pen/LRyQQV
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: the pen's SVG artwork (an orange) is re-drawn from scratch as simple shapes, since only the script was ported: its GSAP 2 TweenMax/TimelineMax code becomes GSAP 3 on one paused timeline; three particle sets replace the reused pool; Math.random() becomes a seeded generator; the repeat loop plays once; the fruit colour defaults to the accent blue and every colour, the caption and the seed are variables; fills the host frame.
+-->
+<html
+  lang="en"
+  data-composition-id="fruit-burst-reveal"
+  data-composition-duration="7.6"
+  data-composition-variables='[
+    {"id":"label","type":"string","role":"content","label":"Caption","description":"Text that rises after the burst. Leave empty for none.","default":"Jus jeruk segar"},
+    {"id":"fruit_color","type":"color","role":"style","label":"Fruit color","description":"Colour of the fill and half of the droplets.","default":"#f97316"},
+    {"id":"leaf_color","type":"color","role":"style","label":"Leaf color","description":"Colour of the leaf.","default":"#16a34a"},
+    {"id":"line_color","type":"color","role":"style","label":"Line color","description":"Outline, stalk and the other droplets.","default":"#0a0a0a"},
+    {"id":"core_color","type":"color","role":"style","label":"Core color","description":"Colour of the core.","default":"#ffffff"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the caption.","default":"#0a0a0a"},
+    {"id":"seed","type":"number","role":"motion","label":"Seed","description":"Changes the droplet directions.","default":5,"min":1,"max":9999,"step":1}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fruit Burst Reveal</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--fbr-bg, #fff); font-family: Geist, system-ui, sans-serif;
+        }
+        .fbr-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        #fbr-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .fbr-label { position: absolute; left: 0; right: 0; bottom: 12cqh; text-align: center; font-weight: 700; font-size: min(7cqw, 8cqh); letter-spacing: -0.04em; color: var(--fbr-text, #0a0a0a); }
+      </style>
+
+      <div id="root" data-composition-id="fruit-burst-reveal" data-duration="7.6" data-fps="30">
+        <div id="fbr-clip" class="fbr-stage clip" data-start="0" data-duration="7.6" data-track-index="0">
+          <svg id="fbr-svg" xmlns="http://www.w3.org/2000/svg" viewBox="180 90 440 400" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs><clipPath id="fbr-clip"><circle cx="400" cy="300" r="120" /></clipPath></defs>
+            <g id="fbr-whole">
+              <g clip-path="url(#fbr-clip)"><circle id="fbr-fill" cx="400" cy="300" r="300" /></g>
+              <circle id="fbr-core" cx="400" cy="300" r="26" />
+              <rect id="fbr-stalk" x="394" y="170" width="12" height="40" rx="5" />
+              <path id="fbr-leaf" d="M406 186 C426 148 470 148 492 164 C470 204 432 208 406 186 Z" />
+            </g>
+            <circle id="fbr-line" cx="400" cy="300" r="120" fill="none" stroke-width="5" stroke-linecap="round" transform="rotate(-90 400 300)" />
+            <g id="fbr-particles"></g>
+          </svg>
+          <div class="fbr-label" id="fbr-label"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/Physics2DPlugin.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 7.6;
+
+            root.style.setProperty("--fbr-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--fbr-text", col(vars.text_color, "#0a0a0a"));
+            var fruit = col(vars.fruit_color, "#f97316"), ink = col(vars.line_color, "#0a0a0a"), coreC = col(vars.core_color, "#ffffff");
+            document.getElementById("fbr-fill").setAttribute("fill", fruit);
+            document.getElementById("fbr-core").setAttribute("fill", coreC);
+            document.getElementById("fbr-stalk").setAttribute("fill", ink);
+            document.getElementById("fbr-leaf").setAttribute("fill", col(vars.leaf_color, "#16a34a"));
+            document.getElementById("fbr-line").setAttribute("stroke", ink);
+            var label = typeof vars.label === "string" ? vars.label : "Jus jeruk segar";
+            var lab = document.getElementById("fbr-label"); lab.textContent = label;
+            gsap.registerPlugin(DrawSVGPlugin, Physics2DPlugin, CustomEase);
+            var rand = rng(Math.round(num(vars.seed, 5, 1, 9999)));
+            function between(min, max) { return Math.floor(rand() * (max - min + 1) + min); }
+            var NS = "http://www.w3.org/2000/svg", pg = document.getElementById("fbr-particles");
+            var tl = gsap.timeline({ paused: true });
+            function burst(x, y, at) {
+              for (var i = 0; i < 23; i++) {
+                var p = document.createElementNS(NS, "circle");
+                p.setAttribute("cx", 0); p.setAttribute("cy", 0); p.setAttribute("r", 3);
+                p.setAttribute("fill", i % 2 ? ink : fruit);
+                pg.appendChild(p);
+                gsap.set(p, { opacity: 0, x: x, y: y, transformOrigin: "50% 50%" });
+                var s0 = between(1, 3);
+                tl.set(p, { opacity: 1, x: x, y: y, scale: s0 }, at);
+                tl.to(p, { duration: between(1, 23) / 10, physics2D: { velocity: between(240, 370), angle: between(-130, -45), gravity: between(550, 600) }, scale: 0, ease: "none" }, at);
+              }
+            }
+            gsap.set("#fbr-fill", { x: 360, y: 330 });
+            gsap.set("#fbr-core", { transformOrigin: "50% 50%" });
+            gsap.set("#fbr-stalk", { transformOrigin: "20% 100%" });
+            gsap.set("#fbr-leaf", { transformOrigin: "0% 0%" });
+            gsap.set("#fbr-whole", { transformOrigin: "400px 420px" });
+            var roll = CustomEase.create("fbr-roll", "M0,0 C0.076,0.736 0.326,0.855 0.53,0.736 0.73,0.618 1,0 1,0");
+            tl.fromTo("#fbr-line", { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: 1, ease: "power4.in" }, 0.2);
+            burst(400, 420, 1.2);
+            tl.to("#fbr-fill", { x: 0, y: 0, duration: 3, ease: "power1.inOut" }, 1.15);
+            tl.to("#fbr-line", { drawSVG: "100% 100%", duration: 0.3, ease: "sine.in" }, 2.4);
+            burst(400, 180, 2.7);
+            tl.from("#fbr-core", { scale: 0, duration: 0.4 }, 2.5);
+            tl.from("#fbr-stalk", { scale: 0, duration: 1, ease: "elastic.out(0.84, 0.37)" }, 2.5);
+            tl.from("#fbr-leaf", { scale: 0, rotation: 23, duration: 2, ease: "elastic.out(1.4, 0.37)" }, 2.8);
+            tl.to("#fbr-whole", { rotation: -9, duration: 0.6, ease: roll }, 3.9);
+            tl.to("#fbr-whole", { scale: 1.061, duration: 1, ease: "expo.in" }, 4.5);
+            burst(400, 300, 5.5);
+            tl.set("#fbr-whole", { autoAlpha: 0 }, 5.5);
+            if (label) tl.from(lab, { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, 5.6);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["fruit-burst-reveal"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

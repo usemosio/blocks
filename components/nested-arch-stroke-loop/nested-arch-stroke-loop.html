@@ -1,0 +1,152 @@
+<!doctype html>
+<!--
+  Nested Arch Stroke Loop
+
+  Five nested arch strokes each draw in as a short capsule, run to the end of the line and re-colour, every one on its own eased curve, so the colours ripple through the arches.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/creativeocean/pen/YPyjZmM
+
+  Copyright (c) 2025 creativeocean - https://codepen.io/creativeocean/pen/YPyjZmM
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Note: the author's pen says it is inspired by an illustration on Instagram; only the pen's code is ported.
+
+  Changes by usemosio/blocks: fills the host frame (the SVG scales with the frame and may overflow it); the five colours and the background are variables with a neutral blue-and-ink palette; the click-to-pause and the opening speed ramp are dropped; the loop plays a fixed two times; the Safari workaround is not needed.
+-->
+<html
+  lang="en"
+  data-composition-id="nested-arch-stroke-loop"
+  data-composition-duration="7.2"
+  data-composition-variables='[
+    {"id":"color_1","type":"color","role":"style","label":"Color 1","description":"Colour of the outermost arch.","default":"#2563eb"},
+    {"id":"color_2","type":"color","role":"style","label":"Color 2","description":"Colour of the second arch.","default":"#4f86f0"},
+    {"id":"color_3","type":"color","role":"style","label":"Color 3","description":"Colour of the third arch.","default":"#86abf6"},
+    {"id":"color_4","type":"color","role":"style","label":"Color 4","description":"Colour of the fourth arch.","default":"#0a0a0a"},
+    {"id":"color_5","type":"color","role":"style","label":"Color 5","description":"Colour of the innermost arch.","default":"#64748b"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"stroke_width","type":"number","role":"style","label":"Stroke width","description":"Line width in the 500-unit drawing.","default":15,"min":4,"max":30,"step":1,"unit":"px"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nested Arch Stroke Loop</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--nas-bg, #fff);
+        }
+        .nas-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        #nas-svg { position: absolute; left: 50%; top: 50%; width: 118cqmin; height: 118cqmin; transform: translate(-50%, -50%); overflow: visible; }
+      </style>
+
+      <div id="root" data-composition-id="nested-arch-stroke-loop" data-duration="7.2" data-fps="30">
+        <div id="nas-clip" class="nas-stage clip" data-start="0" data-duration="7.2" data-track-index="0">
+          <svg id="nas-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none" stroke-linecap="round" aria-hidden="true">
+            <use href="#nas-lines" id="nas-shadow" stroke-linecap="square" opacity="0.3" />
+            <g id="nas-lines">
+              <path d="M42.5 445V287.58c0-122.6 98.36-221.4 220.69-213.36 108.81 7.16 194.86 97.7 194 208V445" />
+              <path d="M86 445V275.78c0-77.51 78.73-164 174.7-158.9 85.36 4.53 152.86 85.77 152.86 156V445" />
+              <path d="M130 445V283.9c0-70.47 57.69-127.26 128-122.64 62.54 4.12 112 56.15 112 120v164" />
+              <path d="M173.5 445V282.35c0-44.93 36.77-81.13 81.6-78.18A76.5 76.5 0 0 1 326 280V445" />
+              <path d="M217 445V281.8c0-19.38 15.86-35 35.2-33.73C268.4 249.2 283 263.51 283 281v164" />
+            </g>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 7.2;
+
+            root.style.setProperty("--nas-bg", col(vars.background, "#ffffff"));
+            var defs = ["#2563eb", "#4f86f0", "#86abf6", "#0a0a0a", "#64748b"];
+            var hex = defs.map(function (d, i) { return col(vars["color_" + (i + 1)], d); });
+            var sw = num(vars.stroke_width, 15, 4, 30);
+            var svg = document.getElementById("nas-svg");
+            svg.setAttribute("stroke-width", sw);
+            document.getElementById("nas-shadow").setAttribute("stroke-width", sw * 35 / 15);
+            var paths = Array.prototype.slice.call(svg.querySelectorAll("#nas-lines path"));
+            gsap.registerPlugin(DrawSVGPlugin, CustomEase);
+            function ez(i, tag) { return CustomEase.create("nas-" + tag + i, "M0,0 C0.6,0.16 " + (0.6 - (i + 1) / 8) + ",1 1,1"); }
+            var loop = gsap.timeline({ repeat: 1 });
+            paths.forEach(function (p, i) {
+              var length = p.getTotalLength();
+              loop.add(
+                gsap.timeline()
+                  .set(p, { stroke: hex[i] })
+                  .from(p, { duration: 1.9, drawSVG: "0 35", ease: ez(5 - i, "a") })
+                  .to(p, { duration: 1.1, drawSVG: length - 35 + " 100%", ease: ez(i, "b") }, "-=0.1")
+                  .to(p, { duration: 0.9, stroke: hex[4 - i], x: -240, ease: ez(i, "c") }, "-=0.2"),
+                0
+              );
+            });
+            var tl = gsap.timeline({ paused: true });
+            tl.add(loop, 0);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["nested-arch-stroke-loop"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

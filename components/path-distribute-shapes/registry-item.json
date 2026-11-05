@@ -1,0 +1,123 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "path-distribute-shapes",
+  "type": "hyperframes:component",
+  "title": "Path Distribute Shapes",
+  "description": "Hand-drawn letter outlines draw on, small squares pop onto every line, then slide along their paths so each lands at its own distributed point, shift colour and size in waves, round into dots, flatten into bars, converge on the centre as a line, and a headline rises from beneath it.",
+  "tags": [
+    "shapes",
+    "motion-path",
+    "distribute",
+    "stagger",
+    "drawsvg",
+    "title",
+    "particles",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 10,
+  "useWhen": [
+    "A word or a few outlines should dissolve into a swarm of small shapes that reorganise and then resolve into a headline.",
+    "A technical-looking title sequence with stagger and distribute rhythm."
+  ],
+  "avoidWhen": [
+    "The lettering must be your own word: the 'DISTRIBUTE' outlines are fixed art (replace the path data).",
+    "A short, calm title is wanted: the full sequence takes about ten seconds."
+  ],
+  "author": "PointC",
+  "authorUrl": "https://codepen.io/PointC",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/PointC/pen/XWrYmGq"
+  },
+  "files": [
+    {
+      "path": "path-distribute-shapes.html",
+      "target": "compositions/components/path-distribute-shapes.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Closing title",
+      "description": "Headline that rises at the end.",
+      "default": "Rapi dan merata"
+    },
+    {
+      "id": "caption",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Small line under the letters.",
+      "default": "Jalur | Jeda | Merata | Selang | Acak"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Main shape colour, the dots and the underline.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Palette 2",
+      "description": "Second colour in the random picks.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Palette 3",
+      "description": "Third colour in the random picks.",
+      "default": "#93b4f8"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Palette 4",
+      "description": "Fourth colour in the random picks.",
+      "default": "#64748b"
+    },
+    {
+      "id": "line_color",
+      "type": "color",
+      "role": "style",
+      "label": "Line color",
+      "description": "Colour of the letter outlines and the text.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes the random colour picks.",
+      "default": 11,
+      "min": 1,
+      "max": 9999,
+      "step": 1
+    }
+  ],
+  "checkAt": [
+    1,
+    3,
+    5.5,
+    9.4
+  ]
+}

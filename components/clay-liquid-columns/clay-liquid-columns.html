@@ -1,0 +1,169 @@
+<!doctype html>
+<!--
+  Clay Liquid Columns
+
+  Five frosted-glass columns fill with coloured liquid that overshoots and settles with an elastic bounce, a percentage counting up above each, while a chunky clay-style info card with an icon pops in below every column.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/dermalhealth/pen/rajQWyJ
+
+  Copyright (c) 2026 dermalhealth - https://codepen.io/dermalhealth/pen/rajQWyJ
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: fills the host frame (the infographic is scaled from the frame width and the tubes get taller in portrait frames); the lorem ipsum labels, the five rainbow colours and the grey page become variables with Indonesian sample text, a blue palette and an ink background; the CSS wave keyframes become a seeded-free linear tween; hover, tooltip and click handlers are dropped.
+-->
+<html
+  lang="en"
+  data-composition-id="clay-liquid-columns"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id":"label_1","type":"string","role":"content","label":"Label 1","description":"Title on card 1.","default":"PENJUALAN"},
+    {"id":"label_2","type":"string","role":"content","label":"Label 2","description":"Title on card 2.","default":"PELANGGAN"},
+    {"id":"label_3","type":"string","role":"content","label":"Label 3","description":"Title on card 3.","default":"REPEAT ORDER"},
+    {"id":"label_4","type":"string","role":"content","label":"Label 4","description":"Title on card 4.","default":"ULASAN"},
+    {"id":"label_5","type":"string","role":"content","label":"Label 5","description":"Title on card 5.","default":"STOK"},
+    {"id":"value_1","type":"number","role":"content","label":"Value 1","description":"Percent for column 1.","default":25,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_2","type":"number","role":"content","label":"Value 2","description":"Percent for column 2.","default":40,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_3","type":"number","role":"content","label":"Value 3","description":"Percent for column 3.","default":80,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_4","type":"number","role":"content","label":"Value 4","description":"Percent for column 4.","default":60,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_5","type":"number","role":"content","label":"Value 5","description":"Percent for column 5.","default":95,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"description","type":"string","role":"content","label":"Card text","description":"Small text on every card.","default":"Keterangan singkat untuk tiap indikator."},
+    {"id":"color_1","type":"color","role":"style","label":"Color 1","description":"Liquid colour of column 1.","default":"#7aa2f7"},
+    {"id":"color_2","type":"color","role":"style","label":"Color 2","description":"Liquid colour of column 2.","default":"#5b8def"},
+    {"id":"color_3","type":"color","role":"style","label":"Color 3","description":"Liquid colour of column 3.","default":"#3b78ea"},
+    {"id":"color_4","type":"color","role":"style","label":"Color 4","description":"Liquid colour of column 4.","default":"#2563eb"},
+    {"id":"color_5","type":"color","role":"style","label":"Color 5","description":"Liquid colour of column 5.","default":"#1e4fc4"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#0a0a0a"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Clay Liquid Columns</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700;800&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--clc-bg, #0a0a0a); font-family: Geist, system-ui, sans-serif;
+        }
+        .clc-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .clc-wrap { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--s, 1)); display: flex; gap: 35px; align-items: flex-end; width: max-content; }
+        .clc-col { display: flex; flex-direction: column; align-items: center; width: 120px; }
+        .clc-pct { font-size: 32px; font-weight: 800; margin-bottom: 15px; color: #fff; letter-spacing: -0.5px; text-shadow: 0 4px 10px rgba(0,0,0,.3); }
+        .clc-tube { width: 100%; height: var(--th, 320px); border-radius: 12px; background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.3); border-right-color: rgba(255,255,255,.1); border-bottom-color: rgba(255,255,255,.05); position: relative; margin-bottom: 25px; display: flex; align-items: flex-end; overflow: hidden; box-shadow: inset 4px 4px 10px rgba(255,255,255,.4), inset -4px -4px 15px rgba(0,0,0,.2), 0 15px 30px rgba(0,0,0,.3); z-index: 2; }
+        .clc-tube::before { content: ""; position: absolute; top: 2%; left: 6%; width: 25%; height: 96%; background: linear-gradient(to right, rgba(255,255,255,.6) 0%, rgba(255,255,255,0) 100%); border-radius: 8px; pointer-events: none; z-index: 10; }
+        .clc-liquid { width: 100%; height: 0%; background: var(--theme); position: relative; box-shadow: inset 8px 0 15px rgba(255,255,255,.3), inset -8px 0 15px rgba(0,0,0,.15); z-index: 1; }
+        .clc-wave { position: absolute; top: -4px; left: -100%; width: 300%; height: 8px; background: rgba(255,255,255,.3); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,.2); }
+        .clc-card { background: #f4f6f8; width: 135px; border-radius: 10px; padding: 18px 12px; text-align: center; position: relative; border: 1px solid #fff; box-shadow: inset 0 3px 0 #fff, inset 0 -3px 0 #dadddf, 0 12px 20px rgba(0,0,0,.25), 0 4px 6px rgba(0,0,0,.1); z-index: 1; }
+        .clc-card::before { content: ""; position: absolute; top: -8px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 16px; height: 16px; background: #f4f6f8; border-top: 1px solid #fff; border-left: 1px solid #fff; box-shadow: inset 2px 2px 0 #fff; z-index: -1; }
+        .clc-title { font-size: 11px; color: #0a0a0a; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+        .clc-desc { font-size: 9px; color: #6b7076; line-height: 1.5; margin-bottom: 14px; }
+        .clc-icon { margin: 0 auto; display: flex; justify-content: center; }
+        .clc-icon svg { width: 24px; height: 24px; fill: var(--theme); filter: drop-shadow(1px 1px 0 #d0d4d8) drop-shadow(1px 1px 0 #d0d4d8) drop-shadow(1px 1px 0 #d0d4d8); }
+      </style>
+
+      <div id="root" data-composition-id="clay-liquid-columns" data-duration="5" data-fps="30">
+        <div id="clc-clip" class="clc-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="clc-wrap" id="clc-wrap"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 5;
+
+            root.style.setProperty("--clc-bg", col(vars.background, "#0a0a0a"));
+            var ICONS = ["M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm5 17a1 1 0 100-2 1 1 0 000 2z","M12 2a7 7 0 00-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 00-7-7zm-2 18h4v1a2 2 0 01-4 0v-1z","M20 16V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10H2v2h20v-2h-2zM6 6h12v9H6V6z","M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z","M21 2H3a2 2 0 00-2 2v12a2 2 0 002 2h7v2H8v2h8v-2h-2v-2h7a2 2 0 002-2V4a2 2 0 00-2-2zm0 14H3V4h18v12z"];
+            var defC = ["#7aa2f7","#5b8def","#3b78ea","#2563eb","#1e4fc4"], defL = ["PENJUALAN", "PELANGGAN", "REPEAT ORDER", "ULASAN", "STOK"], defV = [25, 40, 80, 60, 95];
+            var s = (W * 0.92) / 815, th = Math.max(320, Math.min(760, (H * 0.86) / s - 202));
+            if (s * (th + 202) > H * 0.9) { s = (H * 0.9) / (th + 202); }
+            var wrap = document.getElementById("clc-wrap");
+            wrap.style.setProperty("--s", s); wrap.style.setProperty("--th", th + "px");
+            var desc = str(vars.description, "Keterangan singkat untuk tiap indikator.");
+            var liquids = [], pcts = [], cards = [], waves = [], vals = [];
+            for (var i = 0; i < 5; i++) {
+              var theme = col(vars["color_" + (i + 1)], defC[i]);
+              var v = num(vars["value_" + (i + 1)], defV[i], 0, 100);
+              vals.push(v);
+              var c = document.createElement("div");
+              c.className = "clc-col";
+              c.style.setProperty("--theme", theme);
+              c.innerHTML = '<div class="clc-pct">0%</div><div class="clc-tube"><div class="clc-liquid"><div class="clc-wave"></div></div></div><div class="clc-card"><div class="clc-title"></div><div class="clc-desc"></div><div class="clc-icon"><svg viewBox="0 0 24 24"><path d="' + ICONS[i] + '"/></svg></div></div>';
+              c.querySelector(".clc-title").textContent = str(vars["label_" + (i + 1)], defL[i]);
+              c.querySelector(".clc-desc").textContent = desc;
+              wrap.appendChild(c);
+              liquids.push(c.querySelector(".clc-liquid")); pcts.push(c.querySelector(".clc-pct")); cards.push(c.querySelector(".clc-card")); waves.push(c.querySelector(".clc-wave"));
+            }
+            var tl = gsap.timeline({ paused: true });
+            liquids.forEach(function (el, i) {
+              tl.fromTo(el, { height: "0%" }, { height: vals[i] + "%", duration: 2.2, ease: "elastic.out(1, 0.75)" }, 0.2 + i * 0.15);
+              var counter = { val: 0 };
+              tl.to(counter, { val: vals[i], duration: 2, ease: "power2.out", onUpdate: function () { pcts[i].textContent = Math.floor(counter.val) + "%"; } }, 0.2 + i * 0.15);
+            });
+            tl.from(cards, { y: 40, opacity: 0, duration: 1.2, ease: "back.out(1.2)", stagger: 0.15 }, 0.5);
+            tl.fromTo(waves, { xPercent: 0 }, { xPercent: 100 / 3, duration: 4, ease: "none", repeat: Math.ceil(total / 4) - 1 }, 0);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["clay-liquid-columns"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

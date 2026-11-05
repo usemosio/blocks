@@ -1,0 +1,117 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stairs-column-reveal",
+  "type": "hyperframes:component",
+  "title": "Stairs Column Reveal",
+  "description": "Five full-height columns grow down from the top in a right-to-left stagger to cover the frame, then drop away off the bottom in a second stagger while the next scene scales in from 120 percent.",
+  "tags": [
+    "transition",
+    "stairs",
+    "columns",
+    "reveal",
+    "cinematic",
+    "codepen-port"
+  ],
+  "category": "transitions",
+  "duration": 3.8,
+  "useWhen": [
+    "A cinematic page-style transition between two scenes is needed, with a clear staggered rhythm.",
+    "A title or section change should feel architectural and decisive."
+  ],
+  "avoidWhen": [
+    "You want slats that turn like blinds: use venetian-blinds.",
+    "A soft, fluid transition is needed: use liquid-edge-wipe."
+  ],
+  "author": "avipaul_",
+  "authorUrl": "https://codepen.io/avipaul_",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/avipaul_/pen/myeGOyY"
+  },
+  "files": [
+    {
+      "path": "stairs-column-reveal.html",
+      "target": "compositions/components/stairs-column-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "label_a",
+      "type": "string",
+      "role": "content",
+      "label": "Scene A text",
+      "description": "Text on the outgoing scene.",
+      "default": "Sebelum"
+    },
+    {
+      "id": "label_b",
+      "type": "string",
+      "role": "content",
+      "label": "Scene B text",
+      "description": "Text on the incoming scene.",
+      "default": "Sesudah"
+    },
+    {
+      "id": "stair_color",
+      "type": "color",
+      "role": "style",
+      "label": "Column color",
+      "description": "Colour of the columns.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "background_a",
+      "type": "color",
+      "role": "style",
+      "label": "Scene A background",
+      "description": "Background of the outgoing scene.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "background_b",
+      "type": "color",
+      "role": "style",
+      "label": "Scene B background",
+      "description": "Background of the incoming scene.",
+      "default": "#f5f5f4"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of both scene texts.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "columns",
+      "type": "number",
+      "role": "motion",
+      "label": "Columns",
+      "description": "Number of columns.",
+      "default": 5,
+      "min": 2,
+      "max": 12,
+      "step": 1
+    },
+    {
+      "id": "font_size",
+      "type": "number",
+      "role": "style",
+      "label": "Font size",
+      "description": "Maximum text size in pixels; it also shrinks with the frame width.",
+      "default": 130,
+      "min": 24,
+      "max": 260,
+      "step": 1,
+      "unit": "px"
+    }
+  ],
+  "checkAt": [
+    0.3,
+    0.6,
+    0.9,
+    3.2
+  ]
+}

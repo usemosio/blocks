@@ -1,0 +1,91 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "turning-squares-disc",
+  "type": "hyperframes:component",
+  "title": "Turning Squares Disc",
+  "description": "Inside a round window, a lattice of squares turns a quarter turn while two interleaved sets slide in opposite directions; then the colours swap, the dark squares become light on an accent field, and it turns again, looping seamlessly.",
+  "tags": [
+    "pattern",
+    "squares",
+    "loop",
+    "geometric",
+    "background",
+    "transition",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 6,
+  "useWhen": [
+    "A hypnotic geometric loop is needed as a background, a loader or a bumper.",
+    "A pattern should flip between two colour states without a cut."
+  ],
+  "avoidWhen": [
+    "The motion competes with a lot of on-screen text.",
+    "A calm, still backdrop is needed."
+  ],
+  "author": "chrisgannon",
+  "authorUrl": "https://codepen.io/chrisgannon",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/chrisgannon/pen/abZxwLm"
+  },
+  "files": [
+    {
+      "path": "turning-squares-disc.html",
+      "target": "compositions/components/turning-squares-disc.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_light",
+      "type": "color",
+      "role": "style",
+      "label": "Light color",
+      "description": "Background of the first half and the squares of the second.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "color_dark",
+      "type": "color",
+      "role": "style",
+      "label": "Dark color",
+      "description": "Squares of the first half and the ring.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Background of the second half.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Outside color",
+      "description": "Colour outside the round window.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Window size",
+      "description": "Window diameter as a share of the shorter frame side.",
+      "default": 0.8,
+      "min": 0.4,
+      "max": 1.2,
+      "step": 0.02,
+      "unit": "x"
+    }
+  ],
+  "checkAt": [
+    0.4,
+    1,
+    1.6,
+    2.4
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "photo-frame-draw-reveal",
+  "type": "hyperframes:component",
+  "title": "Photo Frame Draw Reveal",
+  "description": "A photo opens from the centre with a circular clip, then a thin circle, a square outline and a notched decorative border draw themselves around it. Without an image it shows a drawn placeholder scene.",
+  "tags": [
+    "photo",
+    "frame",
+    "reveal",
+    "drawsvg",
+    "clip-path",
+    "product",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 7,
+  "useWhen": [
+    "A product or place photo needs a framed, drawn-on reveal.",
+    "A hero image should open with a circle and gain an ornamental outline."
+  ],
+  "avoidWhen": [
+    "Several photos must reveal at once: use product-grid-reveal.",
+    "The frame should stay plain and quiet."
+  ],
+  "author": "BlogFire",
+  "authorUrl": "https://codepen.io/BlogFire",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/BlogFire/pen/ogbzPeo"
+  },
+  "files": [
+    {
+      "path": "photo-frame-draw-reveal.html",
+      "target": "compositions/components/photo-frame-draw-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "image",
+      "type": "string",
+      "role": "content",
+      "label": "Image URL",
+      "description": "Optional image URL shown in the frame. Empty shows a drawn placeholder.",
+      "default": ""
+    },
+    {
+      "id": "caption",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Text under the frame. Leave empty for none.",
+      "default": "Kopi susu gula aren"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Colour of the circle and the decorative border.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "outline",
+      "type": "color",
+      "role": "style",
+      "label": "Outline",
+      "description": "Colour of the square outline and the circle ring.",
+      "default": "#93b4f8"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the caption.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "border_duration",
+      "type": "number",
+      "role": "motion",
+      "label": "Border draw time",
+      "description": "Seconds the decorative border takes to draw.",
+      "default": 3.2,
+      "min": 1,
+      "max": 8,
+      "step": 0.1,
+      "unit": "s"
+    }
+  ],
+  "checkAt": [
+    1.5,
+    3,
+    4.5,
+    6.6
+  ]
+}

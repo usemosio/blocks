@@ -1,0 +1,211 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "glass-tube-gauges",
+  "type": "hyperframes:component",
+  "title": "Glass Tube Gauges",
+  "description": "Five rounded glass tubes tilt up into place one after another, then fill with liquid that overshoots and settles with an elastic bounce, a bright meniscus riding the surface and a number counting up beneath each; afterwards the tubes bob gently.",
+  "tags": [
+    "data",
+    "gauge",
+    "progress",
+    "glass",
+    "liquid",
+    "infographic",
+    "codepen-port"
+  ],
+  "category": "data-viz",
+  "duration": 5.5,
+  "useWhen": [
+    "Five readings (levels, scores, stock, capacity) should fill like laboratory tubes.",
+    "A product or health-style recap needs a tactile, glossy look."
+  ],
+  "avoidWhen": [
+    "More than five values or a precise axis is needed: use animated-bar-chart.",
+    "A flat, minimal chart is wanted: use clay-liquid-columns on dark or animated-bar-chart."
+  ],
+  "author": "dermalhealth",
+  "authorUrl": "https://codepen.io/dermalhealth",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/dermalhealth/pen/pvRQNbe"
+  },
+  "files": [
+    {
+      "path": "glass-tube-gauges.html",
+      "target": "compositions/components/glass-tube-gauges.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading above the tubes. Leave empty for none.",
+      "default": "Penjualan harian"
+    },
+    {
+      "id": "label_1",
+      "type": "string",
+      "role": "content",
+      "label": "Label 1",
+      "description": "Label under tube 1.",
+      "default": "Sen"
+    },
+    {
+      "id": "label_2",
+      "type": "string",
+      "role": "content",
+      "label": "Label 2",
+      "description": "Label under tube 2.",
+      "default": "Sel"
+    },
+    {
+      "id": "label_3",
+      "type": "string",
+      "role": "content",
+      "label": "Label 3",
+      "description": "Label under tube 3.",
+      "default": "Rab"
+    },
+    {
+      "id": "label_4",
+      "type": "string",
+      "role": "content",
+      "label": "Label 4",
+      "description": "Label under tube 4.",
+      "default": "Kam"
+    },
+    {
+      "id": "label_5",
+      "type": "string",
+      "role": "content",
+      "label": "Label 5",
+      "description": "Label under tube 5.",
+      "default": "Jum"
+    },
+    {
+      "id": "value_1",
+      "type": "number",
+      "role": "content",
+      "label": "Value 1",
+      "description": "Percent for tube 1.",
+      "default": 35,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_2",
+      "type": "number",
+      "role": "content",
+      "label": "Value 2",
+      "description": "Percent for tube 2.",
+      "default": 60,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_3",
+      "type": "number",
+      "role": "content",
+      "label": "Value 3",
+      "description": "Percent for tube 3.",
+      "default": 45,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_4",
+      "type": "number",
+      "role": "content",
+      "label": "Value 4",
+      "description": "Percent for tube 4.",
+      "default": 85,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "value_5",
+      "type": "number",
+      "role": "content",
+      "label": "Value 5",
+      "description": "Percent for tube 5.",
+      "default": 70,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Color 1",
+      "description": "Liquid colour of tube 1.",
+      "default": "#7aa2f7"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Color 2",
+      "description": "Liquid colour of tube 2.",
+      "default": "#5b8def"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Color 3",
+      "description": "Liquid colour of tube 3.",
+      "default": "#3b78ea"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Color 4",
+      "description": "Liquid colour of tube 4.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_5",
+      "type": "color",
+      "role": "style",
+      "label": "Color 5",
+      "description": "Liquid colour of tube 5.",
+      "default": "#1e4fc4"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the title, numbers and labels.",
+      "default": "#0a0a0a"
+    }
+  ],
+  "checkAt": [
+    0.9,
+    1.6,
+    2.4,
+    5
+  ]
+}

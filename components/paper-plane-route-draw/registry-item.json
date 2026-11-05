@@ -1,0 +1,91 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "paper-plane-route-draw",
+  "type": "hyperframes:component",
+  "title": "Paper Plane Route Draw",
+  "description": "A paper plane swells from small to large as it flies along a looping curved route with its nose following the line, while the route draws in behind it and then thins out, and the whole scene fades away.",
+  "tags": [
+    "plane",
+    "route",
+    "motion-path",
+    "drawsvg",
+    "travel",
+    "intro",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 4.4,
+  "useWhen": [
+    "A trip, delivery or journey intro needs a simple icon flying along a drawn route.",
+    "A short logo-less opener that suggests travel or shipping."
+  ],
+  "avoidWhen": [
+    "The route must be tied to a real map with pins: use flight-route-map.",
+    "A headline should ride along the line: use path-ride."
+  ],
+  "author": "GreenSock",
+  "authorUrl": "https://codepen.io/GreenSock",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/GreenSock/pen/gONoYaG"
+  },
+  "files": [
+    {
+      "path": "paper-plane-route-draw.html",
+      "target": "compositions/components/paper-plane-route-draw.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_start",
+      "type": "color",
+      "role": "style",
+      "label": "Plane color",
+      "description": "Colour at the top of the plane and the route.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_end",
+      "type": "color",
+      "role": "style",
+      "label": "Plane color 2",
+      "description": "Colour at the bottom of the plane.",
+      "default": "#93b4f8"
+    },
+    {
+      "id": "route_color",
+      "type": "color",
+      "role": "style",
+      "label": "Route color",
+      "description": "Colour of the route line.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "route_width",
+      "type": "number",
+      "role": "style",
+      "label": "Route width",
+      "description": "Width of the route line in the 1250-unit drawing.",
+      "default": 4,
+      "min": 1,
+      "max": 12,
+      "step": 0.5,
+      "unit": "px"
+    }
+  ],
+  "checkAt": [
+    0.8,
+    1.8,
+    2.8,
+    3.6
+  ]
+}

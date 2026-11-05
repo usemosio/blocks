@@ -1,0 +1,175 @@
+<!doctype html>
+<!--
+  Pie Slice Sweep
+
+  Pie slices start as one wedge at the top and sweep out to their own start and end angles while their radius shrinks, on a power3 in-out ease, then each slice gets its percentage and a legend appears below.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/GreenSock/pen/eYMRGJo
+
+  Copyright (c) 2022 GreenSock - https://codepen.io/GreenSock/pen/eYMRGJo
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: the single demo wedge becomes up to five slices from a values variable (each slice animates its own start and end angle, the pen's 0-110 degree start wedge and radius 200 to 150), with percent labels, a legend and a title; the helper that rebuilds the arc path on every update is rewritten and runs from the timeline; fills the host frame; colours and labels are variables.
+-->
+<html
+  lang="en"
+  data-composition-id="pie-slice-sweep"
+  data-composition-duration="5"
+  data-composition-variables='[
+    {"id":"title","type":"string","role":"content","label":"Title","description":"Heading above the pie. Leave empty for none.","default":"Penjualan per kanal"},
+    {"id":"values","type":"string","role":"content","label":"Values","description":"Comma-separated values (two to five). They are normalised to 100 percent.","default":"45, 30, 25"},
+    {"id":"labels","type":"string","role":"content","label":"Labels","description":"Comma-separated labels for the legend.","default":"Dine-in, Bawa pulang, Antar"},
+    {"id":"color_1","type":"color","role":"style","label":"Color 1","description":"First slice.","default":"#2563eb"},
+    {"id":"color_2","type":"color","role":"style","label":"Color 2","description":"Second slice.","default":"#0a0a0a"},
+    {"id":"color_3","type":"color","role":"style","label":"Color 3","description":"Third slice.","default":"#93b4f8"},
+    {"id":"color_4","type":"color","role":"style","label":"Color 4","description":"Fourth slice.","default":"#64748b"},
+    {"id":"color_5","type":"color","role":"style","label":"Color 5","description":"Fifth slice.","default":"#cbd5e1"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the title and the legend.","default":"#0a0a0a"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pie Slice Sweep</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--pss-bg, #fff); color: var(--pss-text, #0a0a0a); font-family: Geist, system-ui, sans-serif;
+        }
+        .pss-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .pss-title { position: absolute; left: 0; right: 0; top: 9cqh; text-align: center; font-weight: 700; font-size: min(6.5cqw, 7cqh); letter-spacing: -0.035em; }
+        #pss-svg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -52%); overflow: visible; }
+        #pss-svg text { font-family: Geist, system-ui, sans-serif; font-weight: 700; font-size: 26px; text-anchor: middle; dominant-baseline: central; }
+        .pss-legend { position: absolute; left: 0; right: 0; bottom: 8cqh; display: flex; justify-content: center; flex-wrap: wrap; gap: 1.6cqmin 3.6cqmin; padding: 0 6cqw; font-weight: 600; font-size: min(3.4cqw, 4cqh); }
+        .pss-legend span { display: inline-flex; align-items: center; gap: 1.2cqmin; }
+        .pss-legend i { width: 2.4cqmin; height: 2.4cqmin; border-radius: 50%; display: inline-block; }
+      </style>
+
+      <div id="root" data-composition-id="pie-slice-sweep" data-duration="5" data-fps="30">
+        <div id="pss-clip" class="pss-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="pss-title" id="pss-title"></div>
+          <svg id="pss-svg" viewBox="0 0 500 500" aria-hidden="true"></svg>
+          <div class="pss-legend" id="pss-legend"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 5;
+
+            root.style.setProperty("--pss-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--pss-text", col(vars.text_color, "#0a0a0a"));
+            var title = typeof vars.title === "string" ? vars.title : "Penjualan per kanal";
+            var tEl = document.getElementById("pss-title"); tEl.textContent = title;
+            var vals = str(vars.values, "45, 30, 25").split(",").map(function (x) { return Math.max(0, Number(x) || 0); }).slice(0, 5);
+            if (vals.length < 2) vals = [60, 40];
+            var sum = vals.reduce(function (a, b) { return a + b; }, 0) || 1;
+            var labs = str(vars.labels, "Dine-in, Bawa pulang, Antar").split(",").map(function (x) { return x.trim(); });
+            var defC = ["#2563eb", "#0a0a0a", "#93b4f8", "#64748b", "#cbd5e1"];
+            var size = Math.min(W * 0.82, H * 0.52);
+            var svg = document.getElementById("pss-svg");
+            svg.style.width = size + "px"; svg.style.height = size + "px";
+            var NS = "http://www.w3.org/2000/svg", D = Math.PI / 180, cx = 250, cy = 250;
+            function r4(v) { return Math.round(v * 10000) / 10000; }
+            function wedge(path, start, end, radius) {
+              var big = end - start <= 180 ? 0 : 1, sa = (start - 90) * D, ea = (end - 90) * D;
+              var sx = cx + radius * Math.cos(sa), sy = cy + radius * Math.sin(sa);
+              var ex = cx + radius * Math.cos(ea), ey = cy + radius * Math.sin(ea);
+              path.setAttribute("d", "M " + r4(sx) + " " + r4(sy) + " A " + radius + " " + radius + " 0 " + big + " 1 " + r4(ex) + " " + r4(ey) + " L " + cx + " " + cy + " Z");
+            }
+            function lum(hex) { var m = /^#?([0-9a-f]{6})$/i.exec(hex); if (!m) return 0; var n = parseInt(m[1], 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
+            var slices = [], cum = 0, legend = document.getElementById("pss-legend"), bg = col(vars.background, "#ffffff");
+            vals.forEach(function (v, i) {
+              var color = col(vars["color_" + (i + 1)], defC[i]);
+              var a1 = (cum / sum) * 360, a2 = ((cum + v) / sum) * 360; cum += v;
+              var p = document.createElementNS(NS, "path");
+              p.setAttribute("fill", color); p.setAttribute("stroke", bg); p.setAttribute("stroke-width", 4); p.setAttribute("stroke-linejoin", "round");
+              svg.appendChild(p);
+              var t = document.createElementNS(NS, "text");
+              var mid = (a1 + a2) / 2 - 90;
+              t.setAttribute("x", cx + 150 * 0.64 * Math.cos(mid * D)); t.setAttribute("y", cy + 150 * 0.64 * Math.sin(mid * D));
+              t.setAttribute("fill", lum(color) > 0.6 ? "#0a0a0a" : "#ffffff");
+              t.textContent = Math.round((v / sum) * 100) + "%"; t.setAttribute("opacity", 0);
+              svg.appendChild(t);
+              var item = document.createElement("span");
+              item.innerHTML = '<i style="background:' + color + '"></i>';
+              item.appendChild(document.createTextNode(labs[i] || ""));
+              item.style.opacity = 0; legend.appendChild(item);
+              slices.push({ p: p, t: t, item: item, a1: a1, a2: a2, state: { s: 0, e: 110, r: 200 } });
+              wedge(p, 0, 110, 200);
+            });
+            var tl = gsap.timeline({ paused: true });
+            slices.forEach(function (sl, i) {
+              tl.to(sl.state, { s: sl.a1, e: sl.a2, r: 150, duration: 3, ease: "power3.inOut", onUpdate: function () { wedge(sl.p, sl.state.s, sl.state.e, sl.state.r); } }, 0.3 + i * 0.12);
+            });
+            tl.from(tEl, { opacity: 0, y: 24, duration: 0.7, ease: "power2.out" }, 0.1);
+            tl.to(slices.map(function (s) { return s.t; }), { opacity: 1, duration: 0.5, stagger: 0.1 }, 3.6);
+            tl.to(slices.map(function (s) { return s.item; }), { opacity: 1, duration: 0.5, stagger: 0.1 }, 3.7);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["pie-slice-sweep"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

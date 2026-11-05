@@ -1,0 +1,94 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "dot-silhouette-morph",
+  "type": "hyperframes:component",
+  "title": "Dot Silhouette Morph",
+  "description": "Two hundred and fifty dots gather at the centre, then flow through a series of outlines (circle, heart, star, house) in a rippling stagger on a sine ease, each dot pulsing in size as it goes.",
+  "tags": [
+    "particles",
+    "dots",
+    "morph",
+    "shapes",
+    "motion-path",
+    "background",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 8,
+  "useWhen": [
+    "A logo-less, abstract particle beat is needed that resolves into simple icons.",
+    "A background where dots rearrange into shapes to punctuate a list of ideas."
+  ],
+  "avoidWhen": [
+    "The silhouettes must be a brand logo: swap in your own outline path data first.",
+    "Rendering budget is tight: it animates 250 small SVG elements."
+  ],
+  "author": "chrisgannon",
+  "authorUrl": "https://codepen.io/chrisgannon",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/chrisgannon/pen/rNGwWdd"
+  },
+  "files": [
+    {
+      "path": "dot-silhouette-morph.html",
+      "target": "compositions/components/dot-silhouette-morph.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Dot color 1",
+      "description": "Colour of every other dot.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Dot color 2",
+      "description": "Colour of the remaining dots.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "dots",
+      "type": "number",
+      "role": "motion",
+      "label": "Dots",
+      "description": "Number of dots.",
+      "default": 250,
+      "min": 60,
+      "max": 400,
+      "step": 10
+    },
+    {
+      "id": "interval",
+      "type": "number",
+      "role": "motion",
+      "label": "Shape interval",
+      "description": "Seconds between one outline and the next.",
+      "default": 2,
+      "min": 1.4,
+      "max": 3,
+      "step": 0.1,
+      "unit": "s"
+    }
+  ],
+  "checkAt": [
+    0.2,
+    1.9,
+    3.9,
+    6
+  ]
+}

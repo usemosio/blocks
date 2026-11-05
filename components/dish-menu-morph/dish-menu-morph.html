@@ -1,0 +1,261 @@
+<!doctype html>
+<!--
+  Dish Menu Morph
+
+  A menu page that cycles through three dishes: a three-line icon morphs into the next dish's line art, the headline letters slide out and in, the dish illustration flies off at 45 degrees and back, and the menu items slide up with their prices.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/oliviale/pen/zYvxXWw
+
+  Copyright (c) 2020 oliviale - https://codepen.io/oliviale/pen/zYvxXWw
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: click-driven page swaps become a timed sequence of three dishes; jQuery, Splitting.js and the TweenMax/TimelineMax API are replaced by plain DOM and GSAP 3; the pasta line art, stock PNG photos and recipe links are replaced by new line-art icons, drawn dish illustrations (symbols, no images) and Indonesian menu items with Rupiah prices; text, prices and colours are variables.
+-->
+<html
+  lang="en"
+  data-composition-id="dish-menu-morph"
+  data-composition-duration="9.5"
+  data-composition-variables='[
+    {"id":"kicker","type":"string","role":"content","label":"Kicker","description":"Small text above the dish name.","default":"Menu hari ini"},
+    {"id":"menu_label","type":"string","role":"content","label":"Menu label","description":"Label next to the morphing icon.","default":"Menu"},
+    {"id":"dish_1","type":"string","role":"content","label":"Dish 1","description":"Name of the first dish.","default":"Mie Ayam"},
+    {"id":"items_1","type":"string","role":"content","label":"Dish 1 items","description":"Up to three lines, each &#39;name | price&#39;.","default":"Mie Ayam Bakso | Rp18.000\nMie Ayam Pangsit | Rp20.000\nMie Ayam Jamur | Rp19.000"},
+    {"id":"dish_2","type":"string","role":"content","label":"Dish 2","description":"Name of the second dish.","default":"Sate Ayam"},
+    {"id":"items_2","type":"string","role":"content","label":"Dish 2 items","description":"Up to three lines, each &#39;name | price&#39;.","default":"Sate Ayam 10 tusuk | Rp25.000\nSate Taichan | Rp27.000\nLontong Sate | Rp12.000"},
+    {"id":"dish_3","type":"string","role":"content","label":"Dish 3","description":"Name of the third dish.","default":"Es Teler"},
+    {"id":"items_3","type":"string","role":"content","label":"Dish 3 items","description":"Up to three lines, each &#39;name | price&#39;.","default":"Es Teler Original | Rp15.000\nEs Teler Durian | Rp22.000\nEs Teler Mini | Rp10.000"},
+    {"id":"accent","type":"color","role":"style","label":"Accent","description":"Icon, dish illustration and price colour.","default":"#2563eb"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Headline and item text colour.","default":"#0a0a0a"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dish Menu Morph</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--dmm-bg, #fff); color: var(--dmm-text, #0a0a0a); font-family: Geist, system-ui, sans-serif;
+        }
+        .dmm-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .dmm-top { position: absolute; left: 7cqw; top: 6cqh; display: flex; align-items: center; gap: 2.4cqw; font-weight: 600; font-size: min(3.6cqw, 4.6cqh); letter-spacing: 0.02em; }
+        .dmm-icon { width: min(11cqw, 14cqh); height: auto; overflow: visible; }
+        .dmm-icon path { fill: none; stroke: var(--dmm-accent, #2563eb); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+        .dmm-set { position: absolute; inset: 0; }
+        .dmm-info { position: absolute; left: 7cqw; right: 7cqw; top: 16cqh; }
+        .dmm-kicker { font-size: min(3.4cqw, 4.2cqh); font-weight: 500; opacity: 0.55; margin-bottom: 1.4cqh; }
+        .dmm-h2 { font-size: min(15cqw, 17cqh); font-weight: 700; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; overflow: hidden; padding-bottom: 0.08em; }
+        .dmm-char { display: inline-block; white-space: pre; }
+        .dmm-items { margin-top: 3.4cqh; display: flex; flex-direction: column; gap: 1.4cqh; }
+        .dmm-item { display: flex; align-items: baseline; gap: 2cqw; font-size: min(3.8cqw, 4.8cqh); font-weight: 600; overflow: hidden; }
+        .dmm-item .dmm-in { display: flex; align-items: baseline; gap: 2cqw; width: 100%; }
+        .dmm-item .dmm-dots { flex: 1; border-bottom: 0.4cqmin dotted currentColor; opacity: 0.3; transform: translateY(-0.5ex); }
+        .dmm-item .dmm-price { color: var(--dmm-accent, #2563eb); }
+        .dmm-dish { position: absolute; width: 74cqw; height: 74cqw; left: 13cqw; bottom: 4cqh; }
+        .dmm-dish svg, .dmm-bg svg { width: 100%; height: 100%; display: block; overflow: visible; }
+        .dmm-bg { position: absolute; width: 140cqw; height: 140cqw; right: -48cqw; bottom: -30cqw; }
+        @container (aspect-ratio >= 1) {
+          .dmm-info { right: auto; width: 46cqw; top: 22cqh; }
+          .dmm-h2 { font-size: min(9cqw, 17cqh); }
+          .dmm-item { font-size: min(1.9cqw, 3.8cqh); }
+          .dmm-kicker { font-size: min(1.8cqw, 3.4cqh); }
+          .dmm-dish { width: 66cqh; height: 66cqh; left: auto; right: 7cqw; bottom: auto; top: 17cqh; }
+          .dmm-bg { width: 110cqh; height: 110cqh; right: -12cqh; bottom: -34cqh; }
+          .dmm-top { font-size: min(1.8cqw, 3.6cqh); }
+        }
+      </style>
+
+      <div id="root" data-composition-id="dish-menu-morph" data-duration="9.5" data-fps="30">
+        <div id="dmm-clip" class="dmm-stage clip" data-start="0" data-duration="9.5" data-track-index="0">
+          <div class="dmm-bg" id="dmm-bg"></div>
+          <div class="dmm-top"><svg class="dmm-icon" id="dmm-icon" viewBox="0 0 88 75" aria-hidden="true"><path id="dmm-m1" d="M6 20 q9.5 -12 19 0 t19 0 t19 0 t19 0" /><path id="dmm-m2" d="M6 40 q9.5 -12 19 0 t19 0 t19 0 t19 0" /><path id="dmm-m3" d="M6 60 q9.5 -12 19 0 t19 0 t19 0 t19 0" /></svg><span id="dmm-menu"></span></div>
+          <div id="dmm-sets"></div>
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+            <defs>
+              <path id="dmm-t2-1" d="M10 64 L76 14" /><path id="dmm-t2-2" d="M10 48 L66 6" /><path id="dmm-t2-3" d="M22 70 L82 26" />
+              <path id="dmm-t3-1" d="M22 12 H66 L58 66 H30 Z" /><path id="dmm-t3-2" d="M26 30 H62" /><path id="dmm-t3-3" d="M44 30 L58 4" />
+              <path id="dmm-t1-1" d="M6 20 q9.5 -12 19 0 t19 0 t19 0 t19 0" /><path id="dmm-t1-2" d="M6 40 q9.5 -12 19 0 t19 0 t19 0 t19 0" /><path id="dmm-t1-3" d="M6 60 q9.5 -12 19 0 t19 0 t19 0 t19 0" />
+              <symbol id="dmm-s1" viewBox="0 0 200 200">
+                <path d="M16 96 H184 C184 150 148 184 100 184 C52 184 16 150 16 96Z" fill="var(--dmm-accent, #2563eb)" />
+                <ellipse cx="100" cy="96" rx="84" ry="13" fill="#0a0a0a" opacity="0.18" />
+                <path d="M36 92 q16 -26 32 0 t32 0 t32 0 t32 0" fill="none" stroke="#e2eafd" stroke-width="9" stroke-linecap="round" />
+                <path d="M44 74 q14 -22 28 0 t28 0 t28 0 t24 0" fill="none" stroke="#bcd0fa" stroke-width="9" stroke-linecap="round" />
+                <circle cx="136" cy="66" r="21" fill="#ffffff" /><circle cx="136" cy="66" r="9" fill="#0a0a0a" />
+                <rect x="44" y="188" width="112" height="6" rx="3" fill="#0a0a0a" opacity="0.1" />
+              </symbol>
+              <symbol id="dmm-s2" viewBox="0 0 200 200">
+                <ellipse cx="100" cy="112" rx="92" ry="64" fill="#eef3fe" stroke="#bcd0fa" stroke-width="3" />
+                <g stroke-linecap="round"><line x1="22" y1="150" x2="178" y2="74" stroke="#0a0a0a" stroke-width="4" /><line x1="26" y1="124" x2="172" y2="54" stroke="#0a0a0a" stroke-width="4" /><line x1="50" y1="162" x2="186" y2="96" stroke="#0a0a0a" stroke-width="4" /></g>
+                <g fill="var(--dmm-accent, #2563eb)"><circle cx="58" cy="132" r="13" /><circle cx="92" cy="115" r="13" /><circle cx="126" cy="98" r="13" /><circle cx="160" cy="82" r="13" /></g>
+                <g fill="#0a0a0a"><circle cx="52" cy="104" r="12" /><circle cx="86" cy="88" r="12" /><circle cx="120" cy="72" r="12" /><circle cx="154" cy="56" r="12" /></g>
+              </symbol>
+              <symbol id="dmm-s3" viewBox="0 0 200 200">
+                <defs><clipPath id="dmm-glass"><path d="M46 40 H154 L138 186 H62 Z" /></clipPath></defs>
+                <g clip-path="url(#dmm-glass)"><rect x="40" y="40" width="120" height="146" fill="#eef3fe" /><rect x="40" y="86" width="120" height="30" fill="#bcd0fa" /><rect x="40" y="116" width="120" height="30" fill="#86abf6" /><rect x="40" y="146" width="120" height="44" fill="var(--dmm-accent, #2563eb)" /></g>
+                <path d="M46 40 H154 L138 186 H62 Z" fill="none" stroke="#0a0a0a" stroke-width="5" stroke-linejoin="round" />
+                <path d="M118 40 L146 6" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round" fill="none" />
+                <circle cx="76" cy="38" r="12" fill="#0a0a0a" />
+              </symbol>
+            </defs>
+          </svg>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MorphSVGPlugin.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 9.5;
+
+            root.style.setProperty("--dmm-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--dmm-text", col(vars.text_color, "#0a0a0a"));
+            root.style.setProperty("--dmm-accent", col(vars.accent, "#2563eb"));
+            document.getElementById("dmm-menu").textContent = str(vars.menu_label, "Menu");
+            var kicker = str(vars.kicker, "Menu hari ini");
+            var defNames = ["Mie Ayam", "Sate Ayam", "Es Teler"];
+            var defItems = [
+              "Mie Ayam Bakso | Rp18.000\nMie Ayam Pangsit | Rp20.000\nMie Ayam Jamur | Rp19.000",
+              "Sate Ayam 10 tusuk | Rp25.000\nSate Taichan | Rp27.000\nLontong Sate | Rp12.000",
+              "Es Teler Original | Rp15.000\nEs Teler Durian | Rp22.000\nEs Teler Mini | Rp10.000"
+            ];
+            var sets = document.getElementById("dmm-sets");
+            var bg = document.getElementById("dmm-bg");
+            var groups = [];
+            function svgUse(id) {
+              var d = document.createElement("div");
+              d.innerHTML = '<svg viewBox="0 0 200 200" aria-hidden="true"><use href="#' + id + '"></use></svg>';
+              return d;
+            }
+            for (var i = 0; i < 3; i++) {
+              var g = document.createElement("div");
+              g.className = "dmm-set";
+              var name = str(vars["dish_" + (i + 1)], defNames[i]);
+              var lines = str(vars["items_" + (i + 1)], defItems[i]).split(/\r?\n/).slice(0, 3);
+              var info = document.createElement("div");
+              info.className = "dmm-info";
+              var kk = document.createElement("div"); kk.className = "dmm-kicker"; kk.textContent = kicker; info.appendChild(kk);
+              var h2 = document.createElement("div"); h2.className = "dmm-h2"; h2.setAttribute("aria-label", name);
+              var chars = Array.from(name).map(function (ch) { var s = document.createElement("span"); s.className = "dmm-char"; s.textContent = ch; h2.appendChild(s); return s; });
+              info.appendChild(h2);
+              var list = document.createElement("div"); list.className = "dmm-items";
+              var inners = lines.map(function (ln) {
+                var parts = ln.split("|");
+                var row = document.createElement("div"); row.className = "dmm-item";
+                var inn = document.createElement("div"); inn.className = "dmm-in";
+                var a = document.createElement("span"); a.textContent = parts[0].trim();
+                var dots = document.createElement("span"); dots.className = "dmm-dots";
+                var p = document.createElement("span"); p.className = "dmm-price"; p.textContent = (parts[1] || "").trim();
+                inn.appendChild(a); inn.appendChild(dots); inn.appendChild(p); row.appendChild(inn); list.appendChild(row);
+                return inn;
+              });
+              info.appendChild(list);
+              var dish = document.createElement("div"); dish.className = "dmm-dish";
+              dish.appendChild(svgUse("dmm-s" + (i + 1)).firstChild);
+              g.appendChild(info); g.appendChild(dish);
+              sets.appendChild(g);
+              var b = svgUse("dmm-s" + (i + 1)).firstChild; b.style.position = "absolute"; b.style.inset = "0"; b.style.opacity = "0"; bg.appendChild(b);
+              groups.push({ g: g, chars: chars, items: inners, dish: dish, bg: b });
+            }
+            gsap.registerPlugin(MorphSVGPlugin, CustomEase);
+            var tl = gsap.timeline({ paused: true });
+            var ex = gsap.parseEase("power4.out");
+            var m = ["#dmm-m1", "#dmm-m2", "#dmm-m3"];
+            // initial state: dish 1 shown, everything else hidden
+            groups.forEach(function (gr, i) {
+              gsap.set(gr.g, { opacity: i === 0 ? 1 : 0 });
+              gsap.set(gr.chars, { yPercent: 110, opacity: 0 });
+              gsap.set(gr.items, { yPercent: 110, opacity: 0 });
+              gsap.set(gr.dish, { opacity: 0, scale: 0.7 });
+            });
+            function swapIn(gr, at) {
+              tl.to(gr.chars, { yPercent: 0, opacity: 1, duration: 1, ease: "power2.inOut", stagger: 0.01 }, at);
+              tl.to(gr.bg, { opacity: 0.1, duration: 0.5, ease: "power2.inOut" }, at);
+              tl.to(gr.items, { yPercent: 0, opacity: 1, duration: 1, ease: ex, stagger: 0.08 }, at + 0.4);
+              tl.to(gr.dish, { opacity: 1, scale: 1, xPercent: 0, yPercent: 0, rotation: 0, duration: 0.8, ease: "power2.inOut" }, at + 0.45);
+            }
+            function swapOut(gr, at) {
+              tl.to(gr.bg, { opacity: 0, duration: 0.1, ease: "power2.inOut" }, at);
+              tl.to(gr.chars, { yPercent: -110, opacity: 0, duration: 0.5, ease: "power2.inOut", stagger: 0.03 }, at + 0.1);
+              tl.to(gr.dish, { opacity: 0, xPercent: 25, yPercent: -10, rotation: 45, duration: 0.5, ease: "power2.inOut" }, at + 0.1);
+              tl.to(gr.items, { yPercent: 110, opacity: 0, duration: 0.5, ease: ex, stagger: 0.04 }, at);
+            }
+            function swapDuration(gr) { return 0.1 + 0.5 + 0.03 * Math.max(0, gr.chars.length - 1); }
+            swapIn(groups[0], 0.3);
+            var times = [2.8, 5.8];
+            var morphTo = ["t2", "t3"];
+            [1, 2].forEach(function (n) {
+              var at = times[n - 1], prev = groups[n - 1], gr = groups[n];
+              swapOut(prev, at);
+              for (var k = 0; k < 3; k++) tl.to(m[k], { morphSVG: "#dmm-" + morphTo[n - 1] + "-" + (k + 1), duration: 0.6, ease: "expo.out" }, at);
+              var mid = at + swapDuration(prev);
+              tl.set(prev.g, { opacity: 0 }, mid);
+              tl.set(gr.g, { opacity: 1 }, mid);
+              swapIn(gr, mid);
+            });
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["dish-menu-morph"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

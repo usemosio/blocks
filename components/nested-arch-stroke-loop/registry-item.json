@@ -1,0 +1,101 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "nested-arch-stroke-loop",
+  "type": "hyperframes:component",
+  "title": "Nested Arch Stroke Loop",
+  "description": "Five nested arch strokes each draw in as a short capsule, run to the end of the line and re-colour, every one on its own eased curve, so the colours ripple through the arches.",
+  "tags": [
+    "loop",
+    "stroke",
+    "drawsvg",
+    "arches",
+    "logo-sting",
+    "background",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 7.2,
+  "useWhen": [
+    "A looping rainbow-style stroke motif is needed as a background or a logo sting.",
+    "A concentric line graphic should ripple with staggered colour changes."
+  ],
+  "avoidWhen": [
+    "You need a still, quiet background.",
+    "The graphic must stay inside a fixed safe area: the strokes slide out of the frame."
+  ],
+  "author": "creativeocean",
+  "authorUrl": "https://codepen.io/creativeocean",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/creativeocean/pen/YPyjZmM"
+  },
+  "files": [
+    {
+      "path": "nested-arch-stroke-loop.html",
+      "target": "compositions/components/nested-arch-stroke-loop.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Color 1",
+      "description": "Colour of the outermost arch.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Color 2",
+      "description": "Colour of the second arch.",
+      "default": "#4f86f0"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Color 3",
+      "description": "Colour of the third arch.",
+      "default": "#86abf6"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Color 4",
+      "description": "Colour of the fourth arch.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "color_5",
+      "type": "color",
+      "role": "style",
+      "label": "Color 5",
+      "description": "Colour of the innermost arch.",
+      "default": "#64748b"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Stroke width",
+      "description": "Line width in the 500-unit drawing.",
+      "default": 15,
+      "min": 4,
+      "max": 30,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}

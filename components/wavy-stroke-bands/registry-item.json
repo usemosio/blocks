@@ -1,0 +1,98 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "wavy-stroke-bands",
+  "type": "hyperframes:component",
+  "title": "Wavy Stroke Bands",
+  "description": "Nine wavy lines, each drawn three times as a thick soft halo, a medium band and a core line, draw on and off in a staggered wave while their width swells and the colour shifts from one tone to another.",
+  "tags": [
+    "background",
+    "waves",
+    "lines",
+    "drawsvg",
+    "loop",
+    "codepen-port"
+  ],
+  "category": "backgrounds",
+  "duration": 5.2,
+  "useWhen": [
+    "A calm, flowing line background is needed behind a title or a product shot.",
+    "A section break should feel like a ribbon of light sweeping across."
+  ],
+  "avoidWhen": [
+    "The frame must stay still or very quiet.",
+    "The lines should follow a real chart: use animated-line-chart."
+  ],
+  "author": "creativeocean",
+  "authorUrl": "https://codepen.io/creativeocean",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/creativeocean/pen/bGGZWEw"
+  },
+  "files": [
+    {
+      "path": "wavy-stroke-bands.html",
+      "target": "compositions/components/wavy-stroke-bands.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Optional centered text over the lines. Leave empty for lines only.",
+      "default": ""
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "role": "style",
+      "label": "Start color",
+      "description": "Colour the lines start with.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_end",
+      "type": "color",
+      "role": "style",
+      "label": "End color",
+      "description": "Colour the lines shift to.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the title.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "stroke_width",
+      "type": "number",
+      "role": "style",
+      "label": "Line width",
+      "description": "Width of the core line in the 1200-unit drawing.",
+      "default": 15,
+      "min": 4,
+      "max": 30,
+      "step": 1,
+      "unit": "px"
+    }
+  ],
+  "checkAt": [
+    1,
+    2.2,
+    3.4,
+    4.6
+  ]
+}

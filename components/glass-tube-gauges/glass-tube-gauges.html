@@ -1,0 +1,167 @@
+<!doctype html>
+<!--
+  Glass Tube Gauges
+
+  Five rounded glass tubes tilt up into place one after another, then fill with liquid that overshoots and settles with an elastic bounce, a bright meniscus riding the surface and a number counting up beneath each; afterwards the tubes bob gently.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/dermalhealth/pen/pvRQNbe
+
+  Copyright (c) 2026 dermalhealth - https://codepen.io/dermalhealth/pen/pvRQNbe
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: the original's html and css were not copied: the glass tubes, meniscus and labels are written fresh in HTML and CSS and only the intro timeline (card-in, elastic fill, meniscus, idle float) is ported; the tubes fill the host frame and are sized from it; values, labels and colours are variables with Indonesian sample text on a white background; hover, tooltip and click handlers are dropped; the endless float repeats a fixed number of times.
+-->
+<html
+  lang="en"
+  data-composition-id="glass-tube-gauges"
+  data-composition-duration="5.5"
+  data-composition-variables='[
+    {"id":"title","type":"string","role":"content","label":"Title","description":"Heading above the tubes. Leave empty for none.","default":"Penjualan harian"},
+    {"id":"label_1","type":"string","role":"content","label":"Label 1","description":"Label under tube 1.","default":"Sen"},
+    {"id":"label_2","type":"string","role":"content","label":"Label 2","description":"Label under tube 2.","default":"Sel"},
+    {"id":"label_3","type":"string","role":"content","label":"Label 3","description":"Label under tube 3.","default":"Rab"},
+    {"id":"label_4","type":"string","role":"content","label":"Label 4","description":"Label under tube 4.","default":"Kam"},
+    {"id":"label_5","type":"string","role":"content","label":"Label 5","description":"Label under tube 5.","default":"Jum"},
+    {"id":"value_1","type":"number","role":"content","label":"Value 1","description":"Percent for tube 1.","default":35,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_2","type":"number","role":"content","label":"Value 2","description":"Percent for tube 2.","default":60,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_3","type":"number","role":"content","label":"Value 3","description":"Percent for tube 3.","default":45,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_4","type":"number","role":"content","label":"Value 4","description":"Percent for tube 4.","default":85,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"value_5","type":"number","role":"content","label":"Value 5","description":"Percent for tube 5.","default":70,"min":0,"max":100,"step":1,"unit":"%"},
+    {"id":"color_1","type":"color","role":"style","label":"Color 1","description":"Liquid colour of tube 1.","default":"#7aa2f7"},
+    {"id":"color_2","type":"color","role":"style","label":"Color 2","description":"Liquid colour of tube 2.","default":"#5b8def"},
+    {"id":"color_3","type":"color","role":"style","label":"Color 3","description":"Liquid colour of tube 3.","default":"#3b78ea"},
+    {"id":"color_4","type":"color","role":"style","label":"Color 4","description":"Liquid colour of tube 4.","default":"#2563eb"},
+    {"id":"color_5","type":"color","role":"style","label":"Color 5","description":"Liquid colour of tube 5.","default":"#1e4fc4"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the title, numbers and labels.","default":"#0a0a0a"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glass Tube Gauges</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700;800&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--gtg-bg, #fff); color: var(--gtg-text, #0a0a0a); font-family: Geist, system-ui, sans-serif;
+        }
+        .gtg-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .gtg-title { position: absolute; left: 0; right: 0; top: 8cqh; text-align: center; font-weight: 700; font-size: min(6.5cqw, 7cqh); letter-spacing: -0.035em; }
+        .gtg-wrap { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%) scale(var(--s, 1)); display: flex; gap: 44px; align-items: flex-end; width: max-content; }
+        .gtg-item { display: flex; flex-direction: column; align-items: center; width: 92px; }
+        .gtg-tube { position: relative; width: 100%; height: var(--th, 360px); border-radius: 46px; background: linear-gradient(90deg, rgba(10,10,10,.07), rgba(255,255,255,.6) 40%, rgba(10,10,10,.05)); border: 2px solid rgba(10,10,10,.14); overflow: hidden; box-shadow: inset 6px 0 14px rgba(255,255,255,.7), inset -6px 0 14px rgba(10,10,10,.08), 0 16px 26px rgba(10,10,10,.12); }
+        .gtg-tube::after { content: ""; position: absolute; left: 14%; top: 5%; width: 16%; height: 90%; border-radius: 10px; background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,0)); z-index: 5; pointer-events: none; }
+        .gtg-liquid { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: linear-gradient(90deg, rgba(255,255,255,.3), transparent 35%, rgba(0,0,0,.12)), var(--theme); }
+        .gtg-meniscus { position: absolute; left: 4%; right: 4%; bottom: 0; height: 16px; margin-bottom: -8px; border-radius: 50%; background: rgba(255,255,255,.55); box-shadow: inset 0 -3px 6px rgba(255,255,255,.4); z-index: 3; }
+        .gtg-num { margin-top: 18px; font-size: 34px; font-weight: 800; letter-spacing: -0.03em; }
+        .gtg-label { margin-top: 2px; font-size: 18px; font-weight: 600; opacity: 0.55; letter-spacing: 0.02em; }
+      </style>
+
+      <div id="root" data-composition-id="glass-tube-gauges" data-duration="5.5" data-fps="30">
+        <div id="gtg-clip" class="gtg-stage clip" data-start="0" data-duration="5.5" data-track-index="0">
+          <div class="gtg-title" id="gtg-title"></div>
+          <div class="gtg-wrap" id="gtg-wrap"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 5.5;
+
+            root.style.setProperty("--gtg-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--gtg-text", col(vars.text_color, "#0a0a0a"));
+            var defC = ["#7aa2f7","#5b8def","#3b78ea","#2563eb","#1e4fc4"], defL = ["Sen", "Sel", "Rab", "Kam", "Jum"], defV = [35, 60, 45, 85, 70];
+            var title = typeof vars.title === "string" ? vars.title : "Penjualan harian";
+            document.getElementById("gtg-title").textContent = title;
+            var s = (W * 0.9) / 660, th = Math.max(300, Math.min(760, (H * 0.6) / s - 90));
+            if (s * (th + 90) > H * 0.66) s = (H * 0.66) / (th + 90);
+            var wrap = document.getElementById("gtg-wrap");
+            wrap.style.setProperty("--s", s); wrap.style.setProperty("--th", th + "px");
+            var items = [], liquids = [], mens = [], nums = [], vals = [], tubes = [];
+            for (var i = 0; i < 5; i++) {
+              var v = num(vars["value_" + (i + 1)], defV[i], 0, 100); vals.push(v);
+              var it = document.createElement("div");
+              it.className = "gtg-item";
+              it.style.setProperty("--theme", col(vars["color_" + (i + 1)], defC[i]));
+              it.innerHTML = '<div class="gtg-tube"><div class="gtg-liquid"></div><div class="gtg-meniscus"></div></div><div class="gtg-num">0%</div><div class="gtg-label"></div>';
+              it.querySelector(".gtg-label").textContent = str(vars["label_" + (i + 1)], defL[i]);
+              wrap.appendChild(it);
+              items.push(it); tubes.push(it.querySelector(".gtg-tube")); liquids.push(it.querySelector(".gtg-liquid")); mens.push(it.querySelector(".gtg-meniscus")); nums.push(it.querySelector(".gtg-num"));
+            }
+            var tl = gsap.timeline({ paused: true });
+            tl.from(items, { y: 34, opacity: 0, rotationX: -8, transformPerspective: 800, duration: 0.78, stagger: 0.09, ease: "power3.out" }, 0.3);
+            liquids.forEach(function (el, i) {
+              var at = 0.3 + 0.78 + 0.09 * 4 - 0.35 + i * 0.08;
+              tl.fromTo(el, { height: "0%" }, { height: vals[i] + "%", duration: 1.15, ease: "elastic.out(1, 0.55)" }, at);
+              tl.fromTo(mens[i], { bottom: "0%" }, { bottom: "calc(" + vals[i] + "% - 1px)", duration: 1.15, ease: "elastic.out(1, 0.55)" }, at);
+              var c = { v: 0 };
+              tl.to(c, { v: vals[i], duration: 1.6, ease: "power2.out", onUpdate: function () { nums[i].textContent = Math.floor(c.v) + "%"; } }, at);
+            });
+            tl.to(tubes, { y: -4, duration: 2.8, stagger: 0.18, yoyo: true, repeat: Math.ceil(total / 2.8), ease: "sine.inOut" }, 2.0);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["glass-tube-gauges"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

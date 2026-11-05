@@ -1,0 +1,149 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "folded-ribbon-steps",
+  "type": "hyperframes:component",
+  "title": "Folded Ribbon Steps",
+  "description": "A five-step ribbon infographic: each front panel wipes up in turn, its folded back strip grows in behind it, and an arrowhead pops out of the last step with an elastic overshoot. Each step carries a number and a label.",
+  "tags": [
+    "infographic",
+    "steps",
+    "process",
+    "ribbon",
+    "clip-path",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 6.4,
+  "useWhen": [
+    "A process or order flow with up to five steps should build left to right as a folded ribbon.",
+    "A how-it-works or timeline beat needs a clear, readable sequence with a final call-out."
+  ],
+  "avoidWhen": [
+    "There are more than five steps or each step needs long copy.",
+    "You want a connected flowchart with arrows between boxes: use onboarding-stepper-flow."
+  ],
+  "author": "DeveloperZahid",
+  "authorUrl": "https://codepen.io/DeveloperZahid",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/DeveloperZahid/pen/raOzJQK"
+  },
+  "files": [
+    {
+      "path": "folded-ribbon-steps.html",
+      "target": "compositions/components/folded-ribbon-steps.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading above the ribbon.",
+      "default": "Alur pemesanan"
+    },
+    {
+      "id": "step_1",
+      "type": "string",
+      "role": "content",
+      "label": "Step 1",
+      "description": "Label under step 1.",
+      "default": "Pilih menu"
+    },
+    {
+      "id": "step_2",
+      "type": "string",
+      "role": "content",
+      "label": "Step 2",
+      "description": "Label under step 2.",
+      "default": "Pesan"
+    },
+    {
+      "id": "step_3",
+      "type": "string",
+      "role": "content",
+      "label": "Step 3",
+      "description": "Label under step 3.",
+      "default": "Bayar"
+    },
+    {
+      "id": "step_4",
+      "type": "string",
+      "role": "content",
+      "label": "Step 4",
+      "description": "Label under step 4.",
+      "default": "Dimasak"
+    },
+    {
+      "id": "step_5",
+      "type": "string",
+      "role": "content",
+      "label": "Step 5",
+      "description": "Label under step 5.",
+      "default": "Diantar"
+    },
+    {
+      "id": "color_1",
+      "type": "color",
+      "role": "style",
+      "label": "Step 1 color",
+      "description": "Ribbon colour of step 1.",
+      "default": "#bcd0fa"
+    },
+    {
+      "id": "color_2",
+      "type": "color",
+      "role": "style",
+      "label": "Step 2 color",
+      "description": "Ribbon colour of step 2.",
+      "default": "#86abf6"
+    },
+    {
+      "id": "color_3",
+      "type": "color",
+      "role": "style",
+      "label": "Step 3 color",
+      "description": "Ribbon colour of step 3.",
+      "default": "#4f86f0"
+    },
+    {
+      "id": "color_4",
+      "type": "color",
+      "role": "style",
+      "label": "Step 4 color",
+      "description": "Ribbon colour of step 4.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "color_5",
+      "type": "color",
+      "role": "style",
+      "label": "Step 5 color",
+      "description": "Ribbon colour of step 5 and the arrowhead.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text color",
+      "description": "Colour of the title and the labels.",
+      "default": "#0a0a0a"
+    }
+  ],
+  "checkAt": [
+    1.5,
+    3.5,
+    5.2
+  ]
+}

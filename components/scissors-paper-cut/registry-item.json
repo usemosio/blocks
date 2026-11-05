@@ -1,0 +1,96 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "scissors-paper-cut",
+  "type": "hyperframes:component",
+  "title": "Scissors Paper Cut",
+  "description": "A pair of scissors snips along a looping figure-eight path, cutting a paper triangle in two; the halves fly apart, blur out, and sprinkle confetti dots that fall under gravity, over and over.",
+  "tags": [
+    "loader",
+    "scissors",
+    "paper",
+    "motion-path",
+    "physics2d",
+    "loop",
+    "codepen-port"
+  ],
+  "category": "motion-graphics",
+  "duration": 5.7,
+  "useWhen": [
+    "A loading, coupon or 'cut here' moment needs a playful paper-cut loop.",
+    "A promo wants a hands-on, craft-style motion."
+  ],
+  "avoidWhen": [
+    "The tone is serious or corporate.",
+    "You need a progress indicator that shows real progress."
+  ],
+  "author": "aaroniker",
+  "authorUrl": "https://codepen.io/aaroniker",
+  "license": "MIT",
+  "source": {
+    "url": "https://codepen.io/aaroniker/pen/RwwZGmj"
+  },
+  "files": [
+    {
+      "path": "scissors-paper-cut.html",
+      "target": "compositions/components/scissors-paper-cut.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "paper",
+      "type": "color",
+      "role": "style",
+      "label": "Paper color",
+      "description": "Colour of the paper and the confetti dots.",
+      "default": "#f5f5f4"
+    },
+    {
+      "id": "blade",
+      "type": "color",
+      "role": "style",
+      "label": "Blade color",
+      "description": "Colour of the scissor blades.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "handle",
+      "type": "color",
+      "role": "style",
+      "label": "Handle color",
+      "description": "Colour of the scissor handles.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "background",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Frame background.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "size",
+      "type": "number",
+      "role": "style",
+      "label": "Size",
+      "description": "Multiplier on the automatic loader size.",
+      "default": 1,
+      "min": 0.5,
+      "max": 1.6,
+      "step": 0.05,
+      "unit": "x"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "motion",
+      "label": "Seed",
+      "description": "Changes the confetti directions.",
+      "default": 3,
+      "min": 1,
+      "max": 9999,
+      "step": 1
+    }
+  ]
+}

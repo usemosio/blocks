@@ -1,0 +1,163 @@
+<!doctype html>
+<!--
+  Photo Frame Draw Reveal
+
+  A photo opens from the centre with a circular clip, then a thin circle, a square outline and a notched decorative border draw themselves around it. Without an image it shows a drawn placeholder scene.
+
+  Ported to an HTML + GSAP sub-composition by usemosio/blocks from:
+  https://codepen.io/BlogFire/pen/ogbzPeo
+
+  Copyright (c) 2026 BlogFire - https://codepen.io/BlogFire/pen/ogbzPeo
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  Changes by usemosio/blocks: fills the host frame (the framed square is sized from the frame); the remote photo becomes an optional image variable with a drawn placeholder scene; the 10-second border draw is shortened; colours, a caption and the draw timing are variables; unused plugin registrations are dropped.
+-->
+<html
+  lang="en"
+  data-composition-id="photo-frame-draw-reveal"
+  data-composition-duration="7"
+  data-composition-variables='[
+    {"id":"image","type":"string","role":"content","label":"Image URL","description":"Optional image URL shown in the frame. Empty shows a drawn placeholder.","default":""},
+    {"id":"caption","type":"string","role":"content","label":"Caption","description":"Text under the frame. Leave empty for none.","default":"Kopi susu gula aren"},
+    {"id":"accent","type":"color","role":"style","label":"Accent","description":"Colour of the circle and the decorative border.","default":"#2563eb"},
+    {"id":"outline","type":"color","role":"style","label":"Outline","description":"Colour of the square outline and the circle ring.","default":"#93b4f8"},
+    {"id":"background","type":"color","role":"style","label":"Background","description":"Frame background.","default":"#ffffff"},
+    {"id":"text_color","type":"color","role":"style","label":"Text color","description":"Colour of the caption.","default":"#0a0a0a"},
+    {"id":"border_duration","type":"number","role":"motion","label":"Border draw time","description":"Seconds the decorative border takes to draw.","default":3.2,"min":1,"max":8,"step":0.1,"unit":"s"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Photo Frame Draw Reveal</title>
+  </head>
+  <body>
+    <template>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&display=block" />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          pointer-events: none;
+background: var(--pfd-bg, #fff); font-family: Geist, system-ui, sans-serif;
+        }
+        .pfd-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .pfd-wrap { position: absolute; left: 50%; top: 46%; width: var(--s); height: var(--s); transform: translate(-50%, -50%); }
+        .pfd-photo { position: absolute; inset: 0; margin: 4.5%; width: 91%; height: 91%; overflow: hidden; background: #dbe6fb; }
+        .pfd-photo img, .pfd-photo svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pfd-frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .pfd-caption { position: absolute; left: 50%; top: calc(100% + 5cqmin); transform: translateX(-50%); white-space: nowrap; font-weight: 600; font-size: 4.4cqmin; letter-spacing: -0.02em; color: var(--pfd-text, #0a0a0a); }
+      </style>
+
+      <div id="root" data-composition-id="photo-frame-draw-reveal" data-duration="7" data-fps="30">
+        <div id="pfd-clip" class="pfd-stage clip" data-start="0" data-duration="7" data-track-index="0">
+          <div class="pfd-wrap" id="pfd-wrap">
+            <div class="pfd-photo" id="pfd-photo">
+              <svg id="pfd-art" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <defs><linearGradient id="pfd-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3fe" /><stop offset="1" stop-color="#bcd0fa" /></linearGradient></defs>
+                <rect width="200" height="200" fill="url(#pfd-sky)" />
+                <circle cx="140" cy="62" r="24" fill="#ffffff" opacity="0.9" />
+                <path d="M0 150 C40 108 70 112 100 138 C130 108 170 102 200 140 V200 H0Z" fill="#86abf6" />
+                <path d="M0 172 C50 140 90 150 130 168 C160 156 180 154 200 160 V200 H0Z" fill="#2563eb" />
+              </svg>
+            </div>
+            <svg class="pfd-frame" viewBox="0 0 200 200" aria-hidden="true">
+              <circle id="pfd-circle" cx="100" cy="100" r="95" fill="none" stroke-width="1" />
+              <path id="pfd-outline" fill="none" stroke-width="2" d="M 0 0 h 200 v 0 v 0 v 200 h -200 z" />
+              <path id="pfd-deco" fill="none" stroke-width="2" d="M 105 5 h-47 v5 h-10 v-5 h-10 v16 h-32 v10 h10 v-26 h-10 v10 h25 v-10 h-10 v32 h-16 v10 h5 v10 h-5 v86 h5 v10 h-5 v10 h16 v32 h10 v-10 h-26 v10 h10 v-26 h-10 v10 h32 v16 h10 v-5 h10 v5 h86 v-5 h10 v5 h10 v-16 h32 v-10 h-10 v26 h10 v-10 h-26 v10 h10 v-32 h16 v-10 h-5 v-10 h5 v-86 h-5 v-10 h5 v-10 h-16 v-32 h-10 v10 h26 v-10 h-10 v26 h10 v-10 h-32 v-16 h-10 v5 h-10 v-5 z" />
+            </svg>
+            <div class="pfd-caption" id="pfd-caption"></div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+            function num(v, f, min, max) {
+              var n = Number(v);
+              return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : f;
+            }
+            function str(v, f) {
+              return typeof v === "string" && v.trim() ? v : f;
+            }
+            function col(v, f) {
+              return typeof v === "string" && /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|[a-z]+)$/i.test(v.trim()) ? v.trim() : f;
+            }
+            function rng(seed) {
+              var a = seed >>> 0;
+              return function () {
+                a = (a + 0x6d2b79f5) >>> 0;
+                var t = a;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+              };
+            }
+            var W = root.clientWidth || 1080;
+            var H = root.clientHeight || 1920;
+            var total = 7;
+
+            root.style.setProperty("--pfd-bg", col(vars.background, "#ffffff"));
+            root.style.setProperty("--pfd-text", col(vars.text_color, "#0a0a0a"));
+            var side = Math.min(W * 0.78, H * 0.62);
+            document.getElementById("pfd-wrap").style.setProperty("--s", side + "px");
+            var accent = col(vars.accent, "#2563eb"), soft = col(vars.outline, "#93b4f8");
+            document.getElementById("pfd-circle").setAttribute("stroke", soft);
+            document.getElementById("pfd-outline").setAttribute("stroke", soft);
+            document.getElementById("pfd-deco").setAttribute("stroke", accent);
+            var url = typeof vars.image === "string" ? vars.image.trim() : "";
+            var photo = document.getElementById("pfd-photo");
+            if (url) {
+              document.getElementById("pfd-art").style.display = "none";
+              var img = document.createElement("img");
+              img.src = url; img.alt = "";
+              photo.appendChild(img);
+            }
+            var cap = document.getElementById("pfd-caption");
+            cap.textContent = typeof vars.caption === "string" ? vars.caption : "Kopi susu gula aren";
+            gsap.registerPlugin(DrawSVGPlugin);
+            var bd = num(vars.border_duration, 3.2, 1, 8);
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo(photo, { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(75% at 50% 50%)", duration: 1.5, ease: "expo.inOut" }, 0.5);
+            tl.from("#pfd-circle", { duration: 2.5, drawSVG: 0, ease: "expo.inOut" }, 0.8);
+            tl.from("#pfd-outline", { duration: 1, drawSVG: "30% 30%", ease: "sine.inOut" }, 2.7);
+            tl.from("#pfd-deco", { duration: bd, drawSVG: 0, ease: "sine.inOut" }, 3.2);
+            tl.from(cap, { opacity: 0, duration: 0.8, ease: "power2.out" }, 3.2);
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["photo-frame-draw-reveal"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
