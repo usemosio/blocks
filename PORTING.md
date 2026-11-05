@@ -155,6 +155,41 @@ sample text with Rupiah prices, and carries `"tags": [..., "mosio-recipe"]`, `"c
 `"author": "Mosio"` and `"source": {"recipe": "<id>"}`. A recipe adapted from someone else's work passes its
 licence notice on to the block.
 
+## Ports from the Hyperframes registry
+
+Hyperframes blocks (`registry/blocks/<name>/` of heygen-com/hyperframes, Apache-2.0) are already Hyperframes
+compositions, so a port adapts rather than rewrites: keep the motion, timing and look; make the scene fill its
+host (re-lay it out for portrait with container units, or scale a scene that only works wide to fit, with its
+background filling the rest); turn text, colours and timing into variables; replace bundled files (drawn shapes
+or panels for images, Google Fonts for font files, inlined code for small scripts); rewrite three.js scenes in
+raw WebGL2 when they are small, and skip them otherwise; draw what upstream captured with HTML-in-Canvas on a
+2D canvas. Geometry a library computed once (map projections) is computed at port time and embedded, with the
+data's licence named. Header: the Hyperframes URL at the commit, "Copyright HeyGen, Inc. and the Hyperframes
+contributors", the Apache-2.0 paragraph and a "Changes by usemosio/blocks" line. Tag `hyperframes-port`.
+
+## Icons from lucide-animated
+
+`scripts/gen-lucide-animated.mjs` (run with bun, `LUCIDE_ANIMATED_SRC` pointing at a checkout of
+pqoqubbw/icons) evaluates each icon against small mocks of React and Motion, plays its hover handlers on a
+virtual clock, and writes `components/icon-<name>/` with the static SVG and the recorded tracks played by one
+GSAP timeline. Icons whose name a remocn icon already has, icons driven by React state, and brand logos are
+skipped (its `skips` table). Rerunning it regenerates identical files; fix an icon with an entry in `overrides`,
+never by hand.
+
+## Ports of CodePen pens
+
+Public pens are MIT under CodePen's terms. Port from the original pen, never a fork of someone else's. Header:
+the pen URL and the MIT notice as `Copyright (c) <year> <author> - <pen URL>`; `registry-item.json` names the
+author, their profile and `source.url`; tag `codepen-port`. The pen's motion stays; colours and text become
+variables with neutral defaults, and interactions play as timed sequences.
+
+## Original blocks
+
+Blocks made here (tag `mosio-original`, `"source": {"original": true, "technique": …}`) follow the neutral house
+style: a white or near-black ground, one accent (`#2563eb`) on the key element, Geist, crisp arrivals, no glows,
+neon, violet gradients, blobs or floods. Shop blocks use Indonesian sample text and Rupiah, and never name a
+real brand, bank or payment network.
+
 ## Components that copy a real product
 
 A remocn component that recreates a real product's interface (a chat app, a code host, a social network)
