@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "beat-title-cards",
+  "type": "hyperframes:component",
+  "title": "Beat Title Cards",
+  "description": "Kinetic title cards that cut on a beat. Every beat swaps the word with a crisp snap scale, every few beats a card is inverted for emphasis, and the last word stays on screen. The words cycle from one variable and the cut rate follows the bpm variable, so it can be laid on music.",
+  "tags": [
+    "mosio-original",
+    "kinetic",
+    "beat",
+    "title",
+    "cut",
+    "rhythm",
+    "words"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "A hook or a list of selling points cut to a music beat.",
+    "A fast opener of 3 to 6 short words."
+  ],
+  "avoidWhen": [
+    "A sentence that must be read in one go: use a typewriter or per-character block.",
+    "A calm, slow product moment."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "beat-cut title cards"
+  },
+  "files": [
+    {
+      "path": "beat-title-cards.html",
+      "target": "compositions/components/beat-title-cards.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "Words separated by | or new lines; they cycle, one per beat. Short words work best.",
+      "default": "Segar|Murah|Cepat|Sampai|Rumahmu"
+    },
+    {
+      "id": "bpm",
+      "type": "number",
+      "role": "motion",
+      "label": "Beats per minute",
+      "description": "How fast the cards cut. 120 is one cut every half second.",
+      "default": 120,
+      "min": 60,
+      "max": 200,
+      "step": 1,
+      "unit": "bpm"
+    },
+    {
+      "id": "invert_every",
+      "type": "number",
+      "role": "style",
+      "label": "Invert every",
+      "description": "Every Nth card is inverted. 0 turns it off.",
+      "default": 4,
+      "min": 0,
+      "max": 8,
+      "step": 1
+    },
+    {
+      "id": "last_word",
+      "type": "string",
+      "role": "content",
+      "label": "Last word",
+      "description": "Optional word that replaces the final beat, e.g. a shop name. Empty keeps the cycle.",
+      "default": "Dapur Rina"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Card background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "The final word and the current beat tick: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Words and inverted card background.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Counter and upcoming ticks.",
+      "default": "#a3a3a3"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "split-screen-compare",
+  "type": "hyperframes:component",
+  "title": "Split Screen Compare",
+  "description": "Two columns, Kami against Biasanya. Rows tick in on our side with a drawn check and cross out on theirs, staggered. Each row is one line of the rows variable: our text, then theirs.",
+  "tags": [
+    "mosio-original",
+    "compare",
+    "split-screen",
+    "checklist",
+    "versus",
+    "list"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Why a small shop is better than the usual alternative: fresher, cheaper, faster, with a guarantee.",
+    "Any versus list of 3 to 5 points."
+  ],
+  "avoidWhen": [
+    "A before and after of one thing: use before-after-wipe.",
+    "Numbers to compare: use stat-trio."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "split-screen versus"
+  },
+  "files": [
+    {
+      "path": "split-screen-compare.html",
+      "target": "compositions/components/split-screen-compare.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Line above the columns. Empty hides it.",
+      "default": "Kenapa pilih kami?"
+    },
+    {
+      "id": "ours_label",
+      "type": "string",
+      "role": "content",
+      "label": "Our column",
+      "description": "Heading of our side.",
+      "default": "Kami"
+    },
+    {
+      "id": "theirs_label",
+      "type": "string",
+      "role": "content",
+      "label": "Their column",
+      "description": "Heading of the other side.",
+      "default": "Biasanya"
+    },
+    {
+      "id": "rows",
+      "type": "string",
+      "role": "content",
+      "label": "Rows",
+      "description": "One per line, up to 6: our text|their text. With no | the same text is used on both sides.",
+      "default": "Bahan segar tiap hari|Stok seminggu sekali\nTanpa pengawet buatan|Memakai pengawet\nDikemas saat dipesan|Dikemas sehari sebelumnya\nGaransi uang kembali|Tanpa garansi"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Checks and the outline of our column: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Our text and the title.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Their text and crosses.",
+      "default": "#8a8a8a"
+    },
+    {
+      "id": "tint_color",
+      "type": "color",
+      "role": "style",
+      "label": "Their column tint",
+      "description": "Background of their column.",
+      "default": "#f4f4f2"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

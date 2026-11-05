@@ -1,0 +1,266 @@
+<!doctype html>
+<!--
+  Order Tracker
+
+  A four-step order progress line (Pesanan diterima, Dikemas, Dikirim, Sampai): a dot travels along the line, each step checks off as it passes, and the current step's label grows. Vertical in portrait, horizontal in landscape. The steps and the current step are variables.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="order-tracker"
+  data-composition-duration="6"
+  data-composition-variables='[
+  {
+    "id": "title",
+    "type": "string",
+    "role": "content",
+    "label": "Title",
+    "description": "Headline above the line, for example the order number.",
+    "default": "Pesanan #A-1048"
+  },
+  {
+    "id": "subtitle",
+    "type": "string",
+    "role": "content",
+    "label": "Subtitle",
+    "description": "Small line under the title. Leave empty to hide it.",
+    "default": "Kopi Senja · 2 item"
+  },
+  {
+    "id": "steps",
+    "type": "string",
+    "role": "content",
+    "label": "Steps",
+    "description": "Steps separated by semicolons, two to five of them.",
+    "default": "Pesanan diterima; Dikemas; Dikirim; Sampai"
+  },
+  {
+    "id": "current",
+    "type": "number",
+    "role": "content",
+    "label": "Current step",
+    "description": "Step the dot travels to (1 is the first). Earlier steps are checked off, later ones stay grey.",
+    "default": 3,
+    "min": 1,
+    "max": 5,
+    "step": 1
+  },
+  {
+    "id": "step_seconds",
+    "type": "number",
+    "role": "motion",
+    "label": "Seconds per step",
+    "description": "How long the dot takes between two steps.",
+    "default": 0.7,
+    "min": 0.3,
+    "max": 1.5,
+    "step": 0.05
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Main text and outlines.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Secondary text and hairlines.",
+    "default": "#737373"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "Progress line, dot and checks: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order Tracker</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          color: var(--ot-text); font-family: var(--FAM, Geist), system-ui, sans-serif; background: var(--ot-bg);
+        }
+        #root * { box-sizing: border-box; }
+        .ot-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .ot-wrap { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; }
+        .ot-title { position: absolute; left: 0; font-size: calc(var(--u) * 70); font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; white-space: nowrap; }
+        .ot-sub { position: absolute; left: 0; font-size: calc(var(--u) * 34); font-weight: 500; color: var(--ot-muted); white-space: nowrap; }
+        .ot-base, .ot-fill { position: absolute; border-radius: calc(var(--u) * 4); }
+        .ot-base { background: rgba(115,115,115,0.28); }
+        .ot-fill { background: var(--ot-main); }
+        .ot-node { position: absolute; width: calc(var(--u) * 64); height: calc(var(--u) * 64); margin: calc(var(--u) * -32) 0 0 calc(var(--u) * -32); border-radius: 50%; border: calc(var(--u) * 5) solid rgba(115,115,115,0.45); background: var(--ot-bg); }
+        .ot-node i { position: absolute; inset: calc(var(--u) * -5); border-radius: 50%; background: var(--ot-main); }
+        .ot-node svg { position: absolute; inset: calc(var(--u) * -5); width: calc(100% + var(--u) * 10); height: calc(100% + var(--u) * 10); }
+        .ot-lab { position: absolute; white-space: nowrap; font-size: calc(var(--u) * 44); font-weight: 600; letter-spacing: -0.025em; line-height: 1.1; color: var(--ot-muted); }
+        .ot-dot { position: absolute; width: calc(var(--u) * 30); height: calc(var(--u) * 30); margin: calc(var(--u) * -15) 0 0 calc(var(--u) * -15); border-radius: 50%; background: var(--ot-bg); border: calc(var(--u) * 7) solid var(--ot-main); z-index: 3; }
+        .ot-ring { position: absolute; width: calc(var(--u) * 90); height: calc(var(--u) * 90); margin: calc(var(--u) * -45) 0 0 calc(var(--u) * -45); border-radius: 50%; border: calc(var(--u) * 4) solid var(--ot-main); z-index: 2; }
+
+      </style>
+
+      <div id="root" data-composition-id="order-tracker" data-duration="6" data-fps="30">
+        <div id="ot-clip" class="ot-stage clip" data-start="0" data-duration="6" data-track-index="0">
+
+          <div class="ot-wrap" id="ot-wrap"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function svg(tag, attrs, parent) { var e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function rp(n) { return "Rp" + dots(n); }
+            function money(s) { var d = String(s).replace(/[^\d]/g, ""); return d ? parseInt(d, 10) : 0; }
+            function list(s, d) { var a = String(str(s, d)).split(";").map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : String(d).split(";").map(function (x) { return x.trim(); }); }
+            function mulberry(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function setColors(p, c) { for (var k in c) root.style.setProperty("--" + p + "-" + k, colr(vars[k + "_color"], c[k])); }
+            var fam = str(vars.font_family, "Geist");
+            root.style.setProperty("--FAM", /^[\w\s-]+$/.test(fam) ? '"' + fam + '"' : "Geist");
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            setColors("ot", { bg: "#ffffff", text: "#0a0a0a", muted: "#737373", main: "#2563eb" });
+
+
+            var title = str(vars.title, "Pesanan #A-1048");
+            var sub = typeof vars.subtitle === "string" ? vars.subtitle.trim() : "Kopi Senja · 2 item";
+            var steps = list(vars.steps, "Pesanan diterima; Dikemas; Dikirim; Sampai").slice(0, 5);
+            if (steps.length < 2) steps = ["Pesanan diterima", "Sampai"];
+            var n = steps.length;
+            var cur = Math.round(num(vars.current, 3, 1, 5)); cur = Math.min(cur, n);
+            var seg = num(vars.step_seconds, 0.7, 0.3, 1.5);
+            var cText = colr(vars.text_color, "#0a0a0a"), cMuted = colr(vars.muted_color, "#737373"), cMain = colr(vars.main_color, "#2563eb");
+            var wrap = document.getElementById("ot-wrap");
+            var u = U;
+            var gap = PORTRAIT ? 250 * u : 440 * u;
+            var titleH = (sub ? 190 : 120) * u;
+            var gw, gh, pos = [];
+            var tEl = el("div", "ot-title", wrap); tEl.textContent = title;
+            var sEl = el("div", "ot-sub", wrap); sEl.textContent = sub; if (!sub) sEl.style.display = "none";
+            if (PORTRAIT) {
+              var maxw = Math.max(tEl.offsetWidth, sEl.offsetWidth);
+              steps.forEach(function (t) { var probe = el("div", "ot-lab", wrap); probe.textContent = t; maxw = Math.max(maxw, 62 * u + probe.offsetWidth * 1.3 + 32 * u); wrap.removeChild(probe); });
+              gw = maxw; gh = titleH + 80 * u + (n - 1) * gap + 40 * u;
+              tEl.style.top = "0px"; sEl.style.top = 90 * u + "px";
+              for (var i = 0; i < n; i++) pos.push({ x: 32 * u, y: titleH + 80 * u + i * gap });
+            } else {
+              gw = (n - 1) * gap + 440 * u; gh = titleH + 80 * u + 140 * u;
+              tEl.style.left = "50%"; tEl.style.transform = "translateX(-50%)"; tEl.style.top = "0px";
+              sEl.style.left = "50%"; sEl.style.transform = "translateX(-50%)"; sEl.style.top = 90 * u + "px";
+              for (var j = 0; j < n; j++) pos.push({ x: 220 * u + j * gap, y: titleH + 40 * u });
+            }
+            wrap.style.width = gw + "px"; wrap.style.height = gh + "px";
+            var S = Math.min(1.35, (H * 0.9) / gh, (W * 0.92) / gw);
+            gsap.set(wrap, { xPercent: -50, yPercent: -50, scale: S });
+            var tk = 6 * u;
+            var base = el("div", "ot-base", wrap), fill = el("div", "ot-fill", wrap);
+            var a = pos[0], z = pos[n - 1];
+            if (PORTRAIT) { [base, fill].forEach(function (e) { e.style.left = a.x - tk / 2 + "px"; e.style.top = a.y + "px"; e.style.width = tk + "px"; e.style.height = z.y - a.y + "px"; }); fill.style.transformOrigin = "50% 0%"; }
+            else { [base, fill].forEach(function (e) { e.style.left = a.x + "px"; e.style.top = a.y - tk / 2 + "px"; e.style.height = tk + "px"; e.style.width = z.x - a.x + "px"; }); fill.style.transformOrigin = "0% 50%"; }
+            var nodes = [], labs = [], ticks = [], discs = [];
+            for (var k = 0; k < n; k++) {
+              var nd = el("div", "ot-node", wrap); nd.style.left = pos[k].x + "px"; nd.style.top = pos[k].y + "px";
+              var disc = el("i", "", nd);
+              var sv = svg("svg", { viewBox: "0 0 64 64" }, nd);
+              var pth = svg("path", { d: "M19 33 L28 42 L45 23", fill: "none", stroke: "#fff", "stroke-width": 6, "stroke-linecap": "round", "stroke-linejoin": "round", pathLength: 1 }, sv);
+              pth.style.strokeDasharray = "1"; pth.style.strokeDashoffset = "1";
+              var lb = el("div", "ot-lab", wrap); lb.textContent = steps[k];
+              if (PORTRAIT) { lb.style.left = pos[k].x + 62 * u + "px"; lb.style.top = pos[k].y + "px"; lb.style.transformOrigin = "0% 50%"; lb.style.transform = "translateY(-50%)"; }
+              else { lb.style.left = pos[k].x + "px"; lb.style.top = pos[k].y + 62 * u + "px"; lb.style.fontSize = 38 * u + "px"; lb.style.transformOrigin = "50% 0%"; lb.style.transform = "translateX(-50%)"; }
+              nodes.push(nd); labs.push(lb); ticks.push(pth); discs.push(disc);
+            }
+            var dot = el("div", "ot-dot", wrap), ring = el("div", "ot-ring", wrap);
+            [dot, ring].forEach(function (e) { e.style.left = pos[0].x + "px"; e.style.top = pos[0].y + "px"; });
+
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo([tEl, sEl], { opacity: 0, y: 24 * u }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.08 }, 0.1);
+            tl.fromTo(base, { scaleY: PORTRAIT ? 0 : 1, scaleX: PORTRAIT ? 1 : 0 }, { scaleY: 1, scaleX: 1, duration: 0.7, ease: "power3.out", transformOrigin: PORTRAIT ? "50% 0%" : "0% 50%" }, 0.35);
+            nodes.forEach(function (nd, i) { tl.fromTo([nd, labs[i]], { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.45 + i * 0.08); });
+            tl.fromTo(discs, { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0);
+            var t0 = 1.0;
+            function arrive(i, t) {
+              tl.fromTo(discs[i], { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.8)" }, t);
+              tl.fromTo(ticks[i], { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.28, ease: "power2.out" }, t + 0.08);
+              tl.fromTo(labs[i], { color: cMuted }, { color: cText, duration: 0.3, ease: "power2.out" }, t);
+            }
+            tl.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.8)" }, t0 - 0.2);
+            arrive(0, t0);
+            var tt = t0 + 0.35;
+            for (var m = 1; m < cur; m++) {
+              var dx = pos[m].x - pos[m - 1].x, dy = pos[m].y - pos[m - 1].y;
+              tl.to(dot, { x: "+=" + dx, y: "+=" + dy, duration: seg, ease: "power2.inOut" }, tt);
+              if (PORTRAIT) tl.fromTo(fill, { scaleY: (m - 1) / (n - 1) }, { scaleY: m / (n - 1), duration: seg, ease: "power2.inOut" }, tt);
+              else tl.fromTo(fill, { scaleX: (m - 1) / (n - 1) }, { scaleX: m / (n - 1), duration: seg, ease: "power2.inOut" }, tt);
+              arrive(m, tt + seg - 0.05);
+              tt += seg + 0.12;
+            }
+            if (cur === 1) { if (PORTRAIT) tl.set(fill, { scaleY: 0 }, 0); else tl.set(fill, { scaleX: 0 }, 0); }
+            else { if (PORTRAIT) tl.set(fill, { scaleY: 0 }, 0); else tl.set(fill, { scaleX: 0 }, 0); }
+            var tg = tt - 0.1;
+            tl.fromTo(labs[cur - 1], { scale: 1 }, { scale: 1.3, duration: 0.5, ease: "back.out(1.6)", transformOrigin: PORTRAIT ? "0% 50%" : "50% 0%" }, tg);
+            tl.fromTo(ring, { scale: 0.5, opacity: 0.6 }, { scale: 1.6, opacity: 0, duration: 0.7, ease: "power2.out" }, tg - 0.05);
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["order-tracker"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

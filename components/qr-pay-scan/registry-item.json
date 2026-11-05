@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "qr-pay-scan",
+  "type": "hyperframes:component",
+  "title": "QR Pay Scan",
+  "description": "A generic QR card (a drawn pattern from a seeded generator, not a real code) is swept by a scan line, then a success check appears with the amount and \"Pembayaran berhasil\". Shop, amount, texts and the pattern seed are variables.",
+  "tags": [
+    "mosio-original",
+    "qr",
+    "payment",
+    "scan",
+    "success",
+    "checkout",
+    "shop"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "Showing that paying a shop by scanning a QR code is quick and works.",
+    "A small shop's payment or checkout moment."
+  ],
+  "avoidWhen": [
+    "Listing which payment methods a shop accepts: use payment-methods-row.",
+    "A full receipt of what was bought: use receipt-print.",
+    "The code must be scannable: this pattern is decorative only."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "HUD overlay and UI animation: a scan line sweeping a target, then a confirmation pop"
+  },
+  "files": [
+    {
+      "path": "qr-pay-scan.html",
+      "target": "compositions/components/qr-pay-scan.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Shop shown next to the card.",
+      "default": "Kopi Senja"
+    },
+    {
+      "id": "hint",
+      "type": "string",
+      "role": "content",
+      "label": "Hint",
+      "description": "Line shown while the card waits to be scanned.",
+      "default": "Pindai untuk membayar"
+    },
+    {
+      "id": "amount",
+      "type": "string",
+      "role": "content",
+      "label": "Amount",
+      "description": "Amount shown on success. Digits count up with dots as thousands separators; a prefix such as Rp is kept.",
+      "default": "Rp45.000"
+    },
+    {
+      "id": "success",
+      "type": "string",
+      "role": "content",
+      "label": "Success text",
+      "description": "Line under the amount.",
+      "default": "Pembayaran berhasil"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "content",
+      "label": "Pattern seed",
+      "description": "Changes the drawn QR-like pattern.",
+      "default": 7,
+      "min": 1,
+      "max": 999,
+      "step": 1
+    },
+    {
+      "id": "scan_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Scan start",
+      "description": "Second the scan line starts to sweep.",
+      "default": 1.0,
+      "min": 0.5,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Scan line and success check: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

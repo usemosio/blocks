@@ -1,0 +1,172 @@
+<!doctype html>
+<!--
+  Stat Trio
+
+  Three stats count up side by side (stacked in a vertical frame), staggered, each with its label and an accent underline that draws in beneath it. Values like 1.200+, 4,9 or 98% keep their prefix, suffix and decimals while they count.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="stat-trio"
+  data-composition-duration="5"
+  data-composition-variables='[
+  {
+    "id": "title",
+    "type": "string",
+    "role": "content",
+    "label": "Title",
+    "description": "Line above the stats. Empty hides it.",
+    "default": "Toko kami dalam angka"
+  },
+  {
+    "id": "stats",
+    "type": "string",
+    "role": "content",
+    "label": "Stats",
+    "description": "Three lines, Value|Label. Dots are thousands and a comma is a decimal: 1.200+ or 4,9.",
+    "default": "1.200+|Pelanggan setia\n4,9|Rating dari 860 ulasan\n98%|Pesanan datang tepat waktu"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "The three underlines: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Numbers and title.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Labels.",
+    "default": "#737373"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stat Trio</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          background: var(--stt-bg); color: var(--stt-text); font-family: var(--stt-font);
+        }
+        #root * { box-sizing: border-box; }
+        .stt-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .stt-title { position: absolute; left: 0; right: 0; text-align: center; font-weight: 500; color: var(--stt-muted); white-space: nowrap; letter-spacing: -0.01em; }
+        .stt-wrap { position: absolute; display: flex; }
+        .stt-item { flex: 1 1 0; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .stt-num { font-weight: 600; letter-spacing: -0.06em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .stt-lab { font-weight: 500; color: var(--stt-muted); letter-spacing: -0.01em; }
+        .stt-line { height: calc(var(--u) * 6); border-radius: calc(var(--u) * 3); background: var(--stt-main); transform-origin: 0 50%; }
+
+      </style>
+
+      <div id="root" data-composition-id="stat-trio" data-duration="5" data-fps="30">
+        <div id="stt-clip" class="stt-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="stt-title" id="stt-title"></div><div class="stt-wrap" id="stt-wrap"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function lines(v, d) { var s = typeof v === "string" && v.trim() ? v : d; return s.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ease(n, a, b) { return Math.min(1, Math.max(0, (n - a) / (b - a))); }
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            var PAL = [["bg", "bg_color", "#ffffff"], ["main", "main_color", "#2563eb"], ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"]];
+            PAL.forEach(function (c) { root.style.setProperty("--stt-" + c[0], colr(vars[c[1]], c[2])); });
+            root.style.setProperty("--stt-font", '"' + str(vars.font_family, "Geist") + '", Geist, system-ui, sans-serif');
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            var raw = lines(vars.stats, "1.200+|Pelanggan setia\n4,9|Rating dari 860 ulasan\n98%|Pesanan datang tepat waktu").slice(0, 3);
+            var tt = typeof vars.title === "string" ? vars.title.trim() : "Toko kami dalam angka";
+            var te = document.getElementById("stt-title"); te.textContent = tt; te.style.fontSize = (PORTRAIT ? 48 : 44) * U + "px"; te.style.top = (PORTRAIT ? 150 : 90) * U + "px";
+            var wrap = document.getElementById("stt-wrap"), mx = (PORTRAIT ? 100 : 110) * U;
+            wrap.style.left = mx + "px"; wrap.style.right = mx + "px"; wrap.style.top = (tt ? (PORTRAIT ? 300 : 230) : (PORTRAIT ? 160 : 100)) * U + "px"; wrap.style.bottom = (PORTRAIT ? 160 : 140) * U + "px";
+            wrap.style.flexDirection = PORTRAIT ? "column" : "row"; wrap.style.gap = (PORTRAIT ? 40 : 70) * U + "px";
+            function fmt(v, dec) { var neg = v < 0, s = Math.abs(v).toFixed(dec), a = s.split("."), i = a[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); return (neg ? "-" : "") + i + (dec ? "," + a[1] : ""); }
+            var tl = gsap.timeline({ paused: true }), ns = (PORTRAIT ? 250 : 240) * U, itemW = PORTRAIT ? W - 2 * mx : (W - 2 * mx - 140 * U) / 3;
+            if (!PORTRAIT) { wrap.style.alignItems = "flex-start"; wrap.style.paddingTop = 120 * U + "px"; }
+            tl.fromTo("#stt-title", { opacity: 0, y: -16 * U }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.1);
+            raw.forEach(function (l, i) {
+              var a = l.split("|"), val = (a[0] || "").trim(), label = (a[1] || "").trim();
+              var mt = /^(\D*?)(\d[\d.,]*)(.*)$/.exec(val), pre = mt ? mt[1] : "", suf = mt ? mt[3] : "", tok = mt ? mt[2] : "", dec = 0, value = NaN;
+              if (mt) { if (/,\d{1,2}$/.test(tok)) { dec = tok.length - tok.lastIndexOf(",") - 1; value = parseFloat(tok.replace(/\./g, "").replace(",", ".")); } else value = parseInt(tok.replace(/[.,]/g, ""), 10); }
+              var it = el("div", "stt-item", wrap), num_ = el("div", "stt-num", it, esc(val)), lab = el("div", "stt-lab", it, esc(label)), ln = el("div", "stt-line", it);
+              num_.style.fontSize = Math.min(ns, itemW / Math.max(2.2, val.length * 0.54)) + "px"; lab.style.fontSize = (PORTRAIT ? 44 : 42) * U + "px";
+              if (!PORTRAIT) lab.style.minHeight = 2.5 * 42 * U + "px";
+              lab.style.margin = (PORTRAIT ? 18 : 22) * U + "px 0 " + (PORTRAIT ? 22 : 26) * U + "px";
+              var c = { v: 0 }, show = function (v) { num_.textContent = isNaN(value) || v >= value ? val : pre + fmt(v, dec) + suf; };
+              var t0 = 0.5 + i * 0.3;
+              tl.fromTo(num_, { opacity: 0, y: 30 * U }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, t0);
+              tl.fromTo(c, { v: 0 }, { v: isNaN(value) ? 0 : value, duration: 1.3, ease: "power2.out", onUpdate: function () { show(c.v); } }, t0);
+              tl.fromTo(lab, { opacity: 0, y: 18 * U }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, t0 + 0.25);
+              tl.fromTo(ln, { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power2.inOut" }, t0 + 0.4);
+              show(0);
+            });
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["stat-trio"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

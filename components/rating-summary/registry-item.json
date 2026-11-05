@@ -1,0 +1,130 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "rating-summary",
+  "type": "hyperframes:component",
+  "title": "Rating Summary",
+  "description": "A big average rating (\"4,9\" with an Indonesian decimal comma) counts up while five stars fill, five bars (5 to 1 stars) grow to their shares, and the review count (\"1.284 ulasan\") counts up last. Score, shares and review count are variables.",
+  "tags": [
+    "mosio-original",
+    "rating",
+    "reviews",
+    "stars",
+    "social-proof",
+    "score",
+    "shop"
+  ],
+  "category": "commerce",
+  "duration": 5.5,
+  "useWhen": [
+    "Backing a shop or product up with its average rating and how the ratings split.",
+    "A social-proof moment near the end of a promo."
+  ],
+  "avoidWhen": [
+    "Individual customer quotes: use review-card-stack or chat-review-typed.",
+    "Any other statistic: use stat-count-up-bars."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "count-up and stagger: a number and bars growing to their real values"
+  },
+  "files": [
+    {
+      "path": "rating-summary.html",
+      "target": "compositions/components/rating-summary.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "score",
+      "type": "string",
+      "role": "content",
+      "label": "Score",
+      "description": "Average rating out of 5. A comma or a dot works as the decimal mark.",
+      "default": "4,9"
+    },
+    {
+      "id": "shares",
+      "type": "string",
+      "role": "content",
+      "label": "Shares",
+      "description": "Five numbers separated by commas: the percentage of 5-, 4-, 3-, 2- and 1-star ratings.",
+      "default": "78,15,5,1,1"
+    },
+    {
+      "id": "reviews",
+      "type": "string",
+      "role": "content",
+      "label": "Review count",
+      "description": "Shown last. Digits count up with dots as thousands separators; the words around them are kept.",
+      "default": "1.284 ulasan"
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Small line above the score. Leave empty to hide it.",
+      "default": "Rating pelanggan"
+    },
+    {
+      "id": "bar_color",
+      "type": "color",
+      "role": "style",
+      "label": "Bar colour",
+      "description": "The share bars.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The stars: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

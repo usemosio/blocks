@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "review-card-stack",
+  "type": "hyperframes:component",
+  "title": "Review Card Stack",
+  "description": "Three short customer review cards (name, stars, a one-line quote) arrive as a stack, then shuffle: the front card swings out and goes to the back so each review comes to the front in turn. Reviews are a variable.",
+  "tags": [
+    "mosio-original",
+    "reviews",
+    "testimonial",
+    "cards",
+    "stack",
+    "social-proof",
+    "shop"
+  ],
+  "category": "commerce",
+  "duration": 6.5,
+  "useWhen": [
+    "Letting a few real customers speak in a short quote each.",
+    "A social-proof moment that is more personal than an average rating."
+  ],
+  "avoidWhen": [
+    "An average score and how ratings split: use rating-summary.",
+    "One long review typed out: use chat-review-typed."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "card stack shuffle: layered cards cycling to the front"
+  },
+  "files": [
+    {
+      "path": "review-card-stack.html",
+      "target": "compositions/components/review-card-stack.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "heading",
+      "type": "string",
+      "role": "content",
+      "label": "Heading",
+      "description": "Small line above the stack. Leave empty to hide it.",
+      "default": "Kata pelanggan kami"
+    },
+    {
+      "id": "reviews",
+      "type": "string",
+      "role": "content",
+      "label": "Reviews",
+      "description": "Two to four reviews separated by semicolons, each as name|stars|quote. Keep the quote free of semicolons.",
+      "default": "Sari|5|Kopinya enak, harganya masuk akal. Langganan tiap minggu; Budi|5|Pesan lewat chat, 15 menit sudah sampai; Maya|4|Roti bakarnya renyah, porsinya pas"
+    },
+    {
+      "id": "hold",
+      "type": "number",
+      "role": "motion",
+      "label": "Hold on each card",
+      "description": "Seconds each review stays in front before the next comes up, at most.",
+      "default": 1.5,
+      "min": 0.8,
+      "max": 2.5,
+      "step": 0.1
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "description": "Review cards.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The stars: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

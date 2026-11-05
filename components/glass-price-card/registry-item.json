@@ -1,0 +1,172 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "glass-price-card",
+  "type": "hyperframes:component",
+  "title": "Glass Price Card",
+  "description": "A frosted-glass card rises over a soft neutral backdrop: blur and a thin light border, no neon. The price counts up and settles, then a small badge lands on the corner.",
+  "tags": [
+    "mosio-original",
+    "glass",
+    "price",
+    "card",
+    "counter",
+    "offer"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "A package, a bundle or a class fee with one price and a short description.",
+    "An offer that should feel calm and premium rather than loud."
+  ],
+  "avoidWhen": [
+    "A sale with an old and a new price: use price-drop.",
+    "Several priced items: use menu-price-board."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "glass card"
+  },
+  "files": [
+    {
+      "path": "glass-price-card.html",
+      "target": "compositions/components/glass-price-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "eyebrow",
+      "type": "string",
+      "role": "content",
+      "label": "Eyebrow",
+      "description": "Small line above the name.",
+      "default": "Paket hemat"
+    },
+    {
+      "id": "product",
+      "type": "string",
+      "role": "content",
+      "label": "Product",
+      "description": "Name, one or two lines.",
+      "default": "Nasi Box Ayam Bakar"
+    },
+    {
+      "id": "detail",
+      "type": "string",
+      "role": "content",
+      "label": "Detail",
+      "description": "Short muted line under the name.",
+      "default": "Min. 10 box · gratis antar"
+    },
+    {
+      "id": "price",
+      "type": "string",
+      "role": "content",
+      "label": "Price",
+      "description": "Counts up. A prefix such as Rp and dot thousands are kept.",
+      "default": "Rp28.000"
+    },
+    {
+      "id": "unit",
+      "type": "string",
+      "role": "content",
+      "label": "Unit",
+      "description": "Small text after the price. Empty hides it.",
+      "default": "/ box"
+    },
+    {
+      "id": "badge",
+      "type": "string",
+      "role": "content",
+      "label": "Badge",
+      "description": "Pill that lands on the card corner. Empty hides it.",
+      "default": "Hemat 20%"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background start",
+      "description": "Top of the backdrop gradient.",
+      "default": "#f5f5f5"
+    },
+    {
+      "id": "bg2_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background end",
+      "description": "Bottom of the backdrop gradient.",
+      "default": "#e5e5e5"
+    },
+    {
+      "id": "shape_color",
+      "type": "color",
+      "role": "style",
+      "label": "Shape colour",
+      "description": "The solid shapes the glass blurs.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "glass_color",
+      "type": "color",
+      "role": "style",
+      "label": "Glass tint",
+      "description": "Card tint (shown at the glass opacity).",
+      "default": "#ffffff"
+    },
+    {
+      "id": "glass_opacity",
+      "type": "number",
+      "role": "style",
+      "label": "Glass opacity",
+      "description": "How much of the tint shows over the blur.",
+      "default": 0.42,
+      "min": 0.15,
+      "max": 0.9,
+      "step": 0.01
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Badge and price: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Name.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Eyebrow and detail.",
+      "default": "#52525b"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

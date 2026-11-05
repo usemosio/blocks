@@ -1,0 +1,244 @@
+<!doctype html>
+<!--
+  HUD Viewfinder
+
+  A transparent camera-viewfinder overlay for footage: a blinking REC dot, corner brackets, a running timecode, a battery and mode readout, an exposure line, and a focus box that hunts and snaps onto a point. The background is clear by default, so a host lays it over a clip; set the background colour and turn Transparent off to preview it alone.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="hud-viewfinder"
+  data-composition-duration="6"
+  data-composition-variables='[
+  {
+    "id": "timecode",
+    "type": "string",
+    "role": "content",
+    "label": "Start timecode",
+    "description": "Where the running timecode starts, HH:MM:SS:FF at 30 fps.",
+    "default": "00:00:00:00"
+  },
+  {
+    "id": "mode_label",
+    "type": "string",
+    "role": "content",
+    "label": "Mode label",
+    "description": "Top right, next to the battery.",
+    "default": "4K 30"
+  },
+  {
+    "id": "readout",
+    "type": "string",
+    "role": "content",
+    "label": "Readout",
+    "description": "Bottom left camera settings. Empty hides it.",
+    "default": "ISO 400   1/60   f/2.8"
+  },
+  {
+    "id": "af_label",
+    "type": "string",
+    "role": "content",
+    "label": "Focus tag",
+    "description": "Small tag over the focus box once it locks.",
+    "default": "AF"
+  },
+  {
+    "id": "focus_x",
+    "type": "number",
+    "role": "motion",
+    "label": "Focus x",
+    "description": "Where the focus box locks, 0 left to 100 right.",
+    "default": 62,
+    "min": 5,
+    "max": 95,
+    "step": 1,
+    "unit": "%"
+  },
+  {
+    "id": "focus_y",
+    "type": "number",
+    "role": "motion",
+    "label": "Focus y",
+    "description": "Where the focus box locks, 0 top to 100 bottom.",
+    "default": 44,
+    "min": 5,
+    "max": 95,
+    "step": 1,
+    "unit": "%"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Shown only when Transparent is off.",
+    "default": "#111111"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "REC dot and the locked focus box: the one accent.",
+    "default": "#ef4444"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Brackets, timecode and readouts.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Secondary readouts.",
+    "default": "#d4d4d4"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": true
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>HUD Viewfinder</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          background: var(--hv-bg); color: var(--hv-text); font-family: var(--hv-font);
+        }
+        #root * { box-sizing: border-box; }
+        .hv-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { text-shadow: 0 calc(var(--u) * 1) calc(var(--u) * 3) rgba(0,0,0,0.45); }
+        .hv-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .hv-rec { position: absolute; display: flex; align-items: center; gap: calc(var(--u) * 16); font-weight: 600; letter-spacing: 0.08em; }
+        .hv-dot { width: calc(var(--u) * 26); height: calc(var(--u) * 26); border-radius: 50%; background: var(--hv-main); }
+        .hv-tc { position: absolute; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+        .hv-tr { position: absolute; display: flex; align-items: center; gap: calc(var(--u) * 16); font-weight: 600; letter-spacing: 0.06em; }
+        .hv-bl { position: absolute; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; color: var(--hv-muted); white-space: pre; }
+        .hv-focus { position: absolute; left: 0; top: 0; color: var(--hv-text); opacity: 0; }
+        .hv-fc { position: absolute; width: 30%; height: 30%; border: 0 solid currentColor; }
+        .hv-tag { position: absolute; left: 0; top: 100%; font-weight: 700; letter-spacing: 0.08em; opacity: 0; white-space: nowrap; }
+
+      </style>
+
+      <div id="root" data-composition-id="hud-viewfinder" data-duration="6" data-fps="30">
+        <div id="hv-clip" class="hv-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <svg class="hv-svg" id="hv-svg"></svg>
+          <div class="hv-rec" id="hv-rec"><span class="hv-dot" id="hv-dot"></span><span>REC</span></div>
+          <div class="hv-tc" id="hv-tc"></div>
+          <div class="hv-tr" id="hv-tr"></div>
+          <div class="hv-bl" id="hv-bl"></div>
+          <div class="hv-focus" id="hv-focus"><i class="hv-fc" style="left:0;top:0;border-width:3px 0 0 3px"></i><i class="hv-fc" style="right:0;top:0;border-width:3px 3px 0 0"></i><i class="hv-fc" style="left:0;bottom:0;border-width:0 0 3px 3px"></i><i class="hv-fc" style="right:0;bottom:0;border-width:0 3px 3px 0"></i><span class="hv-tag" id="hv-tag"></span></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function lines(v, d) { var s = typeof v === "string" && v.trim() ? v : d; return s.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ease(n, a, b) { return Math.min(1, Math.max(0, (n - a) / (b - a))); }
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            var PAL = [["bg", "bg_color", "#111111"], ["main", "main_color", "#ef4444"], ["text", "text_color", "#ffffff"], ["muted", "muted_color", "#d4d4d4"]];
+            PAL.forEach(function (c) { root.style.setProperty("--hv-" + c[0], colr(vars[c[1]], c[2])); });
+            root.style.setProperty("--hv-font", '"' + str(vars.font_family, "Geist") + '", Geist, system-ui, sans-serif');
+            if (bool(vars.transparent, true)) root.style.background = "transparent";
+
+
+            var NS = "http://www.w3.org/2000/svg", fps = 30, total = parseFloat(root.dataset.duration || "6");
+            var m = (PORTRAIT ? 64 : 70) * U, arm = 96 * U, sw = 4 * U;
+            var svg = document.getElementById("hv-svg"); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            function mk(tag, attrs, parent) { var e = document.createElementNS(NS, tag); Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); }); (parent || svg).appendChild(e); return e; }
+            var corners = [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].map(function (c) {
+              return mk("path", { d: "M" + (c[0] + c[2] * arm) + " " + c[1] + " L" + c[0] + " " + c[1] + " L" + c[0] + " " + (c[1] + c[3] * arm), fill: "none", stroke: "var(--hv-text)", "stroke-width": sw, "stroke-linecap": "square", pathLength: 1, "stroke-dasharray": 1, "stroke-dashoffset": 1 });
+            });
+            // exposure line (bottom centre)
+            var ey = H - m - 20 * U, ew = (PORTRAIT ? 300 : 360) * U, ex = W / 2 - ew / 2, tks = [];
+            mk("line", { x1: ex, x2: ex + ew, y1: ey, y2: ey, stroke: "var(--hv-text)", "stroke-width": 2 * U, opacity: 0.8 });
+            for (var k = 0; k <= 6; k++) tks.push(mk("line", { x1: ex + ew * k / 6, x2: ex + ew * k / 6, y1: ey - (k % 3 === 0 ? 14 : 8) * U, y2: ey + (k % 3 === 0 ? 14 : 8) * U, stroke: "var(--hv-text)", "stroke-width": 2 * U, opacity: 0.8 }));
+            var mark = mk("path", { d: "M0 " + (ey - 26 * U) + " l" + 9 * U + " " + -14 * U + " l" + -18 * U + " 0 Z", fill: "var(--hv-text)" });
+            var fs = (PORTRAIT ? 36 : 34) * U;
+            var rec = document.getElementById("hv-rec"); rec.style.left = m + 30 * U + "px"; rec.style.top = m + 28 * U + "px"; rec.style.fontSize = fs + "px";
+            var tc = document.getElementById("hv-tc"); tc.style.left = m + 30 * U + "px"; tc.style.top = m + 28 * U + fs * 1.6 + "px"; tc.style.fontSize = fs * 1.1 + "px";
+            var tr = document.getElementById("hv-tr"); tr.style.right = m + 30 * U + "px"; tr.style.top = m + 28 * U + "px"; tr.style.fontSize = fs + "px";
+            tr.innerHTML = "<span>" + esc(str(vars.mode_label, "4K 30")) + '</span><svg width="' + 62 * U + '" height="' + 28 * U + '" viewBox="0 0 62 28"><rect x="1.5" y="1.5" width="53" height="25" rx="5" fill="none" stroke="#fff" stroke-width="3"/><rect x="5" y="5" width="36" height="18" rx="2.5" fill="#fff"/><rect x="57" y="9" width="4" height="10" rx="1.5" fill="#fff"/></svg>';
+            var bl = document.getElementById("hv-bl"), rd = typeof vars.readout === "string" ? vars.readout : "ISO 400   1/60   f/2.8";
+            bl.textContent = rd; bl.style.left = m + 30 * U + "px"; bl.style.bottom = m + 28 * U + "px"; bl.style.fontSize = fs * 0.9 + "px"; if (!rd.trim()) bl.style.display = "none";
+            var ps = String(vars.timecode || "00:00:00:00").split(":").map(function (x) { return parseInt(x, 10) || 0; });
+            while (ps.length < 4) ps.unshift(0);
+            var startF = ((ps[0] * 60 + ps[1]) * 60 + ps[2]) * fps + ps[3];
+            function pad(n) { return (n < 10 ? "0" : "") + n; }
+            function tcs(f) { var ff = f % fps, s = Math.floor(f / fps), mm = Math.floor(s / 60) % 60, hh = Math.floor(s / 3600) % 100; return pad(hh) + ":" + pad(mm) + ":" + pad(s % 60) + ":" + pad(ff); }
+            var clock = { t: 0 };
+            function drawClock() { tc.textContent = tcs(startF + Math.floor(clock.t * fps)); }
+            var fx = num(vars.focus_x, 62, 5, 95) / 100 * W, fy = num(vars.focus_y, 44, 5, 95) / 100 * H;
+            var fz = (PORTRAIT ? 230 : 210) * U, big = fz * 1.9, focus = document.getElementById("hv-focus"), tag = document.getElementById("hv-tag");
+            focus.style.width = focus.style.height = fz + "px"; focus.style.marginLeft = focus.style.marginTop = -fz / 2 + "px";
+            [].forEach.call(focus.querySelectorAll(".hv-fc"), function (c) { var b = 4 * U + "px"; c.style.borderWidth = c.style.borderWidth.split(" ").map(function (x) { return x === "0px" ? "0px" : b; }).join(" "); });
+            var afl = typeof vars.af_label === "string" ? vars.af_label.trim() : "AF"; tag.textContent = afl; tag.style.fontSize = fs * 0.8 + "px"; tag.style.marginTop = 10 * U + "px"; if (!afl) tag.style.display = "none";
+            var tl = gsap.timeline({ paused: true });
+            corners.forEach(function (c, i) { tl.to(c, { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" }, 0.1 + i * 0.06); });
+            tl.fromTo("#hv-rec,#hv-tc,#hv-tr,#hv-bl", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.35);
+            tl.fromTo(svg.querySelectorAll("line,path:not([pathLength])"), { opacity: 0 }, { opacity: 0.85, duration: 0.4 }, 0.5);
+            for (var b = 0; b < Math.floor(total / 0.5); b++) tl.set("#hv-dot", { opacity: b % 2 ? 0.12 : 1 }, 0.4 + b * 0.5);
+            tl.to(clock, { t: total, duration: total, ease: "none", onUpdate: drawClock }, 0);
+            tl.to(mark, { x: W / 2 - 0, duration: 0.01 }, 0);
+            tl.fromTo(mark, { x: W / 2 - 40 * U }, { x: W / 2 + 28 * U, duration: 1.2, ease: "sine.inOut" }, 1.0);
+            tl.to(mark, { x: W / 2, duration: 0.6, ease: "power3.out" }, 2.4);
+            tl.set(focus, { x: W * 0.5, y: H * 0.5, scale: 1.9, opacity: 0 }, 0);
+            tl.to(focus, { opacity: 0.85, duration: 0.25 }, 0.9);
+            tl.to(focus, { x: W * 0.38, y: H * 0.56, duration: 0.5, ease: "power2.inOut" }, 1.0);
+            tl.to(focus, { x: W * 0.7, y: H * 0.36, scale: 2.2, duration: 0.5, ease: "power2.inOut" }, 1.6);
+            tl.to(focus, { x: fx, y: fy, scale: 1, duration: 0.45, ease: "back.out(1.5)" }, 2.25);
+            tl.to(focus, { color: "var(--hv-main)", opacity: 1, duration: 0.12 }, 2.7);
+            tl.to(focus, { opacity: 0.35, duration: 0.07 }, 2.9); tl.to(focus, { opacity: 1, duration: 0.07 }, 2.97);
+            tl.fromTo(tag, { opacity: 0, y: -6 * U }, { opacity: 1, y: 0, duration: 0.25, ease: "power3.out" }, 2.75);
+            drawClock();
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["hud-viewfinder"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "product-grid-reveal",
+  "type": "hyperframes:component",
+  "title": "Product Grid Reveal",
+  "description": "A mosaic of 6 or 9 product tiles, each with a name and a price, flips in with a stagger. One tile then scales up as the highlight and gets a Terlaris badge while the rest dim. Tiles show a drawn placeholder or your own images.",
+  "tags": [
+    "mosio-original",
+    "grid",
+    "mosaic",
+    "product",
+    "price",
+    "flip",
+    "highlight"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "Showing a range of products at once, then pointing at the best seller.",
+    "A weekly menu, a catalogue page, a new-arrivals teaser."
+  ],
+  "avoidWhen": [
+    "One product with a big price: use price-drop.",
+    "A priced list read line by line: use menu-price-board."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "mosaic grid flip-in"
+  },
+  "files": [
+    {
+      "path": "product-grid-reveal.html",
+      "target": "compositions/components/product-grid-reveal.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Line above the grid. Leave empty to hide it.",
+      "default": "Kue basah favorit"
+    },
+    {
+      "id": "products",
+      "type": "string",
+      "role": "content",
+      "label": "Products",
+      "description": "One per line, Name|Price. 6 or fewer lines make a 6-tile grid, more make 9.",
+      "default": "Kue lapis|Rp3.000\nKlepon|Rp2.500\nDadar gulung|Rp3.500\nLemper ayam|Rp4.000\nBika ambon|Rp6.000\nOnde-onde|Rp2.500\nSerabi|Rp3.000\nCenil|Rp2.500\nLupis|Rp3.500"
+    },
+    {
+      "id": "highlight",
+      "type": "number",
+      "role": "content",
+      "label": "Highlight",
+      "description": "Which tile (1 = first) scales up. 0 for none.",
+      "default": 5,
+      "min": 0,
+      "max": 9,
+      "step": 1
+    },
+    {
+      "id": "badge",
+      "type": "string",
+      "role": "content",
+      "label": "Badge",
+      "description": "Text on the highlighted tile.",
+      "default": "Terlaris"
+    },
+    {
+      "id": "images",
+      "type": "string",
+      "role": "content",
+      "label": "Images",
+      "description": "Optional image URLs, one per line in tile order. Empty tiles stay drawn.",
+      "default": ""
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Badge and highlight outline: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Tile names and title.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Prices.",
+      "default": "#737373"
+    },
+    {
+      "id": "tile_color",
+      "type": "color",
+      "role": "style",
+      "label": "Tile colour",
+      "description": "Tile background.",
+      "default": "#f4f4f2"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

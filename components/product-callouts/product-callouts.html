@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+  Product Callouts
+
+  A product in the centre with three or four thin leader lines drawing out from points on it to labels with short spec text, one after another, in a spec-sheet style. The product is a drawn tumbler or your own image; labels, specs and the points the lines start from come from one variable.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="product-callouts"
+  data-composition-duration="6"
+  data-composition-variables='[
+  {
+    "id": "title",
+    "type": "string",
+    "role": "content",
+    "label": "Title",
+    "description": "Product name above the product.",
+    "default": "Tumbler Kopi Senja"
+  },
+  {
+    "id": "subtitle",
+    "type": "string",
+    "role": "content",
+    "label": "Subtitle",
+    "description": "One short line under the title.",
+    "default": "Spesifikasi"
+  },
+  {
+    "id": "callouts",
+    "type": "string",
+    "role": "content",
+    "label": "Callouts",
+    "description": "One per line, up to 4: Label|Spec|x|y. x and y (0 to 100) are where the line starts on the product box. Points left of the middle get their label on the left.",
+    "default": "Tutup|Anti bocor|68|6\nBahan|Stainless 304|30|30\nKapasitas|500 ml|70|55\nBerat|280 g|34|80"
+  },
+  {
+    "id": "image",
+    "type": "string",
+    "role": "content",
+    "label": "Image",
+    "description": "Optional product image URL (a transparent PNG works best). Empty draws a tumbler.",
+    "default": ""
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "Dots at the points: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Title, specs, lines and the drawn product outline.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Labels and subtitle.",
+    "default": "#737373"
+  },
+  {
+    "id": "body_color",
+    "type": "color",
+    "role": "style",
+    "label": "Product tone",
+    "description": "Fill of the drawn product.",
+    "default": "#ececec"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Callouts</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          background: var(--pco-bg); color: var(--pco-text); font-family: var(--pco-font);
+        }
+        #root * { box-sizing: border-box; }
+        .pco-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .pco-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .pco-prod { position: absolute; background-size: contain; background-position: center; background-repeat: no-repeat; }
+        .pco-prod svg { width: 100%; height: 100%; display: block; }
+        .pco-title { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; letter-spacing: -0.04em; white-space: nowrap; }
+        .pco-sub { position: absolute; left: 0; right: 0; text-align: center; font-weight: 500; color: var(--pco-muted); white-space: nowrap; }
+        .pco-lab { position: absolute; display: flex; flex-direction: column; gap: calc(var(--u) * 2); }
+        .pco-lab b { font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; color: var(--pco-muted); white-space: nowrap; }
+        .pco-lab span { font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+      </style>
+
+      <div id="root" data-composition-id="product-callouts" data-duration="6" data-fps="30">
+        <div id="pco-clip" class="pco-stage clip" data-start="0" data-duration="6" data-track-index="0">
+          <div class="pco-prod" id="pco-prod"></div>
+          <svg class="pco-svg" id="pco-svg"></svg>
+          <div class="pco-title" id="pco-title"></div><div class="pco-sub" id="pco-sub"></div>
+          <div id="pco-labs"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function lines(v, d) { var s = typeof v === "string" && v.trim() ? v : d; return s.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ease(n, a, b) { return Math.min(1, Math.max(0, (n - a) / (b - a))); }
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            var PAL = [["bg", "bg_color", "#ffffff"], ["main", "main_color", "#2563eb"], ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"], ["body", "body_color", "#ececec"]];
+            PAL.forEach(function (c) { root.style.setProperty("--pco-" + c[0], colr(vars[c[1]], c[2])); });
+            root.style.setProperty("--pco-font", '"' + str(vars.font_family, "Geist") + '", Geist, system-ui, sans-serif');
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            var NS = "http://www.w3.org/2000/svg";
+            var titleEl = document.getElementById("pco-title"), subEl = document.getElementById("pco-sub");
+            titleEl.textContent = str(vars.title, "Tumbler Kopi Senja"); subEl.textContent = typeof vars.subtitle === "string" ? vars.subtitle : "Spesifikasi";
+            var ty = PORTRAIT ? 150 : 56;
+            titleEl.style.top = ty * U + "px"; titleEl.style.fontSize = (PORTRAIT ? 76 : 64) * U + "px";
+            subEl.style.top = (ty + (PORTRAIT ? 92 : 72)) * U + "px"; subEl.style.fontSize = (PORTRAIT ? 38 : 32) * U + "px";
+            var pw = (PORTRAIT ? 440 : 330) * U, ph = (PORTRAIT ? 980 : 740) * U;
+            var px0 = W / 2 - pw / 2, py0 = H * (PORTRAIT ? 0.56 : 0.58) - ph / 2;
+            var prod = document.getElementById("pco-prod");
+            prod.style.left = px0 + "px"; prod.style.top = py0 + "px"; prod.style.width = pw + "px"; prod.style.height = ph + "px";
+            var img = str(vars.image, "");
+            if (img) prod.style.backgroundImage = 'url("' + img.replace(/"/g, "") + '")';
+            else prod.innerHTML = '<svg viewBox="0 0 340 720" preserveAspectRatio="xMidYMid meet"><rect x="64" y="14" width="212" height="64" rx="18" fill="var(--pco-text)"/><path d="M46 84 L294 84 L264 690 Q262 708 244 708 L96 708 Q78 708 76 690 Z" fill="var(--pco-body)" stroke="var(--pco-text)" stroke-width="5" stroke-linejoin="round"/><rect x="60" y="300" width="220" height="150" fill="var(--pco-text)" opacity=".9"/><rect x="96" y="346" width="120" height="14" rx="7" fill="var(--pco-bg)"/><rect x="96" y="378" width="80" height="10" rx="5" fill="var(--pco-bg)" opacity=".6"/></svg>';
+            var svg = document.getElementById("pco-svg"); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+            var labsBox = document.getElementById("pco-labs");
+            var items = lines(vars.callouts, "").slice(0, 4).map(function (l) {
+              var a = l.split("|"); return { label: (a[0] || "").trim(), spec: (a[1] || "").trim(), x: num(a[2], 50, 0, 100), y: num(a[3], 50, 0, 100) };
+            });
+            var gap = 36 * U, colW = Math.min(300 * U, (W / 2 - pw / 2 - gap - 50 * U));
+            var sides = { left: [], right: [] };
+            items.forEach(function (it) { it.px = px0 + pw * it.x / 100; it.py = py0 + ph * it.y / 100; (it.x < 50 ? sides.left : sides.right).push(it); });
+            ["left", "right"].forEach(function (sd) {
+              var arr = sides[sd].sort(function (a, b) { return a.py - b.py; }), minGap = (PORTRAIT ? 150 : 140) * U, prev = -1e9;
+              arr.forEach(function (it) { it.ly = Math.max(it.py, prev + minGap); prev = it.ly; it.side = sd; });
+              var over = arr.length ? arr[arr.length - 1].ly - (py0 + ph) : 0;
+              if (over > 0) arr.forEach(function (it) { it.ly -= over; });
+            });
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#pco-prod", { opacity: 0, y: 30 * U }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.1);
+            tl.fromTo("#pco-title", { opacity: 0, y: -20 * U }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.2);
+            tl.fromTo("#pco-sub", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.4);
+            items.forEach(function (it, i) {
+              var L = it.side === "left", ex = L ? px0 - gap : px0 + pw + gap, ox = L ? ex - colW : ex + colW;
+              var path = document.createElementNS(NS, "path");
+              path.setAttribute("d", "M" + it.px + " " + it.py + " L" + ex + " " + it.ly + " L" + ox + " " + it.ly);
+              path.setAttribute("fill", "none"); path.setAttribute("stroke", "var(--pco-text)"); path.setAttribute("stroke-width", 2 * U);
+              path.setAttribute("stroke-linejoin", "round"); path.setAttribute("pathLength", "1"); path.setAttribute("stroke-dasharray", "1"); path.setAttribute("stroke-dashoffset", "1");
+              svg.appendChild(path);
+              var g = document.createElementNS(NS, "g"); g.setAttribute("transform", "translate(" + it.px + " " + it.py + ")"); svg.appendChild(g);
+              var ring = document.createElementNS(NS, "circle"); ring.setAttribute("r", 17 * U);
+              ring.setAttribute("fill", "none"); ring.setAttribute("stroke", "var(--pco-main)"); ring.setAttribute("stroke-width", 2 * U); g.appendChild(ring);
+              var dot = document.createElementNS(NS, "circle"); dot.setAttribute("r", 7.5 * U);
+              dot.setAttribute("fill", "var(--pco-main)"); g.appendChild(dot);
+              var lab = el("div", "pco-lab", labsBox, "<b>" + esc(it.label) + "</b><span>" + esc(it.spec) + "</span>");
+              lab.querySelector("b").style.fontSize = 26 * U + "px"; lab.querySelector("span").style.fontSize = (PORTRAIT ? 32 : 44) * U + "px";
+              lab.style.width = colW + "px"; lab.style.left = (L ? ox : ex) + "px"; lab.style.textAlign = L ? "right" : "left";
+              lab.style.bottom = (H - it.ly + 14 * U) + "px";
+              var t0 = 0.9 + i * 0.55;
+              tl.fromTo(dot, { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(1.6)" }, t0);
+              tl.fromTo(ring, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" }, t0 + 0.05);
+              tl.to(path, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" }, t0 + 0.2);
+              tl.fromTo(lab, { opacity: 0, x: (L ? -1 : 1) * 24 * U }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t0 + 0.5);
+            });
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["product-callouts"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

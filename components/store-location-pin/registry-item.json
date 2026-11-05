@@ -1,0 +1,144 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "store-location-pin",
+  "type": "hyperframes:component",
+  "title": "Store Location Pin",
+  "description": "An abstract map (a light street grid drawn with SVG lines, no real geography) draws itself, a pin drops and settles with a small bounce, then an address card rises with the shop name, street and opening hours.",
+  "tags": [
+    "mosio-original",
+    "location",
+    "map",
+    "pin",
+    "address",
+    "shop",
+    "visit"
+  ],
+  "category": "commerce",
+  "duration": 5.5,
+  "useWhen": [
+    "Telling people where a shop is and when it is open.",
+    "A \"kunjungi kami\" closing moment of a shop promo."
+  ],
+  "avoidWhen": [
+    "A sign changing to open: use open-sign-flip.",
+    "A real, accurate map with routes: this map is decorative."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "line-draw and a drop-and-bounce landing, then a card rising"
+  },
+  "files": [
+    {
+      "path": "store-location-pin.html",
+      "target": "compositions/components/store-location-pin.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Shop name on the address card.",
+      "default": "Kopi Senja"
+    },
+    {
+      "id": "street",
+      "type": "string",
+      "role": "content",
+      "label": "Street",
+      "description": "Address line on the card.",
+      "default": "Jl. Melati No. 12, Bandung"
+    },
+    {
+      "id": "hours",
+      "type": "string",
+      "role": "content",
+      "label": "Hours",
+      "description": "Opening hours line. Leave empty to hide it.",
+      "default": "Buka 08.00–21.00"
+    },
+    {
+      "id": "seed",
+      "type": "number",
+      "role": "content",
+      "label": "Map seed",
+      "description": "Changes the street layout.",
+      "default": 5,
+      "min": 1,
+      "max": 999,
+      "step": 1
+    },
+    {
+      "id": "drop_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Pin drop time",
+      "description": "Second the pin starts to fall.",
+      "default": 1.5,
+      "min": 0.8,
+      "max": 3,
+      "step": 0.1
+    },
+    {
+      "id": "map_color",
+      "type": "color",
+      "role": "style",
+      "label": "Street colour",
+      "description": "Colour of the streets.",
+      "default": "#e4e4e7"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The pin: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

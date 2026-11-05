@@ -1,0 +1,295 @@
+<!doctype html>
+<!--
+  Receipt Print
+
+  A shop receipt prints out line by line from a printer slot (shop name, items with quantity and price, a dashed rule, the total) and a LUNAS stamp thunks onto it. Items, prices, shop name and total are variables.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="receipt-print"
+  data-composition-duration="6"
+  data-composition-variables='[
+  {
+    "id": "shop",
+    "type": "string",
+    "role": "content",
+    "label": "Shop name",
+    "description": "Shop name printed at the top of the receipt.",
+    "default": "Kopi Senja"
+  },
+  {
+    "id": "address",
+    "type": "string",
+    "role": "content",
+    "label": "Address line",
+    "description": "Second line under the name.",
+    "default": "Jl. Melati No. 12, Bandung"
+  },
+  {
+    "id": "meta",
+    "type": "string",
+    "role": "content",
+    "label": "Receipt line",
+    "description": "Small line with the receipt number, cashier or time. Leave empty to hide it.",
+    "default": "Struk #0412 · 14.32"
+  },
+  {
+    "id": "items",
+    "type": "string",
+    "role": "content",
+    "label": "Items",
+    "description": "Items separated by semicolons, each as name|quantity|unit price. The line price is quantity times unit price.",
+    "default": "Kopi susu|2|Rp14.000; Roti bakar|1|Rp12.000; Es teh|1|Rp5.000"
+  },
+  {
+    "id": "total_label",
+    "type": "string",
+    "role": "content",
+    "label": "Total label",
+    "description": "Label of the total line.",
+    "default": "TOTAL"
+  },
+  {
+    "id": "total",
+    "type": "string",
+    "role": "content",
+    "label": "Total",
+    "description": "Total shown on the last line. Leave empty to add the item lines up.",
+    "default": "Rp45.000"
+  },
+  {
+    "id": "footer",
+    "type": "string",
+    "role": "content",
+    "label": "Footer",
+    "description": "Line under the total. Leave empty to hide it.",
+    "default": "Terima kasih, sampai jumpa lagi"
+  },
+  {
+    "id": "stamp",
+    "type": "string",
+    "role": "content",
+    "label": "Stamp",
+    "description": "Word stamped on the receipt at the end.",
+    "default": "LUNAS"
+  },
+  {
+    "id": "print_seconds",
+    "type": "number",
+    "role": "motion",
+    "label": "Print time",
+    "description": "Seconds the receipt takes to print out.",
+    "default": 2.6,
+    "min": 1,
+    "max": 5,
+    "step": 0.1
+  },
+  {
+    "id": "paper_color",
+    "type": "color",
+    "role": "style",
+    "label": "Paper colour",
+    "description": "Receipt paper.",
+    "default": "#fafaf9"
+  },
+  {
+    "id": "mono_family",
+    "type": "string",
+    "role": "style",
+    "label": "Receipt font",
+    "description": "Monospace family for the receipt lines. Geist Mono is loaded by default.",
+    "default": "Geist Mono"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Main text and outlines.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Secondary text and hairlines.",
+    "default": "#737373"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "The LUNAS stamp: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Receipt Print</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          color: var(--rp-text); font-family: var(--FAM, Geist), system-ui, sans-serif; background: var(--rp-bg);
+        }
+        #root * { box-sizing: border-box; }
+        .rp-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .rp-wrap { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 640); display: flex; flex-direction: column; align-items: center; transform-origin: 50% 50%; }
+        .rp-slot { position: relative; z-index: 2; width: calc(var(--u) * 700); height: calc(var(--u) * 40); border-radius: calc(var(--u) * 20); background: var(--rp-text); }
+        .rp-slot::after { content: ""; position: absolute; left: calc(var(--u) * 28); right: calc(var(--u) * 28); bottom: calc(var(--u) * 11); height: calc(var(--u) * 6); border-radius: calc(var(--u) * 3); background: var(--rp-bg); opacity: 0.55; }
+        .rp-shadow { width: 100%; filter: drop-shadow(0 calc(var(--u) * 10) calc(var(--u) * 18) rgba(0, 0, 0, 0.12)); margin-top: calc(var(--u) * -14); }
+        .rp-win { width: 100%; overflow: hidden; }
+        .rp-paper { width: 100%; background: var(--rp-paper); padding: calc(var(--u) * 52) calc(var(--u) * 44) calc(var(--u) * 205); font-family: var(--rp-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--rp-text); }
+        .rp-row { display: flex; align-items: baseline; justify-content: space-between; gap: calc(var(--u) * 20); font-size: calc(var(--u) * 31); line-height: 1.5; white-space: nowrap; }
+        .rp-row b { font-weight: 600; }
+        .rp-c { justify-content: center; text-align: center; }
+        .rp-shop { font-family: var(--FAM, Geist), system-ui, sans-serif; font-size: calc(var(--u) * 54); font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; }
+        .rp-sm { font-size: calc(var(--u) * 25); color: var(--rp-muted); }
+        .rp-rule { height: 0; border-top: calc(var(--u) * 3) dashed var(--rp-muted); margin: calc(var(--u) * 16) 0; opacity: 0.7; }
+        .rp-tot { font-size: calc(var(--u) * 44); font-weight: 600; margin-top: calc(var(--u) * 4); }
+        .rp-name { overflow: hidden; text-overflow: ellipsis; }
+        .rp-stamp { position: absolute; right: calc(var(--u) * 16); bottom: calc(var(--u) * 34); z-index: 3; padding: calc(var(--u) * 6) calc(var(--u) * 34); border: calc(var(--u) * 9) solid var(--rp-main); border-radius: calc(var(--u) * 14); color: var(--rp-main); font-size: calc(var(--u) * 92); font-weight: 700; letter-spacing: 0.04em; line-height: 1.1; transform: rotate(-12deg); mix-blend-mode: normal; font-family: var(--FAM, Geist), system-ui, sans-serif; background: rgba(255,255,255,0.0); }
+
+      </style>
+
+      <div id="root" data-composition-id="receipt-print" data-duration="6" data-fps="30">
+        <div id="rp-clip" class="rp-stage clip" data-start="0" data-duration="6" data-track-index="0">
+
+          <div class="rp-wrap" id="rp-wrap">
+            <div id="rp-inner" style="width:100%;display:flex;flex-direction:column;align-items:center;position:relative">
+              <div class="rp-slot"></div>
+              <div class="rp-shadow"><div class="rp-win" id="rp-win"><div class="rp-paper" id="rp-paper"></div></div></div>
+              <div class="rp-stamp" id="rp-stamp"></div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function svg(tag, attrs, parent) { var e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function rp(n) { return "Rp" + dots(n); }
+            function money(s) { var d = String(s).replace(/[^\d]/g, ""); return d ? parseInt(d, 10) : 0; }
+            function list(s, d) { var a = String(str(s, d)).split(";").map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : String(d).split(";").map(function (x) { return x.trim(); }); }
+            function mulberry(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function setColors(p, c) { for (var k in c) root.style.setProperty("--" + p + "-" + k, colr(vars[k + "_color"], c[k])); }
+            var fam = str(vars.font_family, "Geist");
+            root.style.setProperty("--FAM", /^[\w\s-]+$/.test(fam) ? '"' + fam + '"' : "Geist");
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            setColors("rp", { bg: "#ffffff", text: "#0a0a0a", muted: "#737373", main: "#2563eb", paper: "#fafaf9" });
+
+
+            var shop = str(vars.shop, "Kopi Senja");
+            var address = str(vars.address, "Jl. Melati No. 12, Bandung");
+            var meta = typeof vars.meta === "string" ? vars.meta.trim() : "Struk #0412 · 14.32";
+            var items = list(vars.items, "Kopi susu|2|Rp14.000; Roti bakar|1|Rp12.000; Es teh|1|Rp5.000").map(function (s) {
+              var a = s.split("|"); var q = Math.max(1, Math.round(Number(a[1]) || 1));
+              return { name: (a[0] || "").trim(), q: q, unit: money(a[2] || "0") };
+            }).slice(0, 9);
+            var sum = items.reduce(function (t, i) { return t + i.q * i.unit; }, 0);
+            var totalTxt = str(vars.total, rp(sum));
+            var footer = typeof vars.footer === "string" ? vars.footer.trim() : "Terima kasih, sampai jumpa lagi";
+            root.style.setProperty("--rp-mono", /^[\w\s-]+$/.test(str(vars.mono_family, "Geist Mono")) ? '"' + str(vars.mono_family, "Geist Mono") + '"' : '"Geist Mono"');
+            root.style.setProperty("--rp-paper", colr(vars.paper_color, "#fafaf9"));
+
+            var paper = document.getElementById("rp-paper");
+            var rows = [];
+            function row(cls, html, p) { var r = el("div", "rp-row " + (cls || ""), paper, html); rows.push(r); return r; }
+            row("rp-c rp-shop", esc(shop));
+            row("rp-c rp-sm", esc(address));
+            if (meta) row("rp-c rp-sm", esc(meta));
+            el("div", "rp-rule", paper);
+            items.forEach(function (it) {
+              row("", '<span class="rp-name">' + it.q + "× " + esc(it.name) + "</span><span>" + rp(it.q * it.unit) + "</span>");
+            });
+            el("div", "rp-rule", paper);
+            row("rp-tot", "<span>" + esc(str(vars.total_label, "TOTAL")) + "</span><span>" + esc(totalTxt) + "</span>");
+            if (footer) { el("div", "", paper).style.height = 14 * U + "px"; row("rp-c rp-sm", esc(footer)); }
+
+            var N = rows.length + 2;
+            var teeth = 22, z = 16 * U, pts = ["0 0", "100% 0"];
+            for (var i = 0; i <= teeth; i++) pts.push((100 - i * 100 / teeth).toFixed(2) + "% " + (i % 2 === 0 ? "calc(100% - " + z + "px)" : "100%"));
+            paper.style.clipPath = "polygon(" + pts.join(",") + ")";
+            var paperH = paper.offsetHeight;
+            document.getElementById("rp-win").style.height = paperH + "px";
+            var stamp = document.getElementById("rp-stamp");
+            stamp.textContent = str(vars.stamp, "LUNAS");
+
+            var wrap = document.getElementById("rp-wrap");
+            var groupH = paperH + 26 * U;
+            var S = Math.min(1.7, (H * 0.86) / groupH, (W * 0.9) / (700 * U));
+            wrap.style.height = groupH + "px";
+            gsap.set(wrap, { xPercent: -50, yPercent: -50, scale: S });
+            var printT = num(vars.print_seconds, 2.6, 1, 5);
+
+            var tl = gsap.timeline({ paused: true });
+            var win = document.getElementById("rp-win");
+            tl.fromTo(win, { height: 0 }, { height: paperH, duration: printT, ease: "steps(" + N + ")" }, 0.35);
+            var t0 = 0.35 + printT + 0.55;
+            tl.fromTo(stamp, { scale: 2.6, opacity: 0, rotation: -12 }, { scale: 1, opacity: 1, rotation: -12, duration: 0.2, ease: "power3.in" }, t0);
+            tl.fromTo("#rp-inner", { y: 0 }, { y: 7 * U, duration: 0.07, ease: "power2.out" }, t0 + 0.2);
+            tl.to("#rp-inner", { y: 0, duration: 0.3, ease: "back.out(2.4)" }, t0 + 0.27);
+            tl.fromTo(stamp, { scale: 1 }, { scale: 1.04, duration: 0.08, ease: "power2.out" }, t0 + 0.2);
+            tl.to(stamp, { scale: 1, duration: 0.2, ease: "power2.out" }, t0 + 0.28);
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["receipt-print"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "stat-trio",
+  "type": "hyperframes:component",
+  "title": "Stat Trio",
+  "description": "Three stats count up side by side (stacked in a vertical frame), staggered, each with its label and an accent underline that draws in beneath it. Values like 1.200+, 4,9 or 98% keep their prefix, suffix and decimals while they count.",
+  "tags": [
+    "mosio-original",
+    "stats",
+    "numbers",
+    "count-up",
+    "trio",
+    "social-proof"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "Social proof in three numbers: customers, rating, repeat orders.",
+    "A small shop's milestones at a glance."
+  ],
+  "avoidWhen": [
+    "One hero number with a chart: use stat-count-up-bars.",
+    "More than three numbers."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "count-up stats"
+  },
+  "files": [
+    {
+      "path": "stat-trio.html",
+      "target": "compositions/components/stat-trio.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Line above the stats. Empty hides it.",
+      "default": "Toko kami dalam angka"
+    },
+    {
+      "id": "stats",
+      "type": "string",
+      "role": "content",
+      "label": "Stats",
+      "description": "Three lines, Value|Label. Dots are thousands and a comma is a decimal: 1.200+ or 4,9.",
+      "default": "1.200+|Pelanggan setia\n4,9|Rating dari 860 ulasan\n98%|Pesanan datang tepat waktu"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "The three underlines: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Numbers and title.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Labels.",
+      "default": "#737373"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

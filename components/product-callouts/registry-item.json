@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "product-callouts",
+  "type": "hyperframes:component",
+  "title": "Product Callouts",
+  "description": "A product in the centre with three or four thin leader lines drawing out from points on it to labels with short spec text, one after another, in a spec-sheet style. The product is a drawn tumbler or your own image; labels, specs and the points the lines start from come from one variable.",
+  "tags": [
+    "mosio-original",
+    "callout",
+    "spec",
+    "product",
+    "hud",
+    "line-draw"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Showing what a product is made of: material, size, weight, features.",
+    "A product with several small selling points that each need a pointer."
+  ],
+  "avoidWhen": [
+    "Selling points that are not about a part of the product: use step-explainer or stat-trio.",
+    "More than four points: the labels crowd."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "line-draw callouts"
+  },
+  "files": [
+    {
+      "path": "product-callouts.html",
+      "target": "compositions/components/product-callouts.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Product name above the product.",
+      "default": "Tumbler Kopi Senja"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "description": "One short line under the title.",
+      "default": "Spesifikasi"
+    },
+    {
+      "id": "callouts",
+      "type": "string",
+      "role": "content",
+      "label": "Callouts",
+      "description": "One per line, up to 4: Label|Spec|x|y. x and y (0 to 100) are where the line starts on the product box. Points left of the middle get their label on the left.",
+      "default": "Tutup|Anti bocor|68|6\nBahan|Stainless 304|30|30\nKapasitas|500 ml|70|55\nBerat|280 g|34|80"
+    },
+    {
+      "id": "image",
+      "type": "string",
+      "role": "content",
+      "label": "Image",
+      "description": "Optional product image URL (a transparent PNG works best). Empty draws a tumbler.",
+      "default": ""
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Dots at the points: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Title, specs, lines and the drawn product outline.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Labels and subtitle.",
+      "default": "#737373"
+    },
+    {
+      "id": "body_color",
+      "type": "color",
+      "role": "style",
+      "label": "Product tone",
+      "description": "Fill of the drawn product.",
+      "default": "#ececec"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

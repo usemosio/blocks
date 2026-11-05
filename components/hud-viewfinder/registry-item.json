@@ -1,0 +1,147 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "hud-viewfinder",
+  "type": "hyperframes:component",
+  "title": "HUD Viewfinder",
+  "description": "A transparent camera-viewfinder overlay for footage: a blinking REC dot, corner brackets, a running timecode, a battery and mode readout, an exposure line, and a focus box that hunts and snaps onto a point. The background is clear by default, so a host lays it over a clip; set the background colour and turn Transparent off to preview it alone.",
+  "tags": [
+    "mosio-original",
+    "hud",
+    "overlay",
+    "viewfinder",
+    "rec",
+    "timecode",
+    "camera",
+    "transparent"
+  ],
+  "category": "motion-graphics",
+  "duration": 6,
+  "useWhen": [
+    "Over a clip of a product, a workshop or a place so it reads as shot on a camera.",
+    "An opening moment of a behind-the-scenes or unboxing video."
+  ],
+  "avoidWhen": [
+    "Over bright white footage: the thin white lines vanish; set the text colour to dark.",
+    "A standalone scene: it is only an overlay."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "HUD overlay"
+  },
+  "files": [
+    {
+      "path": "hud-viewfinder.html",
+      "target": "compositions/components/hud-viewfinder.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "timecode",
+      "type": "string",
+      "role": "content",
+      "label": "Start timecode",
+      "description": "Where the running timecode starts, HH:MM:SS:FF at 30 fps.",
+      "default": "00:00:00:00"
+    },
+    {
+      "id": "mode_label",
+      "type": "string",
+      "role": "content",
+      "label": "Mode label",
+      "description": "Top right, next to the battery.",
+      "default": "4K 30"
+    },
+    {
+      "id": "readout",
+      "type": "string",
+      "role": "content",
+      "label": "Readout",
+      "description": "Bottom left camera settings. Empty hides it.",
+      "default": "ISO 400   1/60   f/2.8"
+    },
+    {
+      "id": "af_label",
+      "type": "string",
+      "role": "content",
+      "label": "Focus tag",
+      "description": "Small tag over the focus box once it locks.",
+      "default": "AF"
+    },
+    {
+      "id": "focus_x",
+      "type": "number",
+      "role": "motion",
+      "label": "Focus x",
+      "description": "Where the focus box locks, 0 left to 100 right.",
+      "default": 62,
+      "min": 5,
+      "max": 95,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "focus_y",
+      "type": "number",
+      "role": "motion",
+      "label": "Focus y",
+      "description": "Where the focus box locks, 0 top to 100 bottom.",
+      "default": 44,
+      "min": 5,
+      "max": 95,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Shown only when Transparent is off.",
+      "default": "#111111"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "REC dot and the locked focus box: the one accent.",
+      "default": "#ef4444"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Brackets, timecode and readouts.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary readouts.",
+      "default": "#d4d4d4"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": true
+    }
+  ]
+}

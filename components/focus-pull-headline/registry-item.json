@@ -1,0 +1,118 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "focus-pull-headline",
+  "type": "hyperframes:component",
+  "title": "Focus Pull Headline",
+  "description": "A rack focus between two lines of text. A small context line starts sharp while the headline is a heavy blur; the focus pulls, the headline resolves to sharp and the context line drifts out of focus and dims. A thin accent line draws under the headline once it lands. Not a scene transition (see focus-pull) and not a single-text reveal (see focus-blur-resolve).",
+  "tags": [
+    "mosio-original",
+    "focus",
+    "blur",
+    "rack-focus",
+    "headline",
+    "cinematic",
+    "text"
+  ],
+  "category": "typography",
+  "duration": 5,
+  "useWhen": [
+    "An opening line where a question or setup gives way to the answer: the context line first, then the headline.",
+    "A calm, premium headline for a product or a shop."
+  ],
+  "avoidWhen": [
+    "A fast punchy hook: use beat-title-cards.",
+    "Changing between two scenes: use focus-pull."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "rack focus text"
+  },
+  "files": [
+    {
+      "path": "focus-pull-headline.html",
+      "target": "compositions/components/focus-pull-headline.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "secondary",
+      "type": "string",
+      "role": "content",
+      "label": "Context line",
+      "description": "Small line that starts in focus and then falls out of it.",
+      "default": "Lagi cari camilan malam?"
+    },
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Headline",
+      "description": "The line that pulls into focus. Wraps to two or three lines.",
+      "default": "Dapur Rina buka sampai jam 11"
+    },
+    {
+      "id": "blur_amount",
+      "type": "number",
+      "role": "motion",
+      "label": "Blur",
+      "description": "Heavy blur of the out-of-focus line, in pixels at 1080 wide.",
+      "default": 36,
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "The line drawn under the headline: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Headline.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Context line.",
+      "default": "#737373"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

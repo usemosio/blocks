@@ -1,0 +1,124 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "infinite-zoom-words",
+  "type": "hyperframes:component",
+  "title": "Infinite Zoom Words",
+  "description": "The camera zooms through nested frames. Each frame holds one word of a phrase and a smaller frame with the next word inside it; the zoom steps in word by word and ends on the last frame, which holds the final word and a lockup line. Words and lockup come from variables.",
+  "tags": [
+    "mosio-original",
+    "zoom",
+    "words",
+    "nested",
+    "title",
+    "tunnel"
+  ],
+  "category": "typography",
+  "duration": 6,
+  "useWhen": [
+    "A short phrase or slogan revealed one word at a time with a sense of going deeper.",
+    "An opening line that ends on a shop name or tagline."
+  ],
+  "avoidWhen": [
+    "Long sentences: keep each word short and the phrase to 3 to 6 words.",
+    "A plain headline reveal: use per-character-rise."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "infinite zoom through nested frames"
+  },
+  "files": [
+    {
+      "path": "infinite-zoom-words.html",
+      "target": "compositions/components/infinite-zoom-words.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "words",
+      "type": "string",
+      "role": "content",
+      "label": "Words",
+      "description": "The phrase: words separated by | or new lines (a single line without | splits on spaces). 2 to 6 words; the last one is the final lockup frame.",
+      "default": "Dari|biji|ke|gelasmu"
+    },
+    {
+      "id": "lockup",
+      "type": "string",
+      "role": "content",
+      "label": "Lockup line",
+      "description": "Small line under the last word, e.g. the shop name. Empty hides it.",
+      "default": "Kopi Senja · Jl. Melati 12"
+    },
+    {
+      "id": "ratio",
+      "type": "number",
+      "role": "style",
+      "label": "Frame ratio",
+      "description": "Size of each nested frame relative to the one around it (smaller zooms deeper per step).",
+      "default": 0.36,
+      "min": 0.25,
+      "max": 0.6,
+      "step": 0.01
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background and every other frame.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "The final word: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Words and frame outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Lockup line.",
+      "default": "#737373"
+    },
+    {
+      "id": "tint_color",
+      "type": "color",
+      "role": "style",
+      "label": "Frame tint",
+      "description": "Fill of every second frame.",
+      "default": "#f1f1ef"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

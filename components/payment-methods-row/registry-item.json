@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "payment-methods-row",
+  "type": "hyperframes:component",
+  "title": "Payment Methods Row",
+  "description": "A line (\"Bayar pakai apa saja\") and a row of generic payment chips (Transfer bank, Kode QR, E-wallet, COD, Kartu) that pop in one after another, each with a small drawn glyph. No brand names or logos. The line and the methods are variables.",
+  "tags": [
+    "mosio-original",
+    "payment",
+    "methods",
+    "chips",
+    "checkout",
+    "shop",
+    "pay"
+  ],
+  "category": "commerce",
+  "duration": 4.5,
+  "useWhen": [
+    "Telling customers which ways of paying a shop accepts.",
+    "A closing moment of an online shop promo (\"bayar pakai apa saja\")."
+  ],
+  "avoidWhen": [
+    "Showing one payment being made: use qr-pay-scan.",
+    "A checkout flow: use checkout-flow."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "pop and stagger: pills popping in one by one with line-drawn icons"
+  },
+  "files": [
+    {
+      "path": "payment-methods-row.html",
+      "target": "compositions/components/payment-methods-row.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "heading",
+      "type": "string",
+      "role": "content",
+      "label": "Heading",
+      "description": "Line above the chips.",
+      "default": "Bayar pakai apa saja"
+    },
+    {
+      "id": "methods",
+      "type": "string",
+      "role": "content",
+      "label": "Methods",
+      "description": "Up to six method names separated by semicolons. Glyphs are chosen by position: bank, QR code, wallet, delivery box, card, then repeating.",
+      "default": "Transfer bank; Kode QR; E-wallet; COD; Kartu"
+    },
+    {
+      "id": "stagger",
+      "type": "number",
+      "role": "motion",
+      "label": "Gap between chips",
+      "description": "Seconds between two chips popping in.",
+      "default": 0.14,
+      "min": 0.06,
+      "max": 0.4,
+      "step": 0.01
+    },
+    {
+      "id": "chip_color",
+      "type": "color",
+      "role": "style",
+      "label": "Chip colour",
+      "description": "Chip background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The glyph lines: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

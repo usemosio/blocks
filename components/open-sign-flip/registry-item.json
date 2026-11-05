@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "open-sign-flip",
+  "type": "hyperframes:component",
+  "title": "Open Sign Flip",
+  "description": "A shop sign hangs from two cords and swings in, then flips from \"TUTUP\" to \"BUKA\" and settles with a little sway. The opening hours slide up below it. Shop, both words and the hours are variables.",
+  "tags": [
+    "mosio-original",
+    "open",
+    "sign",
+    "hours",
+    "shop",
+    "opening",
+    "flip"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "Announcing a shop is open, newly opened or open on new hours.",
+    "A grand opening or a \"buka lagi\" after a break."
+  ],
+  "avoidWhen": [
+    "A store address or map: use store-location-pin.",
+    "A countdown to the opening: use event-countdown-clock."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "card flip and a damped pendulum swing: a hanging object changing state"
+  },
+  "files": [
+    {
+      "path": "open-sign-flip.html",
+      "target": "compositions/components/open-sign-flip.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Small line at the top of the sign.",
+      "default": "Kopi Senja"
+    },
+    {
+      "id": "closed",
+      "type": "string",
+      "role": "content",
+      "label": "Closed word",
+      "description": "Word on the front of the sign.",
+      "default": "TUTUP"
+    },
+    {
+      "id": "open",
+      "type": "string",
+      "role": "content",
+      "label": "Open word",
+      "description": "Word on the back of the sign, shown after the flip.",
+      "default": "BUKA"
+    },
+    {
+      "id": "days",
+      "type": "string",
+      "role": "content",
+      "label": "Days",
+      "description": "Small line above the hours. Leave empty to hide it.",
+      "default": "Setiap hari"
+    },
+    {
+      "id": "hours",
+      "type": "string",
+      "role": "content",
+      "label": "Opening hours",
+      "description": "Hours shown under the sign.",
+      "default": "08.00 – 21.00"
+    },
+    {
+      "id": "flip_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Flip time",
+      "description": "Second the sign flips.",
+      "default": 1.9,
+      "min": 1,
+      "max": 3.5,
+      "step": 0.1
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The open side of the sign: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

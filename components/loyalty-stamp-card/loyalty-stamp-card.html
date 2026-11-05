@@ -1,0 +1,288 @@
+<!doctype html>
+<!--
+  Loyalty Stamp Card
+
+  A shop's stamp card with 8 to 10 slots: stamps press in one by one, a counter ticks up, and the last slot opens to the reward ("GRATIS 1"). The slot count, how many are filled and the reward text are variables.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="loyalty-stamp-card"
+  data-composition-duration="6"
+  data-composition-variables='[
+  {
+    "id": "shop",
+    "type": "string",
+    "role": "content",
+    "label": "Shop name",
+    "description": "Name printed on the card.",
+    "default": "Kopi Senja"
+  },
+  {
+    "id": "card_title",
+    "type": "string",
+    "role": "content",
+    "label": "Card title",
+    "description": "Small label next to the shop name.",
+    "default": "Kartu stempel"
+  },
+  {
+    "id": "slots",
+    "type": "number",
+    "role": "content",
+    "label": "Slots",
+    "description": "Number of slots on the card, the last one is the reward.",
+    "default": 10,
+    "min": 6,
+    "max": 10,
+    "step": 1
+  },
+  {
+    "id": "filled",
+    "type": "number",
+    "role": "content",
+    "label": "Stamps filled",
+    "description": "How many stamps get pressed in. When this reaches slots minus one, the last slot opens to the reward.",
+    "default": 9,
+    "min": 0,
+    "max": 10,
+    "step": 1
+  },
+  {
+    "id": "reward",
+    "type": "string",
+    "role": "content",
+    "label": "Reward text",
+    "description": "Text revealed in the last slot.",
+    "default": "GRATIS 1"
+  },
+  {
+    "id": "note",
+    "type": "string",
+    "role": "content",
+    "label": "Note",
+    "description": "One line under the card. Leave empty to hide it.",
+    "default": "Beli 9 kopi, yang ke-10 gratis"
+  },
+  {
+    "id": "stamp_gap",
+    "type": "number",
+    "role": "motion",
+    "label": "Gap between stamps",
+    "description": "Seconds between stamps.",
+    "default": 0.26,
+    "min": 0.12,
+    "max": 0.6,
+    "step": 0.02
+  },
+  {
+    "id": "card_color",
+    "type": "color",
+    "role": "style",
+    "label": "Card colour",
+    "description": "Card surface.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Main text and outlines.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Secondary text and hairlines.",
+    "default": "#737373"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Accent",
+    "description": "The reward slot: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Loyalty Stamp Card</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          color: var(--lc-text); font-family: var(--FAM, Geist), system-ui, sans-serif; background: var(--lc-bg);
+        }
+        #root * { box-sizing: border-box; }
+        .lc-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .lc-wrap { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 940); transform-origin: 50% 50%; }
+        .lc-card { width: 100%; padding: calc(var(--u) * 48); border-radius: calc(var(--u) * 44); background: var(--lc-card); border: calc(var(--u) * 2) solid rgba(10,10,10,0.1); box-shadow: 0 calc(var(--u) * 12) calc(var(--u) * 30) rgba(0,0,0,0.07); }
+        .lc-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: calc(var(--u) * 36); }
+        .lc-shop { font-size: calc(var(--u) * 58); font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; }
+        .lc-sub { font-size: calc(var(--u) * 28); font-weight: 500; color: var(--lc-muted); margin-top: calc(var(--u) * 8); }
+        .lc-count { font-size: calc(var(--u) * 58); font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+        .lc-count span { color: var(--lc-muted); font-weight: 500; }
+        .lc-grid { display: grid; gap: calc(var(--u) * 20); }
+        .lc-slot { position: relative; aspect-ratio: 1; border-radius: 50%; border: calc(var(--u) * 3) dashed rgba(115,115,115,0.55); display: flex; align-items: center; justify-content: center; font-size: calc(var(--u) * 34); font-weight: 500; color: var(--lc-muted); font-variant-numeric: tabular-nums; }
+        .lc-slot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .lc-gift { position: absolute; inset: calc(var(--u) * -3); border-radius: 50%; background: var(--lc-main); color: #fff; display: flex; align-items: center; justify-content: center; text-align: center; font-size: calc(var(--u) * 36); font-weight: 700; letter-spacing: -0.01em; line-height: 1.08; padding: calc(var(--u) * 14); text-wrap: balance; }
+        .lc-note { margin-top: calc(var(--u) * 34); text-align: center; font-size: calc(var(--u) * 32); font-weight: 500; color: var(--lc-muted); }
+
+      </style>
+
+      <div id="root" data-composition-id="loyalty-stamp-card" data-duration="6" data-fps="30">
+        <div id="lc-clip" class="lc-stage clip" data-start="0" data-duration="6" data-track-index="0">
+
+          <div class="lc-wrap" id="lc-wrap">
+            <div class="lc-card" id="lc-card">
+              <div class="lc-head"><div><div class="lc-shop" id="lc-shop"></div><div class="lc-sub" id="lc-sub"></div></div><div class="lc-count" id="lc-count"></div></div>
+              <div class="lc-grid" id="lc-grid"></div>
+              <div class="lc-note" id="lc-note"></div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function svg(tag, attrs, parent) { var e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function rp(n) { return "Rp" + dots(n); }
+            function money(s) { var d = String(s).replace(/[^\d]/g, ""); return d ? parseInt(d, 10) : 0; }
+            function list(s, d) { var a = String(str(s, d)).split(";").map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : String(d).split(";").map(function (x) { return x.trim(); }); }
+            function mulberry(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+            function setColors(p, c) { for (var k in c) root.style.setProperty("--" + p + "-" + k, colr(vars[k + "_color"], c[k])); }
+            var fam = str(vars.font_family, "Geist");
+            root.style.setProperty("--FAM", /^[\w\s-]+$/.test(fam) ? '"' + fam + '"' : "Geist");
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+            setColors("lc", { bg: "#f4f4f5", text: "#0a0a0a", muted: "#737373", main: "#2563eb", card: "#ffffff" });
+
+
+            root.style.setProperty("--lc-card", colr(vars.card_color, "#ffffff"));
+            var slots = Math.round(num(vars.slots, 10, 6, 10));
+            var stamps = Math.min(Math.round(num(vars.filled, 9, 0, 10)), slots - 1);
+            var reveal = Math.round(num(vars.filled, 9, 0, 10)) >= slots - 1;
+            var gap = num(vars.stamp_gap, 0.26, 0.12, 0.6);
+            document.getElementById("lc-shop").textContent = str(vars.shop, "Kopi Senja");
+            document.getElementById("lc-sub").textContent = str(vars.card_title, "Kartu stempel");
+            var note = typeof vars.note === "string" ? vars.note.trim() : "Beli 9 kopi, yang ke-10 gratis";
+            var noteEl = document.getElementById("lc-note");
+            noteEl.textContent = note; if (!note) noteEl.style.display = "none";
+            var cols = Math.ceil(slots / 2);
+            var grid = document.getElementById("lc-grid");
+            grid.style.gridTemplateColumns = "repeat(" + cols + ", 1fr)";
+            var rnd = mulberry(11);
+            var slotEls = [], inks = [];
+            for (var i = 0; i < slots; i++) {
+              var s = el("div", "lc-slot", grid);
+              el("span", "lc-n", s, String(i + 1));
+              slotEls.push(s);
+              if (i < stamps) {
+                var sv = svg("svg", { viewBox: "0 0 100 100" }, s);
+                var g = svg("g", { fill: "none", stroke: "currentColor" }, sv);
+                svg("circle", { cx: 50, cy: 50, r: 42, "stroke-width": 4.5 }, g);
+                svg("circle", { cx: 50, cy: 50, r: 34, "stroke-width": 1.6 }, g);
+                var pts = [];
+                for (var k = 0; k < 10; k++) { var r = k % 2 ? 11 : 24, a = -Math.PI / 2 + k * Math.PI / 5; pts.push((50 + r * Math.cos(a)).toFixed(2) + "," + (50 + r * Math.sin(a)).toFixed(2)); }
+                svg("polygon", { points: pts.join(" "), fill: "currentColor", stroke: "none" }, g);
+                sv.style.color = "var(--lc-text)";
+                sv.dataset.rot = String(Math.round((rnd() - 0.5) * 24));
+                inks.push({ svg: sv, slot: s });
+              }
+            }
+            var gift = null;
+            if (reveal) { gift = el("div", "lc-gift", slotEls[slots - 1]); gift.textContent = str(vars.reward, "GRATIS 1"); }
+            var countEl = document.getElementById("lc-count");
+            function setCount(n) { countEl.innerHTML = Math.round(n) + "<span>/" + slots + "</span>"; }
+            setCount(0);
+
+            var wrap = document.getElementById("lc-wrap");
+            var cardH = document.getElementById("lc-card").offsetHeight;
+            var S = Math.min(1.7, (H * 0.84) / cardH, (W * 0.92) / (940 * U));
+            gsap.set(wrap, { xPercent: -50, yPercent: -50, scale: S });
+
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#lc-card", { y: 50 * U, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.1);
+            var t0 = 0.95;
+            inks.forEach(function (o, i) {
+              var rot = Number(o.svg.dataset.rot) || 0;
+              var t = t0 + i * gap;
+              tl.fromTo(o.svg, { scale: 1.9, opacity: 0, rotation: rot }, { scale: 1, opacity: 1, rotation: rot, duration: 0.14, ease: "power3.in" }, t);
+              tl.fromTo(o.slot.firstChild, { opacity: 1 }, { opacity: 0, duration: 0.05 }, t + 0.1);
+              tl.fromTo(o.slot, { borderColor: "rgba(115,115,115,0.55)" }, { borderColor: "rgba(115,115,115,0)", duration: 0.05 }, t + 0.1);
+              tl.fromTo(o.slot, { scale: 1 }, { scale: 0.94, duration: 0.05, ease: "power2.out" }, t + 0.13);
+              tl.to(o.slot, { scale: 1, duration: 0.22, ease: "back.out(2.5)" }, t + 0.18);
+            });
+            if (stamps > 0) {
+              var cnt = { v: 0 };
+              tl.fromTo(cnt, { v: 0 }, { v: stamps, duration: stamps * gap, ease: "steps(" + stamps + ")", onUpdate: function () { setCount(cnt.v); } }, t0 + 0.14 - gap);
+            }
+            if (gift) {
+              var tg = t0 + stamps * gap + 0.45;
+              tl.fromTo(gift, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.5)" }, tg);
+              tl.fromTo(slotEls[slots - 1].firstChild, { opacity: 1 }, { opacity: 0, duration: 0.05 }, tg);
+              tl.fromTo(countEl, { scale: 1 }, { scale: 1.12, duration: 0.15, ease: "power2.out", transformOrigin: "100% 60%" }, tg + 0.25);
+              tl.to(countEl, { scale: 1, duration: 0.3, ease: "power2.out" }, tg + 0.4);
+            }
+
+            var total = parseFloat(root.dataset.duration || "6");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["loyalty-stamp-card"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

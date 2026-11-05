@@ -1,0 +1,182 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "receipt-print",
+  "type": "hyperframes:component",
+  "title": "Receipt Print",
+  "description": "A shop receipt prints out line by line from a printer slot (shop name, items with quantity and price, a dashed rule, the total) and a LUNAS stamp thunks onto it. Items, prices, shop name and total are variables.",
+  "tags": [
+    "mosio-original",
+    "receipt",
+    "shop",
+    "price",
+    "stamp",
+    "total",
+    "payment"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Showing what a customer bought and that it is paid, in a shop or order confirmation video.",
+    "A \"lunas\" or paid-in-full moment after a list of items."
+  ],
+  "avoidWhen": [
+    "A price list for display rather than a bill: use menu-price-board.",
+    "A single product price: use price-drop.",
+    "A multi-step checkout interface: use checkout-flow."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "stamp and stagger: a run of lines printing, then a stamp-and-punch landing"
+  },
+  "files": [
+    {
+      "path": "receipt-print.html",
+      "target": "compositions/components/receipt-print.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Shop name printed at the top of the receipt.",
+      "default": "Kopi Senja"
+    },
+    {
+      "id": "address",
+      "type": "string",
+      "role": "content",
+      "label": "Address line",
+      "description": "Second line under the name.",
+      "default": "Jl. Melati No. 12, Bandung"
+    },
+    {
+      "id": "meta",
+      "type": "string",
+      "role": "content",
+      "label": "Receipt line",
+      "description": "Small line with the receipt number, cashier or time. Leave empty to hide it.",
+      "default": "Struk #0412 · 14.32"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Items",
+      "description": "Items separated by semicolons, each as name|quantity|unit price. The line price is quantity times unit price.",
+      "default": "Kopi susu|2|Rp14.000; Roti bakar|1|Rp12.000; Es teh|1|Rp5.000"
+    },
+    {
+      "id": "total_label",
+      "type": "string",
+      "role": "content",
+      "label": "Total label",
+      "description": "Label of the total line.",
+      "default": "TOTAL"
+    },
+    {
+      "id": "total",
+      "type": "string",
+      "role": "content",
+      "label": "Total",
+      "description": "Total shown on the last line. Leave empty to add the item lines up.",
+      "default": "Rp45.000"
+    },
+    {
+      "id": "footer",
+      "type": "string",
+      "role": "content",
+      "label": "Footer",
+      "description": "Line under the total. Leave empty to hide it.",
+      "default": "Terima kasih, sampai jumpa lagi"
+    },
+    {
+      "id": "stamp",
+      "type": "string",
+      "role": "content",
+      "label": "Stamp",
+      "description": "Word stamped on the receipt at the end.",
+      "default": "LUNAS"
+    },
+    {
+      "id": "print_seconds",
+      "type": "number",
+      "role": "motion",
+      "label": "Print time",
+      "description": "Seconds the receipt takes to print out.",
+      "default": 2.6,
+      "min": 1,
+      "max": 5,
+      "step": 0.1
+    },
+    {
+      "id": "paper_color",
+      "type": "color",
+      "role": "style",
+      "label": "Paper colour",
+      "description": "Receipt paper.",
+      "default": "#fafaf9"
+    },
+    {
+      "id": "mono_family",
+      "type": "string",
+      "role": "style",
+      "label": "Receipt font",
+      "description": "Monospace family for the receipt lines. Geist Mono is loaded by default.",
+      "default": "Geist Mono"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The LUNAS stamp: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

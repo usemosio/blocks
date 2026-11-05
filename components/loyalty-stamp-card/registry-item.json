@@ -1,0 +1,163 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "loyalty-stamp-card",
+  "type": "hyperframes:component",
+  "title": "Loyalty Stamp Card",
+  "description": "A shop's stamp card with 8 to 10 slots: stamps press in one by one, a counter ticks up, and the last slot opens to the reward (\"GRATIS 1\"). The slot count, how many are filled and the reward text are variables.",
+  "tags": [
+    "mosio-original",
+    "loyalty",
+    "stamp",
+    "card",
+    "reward",
+    "shop",
+    "repeat-customers"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Telling regulars about a stamp or points card (\"beli 9, yang ke-10 gratis\").",
+    "A small shop's loyalty programme in a short promo."
+  ],
+  "avoidWhen": [
+    "A discount code to hand out: use voucher-ticket.",
+    "A one-time sale price: use price-drop."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "stamp and punch: a run of hard, short stamps landing one by one, then a pop-in payoff"
+  },
+  "files": [
+    {
+      "path": "loyalty-stamp-card.html",
+      "target": "compositions/components/loyalty-stamp-card.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Name printed on the card.",
+      "default": "Kopi Senja"
+    },
+    {
+      "id": "card_title",
+      "type": "string",
+      "role": "content",
+      "label": "Card title",
+      "description": "Small label next to the shop name.",
+      "default": "Kartu stempel"
+    },
+    {
+      "id": "slots",
+      "type": "number",
+      "role": "content",
+      "label": "Slots",
+      "description": "Number of slots on the card, the last one is the reward.",
+      "default": 10,
+      "min": 6,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "id": "filled",
+      "type": "number",
+      "role": "content",
+      "label": "Stamps filled",
+      "description": "How many stamps get pressed in. When this reaches slots minus one, the last slot opens to the reward.",
+      "default": 9,
+      "min": 0,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "id": "reward",
+      "type": "string",
+      "role": "content",
+      "label": "Reward text",
+      "description": "Text revealed in the last slot.",
+      "default": "GRATIS 1"
+    },
+    {
+      "id": "note",
+      "type": "string",
+      "role": "content",
+      "label": "Note",
+      "description": "One line under the card. Leave empty to hide it.",
+      "default": "Beli 9 kopi, yang ke-10 gratis"
+    },
+    {
+      "id": "stamp_gap",
+      "type": "number",
+      "role": "motion",
+      "label": "Gap between stamps",
+      "description": "Seconds between stamps.",
+      "default": 0.26,
+      "min": 0.12,
+      "max": 0.6,
+      "step": 0.02
+    },
+    {
+      "id": "card_color",
+      "type": "color",
+      "role": "style",
+      "label": "Card colour",
+      "description": "Card surface.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The reward slot: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

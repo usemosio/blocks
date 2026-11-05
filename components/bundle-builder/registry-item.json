@@ -1,0 +1,158 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "bundle-builder",
+  "type": "hyperframes:component",
+  "title": "Bundle Builder",
+  "description": "Three or four product tiles drop one by one into an open box while the total counts up, then a \"Hemat\" badge lands on the box and the total steps down to the bundle price. Products, prices and the saving are variables.",
+  "tags": [
+    "mosio-original",
+    "bundle",
+    "package",
+    "box",
+    "total",
+    "saving",
+    "products"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Selling a bundle or package (paket hemat, hampers, combo) at a lower price than the items alone.",
+    "A shop wants to show what is inside a set and what it saves."
+  ],
+  "avoidWhen": [
+    "One product with an old and new price: use price-drop.",
+    "A price list: use menu-price-board.",
+    "A countdown to a limited sale: use fomo-limit-orders."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "stagger and count-up: items dropping in one at a time, ending on a stamped badge"
+  },
+  "files": [
+    {
+      "path": "bundle-builder.html",
+      "target": "compositions/components/bundle-builder.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Box title",
+      "description": "Printed on the front of the box.",
+      "default": "Paket Hemat"
+    },
+    {
+      "id": "products",
+      "type": "string",
+      "role": "content",
+      "label": "Products",
+      "description": "Three or four products separated by semicolons, each as name|price.",
+      "default": "Kopi susu|Rp18.000; Roti bakar|Rp15.000; Cookies|Rp12.000"
+    },
+    {
+      "id": "total_label",
+      "type": "string",
+      "role": "content",
+      "label": "Total label",
+      "description": "Small label above the running total.",
+      "default": "Total"
+    },
+    {
+      "id": "saving",
+      "type": "string",
+      "role": "content",
+      "label": "Saving",
+      "description": "Amount saved by buying the bundle. The total steps down by this at the end. Use 0 or leave empty for no saving.",
+      "default": "Rp15.000"
+    },
+    {
+      "id": "saving_label",
+      "type": "string",
+      "role": "content",
+      "label": "Saving label",
+      "description": "Word in front of the saving amount on the badge.",
+      "default": "Hemat"
+    },
+    {
+      "id": "drop_gap",
+      "type": "number",
+      "role": "motion",
+      "label": "Gap between drops",
+      "description": "Seconds between two products dropping.",
+      "default": 0.7,
+      "min": 0.4,
+      "max": 1.4,
+      "step": 0.05
+    },
+    {
+      "id": "box_color",
+      "type": "color",
+      "role": "style",
+      "label": "Box colour",
+      "description": "The box.",
+      "default": "#e4e4e7"
+    },
+    {
+      "id": "tile_color",
+      "type": "color",
+      "role": "style",
+      "label": "Tile colour",
+      "description": "Product tiles.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The saving badge: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

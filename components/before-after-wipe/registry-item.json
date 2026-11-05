@@ -1,0 +1,128 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "before-after-wipe",
+  "type": "hyperframes:component",
+  "title": "Before After Wipe",
+  "description": "Two panels labelled Sebelum and Sesudah. A divider handle sweeps from the before side to the after side and settles near the middle while the two labels swap emphasis as it passes. The panels are drawn placeholders (two tones and a simple jar) or your own two images.",
+  "tags": [
+    "mosio-original",
+    "before-after",
+    "wipe",
+    "compare",
+    "product"
+  ],
+  "category": "commerce",
+  "duration": 5,
+  "useWhen": [
+    "Showing a result: a cleaned, repaired, restyled or re-packaged thing next to how it was.",
+    "Laundry, repair, makeover or packaging-upgrade shops."
+  ],
+  "avoidWhen": [
+    "More than two states: use split-screen-compare for a list of reasons.",
+    "The two images are different shapes: crop them to the same frame first."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "before/after wipe"
+  },
+  "files": [
+    {
+      "path": "before-after-wipe.html",
+      "target": "compositions/components/before-after-wipe.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "before_label",
+      "type": "string",
+      "role": "content",
+      "label": "Before label",
+      "description": "Pill on the before side.",
+      "default": "Sebelum"
+    },
+    {
+      "id": "after_label",
+      "type": "string",
+      "role": "content",
+      "label": "After label",
+      "description": "Pill on the after side.",
+      "default": "Sesudah"
+    },
+    {
+      "id": "images",
+      "type": "string",
+      "role": "content",
+      "label": "Images",
+      "description": "Optional: two image URLs, before then after, separated by a comma or a new line. Empty draws the placeholders.",
+      "default": ""
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background behind the panels.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "The After pill: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Handle and Before pill text.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Unused-side label.",
+      "default": "#737373"
+    },
+    {
+      "id": "before_tone_color",
+      "type": "color",
+      "role": "style",
+      "label": "Before tone",
+      "description": "Placeholder before panel.",
+      "default": "#d6d1c8"
+    },
+    {
+      "id": "after_tone_color",
+      "type": "color",
+      "role": "style",
+      "label": "After tone",
+      "description": "Placeholder after panel.",
+      "default": "#f3f0ea"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

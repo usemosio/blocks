@@ -1,0 +1,149 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "scroll-menu-phone",
+  "type": "hyperframes:component",
+  "title": "Scroll Menu Phone",
+  "description": "A generic phone frame with a menu list. The list scrolls with momentum, a touch dot taps an item, and the item expands to show its price and a Tambah button, which the dot then taps and a cart count appears. Names, descriptions and prices come from one variable.",
+  "tags": [
+    "mosio-original",
+    "phone",
+    "menu",
+    "scroll",
+    "tap",
+    "ordering",
+    "mockup"
+  ],
+  "category": "ui-blocks",
+  "duration": 6,
+  "useWhen": [
+    "Showing that a shop can be ordered from on a phone: a menu, a catalogue, a price list.",
+    "A walkthrough of choosing one item from many."
+  ],
+  "avoidWhen": [
+    "A menu that should be read in full: use menu-price-board.",
+    "A multi-step checkout: use checkout-flow."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "phone mockup with scroll and tap"
+  },
+  "files": [
+    {
+      "path": "scroll-menu-phone.html",
+      "target": "compositions/components/scroll-menu-phone.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Header of the phone screen.",
+      "default": "Warung Sambal Rina"
+    },
+    {
+      "id": "caption",
+      "type": "string",
+      "role": "content",
+      "label": "Caption",
+      "description": "Line beside or above the phone. Empty hides it.",
+      "default": "Pesan dari meja, tanpa antre"
+    },
+    {
+      "id": "items",
+      "type": "string",
+      "role": "content",
+      "label": "Menu items",
+      "description": "One per line, Name|Description|Price. At least 5 lines work best.",
+      "default": "Nasi ayam geprek|Sambal bawang, lalapan|Rp22.000\nNasi ayam bakar|Bumbu kecap, sambal terasi|Rp25.000\nMie goreng jawa|Telur, sayur, kerupuk|Rp18.000\nSoto ayam|Kuah bening, soun|Rp20.000\nGado-gado|Bumbu kacang, lontong|Rp17.000\nTempe mendoan|5 potong, sambal kecap|Rp10.000\nEs teh manis|Gelas besar|Rp5.000\nEs jeruk peras|Segar, tanpa pengawet|Rp8.000\nKopi tubruk|Gula aren|Rp7.000"
+    },
+    {
+      "id": "tap_item",
+      "type": "number",
+      "role": "content",
+      "label": "Tapped item",
+      "description": "Which item (1 = first) is tapped and expanded.",
+      "default": 6,
+      "min": 1,
+      "max": 12,
+      "step": 1
+    },
+    {
+      "id": "button",
+      "type": "string",
+      "role": "content",
+      "label": "Button label",
+      "description": "Text on the button.",
+      "default": "Tambah"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "Button and price: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Item names and caption.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Descriptions.",
+      "default": "#737373"
+    },
+    {
+      "id": "phone_color",
+      "type": "color",
+      "role": "style",
+      "label": "Phone colour",
+      "description": "Bezel.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "screen_color",
+      "type": "color",
+      "role": "style",
+      "label": "Screen colour",
+      "description": "Phone screen.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

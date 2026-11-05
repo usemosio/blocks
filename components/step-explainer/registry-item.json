@@ -1,0 +1,122 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "step-explainer",
+  "type": "hyperframes:component",
+  "title": "Step Explainer",
+  "description": "A how-to with three numbered steps. A line draws from one numbered circle to the next, each step appears in turn with a small drawn icon, a title and a short detail. Vertical in a portrait frame, horizontal in a landscape one. Steps and their icons come from one variable.",
+  "tags": [
+    "mosio-original",
+    "steps",
+    "how-to",
+    "process",
+    "numbered",
+    "icons",
+    "line-draw"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "How to order, how to join, how to claim: a three-step process.",
+    "A shop explaining its ordering flow."
+  ],
+  "avoidWhen": [
+    "Showing the real ordering interface: use checkout-flow or scroll-menu-phone.",
+    "More than three steps."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "line-draw step timeline"
+  },
+  "files": [
+    {
+      "path": "step-explainer.html",
+      "target": "compositions/components/step-explainer.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Heading above the steps.",
+      "default": "Cara pesan"
+    },
+    {
+      "id": "steps",
+      "type": "string",
+      "role": "content",
+      "label": "Steps",
+      "description": "Three lines, Title|Detail|icon. Icons: list, chat, box, card, clock, pin, check.",
+      "default": "Pilih menu|Lihat katalog dan tentukan pesananmu|list\nKirim pesanan|Lewat chat, tanpa antre|chat\nTerima di rumah|Dikirim di hari yang sama|box"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Main colour",
+      "description": "The numbered circles: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Title, step titles and icons.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Details.",
+      "default": "#737373"
+    },
+    {
+      "id": "line_color",
+      "type": "color",
+      "role": "style",
+      "label": "Line colour",
+      "description": "Line joining the steps.",
+      "default": "#d4d4d4"
+    },
+    {
+      "id": "tile_color",
+      "type": "color",
+      "role": "style",
+      "label": "Icon tile",
+      "description": "Background of the icon tiles.",
+      "default": "#f4f4f2"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- HUD Viewfinder demo: a vertical 1080×1920 frame mounting the component full-frame. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>HUD Viewfinder Demo</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #1a1c1f; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #1a1c1f; }
+      .demo-mount { position: absolute; inset: 0; }
+      .demo-scene { position: absolute; inset: 0; background: linear-gradient(180deg, #2b2f35 0%, #14161a 100%); }
+      .demo-subject { position: absolute; left: 62%; top: 44%; width: 340px; height: 340px; margin: -170px 0 0 -170px; border-radius: 50%; background: #5b6470; }
+      .demo-table { position: absolute; left: 0; right: 0; bottom: 0; height: 36%; background: #1f2226; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="hud-viewfinder-demo" data-start="0" data-width="1080" data-height="1920" data-duration="6" data-fps="30">
+      <div class="demo-scene"></div><div class="demo-table"></div><div class="demo-subject"></div>
+      <div
+        id="demo-mount"
+        class="demo-mount clip"
+        data-composition-id="hud-viewfinder"
+        data-composition-src="./hud-viewfinder.html"
+        data-variable-values='{}'
+        data-start="0"
+        data-duration="6"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["hud-viewfinder-demo"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

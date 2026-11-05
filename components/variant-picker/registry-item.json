@@ -1,0 +1,170 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "variant-picker",
+  "type": "hyperframes:component",
+  "title": "Variant Picker",
+  "description": "A product card with colour swatches and sizes: a cursor taps one colour and one size, the product shape changes tint, a ring moves to the chosen swatch and the chosen size fills. Product, price, colours, sizes and the two choices are variables.",
+  "tags": [
+    "mosio-original",
+    "variant",
+    "product",
+    "options",
+    "colour",
+    "size",
+    "cursor",
+    "ui"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Showing that a product comes in colours and sizes and how easy it is to pick.",
+    "An online shop's product page moment in a promo."
+  ],
+  "avoidWhen": [
+    "A price or discount: use price-drop.",
+    "A whole checkout flow: use checkout-flow.",
+    "Several different products: use bundle-builder."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "cursor and click: a pointer tapping through options with the product reacting"
+  },
+  "files": [
+    {
+      "path": "variant-picker.html",
+      "target": "compositions/components/variant-picker.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "product",
+      "type": "string",
+      "role": "content",
+      "label": "Product name",
+      "description": "Product name on the card.",
+      "default": "Kaos Polos"
+    },
+    {
+      "id": "price",
+      "type": "string",
+      "role": "content",
+      "label": "Price",
+      "description": "Price on the card.",
+      "default": "Rp89.000"
+    },
+    {
+      "id": "colors",
+      "type": "string",
+      "role": "content",
+      "label": "Colours",
+      "description": "Colours separated by semicolons, each as name|#hex, two to five.",
+      "default": "Hitam|#171717; Krem|#e5dcc8; Sage|#8da08b"
+    },
+    {
+      "id": "color_pick",
+      "type": "number",
+      "role": "content",
+      "label": "Colour tapped",
+      "description": "Which colour the cursor taps (1 is the first).",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "id": "sizes",
+      "type": "string",
+      "role": "content",
+      "label": "Sizes",
+      "description": "Sizes separated by semicolons, two to five.",
+      "default": "S; M; L; XL"
+    },
+    {
+      "id": "size_pick",
+      "type": "number",
+      "role": "content",
+      "label": "Size tapped",
+      "description": "Which size the cursor taps (1 is the first).",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "id": "color_label",
+      "type": "string",
+      "role": "content",
+      "label": "Colour label",
+      "description": "Label above the swatches.",
+      "default": "Warna"
+    },
+    {
+      "id": "size_label",
+      "type": "string",
+      "role": "content",
+      "label": "Size label",
+      "description": "Label above the sizes.",
+      "default": "Ukuran"
+    },
+    {
+      "id": "panel_color",
+      "type": "color",
+      "role": "style",
+      "label": "Panel colour",
+      "description": "Background behind the product shape.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The selected swatch ring and size: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

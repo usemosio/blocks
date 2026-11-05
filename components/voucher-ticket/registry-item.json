@@ -1,0 +1,150 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "voucher-ticket",
+  "type": "hyperframes:component",
+  "title": "Voucher Ticket",
+  "description": "A discount ticket with notched, perforated edges slides in, the headline (\"DISKON 20%\") lands, and the stub tears off while its code reveals with a short scramble. Horizontal in landscape, stacked in portrait. Headline, code, note and shop are variables.",
+  "tags": [
+    "mosio-original",
+    "voucher",
+    "coupon",
+    "discount",
+    "ticket",
+    "promo",
+    "code"
+  ],
+  "category": "commerce",
+  "duration": 5.5,
+  "useWhen": [
+    "Handing out a discount code or coupon in a promo video.",
+    "A small shop's voucher for followers or first-time customers."
+  ],
+  "avoidWhen": [
+    "A sale price shown on one product: use price-drop.",
+    "A stamp or points card: use loyalty-stamp-card.",
+    "A countdown to the end of the offer: use event-countdown-clock."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "UI animation and kinetic type: a card tearing apart, a code resolving from scrambled characters"
+  },
+  "files": [
+    {
+      "path": "voucher-ticket.html",
+      "target": "compositions/components/voucher-ticket.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "shop",
+      "type": "string",
+      "role": "content",
+      "label": "Shop name",
+      "description": "Small line at the top of the ticket.",
+      "default": "Kopi Senja"
+    },
+    {
+      "id": "headline",
+      "type": "string",
+      "role": "content",
+      "label": "Headline",
+      "description": "Big offer text, kept on one line.",
+      "default": "DISKON 20%"
+    },
+    {
+      "id": "note",
+      "type": "string",
+      "role": "content",
+      "label": "Note",
+      "description": "Conditions under the headline. Leave empty to hide it.",
+      "default": "Min. belanja Rp50.000 · s/d 30 Nov"
+    },
+    {
+      "id": "code_label",
+      "type": "string",
+      "role": "content",
+      "label": "Code label",
+      "description": "Small label above the code on the stub.",
+      "default": "Kode voucher"
+    },
+    {
+      "id": "code",
+      "type": "string",
+      "role": "content",
+      "label": "Code",
+      "description": "The code that scrambles into place. Letters and digits, up to 12 characters.",
+      "default": "SENJA20"
+    },
+    {
+      "id": "tear_at",
+      "type": "number",
+      "role": "motion",
+      "label": "Tear time",
+      "description": "Second the stub tears off.",
+      "default": 1.9,
+      "min": 1,
+      "max": 3.5,
+      "step": 0.1
+    },
+    {
+      "id": "ticket_color",
+      "type": "color",
+      "role": "style",
+      "label": "Ticket colour",
+      "description": "Main part of the ticket.",
+      "default": "#f4f4f5"
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "The headline: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

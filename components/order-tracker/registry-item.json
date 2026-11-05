@@ -1,0 +1,136 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "order-tracker",
+  "type": "hyperframes:component",
+  "title": "Order Tracker",
+  "description": "A four-step order progress line (Pesanan diterima, Dikemas, Dikirim, Sampai): a dot travels along the line, each step checks off as it passes, and the current step's label grows. Vertical in portrait, horizontal in landscape. The steps and the current step are variables.",
+  "tags": [
+    "mosio-original",
+    "order",
+    "tracking",
+    "progress",
+    "delivery",
+    "steps",
+    "shop"
+  ],
+  "category": "commerce",
+  "duration": 6,
+  "useWhen": [
+    "Telling customers how an order moves from received to delivered.",
+    "An online shop or home-delivery promo that wants to show the process is simple."
+  ],
+  "avoidWhen": [
+    "A checkout or payment form: use checkout-flow.",
+    "A to-do list of tasks being completed: use check-list."
+  ],
+  "author": "Mosio",
+  "authorUrl": "https://mosio.me",
+  "license": "MIT",
+  "source": {
+    "original": true,
+    "technique": "UI animation: a progress line with a travelling marker and check-offs"
+  },
+  "files": [
+    {
+      "path": "order-tracker.html",
+      "target": "compositions/components/order-tracker.html",
+      "type": "hyperframes:snippet"
+    }
+  ],
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "role": "content",
+      "label": "Title",
+      "description": "Headline above the line, for example the order number.",
+      "default": "Pesanan #A-1048"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "role": "content",
+      "label": "Subtitle",
+      "description": "Small line under the title. Leave empty to hide it.",
+      "default": "Kopi Senja · 2 item"
+    },
+    {
+      "id": "steps",
+      "type": "string",
+      "role": "content",
+      "label": "Steps",
+      "description": "Steps separated by semicolons, two to five of them.",
+      "default": "Pesanan diterima; Dikemas; Dikirim; Sampai"
+    },
+    {
+      "id": "current",
+      "type": "number",
+      "role": "content",
+      "label": "Current step",
+      "description": "Step the dot travels to (1 is the first). Earlier steps are checked off, later ones stay grey.",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "id": "step_seconds",
+      "type": "number",
+      "role": "motion",
+      "label": "Seconds per step",
+      "description": "How long the dot takes between two steps.",
+      "default": 0.7,
+      "min": 0.3,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "bg_color",
+      "type": "color",
+      "role": "style",
+      "label": "Background",
+      "description": "Background.",
+      "default": "#ffffff"
+    },
+    {
+      "id": "text_color",
+      "type": "color",
+      "role": "style",
+      "label": "Text colour",
+      "description": "Main text and outlines.",
+      "default": "#0a0a0a"
+    },
+    {
+      "id": "muted_color",
+      "type": "color",
+      "role": "style",
+      "label": "Muted colour",
+      "description": "Secondary text and hairlines.",
+      "default": "#737373"
+    },
+    {
+      "id": "main_color",
+      "type": "color",
+      "role": "style",
+      "label": "Accent",
+      "description": "Progress line, dot and checks: the one accent.",
+      "default": "#2563eb"
+    },
+    {
+      "id": "font_family",
+      "type": "string",
+      "role": "style",
+      "label": "Font",
+      "description": "Font family name. Geist is loaded by default; another family must be loaded by the host.",
+      "default": "Geist"
+    },
+    {
+      "id": "transparent",
+      "type": "boolean",
+      "role": "style",
+      "label": "Transparent",
+      "description": "Leave the background clear so the block sits over your own scene.",
+      "default": false
+    }
+  ]
+}

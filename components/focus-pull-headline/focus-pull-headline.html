@@ -1,0 +1,175 @@
+<!doctype html>
+<!--
+  Focus Pull Headline
+
+  A rack focus between two lines of text. A small context line starts sharp while the headline is a heavy blur; the focus pulls, the headline resolves to sharp and the context line drifts out of focus and dims. A thin accent line draws under the headline once it lands. Not a scene transition (see focus-pull) and not a single-text reveal (see focus-blur-resolve).
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="focus-pull-headline"
+  data-composition-duration="5"
+  data-composition-variables='[
+  {
+    "id": "secondary",
+    "type": "string",
+    "role": "content",
+    "label": "Context line",
+    "description": "Small line that starts in focus and then falls out of it.",
+    "default": "Lagi cari camilan malam?"
+  },
+  {
+    "id": "headline",
+    "type": "string",
+    "role": "content",
+    "label": "Headline",
+    "description": "The line that pulls into focus. Wraps to two or three lines.",
+    "default": "Dapur Rina buka sampai jam 11"
+  },
+  {
+    "id": "blur_amount",
+    "type": "number",
+    "role": "motion",
+    "label": "Blur",
+    "description": "Heavy blur of the out-of-focus line, in pixels at 1080 wide.",
+    "default": 36,
+    "min": 10,
+    "max": 80,
+    "step": 1,
+    "unit": "px"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "The line drawn under the headline: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Headline.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Context line.",
+    "default": "#737373"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Focus Pull Headline</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          background: var(--fph-bg); color: var(--fph-text); font-family: var(--fph-font);
+        }
+        #root * { box-sizing: border-box; }
+        .fph-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .fph-col { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 7cqw; gap: calc(var(--u) * 44); text-align: center; }
+        .fph-sec { font-weight: 500; color: var(--fph-muted); letter-spacing: -0.01em; }
+        .fph-head { font-weight: 600; letter-spacing: -0.055em; line-height: 1.02; text-wrap: balance; }
+        .fph-rule { height: calc(var(--u) * 8); border-radius: calc(var(--u) * 4); background: var(--fph-main); transform-origin: 0 50%; margin-top: calc(var(--u) * 8); }
+
+      </style>
+
+      <div id="root" data-composition-id="focus-pull-headline" data-duration="5" data-fps="30">
+        <div id="fph-clip" class="fph-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="fph-col"><div class="fph-sec" id="fph-sec"></div><div class="fph-head" id="fph-head"></div><div class="fph-rule" id="fph-rule"></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function lines(v, d) { var s = typeof v === "string" && v.trim() ? v : d; return s.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ease(n, a, b) { return Math.min(1, Math.max(0, (n - a) / (b - a))); }
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            var PAL = [["bg", "bg_color", "#ffffff"], ["main", "main_color", "#2563eb"], ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"]];
+            PAL.forEach(function (c) { root.style.setProperty("--fph-" + c[0], colr(vars[c[1]], c[2])); });
+            root.style.setProperty("--fph-font", '"' + str(vars.font_family, "Geist") + '", Geist, system-ui, sans-serif');
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            var sec = document.getElementById("fph-sec"), head = document.getElementById("fph-head"), rule = document.getElementById("fph-rule");
+            var st = typeof vars.secondary === "string" ? vars.secondary.trim() : "Lagi cari camilan malam?";
+            sec.textContent = st; if (!st) sec.style.display = "none";
+            head.textContent = str(vars.headline, "Dapur Rina buka sampai jam 11");
+            sec.style.fontSize = (PORTRAIT ? 54 : 56) * U + "px"; head.style.fontSize = (PORTRAIT ? 150 : 170) * U + "px";
+            head.style.maxWidth = (PORTRAIT ? 920 : 1500) * U + "px";
+            rule.style.width = (PORTRAIT ? 240 : 260) * U + "px";
+            var B = num(vars.blur_amount, 36, 10, 80) * U, hb = { b: B, s: 1.05 }, sb = { b: 0 };
+            function dh() { head.style.filter = "blur(" + hb.b.toFixed(2) + "px)"; head.style.transform = "scale(" + hb.s.toFixed(4) + ")"; }
+            function ds() { sec.style.filter = "blur(" + sb.b.toFixed(2) + "px)"; }
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo(head, { opacity: 0 }, { opacity: 0.5, duration: 0.5, ease: "power2.out" }, 0.1);
+            tl.fromTo(sec, { opacity: 0, y: 16 * U }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.1);
+            tl.to(hb, { b: 0, s: 1, duration: 1.4, ease: "power3.inOut", onUpdate: dh }, 1.0);
+            tl.to(head, { opacity: 1, duration: 1.2, ease: "power2.inOut" }, 1.0);
+            tl.to(sb, { b: 16 * U, duration: 1.2, ease: "power2.inOut", onUpdate: ds }, 1.0);
+            tl.to(sec, { opacity: 0.3, scale: 0.96, duration: 1.2, ease: "power2.inOut" }, 1.0);
+            tl.fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.inOut" }, 2.5);
+            dh(); ds();
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["focus-pull-headline"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<!--
+  Before After Wipe
+
+  Two panels labelled Sebelum and Sesudah. A divider handle sweeps from the before side to the after side and settles near the middle while the two labels swap emphasis as it passes. The panels are drawn placeholders (two tones and a simple jar) or your own two images.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="before-after-wipe"
+  data-composition-duration="5"
+  data-composition-variables='[
+  {
+    "id": "before_label",
+    "type": "string",
+    "role": "content",
+    "label": "Before label",
+    "description": "Pill on the before side.",
+    "default": "Sebelum"
+  },
+  {
+    "id": "after_label",
+    "type": "string",
+    "role": "content",
+    "label": "After label",
+    "description": "Pill on the after side.",
+    "default": "Sesudah"
+  },
+  {
+    "id": "images",
+    "type": "string",
+    "role": "content",
+    "label": "Images",
+    "description": "Optional: two image URLs, before then after, separated by a comma or a new line. Empty draws the placeholders.",
+    "default": ""
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background",
+    "description": "Background behind the panels.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "The After pill: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Handle and Before pill text.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Unused-side label.",
+    "default": "#737373"
+  },
+  {
+    "id": "before_tone_color",
+    "type": "color",
+    "role": "style",
+    "label": "Before tone",
+    "description": "Placeholder before panel.",
+    "default": "#d6d1c8"
+  },
+  {
+    "id": "after_tone_color",
+    "type": "color",
+    "role": "style",
+    "label": "After tone",
+    "description": "Placeholder after panel.",
+    "default": "#f3f0ea"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Before After Wipe</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          background: var(--baw-bg); color: var(--baw-text); font-family: var(--baw-font);
+        }
+        #root * { box-sizing: border-box; }
+        .baw-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        .baw-panel { position: absolute; inset: 0; background-size: cover; background-position: center; }
+        .baw-before { background-color: var(--baw-before-tone); }
+        .baw-after { background-color: var(--baw-after-tone); clip-path: inset(0 0 0 100%); }
+        .baw-art { position: absolute; inset: 8% 6%; width: 88%; height: 84%; }
+        .baw-pill { position: absolute; top: calc(var(--u) * 96); padding: calc(var(--u) * 14) calc(var(--u) * 38); border-radius: calc(var(--u) * 80); font-size: calc(var(--u) * 42); font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; transform-origin: 50% 50%; }
+        .baw-pb { left: calc(var(--u) * 56); background: #ffffff; color: var(--baw-text); }
+        .baw-pa { right: calc(var(--u) * 56); background: var(--baw-main); color: #ffffff; }
+        .baw-handle { position: absolute; top: 0; bottom: 0; width: calc(var(--u) * 6); margin-left: calc(var(--u) * -3); background: var(--baw-text); }
+        .baw-knob { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 96); height: calc(var(--u) * 96); margin: calc(var(--u) * -48) 0 0 calc(var(--u) * -48); border-radius: 50%; background: var(--baw-text); display: flex; align-items: center; justify-content: center; box-shadow: 0 calc(var(--u) * 6) calc(var(--u) * 20) rgba(0,0,0,.18); }
+        .baw-knob svg { width: 62%; height: 62%; }
+        @container (aspect-ratio > 1) { .baw-pill { top: calc(var(--u) * 56); } .baw-art { inset: 4% 14%; width: 72%; height: 92%; } }
+
+      </style>
+
+      <div id="root" data-composition-id="before-after-wipe" data-duration="5" data-fps="30">
+        <div id="baw-clip" class="baw-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="baw-panel baw-before" id="baw-b"></div>
+          <div class="baw-panel baw-after" id="baw-a"></div>
+          <span class="baw-pill baw-pb" id="baw-pb"></span><span class="baw-pill baw-pa" id="baw-pa"></span>
+          <div class="baw-handle" id="baw-h"><div class="baw-knob"><svg viewBox="0 0 24 24" fill="none" stroke="var(--baw-bg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></div></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function lines(v, d) { var s = typeof v === "string" && v.trim() ? v : d; return s.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ease(n, a, b) { return Math.min(1, Math.max(0, (n - a) / (b - a))); }
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            var PAL = [["bg", "bg_color", "#ffffff"], ["main", "main_color", "#2563eb"], ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#737373"], ["before-tone", "before_tone_color", "#d6d1c8"], ["after-tone", "after_tone_color", "#f3f0ea"]];
+            PAL.forEach(function (c) { root.style.setProperty("--baw-" + c[0], colr(vars[c[1]], c[2])); });
+            root.style.setProperty("--baw-font", '"' + str(vars.font_family, "Geist") + '", Geist, system-ui, sans-serif');
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            var A = document.getElementById("baw-a"), B = document.getElementById("baw-b"), Hd = document.getElementById("baw-h");
+            var pb = document.getElementById("baw-pb"), pa = document.getElementById("baw-pa");
+            pb.textContent = str(vars.before_label, "Sebelum"); pa.textContent = str(vars.after_label, "Sesudah");
+            var imgs = String(vars.images || "").split(/[\n,]+/).map(function (x) { return x.trim(); }).filter(Boolean);
+            var jars = ["<svg viewBox=\"120 200 780 700\" preserveAspectRatio=\"xMidYMid meet\" class=\"baw-art\">\n<rect x=\"300\" y=\"250\" width=\"400\" height=\"90\" rx=\"22\" fill=\"#6f6a60\"/>\n<rect x=\"270\" y=\"330\" width=\"460\" height=\"520\" rx=\"64\" fill=\"#a9a296\" stroke=\"#8d877c\" stroke-width=\"6\"/>\n<rect x=\"270\" y=\"500\" width=\"460\" height=\"190\" fill=\"#8d877c\" opacity=\"0.55\"/>\n<rect x=\"330\" y=\"560\" width=\"220\" height=\"22\" rx=\"11\" fill=\"#a9a296\"/><rect x=\"330\" y=\"606\" width=\"140\" height=\"16\" rx=\"8\" fill=\"#a9a296\" opacity=\".7\"/><path d=\"M330 410 q30 -26 70 -6 q30 20 55 4 M600 620 q24 -20 58 -4 M520 760 q40 -18 80 2\" stroke=\"#6f6a60\" stroke-width=\"10\" fill=\"none\" stroke-linecap=\"round\" opacity=\".7\"/><circle cx=\"640\" cy=\"420\" r=\"26\" fill=\"#6f6a60\" opacity=\".45\"/><circle cx=\"372\" cy=\"760\" r=\"18\" fill=\"#6f6a60\" opacity=\".45\"/></svg>", "<svg viewBox=\"120 200 780 700\" preserveAspectRatio=\"xMidYMid meet\" class=\"baw-art\">\n<rect x=\"300\" y=\"250\" width=\"400\" height=\"90\" rx=\"22\" fill=\"#0a0a0a\"/>\n<rect x=\"270\" y=\"330\" width=\"460\" height=\"520\" rx=\"64\" fill=\"#ffffff\" stroke=\"#0a0a0a\" stroke-width=\"6\"/>\n<rect x=\"270\" y=\"500\" width=\"460\" height=\"190\" fill=\"#0a0a0a\" opacity=\"0.9\"/>\n<rect x=\"330\" y=\"560\" width=\"220\" height=\"22\" rx=\"11\" fill=\"#ffffff\"/><rect x=\"330\" y=\"606\" width=\"140\" height=\"16\" rx=\"8\" fill=\"#ffffff\" opacity=\".7\"/><path d=\"M330 400 L330 470 M350 380 L350 420\" stroke=\"#d4d0c8\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M820 360 l0 70 M785 395 l70 0 M860 560 l0 44 M838 582 l44 0\" stroke=\"#0a0a0a\" stroke-width=\"7\" stroke-linecap=\"round\"/></svg>"];
+            B.innerHTML = jars[0]; A.innerHTML = jars[1];
+            if (imgs.length >= 2) {
+              [[B, imgs[0]], [A, imgs[1]]].forEach(function (p) { p[0].innerHTML = ""; p[0].style.backgroundImage = 'url("' + p[1].replace(/"/g, "") + '")'; });
+            }
+            var st = { x: 97 };
+            function draw() {
+              A.style.clipPath = "inset(0 0 0 " + st.x + "%)"; Hd.style.left = st.x + "%";
+              var k = Math.min(1, Math.max(0, st.x / 100)); // 1 = before fully visible
+              pb.style.opacity = (0.35 + 0.65 * k).toFixed(3); pb.style.transform = "scale(" + (0.92 + 0.08 * k).toFixed(3) + ")";
+              pa.style.opacity = (0.35 + 0.65 * (1 - k)).toFixed(3); pa.style.transform = "scale(" + (0.92 + 0.08 * (1 - k)).toFixed(3) + ")";
+            }
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#baw-h", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.1);
+            tl.to(st, { x: 4, duration: 1.5, ease: "power2.inOut", onUpdate: draw }, 0.7);
+            tl.to(st, { x: 52, duration: 1.1, ease: "power3.out", onUpdate: draw }, 2.5);
+            draw();
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["before-after-wipe"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

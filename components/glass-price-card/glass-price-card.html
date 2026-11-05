@@ -1,0 +1,253 @@
+<!doctype html>
+<!--
+  Glass Price Card
+
+  A frosted-glass card rises over a soft neutral backdrop: blur and a thin light border, no neon. The price counts up and settles, then a small badge lands on the corner.
+
+  An original usemosio/blocks block (MIT, see LICENSE).
+-->
+<html
+  lang="en"
+  data-composition-id="glass-price-card"
+  data-composition-duration="5"
+  data-composition-variables='[
+  {
+    "id": "eyebrow",
+    "type": "string",
+    "role": "content",
+    "label": "Eyebrow",
+    "description": "Small line above the name.",
+    "default": "Paket hemat"
+  },
+  {
+    "id": "product",
+    "type": "string",
+    "role": "content",
+    "label": "Product",
+    "description": "Name, one or two lines.",
+    "default": "Nasi Box Ayam Bakar"
+  },
+  {
+    "id": "detail",
+    "type": "string",
+    "role": "content",
+    "label": "Detail",
+    "description": "Short muted line under the name.",
+    "default": "Min. 10 box · gratis antar"
+  },
+  {
+    "id": "price",
+    "type": "string",
+    "role": "content",
+    "label": "Price",
+    "description": "Counts up. A prefix such as Rp and dot thousands are kept.",
+    "default": "Rp28.000"
+  },
+  {
+    "id": "unit",
+    "type": "string",
+    "role": "content",
+    "label": "Unit",
+    "description": "Small text after the price. Empty hides it.",
+    "default": "/ box"
+  },
+  {
+    "id": "badge",
+    "type": "string",
+    "role": "content",
+    "label": "Badge",
+    "description": "Pill that lands on the card corner. Empty hides it.",
+    "default": "Hemat 20%"
+  },
+  {
+    "id": "bg_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background start",
+    "description": "Top of the backdrop gradient.",
+    "default": "#f5f5f5"
+  },
+  {
+    "id": "bg2_color",
+    "type": "color",
+    "role": "style",
+    "label": "Background end",
+    "description": "Bottom of the backdrop gradient.",
+    "default": "#e5e5e5"
+  },
+  {
+    "id": "shape_color",
+    "type": "color",
+    "role": "style",
+    "label": "Shape colour",
+    "description": "The solid shapes the glass blurs.",
+    "default": "#ffffff"
+  },
+  {
+    "id": "glass_color",
+    "type": "color",
+    "role": "style",
+    "label": "Glass tint",
+    "description": "Card tint (shown at the glass opacity).",
+    "default": "#ffffff"
+  },
+  {
+    "id": "glass_opacity",
+    "type": "number",
+    "role": "style",
+    "label": "Glass opacity",
+    "description": "How much of the tint shows over the blur.",
+    "default": 0.42,
+    "min": 0.15,
+    "max": 0.9,
+    "step": 0.01
+  },
+  {
+    "id": "main_color",
+    "type": "color",
+    "role": "style",
+    "label": "Main colour",
+    "description": "Badge and price: the one accent.",
+    "default": "#2563eb"
+  },
+  {
+    "id": "text_color",
+    "type": "color",
+    "role": "style",
+    "label": "Text colour",
+    "description": "Name.",
+    "default": "#0a0a0a"
+  },
+  {
+    "id": "muted_color",
+    "type": "color",
+    "role": "style",
+    "label": "Muted colour",
+    "description": "Eyebrow and detail.",
+    "default": "#52525b"
+  },
+  {
+    "id": "font_family",
+    "type": "string",
+    "role": "style",
+    "label": "Font",
+    "description": "Google Fonts family name; Geist is loaded, others only if the host loads them.",
+    "default": "Geist"
+  },
+  {
+    "id": "transparent",
+    "type": "boolean",
+    "role": "style",
+    "label": "Transparent",
+    "description": "Leave the background clear so the block sits over your own scene.",
+    "default": false
+  }
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glass Price Card</title>
+  </head>
+  <body>
+    <template>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=block"
+      />
+      <style>
+        #root {
+          position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none;
+          -webkit-font-smoothing: antialiased;
+          background: var(--gpc-bg); color: var(--gpc-text); font-family: var(--gpc-font);
+        }
+        #root * { box-sizing: border-box; }
+        .gpc-stage { position: absolute; inset: 0; --u: calc(100cqmin / 1080); }
+
+        #root { background: linear-gradient(165deg, var(--gpc-bg), var(--gpc-bg2)); }
+        .gpc-disc { position: absolute; border-radius: 50%; background: var(--gpc-shape); }
+        .gpc-bars { position: absolute; background: var(--gpc-shape); opacity: 0.6; border-radius: calc(var(--u) * 140); }
+        .gpc-card { position: absolute; left: 50%; top: 0; bottom: 0; margin-block: auto; height: fit-content; width: calc(var(--u) * 900); margin-left: calc(var(--u) * -450); padding: calc(var(--u) * 64) calc(var(--u) * 64) calc(var(--u) * 60);
+          border-radius: calc(var(--u) * 56); background: rgba(var(--gpc-glass-rgb), var(--gpc-glass-a)); border: calc(var(--u) * 2) solid rgba(255,255,255,0.7);
+          -webkit-backdrop-filter: blur(calc(var(--u) * 30)) saturate(1.15); backdrop-filter: blur(calc(var(--u) * 30)) saturate(1.15);
+          box-shadow: 0 calc(var(--u) * 30) calc(var(--u) * 80) rgba(10,10,10,0.14); display: flex; flex-direction: column; gap: calc(var(--u) * 10); }
+        .gpc-eyebrow { font-size: calc(var(--u) * 34); font-weight: 500; color: var(--gpc-muted); letter-spacing: 0.02em; }
+        .gpc-name { font-size: calc(var(--u) * 78); font-weight: 600; letter-spacing: -0.04em; line-height: 1.05; }
+        .gpc-detail { font-size: calc(var(--u) * 34); font-weight: 500; color: var(--gpc-muted); }
+        .gpc-rule { height: calc(var(--u) * 2); background: rgba(10,10,10,0.14); margin: calc(var(--u) * 26) 0 calc(var(--u) * 10); transform-origin: 0 50%; }
+        .gpc-row { display: flex; align-items: baseline; gap: calc(var(--u) * 16); }
+        .gpc-price { font-size: calc(var(--u) * 150); font-weight: 600; letter-spacing: -0.05em; line-height: 1.05; color: var(--gpc-main); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .gpc-unit { font-size: calc(var(--u) * 44); font-weight: 500; color: var(--gpc-muted); white-space: nowrap; }
+        .gpc-badge { position: absolute; right: calc(var(--u) * 44); top: calc(var(--u) * -34); padding: calc(var(--u) * 16) calc(var(--u) * 38); border-radius: calc(var(--u) * 80); background: var(--gpc-main); color: #fff; font-size: calc(var(--u) * 40); font-weight: 600; white-space: nowrap; }
+        @container (aspect-ratio > 1) { .gpc-card { width: calc(var(--u) * 960); margin-left: calc(var(--u) * -480); padding: calc(var(--u) * 56) calc(var(--u) * 64) calc(var(--u) * 52); } .gpc-name { font-size: calc(var(--u) * 72); } .gpc-price { font-size: calc(var(--u) * 140); } }
+
+      </style>
+
+      <div id="root" data-composition-id="glass-price-card" data-duration="5" data-fps="30">
+        <div id="gpc-clip" class="gpc-stage clip" data-start="0" data-duration="5" data-track-index="0">
+          <div class="gpc-disc" id="gpc-disc"></div><div class="gpc-bars" id="gpc-bars"></div>
+          <div class="gpc-card" id="gpc-card">
+            <span class="gpc-eyebrow" id="gpc-eyebrow"></span><span class="gpc-name" id="gpc-name"></span><span class="gpc-detail" id="gpc-detail"></span>
+            <div class="gpc-rule" id="gpc-rule"></div>
+            <div class="gpc-row"><span class="gpc-price" id="gpc-price"></span><span class="gpc-unit" id="gpc-unit"></span></div>
+            <span class="gpc-badge" id="gpc-badge"></span>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            var root = document.getElementById("root");
+            var vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() || {} : {};
+            function num(v, d, a, b) { var n = Number(v); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : d; }
+            function str(v, d) { return typeof v === "string" && v.trim() ? v : d; }
+            function colr(v, d) { return typeof v === "string" && v.trim() && window.CSS && CSS.supports("color", v.trim()) ? v.trim() : d; }
+            function bool(v, d) { return v === true || v === "true" ? true : v === false || v === "false" ? false : d; }
+            function el(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
+            function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+            function lines(v, d) { var s = typeof v === "string" && v.trim() ? v : d; return s.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }
+            function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+            function ease(n, a, b) { return Math.min(1, Math.max(0, (n - a) / (b - a))); }
+            var W = root.clientWidth || 1080, H = root.clientHeight || 1920, U = Math.min(W, H) / 1080, PORTRAIT = H > W;
+            var PAL = [["bg", "bg_color", "#f5f5f5"], ["bg2", "bg2_color", "#e5e5e5"], ["shape", "shape_color", "#ffffff"], ["glass", "glass_color", "#ffffff"], ["main", "main_color", "#2563eb"], ["text", "text_color", "#0a0a0a"], ["muted", "muted_color", "#52525b"]];
+            PAL.forEach(function (c) { root.style.setProperty("--gpc-" + c[0], colr(vars[c[1]], c[2])); });
+            root.style.setProperty("--gpc-font", '"' + str(vars.font_family, "Geist") + '", Geist, system-ui, sans-serif');
+            if (bool(vars.transparent, false)) root.style.background = "transparent";
+
+
+            function rgb(c) { var d = document.createElement("canvas").getContext("2d"); d.fillStyle = "#ffffff"; d.fillStyle = c; var v = d.fillStyle; var m = /^#([0-9a-f]{6})$/i.exec(v); return m ? [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4, 6), 16)].join(",") : "255,255,255"; }
+            root.style.setProperty("--gpc-glass-rgb", rgb(colr(vars.glass_color, "#ffffff")));
+            root.style.setProperty("--gpc-glass-a", String(num(vars.glass_opacity, 0.42, 0.15, 0.9)));
+            function txt(id, v, d) { var e = document.getElementById(id); var t = typeof v === "string" ? v.trim() : d; e.textContent = t; if (!t) e.style.display = "none"; return t; }
+            txt("gpc-eyebrow", vars.eyebrow, "Paket hemat"); txt("gpc-name", vars.product, "Nasi Box Ayam Bakar"); txt("gpc-detail", vars.detail, "Min. 10 box · gratis antar");
+            txt("gpc-unit", vars.unit, "/ box"); txt("gpc-badge", vars.badge, "Hemat 20%");
+            var price = str(vars.price, "Rp28.000"), pe = document.getElementById("gpc-price"); pe.textContent = price;
+            var m = /^(\D*)(\d[\d.,]*)(.*)$/.exec(price), value = m ? parseInt(m[2].replace(/[.,]/g, ""), 10) : NaN;
+            var step = value >= 10000 ? 1000 : value >= 1000 ? 100 : 1, ctr = { v: 0 };
+            function show(v) { pe.textContent = !m || v >= value ? price : m[1] + dots(Math.round(v / step) * step) + m[3]; }
+            var d = document.getElementById("gpc-disc"), b = document.getElementById("gpc-bars"), dd = (PORTRAIT ? 980 : 800) * U;
+            d.style.width = d.style.height = dd + "px"; d.style.left = (PORTRAIT ? W * 0.5 - dd * 1.0 : W * 0.5 - dd * 1.5) + "px"; d.style.top = (PORTRAIT ? H * 0.5 - dd * 1.2 : H * 0.5 - dd * 1.0) + "px";
+            var bw = (PORTRAIT ? 640 : 640) * U, bh = (PORTRAIT ? 640 : 640) * U;
+            b.style.width = bw + "px"; b.style.height = bh + "px"; b.style.left = (W * 0.5 + (PORTRAIT ? 200 : 380) * U) + "px"; b.style.top = (H * 0.5 + (PORTRAIT ? 190 : 60) * U) + "px";
+            var tl = gsap.timeline({ paused: true });
+            tl.fromTo("#gpc-disc", { opacity: 0, scale: 0.85 }, { opacity: 0.9, scale: 1, duration: 0.8, ease: "power3.out" }, 0);
+            tl.fromTo("#gpc-bars", { opacity: 0, x: 40 * U }, { opacity: 0.6, x: 0, duration: 0.8, ease: "power3.out" }, 0.1);
+            tl.to("#gpc-disc", { y: 40 * U, duration: 5, ease: "none" }, 0);
+            tl.fromTo("#gpc-card", { y: 150 * U, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.9, ease: "expo.out" }, 0.3);
+            tl.fromTo("#gpc-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.inOut" }, 1.0);
+            tl.fromTo("#gpc-price", { opacity: 0.3 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 1.2);
+            tl.fromTo(ctr, { v: 0 }, { v: value || 0, duration: 1.1, ease: "power2.out", onUpdate: function () { show(ctr.v); } }, 1.2);
+            tl.fromTo("#gpc-badge", { scale: 0.3, opacity: 0, rotation: -8, transformOrigin: "100% 50%" }, { scale: 1, opacity: 1, rotation: 0, duration: 0.5, ease: "back.out(1.6)" }, 2.6);
+            show(0);
+
+            var total = parseFloat(root.dataset.duration || "5");
+            if (tl.duration() < total) tl.to({}, { duration: total - tl.duration() });
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["glass-price-card"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
